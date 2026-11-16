@@ -1,0 +1,115 @@
+/*
+ * Vit 主窗口 v5.1 设计令牌（UI-FOUNDATION-1）
+ *
+ * 来源（哈希可回指，见 coord/runs/UI-FOUNDATION-1/）：
+ * - agent/webui/design/main-window-v5/design-tokens-v5.json
+ *   sha256 = 1d985d5e7dd41bec5f7260ca16b6ed8dc3f29ca701bdc70fc2b9391e380da4ca
+ * - agent/webui/design/main-window-v5/round2-sprite.svg
+ *   sha256 = 746a49f5b7e42703ca030981a51044ef49449d838e0435f024437495ece5d981
+ *
+ * 命名规则：JSON 令牌 key 原样转为 --v5-<key>（read-bg -> --v5-read-bg）。
+ * 全部加 --v5- 前缀以避免与现行 styles.css 的 --ink/--paper 等变量冲突；
+ * 未来主 App 接入时两种前缀并存互不覆盖。
+ * 阴影/字体串保持 design-tokens-v5.json 的原文格式（sprite.test.tsx 逐字回指）。
+ */
+
+:root {
+  /* ---- 阅读面与中性层（v5.1 空间修订） ---- */
+  --v5-read-bg: #FFFFFF;
+  --v5-read-workspace: #F0F1F2;
+  --v5-ui-text: #141414;
+  --v5-ui-muted: #555555;
+  --v5-ui-weak: #666666;
+  --v5-ui-canvas: #F4F4F4;
+  --v5-ui-rail: #EFEFEF;
+  --v5-ui-plate: #F6F6F6;
+  --v5-ui-border: #D3D3D3;
+  --v5-ui-rule: #E2E2E2;
+
+  /* ---- 复合控件蓝色系（用户确认：普通控件蓝壳、深内槽、深色图形区） ---- */
+  --v5-control-header: #31567D;
+  --v5-control-shell: #D0DFEF;
+  --v5-control-shell-raised: #D4E1EF;
+  --v5-control-shell-light: #ECF2F8;
+  --v5-control-shell-edge: #3E5B7C;
+  --v5-control-well: #BDCEE1;
+  --v5-control-well-deep: #BDCDDF;
+  --v5-control-well-edge: #8CA4C1;
+  --v5-control-choice: #FFFFFF;
+  --v5-control-choice-edge: #8796A8;
+  --v5-control-choice-edge-deep: #9BA8B7;
+  --v5-control-choice-selected: #F6E7AA;
+  --v5-control-selected-edge: #141414;
+  --v5-control-selected-ring: 0 0 0 1px rgba(20,20,20,.20);
+  --v5-control-pane: #1D2228;
+  --v5-control-pane-low: #101318;
+  --v5-control-pane-high: #8290A0;
+  --v5-control-blue: #73B8F5;
+  --v5-control-yellow: #FACC1A;
+
+  /* ---- v5.1 空间关系令牌 ---- */
+  --v5-window-edge: #5B626A;
+  --v5-titlebar-rule: #D9DDE1;
+  --v5-rail: #E9ECEF;
+  --v5-rail-edge: #CAD0D7;
+  --v5-context: #FAFBFC;
+  --v5-context-edge: #D0D5DB;
+  --v5-depth-line: #718094;
+
+  /* ---- 高警示 / 需留意 ---- */
+  --v5-warning-shell: #F7E9E8;
+  --v5-warning-edge: #9D3430;
+  --v5-warning-header: #943733;
+  --v5-attention-shell: #F6E7AA;
+  --v5-attention-edge: #8E782F;
+
+  /* ---- 阴影与深度（design-tokens-v5.json 原文格式） ---- */
+  --v5-control-shadow: 0 2px 4px rgba(0,0,0,.10);
+  --v5-depth-contact: 0 1px 2px rgba(0,0,0,.18);
+  --v5-depth-control: 0 6px 16px rgba(21,36,54,.12);
+  --v5-shadow-window: 0 2px 4px rgba(0,0,0,.28),0 18px 48px rgba(0,0,0,.28),0 48px 96px rgba(0,0,0,.18);
+  --v5-shadow-popover: 0 8px 24px rgba(9,11,14,.18);
+
+  /* ---- depthComputed（design-tokens-v5.json 逐字） ---- */
+  --v5-shadow-macro-card: 0 1px 2px rgba(0,0,0,.18), 0 6px 16px rgba(21,36,54,.12);
+  --v5-shadow-macro-well: inset 0 2px 4px rgba(29,44,65,.16), 0 1px 0 rgba(255,255,255,.7);
+  --v5-shadow-option-default: inset 0 1px 0 #FFFFFF, 0 1px 2px rgba(0,0,0,.12), 0 4px 8px rgba(29,44,65,.10);
+  --v5-shadow-option-selected: inset 0 1px 0 #FFF8D8, inset 0 -2px 0 #D7C47E, 0 0 0 1px rgba(20,20,20,.20), 0 1px 2px rgba(0,0,0,.10);
+  --v5-shadow-contour: inset 0 2px 4px rgba(0,0,0,.55), 0 1px 0 rgba(255,255,255,.8);
+  --v5-composer-edge: #9BA4AE;
+  --v5-shadow-composer: inset 0 1px 2px rgba(0,0,0,.045), 0 2px 8px rgba(0,0,0,.055);
+
+  /* ---- 字体与字阶（SPEC-V5 §6；字体栈为 JSON 原文） ---- */
+  --v5-font-sans: Inter,"Segoe UI","Microsoft YaHei","PingFang SC",sans-serif;
+  --v5-font-mono: Consolas,monospace;
+  --v5-t-caption: 13px;
+  --v5-t-secondary: 14px;
+  --v5-t-body: 16px;
+  --v5-t-title: 18px;
+  --v5-t-key: 22px;
+  --v5-t-screen: 28px;
+
+  /* ---- 形状（SPEC-V5 §5.3：面 0、交互控件 4px、状态点正圆） ---- */
+  --v5-radius-control: 4px;
+
+  /* ---- SPEC-V5 §1 继承锚定色值（不得改动；蓝/黄与上方 control-* 同值） ---- */
+  --v5-anchored-ink: #090B0E;
+  --v5-anchored-paper: #F6F4EC;
+  --v5-anchored-warm: #FBF9F1;
+  --v5-anchored-canvas: #E8E4D7;
+  --v5-anchored-blue: #065BC7;
+  --v5-anchored-blue-lt: #73B8F5;
+  --v5-anchored-red: #DB1214;
+  --v5-anchored-yellow: #FACC1A;
+  --v5-anchored-dark: #14181C;
+
+  /* ---- 图标 class 契约变量（语义同 v5-system.html 的 --icon-*） ---- */
+  --v5-icon-bg: #FFFFFF;
+  --v5-icon-fill: none;
+  --v5-icon-mark: currentColor;
+
+  /* ---- 动效时长（CHANGELOG-V5 图标定稿：待机 9s 慢转 / 进行中 1.6s 快转） ---- */
+  --v5-spin-idle: 9s;
+  --v5-spin-busy: 1.6s;
+  --v5-spin-linear: linear;
+}

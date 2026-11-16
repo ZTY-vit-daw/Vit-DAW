@@ -1,0 +1,235 @@
+/* WIDGET-KIT-1（池序 379）：音乐控件组件库样式。
+ * 与 src/widgets/AudioPlayer.tsx / ComparePair.tsx 同卡交付；复用既有
+ * .media-player 的 width 语义（styles.css），控件外壳为新增轻量样式。 */
+
+.widget-audio {
+  border: 1px solid var(--line, #d9dee8);
+  border-radius: 8px;
+  padding: 6px 10px;
+  margin: 6px 0;
+  background: var(--panel, #ffffff);
+  min-width: 0;
+}
+
+.widget-audio-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.widget-audio-icon {
+  display: inline-flex;
+  color: var(--muted, #6b7688);
+  flex: none;
+}
+
+.widget-audio-icon svg {
+  width: 12px;
+  height: 12px;
+}
+
+.widget-audio-title {
+  font-weight: 600;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.widget-audio-time {
+  font-size: 13px;
+  color: var(--muted, #6b7688);
+  font-variant-numeric: tabular-nums;
+  flex: none;
+  margin-left: auto;
+}
+
+.widget-audio-expand {
+  flex: none;
+  border: 1px solid var(--line, #d9dee8);
+  background: transparent;
+  border-radius: 6px;
+  font-size: 13px;
+  padding: 2px 8px;
+  cursor: pointer;
+  color: inherit;
+}
+
+.widget-audio-body {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.widget-audio-play {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--line, #d9dee8);
+  background: transparent;
+  cursor: pointer;
+  color: inherit;
+  padding: 0;
+}
+
+.widget-audio-play svg {
+  width: 12px;
+  height: 12px;
+}
+
+.widget-audio-play:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.widget-audio-progress {
+  flex: 1 1 auto;
+  min-width: 60px;
+}
+
+.widget-audio-hint {
+  font-size: 13px;
+  color: var(--muted, #6b7688);
+  flex: none;
+}
+
+.widget-audio-element {
+  display: none;
+}
+
+/* ---- ComparePair ---- */
+
+.widget-compare {
+  border: 1px solid var(--line, #d9dee8);
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin: 6px 0;
+  background: var(--panel, #ffffff);
+  min-width: 0;
+}
+
+.widget-compare-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.widget-compare-title {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.widget-compare-rule {
+  font-size: 13px;
+  color: var(--muted, #6b7688);
+}
+
+.widget-compare-sides {
+  display: grid;
+  gap: 6px;
+}
+
+.widget-compare[data-compare-layout="row"] .widget-compare-sides {
+  grid-template-columns: 1fr 1fr;
+}
+
+@media (max-width: 720px) {
+  .widget-compare[data-compare-layout="row"] .widget-compare-sides {
+    grid-template-columns: 1fr;
+  }
+}
+
+.widget-compare-side {
+  min-width: 0;
+}
+
+.widget-compare-controls {
+  margin-top: 8px;
+  border-top: 1px solid var(--line, #d9dee8);
+  padding-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.widget-compare-pref {
+  border: 1px solid var(--line, #d9dee8);
+  background: transparent;
+  border-radius: 6px;
+  font-size: 13px;
+  padding: 4px 10px;
+  cursor: pointer;
+  color: inherit;
+}
+
+.widget-compare-pref.selected {
+  border-color: var(--accent, #3563e9);
+  color: var(--accent, #3563e9);
+  font-weight: 600;
+}
+
+.widget-compare-reason {
+  flex: 1 1 160px;
+  min-width: 120px;
+  font-size: 13px;
+  border: 1px solid var(--line, #d9dee8);
+  border-radius: 6px;
+  padding: 4px 8px;
+}
+
+/* ---- interactionCardKit 布局族（行/列/折叠） ---- */
+
+.interaction-layout {
+  display: flex;
+  gap: 10px;
+  min-width: 0;
+}
+
+.interaction-layout[data-layout-type="column"] {
+  flex-direction: column;
+}
+
+.interaction-layout[data-layout-type="row"] {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.interaction-layout-group {
+  min-width: 0;
+}
+
+.interaction-layout[data-layout-type="row"] > .interaction-layout-group {
+  flex: 1 1 220px;
+}
+
+.interaction-collapse {
+  border: 1px solid var(--line, #d9dee8);
+  border-radius: 8px;
+  margin: 6px 0;
+  overflow: hidden;
+}
+
+.interaction-collapse > summary {
+  cursor: pointer;
+  padding: 6px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  user-select: none;
+}
+
+.interaction-collapse > .interaction-collapse-body {
+  padding: 4px 10px 8px;
+}
+
+.interaction-collapse[data-collapse-open="true"] > summary {
+  color: var(--accent, #3563e9);
+}

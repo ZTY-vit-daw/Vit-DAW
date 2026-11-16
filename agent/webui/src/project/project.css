@@ -1,0 +1,409 @@
+/*
+ * UI-PROJECT-1（346）P3 工程内对话主窗 surface 样式。
+ *
+ * 作用域：.v5-project 之下；令牌全部来自 src/styles/tokens.css（--v5-*，344 基座）。
+ * 组件复用：.v5-composer（TextField）/ .v5-btn（Button）/ .v5-macro / .v5-status-card /
+ * .v5-message / .v5-snapshot-receipt 等 primitives 依赖 .v5-design 作用域——
+ * project 根节点同时挂 .v5-design 与 .v5-project。
+ * 空间语言（v5.1）：阅读面 read-bg；窗框 1px window-edge + 柔影；宏卡无等重描边
+ * （344 已裁）；选中 2px 墨框 + 外环（primitives 内置）。
+ * 对比度红线（UI-FOUNDATION-1 同款）：正文 ≥4.5:1、图形 ≥3:1、最小字号 13px。
+ * 纪律：不改 styles.css 业务规则；本文件只服务 project surface。
+ *
+ * UI-VISUAL-FIDELITY-1 保真修订（对照 design/main-window-v5/screens/{p3,s5}.png +
+ * SPEC-V5 §8.1；差距清单 coord/runs/UI-VISUAL-FIDELITY-1/GAP-LIST.md）：
+ * P1 用户消息=surface 层覆盖 344 Message 默认气泡 → S5 定稿语言（右对齐无色块，
+ * §8.1 对齐区分；344 原语文件不动，原语默认差异另列缺口上交）；P2 A/B 行平铺
+ * 工作面（去卡底，P3 定稿）；P9 窗框 8px 角；W2 矮视口紧凑档。
+ */
+
+.v5-project {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* live 撑满（UI-VISUAL-FIDELITY-1 W2 裁切修复，同 launcher--fill）：根容器显式视口高，
+ * frame--fill 才能真正撑满；装载门 .v5-loading-gate 同步 100%（live 下父级=#root，
+ * gallery 样例内父级高度 auto → 百分比解析回 auto，样例布局不受影响）。 */
+.v5-project--fill {
+  height: 100%;
+}
+
+.v5-loading-gate {
+  height: 100%;
+}
+
+/* 窗框：gallery 样例默认 640px 高；live surface 用 --fill 撑满视口（P3 58–62% 宽
+ * 由宿主视口决定，不锁死 1440×900 样图尺寸）。 */
+.v5-project-frame {
+  display: flex;
+  flex-direction: column;
+  width: min(880px, 100%);
+  height: 640px;
+  min-height: 0;
+  margin: 0 auto;
+  background: var(--v5-read-bg);
+  border: 1px solid var(--v5-window-edge);
+  border-radius: 8px;
+  box-shadow: var(--v5-shadow-window);
+  overflow: hidden;
+}
+
+.v5-project-frame--fill {
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
+}
+
+/* ---------- 标题栏：i-project + 工程名（V 品牌标不进标题栏，v5.1） ---------- */
+
+.v5-project-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 40px;
+  flex: 0 0 40px;
+  padding: 0 14px;
+  background: var(--v5-ui-plate);
+  border-bottom: 1px solid var(--v5-titlebar-rule);
+}
+
+.v5-project-titlebar-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--v5-ui-text);
+  overflow-wrap: anywhere;
+}
+
+.v5-project-titlebar-detail {
+  font-size: 13px;
+  color: var(--v5-ui-muted);
+}
+
+.v5-project-context-status {
+  font-size: 13px;
+  color: var(--v5-ui-muted);
+}
+
+.v5-project-context-error {
+  padding: 10px 12px;
+  background: var(--v5-warning-shell);
+  border: 1px solid var(--v5-warning-edge);
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--v5-ui-text);
+  line-height: 1.5;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+/* ---------- 主列：线程滚动 + 输入区 ---------- */
+
+.v5-project-main {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 16px 20px;
+  background: var(--v5-read-workspace);
+  gap: 10px;
+}
+
+.v5-project-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* 线程内的复合控件统一左对齐限宽（对话流行宽约 36 汉字语义）。
+ * 用户消息例外（2026-11-15 用户修订，原 P1「右对齐无色块」口径作废）：右对齐
+ * + 阴影框标识（1px 灰边+柔影+极浅底，复用 v5.1 空间修订令牌，与 launcher
+ * surface 同款；SPEC-V5 §8.1 修订依据引裁定档案）——344 Message 原语默认
+ * canvas 气泡，此处仅 surface 层覆盖，344 文件不动。 */
+.v5-project-thread .v5-macro,
+.v5-project-thread .v5-status-card,
+.v5-project-ab {
+  align-self: flex-start;
+  width: min(680px, 100%);
+}
+
+/* 用户消息阴影框：令牌/内边距与 launcher 一致；盒贴内容右收（宽度改上限
+ * min(36em,100%)，不再强制满宽——可见框下短消息满宽会出现大片空框）；
+ * 行高/换行沿用 344 原语（line-height 1.65 / overflow-wrap 由基类承担）。 */
+.v5-project-thread .v5-message--user {
+  align-self: flex-end;
+  max-width: min(36em, 100%);
+  background: var(--v5-read-bg);
+  padding: 6px 10px;
+  border: 1px solid var(--v5-ui-border);
+  border-radius: var(--v5-radius-control);
+  box-shadow: var(--v5-shadow-macro-card);
+  text-align: right;
+}
+
+.v5-project-traj-idle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--v5-ui-muted);
+}
+
+/* ---------- A/B 动作行（P2 保真：平铺在工作面上，无卡底；后果语义由状态图标 + 词表达） ---------- */
+
+.v5-project-ab {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 2px 0;
+  background: transparent;
+  border-radius: 0;
+}
+
+.v5-project-ab-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--v5-ui-text);
+}
+
+.v5-project-ab-reason {
+  font-size: 13px;
+  color: var(--v5-ui-text);
+  background: var(--v5-warning-shell);
+  border: 1px solid var(--v5-warning-edge);
+  border-radius: 6px;
+  padding: 4px 8px;
+}
+
+.v5-project-ab-note {
+  font-size: 13px;
+  color: var(--v5-ui-muted);
+}
+
+/* ---------- 快照回执与撤销留痕 ---------- */
+
+.v5-project-undone {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--v5-ui-muted);
+}
+
+.v5-project-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--v5-ui-text);
+  background: var(--v5-warning-shell);
+  border: 1px solid var(--v5-warning-edge);
+  border-radius: 6px;
+  padding: 6px 10px;
+}
+
+/* ---------- 输入区（四态由 data-project-composer-state 承载） ---------- */
+
+.v5-project-composer {
+  flex: 0 0 auto;
+}
+
+.v5-project-composer .v5-composer {
+  background: var(--v5-read-bg);
+}
+
+.v5-project-retry {
+  margin-top: 2px;
+}
+
+/* ---------- gallery fixture 页专用（[data-project-sample] 只存在于渲染烟测页，
+ * live surface 不含该属性 → 规则惰性）：状态样例框 auto 高度，线程自然展开，
+ * 不依赖滚动 —— 滚动意图由 data-scroll-intentional 在真实窗框内声明。 */
+.v5-gal-root [data-project-sample] .v5-project-frame {
+  height: auto;
+  min-height: 320px;
+}
+
+/* ---------- 矮视口紧凑档（UI-VISUAL-FIDELITY-1 W2）：宿主 96%/94% 夹取+125-150% DPI
+ * 下窗高受限——收紧留白；线程 overflow-y:auto（data-scroll-intentional）兜底滚动。 */
+
+@media (max-height: 720px) {
+  .v5-project-main {
+    padding: 12px 16px;
+    gap: 8px;
+  }
+}
+
+/* ---------- SHELL-6（池序 367）：工程面交互卡（directive/结果卡/治理三键卡/
+ * 确认承接卡/桥执行块）——v5.1 样式与 launcher 面同族，按工程面色板落地。 */
+
+.v5-project-directive {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-self: flex-start;
+  max-width: 640px;
+  padding: 12px 14px;
+  background: var(--v5-attention-shell);
+  border: 1px solid var(--v5-attention-edge);
+  border-radius: var(--v5-radius-control);
+}
+
+.v5-project-directive-headline {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--v5-ui-text);
+}
+
+.v5-project-directive-detail {
+  font-size: 12px;
+  color: var(--v5-ui-muted);
+  word-break: break-all;
+}
+
+.v5-project-directive-note {
+  font-size: 12px;
+  color: var(--v5-ui-muted);
+}
+
+.v5-project-bridge-note {
+  font-size: 12px;
+  color: var(--v5-ui-text);
+}
+
+.v5-project-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-self: stretch;
+}
+
+.v5-project-card {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  text-align: left;
+  background: var(--v5-read-bg);
+  border: 1px solid var(--v5-ui-border);
+  border-radius: var(--v5-radius-control);
+  cursor: pointer;
+}
+
+.v5-project-card:hover {
+  border-color: var(--v5-ui-text);
+}
+
+.v5-project-card-name {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--v5-ui-text);
+}
+
+.v5-project-card-path {
+  font-size: 12px;
+  color: var(--v5-ui-muted);
+  word-break: break-all;
+}
+
+.v5-project-governance {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 14px;
+  background: var(--v5-ui-plate);
+  border: 1px solid var(--v5-ui-text);
+  border-radius: var(--v5-radius-control);
+}
+
+.v5-project-governance-headline {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--v5-ui-text);
+}
+
+.v5-project-governance-note {
+  font-size: 12px;
+  color: var(--v5-ui-muted);
+}
+
+.v5-project-governance-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.v5-project-governance-answered {
+  font-size: 12.5px;
+  color: var(--v5-ui-muted);
+}
+
+.v5-project-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  background: var(--v5-attention-shell);
+  border: 1px solid var(--v5-attention-edge);
+  border-radius: var(--v5-radius-control);
+}
+
+.v5-project-confirm-note {
+  font-size: 12px;
+  color: var(--v5-ui-muted);
+}
+
+.v5-project-confirm-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.v5-project-confirm-answered {
+  font-size: 12.5px;
+  color: var(--v5-ui-muted);
+}
+
+.v5-project-bridge-exec {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 8px 12px;
+  font-size: 13px;
+  border-radius: var(--v5-radius-control);
+}
+
+.v5-project-bridge-exec--ok {
+  background: var(--v5-read-bg);
+  border: 1px solid var(--v5-ui-text);
+}
+
+.v5-project-bridge-exec--wait {
+  background: var(--v5-attention-shell);
+  border: 1px solid var(--v5-attention-edge);
+}
+
+.v5-project-bridge-exec--bad {
+  background: var(--v5-warning-shell);
+  border: 1px solid var(--v5-warning-edge);
+}
+
+.v5-project-bridge-exec-label {
+  font-weight: 700;
+  color: var(--v5-ui-text);
+}
+
+.v5-project-bridge-exec-message {
+  color: var(--v5-ui-muted);
+}
