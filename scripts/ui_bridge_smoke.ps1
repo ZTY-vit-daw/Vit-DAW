@@ -201,7 +201,7 @@ $recentsItems = @($recentsMerged | ForEach-Object { $_ | ConvertTo-Json })
 $recentsText = "{`n  `"recent_projects`": [`n    " + ($recentsItems -join ",`n    ") + "`n  ]`n}"
 [System.IO.File]::WriteAllText($recentsConfig, $recentsText, (New-Object System.Text.UTF8Encoding($false)))
 Copy-Item -LiteralPath $recentsConfig -Destination (Join-Path $ArtDir "global_project_config.seeded.json") -Force
-Write-Host ("recents seeded (prepended 2 fixtures; snapshot=" + $recentsBackup + ")")
+Write-Host ("recents seeded (prepended " + $recentsSeed.Count + " fixtures; snapshot=" + $recentsBackup + ")")
 
 # kernel workspace 隔离。
 $KernelWorkspace = Join-Path $RunRoot "kernel_workspace"
@@ -375,6 +375,29 @@ try {
     Write-Step0 "RC1: recents tape-card click -> governance switch -> open -> in-project chat roundtrip (zero LLM)"
     $agentProcId = Start-BridgeAgent -DraftRoot (Join-Path $RunRoot "agent_drafts_rc1") -TelemetryPath $rcTelemetry
     $assert["stack"]["agent_pid_rc1"] = $agentProcId
+    # 工程内对话往返·轮1（attempt1 教训：**进入工程后** launcher gate 关（userEnteredProject
+    # 置位）→「有哪些工程」落 LLM 7 调用）。轮1 必须在 Godot boot/打开前发（gate 开=
+    # 确定性 list 零 LLM），并为本会话注册 launcher 起源——轮2 桥接播报 checkpoint 的前提。
+    Start-Sleep -Seconds 2
+    $chatUri = $AgentHttp.TrimEnd("/") + "/agent/chat"
+    $rcConv = "webui_rc1_http_" + (Get-Date -Format "yyyyMMdd_HHmmss")
+    $rc1Pre = [ordered]@{}
+    $assert["RC1_pre_open_launcher_list_round"] = $rc1Pre
+    $round1 = $null
+    for ($attempt = 1; $attempt -le 3; $attempt++) {
+        $round1 = Invoke-RestMethod -Method Post -Uri $chatUri -ContentType "application/json; charset=utf-8" -Body ([System.Text.Encoding]::UTF8.GetBytes((ConvertTo-Json @{ conversation_id = $rcConv; message = "有哪些工程"; context = @{ launcher = $true } } -Compress))) -TimeoutSec 30
+        $rc1Pre.chat_round1_reply = [string]$round1.reply
+        if ($rc1Pre.chat_round1_reply -like "*最近的工程*") { break }
+        if ($rc1Pre.chat_round1_reply -notlike "*连不上内核*") {
+            throw ("RC1 chat round1 (pre-open) not deterministic list reply — gate already closed? reply=" + $rc1Pre.chat_round1_reply)
+        }
+        # 内核引导窗口内的确定性降级回执（零 LLM）——等 3s 重试（不盲目重试防 LLM 消耗）。
+        Start-Sleep -Seconds 3
+    }
+    if ($rc1Pre.chat_round1_reply -notlike "*最近的工程*") {
+        throw ("RC1 chat round1 (pre-open) kernel never became reachable: " + $rc1Pre.chat_round1_reply)
+    }
+    $rc1Pre.rounds_ok = $true
     $logR1 = Join-Path $LogsDir "godot_boot_rc1.log"
     $godotPid = Start-BridgeGodot -LogPath $logR1 -BridgeMessage "有哪些工程" -Governance "switch" -FollowupMs "8000" -Followup "recents_click"
     $assert["stack"]["godot_boot_rc1_pid"] = $godotPid
@@ -410,13 +433,9 @@ try {
     }
     if ($rc1Bound -notlike "*烟测桥甲*") { throw ("RC1 agent current_project not fixture A after open: '$rc1Bound'") }
     $rc1.agent_current_project = $rc1Bound
-    # 工程内对话往返（同会话 HTTP 两轮；339 leg1 同款断言面，零 LLM——播报 checkpoint 先于 LLM 轮）。
+    # 工程内对话往返·轮2（同会话，进入工程后）：launcher 起源会话+绑定工程+进入事实
+    # 在案 → 桥接播报 checkpoint 先于 LLM（339 leg1 同款断言面，零 LLM）。
     Start-Sleep -Seconds 5
-    $chatUri = $AgentHttp.TrimEnd("/") + "/agent/chat"
-    $rcConv = "webui_rc1_http_" + (Get-Date -Format "yyyyMMdd_HHmmss")
-    $round1 = Invoke-RestMethod -Method Post -Uri $chatUri -ContentType "application/json; charset=utf-8" -Body ([System.Text.Encoding]::UTF8.GetBytes((ConvertTo-Json @{ conversation_id = $rcConv; message = "有哪些工程"; context = @{ launcher = $true } } -Compress))) -TimeoutSec 30
-    $rc1.chat_round1_reply = [string]$round1.reply
-    if ($rc1.chat_round1_reply -notlike "*最近的工程*") { throw ("RC1 chat round1 not deterministic list reply: " + $rc1.chat_round1_reply) }
     $round2 = Invoke-RestMethod -Method Post -Uri $chatUri -ContentType "application/json; charset=utf-8" -Body ([System.Text.Encoding]::UTF8.GetBytes((ConvertTo-Json @{ conversation_id = $rcConv; message = "现在到哪了" } -Compress))) -TimeoutSec 60
     $rc1.chat_round2_reply = [string]$round2.reply
     $rc1.chat_round2_stop_reason = [string]$round2.stop_reason

@@ -38,3 +38,10 @@
 1. 占栈登记推 main 亲核 → ≤60s 复核净空；
 2. 跑命令（见上）→ exit 0；
 3. teardown 复核（进程/端口全零）→ recents 还原哈希亲证 → 释放行推 main。
+
+## attempt1 记录（2026-11-16 23:13-23:17，run_20261116_2313）
+
+- **产品链全绿**：RC1 磁带卡点击经桥（smoke.navigate 带 recents_click followup 亲证）→ directive.received → 治理 dialog+switch → open.begin → result=opened + result_ack=opened → scene_added VitDockRoot 同 HWND → /agent/state=烟测桥甲——**点击→打开链 attempt1 即证成**。
+- **失败=apparatus_defect**：脚本侧「工程内对话往返」轮1 在进入工程后发——launcher gate 关（userEnteredProject 置位，launcher_flow.go:72-80 gate=context.launcher && !userEnteredProject）→「有哪些工程」落 LLM **7 调用（deepseek-flash，telemetry 7 行=预算 0 超支，budget_exceeded 如实记）**→ 断言红 exit 1。RC2/RC3 未跑。
+- **修复**（换假设缩小，非原样重跑，§8 允许项）：轮1 移到 Godot boot 前（gate 开=确定性 list 零 LLM，本会话注册 launcher 起源）；轮2 进入工程后发（桥接播报 checkpoint 前置于 LLM——339 leg1 同款已证形态）；内核引导窗口确定性降级（连不上内核）限时重试 3×3s，其余回执即停不盲重试。
+- attempt2=RC 全三腿重跑 1 次（新 run 目录不覆盖）；预算仍 0（attempt2 若再触 LLM 即停腿上交）。
