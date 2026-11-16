@@ -1,0 +1,115 @@
+{
+  "schema_version": "score_workbench_smoke.v2-a7a8",
+  "card": "SCORE-DG1A-COMPLETE-1 (completes SCORE-WORKBENCH-1 DG1-A leg)",
+  "gate": "DG1-A (docs/STACKGATE_DG1_DG3_V1.md section 3.1)",
+  "leg_form": "berth (kernel + agent, real browser on /app/)",
+  "started_at": "2026-11-16T11:45:16.795Z",
+  "agent_http": "http://127.0.0.1:7878",
+  "kernel_zmq": "tcp://127.0.0.1:5555",
+  "kernel_sub": "tcp://127.0.0.1:5556",
+  "thresholds": {
+    "probe_max_abs_min": 0.01,
+    "wav_non_silent_peak": 500,
+    "wav_non_silent_rms": 20,
+    "wav_diff_max_min": 500
+  },
+  "assertions": {
+    "A4-timesig-disclosed": {
+      "pass": true,
+      "detail": ""
+    },
+    "A1-load-equality": {
+      "pass": true,
+      "detail": ""
+    },
+    "A3-fixture-loaded": {
+      "pass": true,
+      "detail": ""
+    },
+    "A3-svg-glyphs": {
+      "pass": true,
+      "detail": ""
+    },
+    "A3-dotted": {
+      "pass": true,
+      "detail": ""
+    },
+    "A3-rest-window": {
+      "pass": true,
+      "detail": ""
+    },
+    "A3-syncopation": {
+      "pass": true,
+      "detail": ""
+    },
+    "A3-cross-bar-tie": {
+      "pass": true,
+      "detail": ""
+    },
+    "A2-id-binding": {
+      "pass": true,
+      "detail": ""
+    },
+    "A1-write-readback": {
+      "pass": true,
+      "detail": ""
+    },
+    "A5-saved-only-after-verify": {
+      "pass": true,
+      "detail": ""
+    },
+    "A2-id-stable-edit-apply": {
+      "pass": true,
+      "detail": ""
+    },
+    "A6-reopen-readback": {
+      "pass": true,
+      "detail": ""
+    },
+    "A2-id-stable-reopen": {
+      "pass": true,
+      "detail": ""
+    },
+    "A6-panel-reload": {
+      "pass": true,
+      "detail": ""
+    },
+    "A4-template-2-4-disclosed": {
+      "pass": true,
+      "detail": ""
+    }
+  },
+  "boundary": [],
+  "failure_class": "assertion_failure",
+  "notes": [],
+  "finished_at": "2026-11-16T11:45:41.651Z",
+  "project_path_source": "leg save_as target (fixture.vit); fallback --project-xml=(none)",
+  "p5_template": {
+    "source": "D:\\Vit_DAW_wt_377dg1a\\coord\\lesson-designs\\music-creation-unit2\\templates\\melody-drum-v1\\template.v1.xml",
+    "source_sha256": "a188defd2c852d57e1b18e0a2cb811c9b854c1c8063b54383d191f8dc1f0fb29",
+    "copy": "D:\\Vit_DAW_wt_377dg1a\\coord\\runs\\SCORE-DG1A-COMPLETE-1\\run_dg1a_20261116_1945b\\lesson_project.xml",
+    "copy_sha256": "a188defd2c852d57e1b18e0a2cb811c9b854c1c8063b54383d191f8dc1f0fb29",
+    "manifest_id": "melody-drum-v1"
+  },
+  "p5_handles": {
+    "melody_track_id": "1110",
+    "melody_clip_id": "1111",
+    "melody_plugins": [
+      "Surge XT",
+      "Volume & Pan Plugin",
+      "Level Meter"
+    ]
+  },
+  "p5_edit_seam": "agent/kernel tool face mutate_midi_notes (373 DG1-B B4 verbatim); panel gesture blocked by D4 (out-of-domain defect, anchors in notes)",
+  "p5_music_context": {
+    "tempo_bpm": 80,
+    "tempo_setting_count": 1,
+    "time_sig_setting_count": 1,
+    "time_signature": "2/4",
+    "time_signature_denominator": 4,
+    "time_signature_numerator": 2
+  },
+  "exit_code": 1,
+  "fail_phase": "P5-render-before",
+  "fail_reason": "pre-edit render face failed: unexpected sample width 0: D:\\Vit_DAW_wt_377dg1a\\coord\\runs\\SCORE-DG1A-COMPLETE-1\\run_dg1a_20261116_1945b\\render_before_edit.wav"
+}
