@@ -129,6 +129,36 @@ def wav_duration_seconds(path):
     return max(0.0, (total - 44) / float(byte_rate))
 
 
+# Requested duration for both fixture jobs (v1/v2 start bodies pin
+# "duration_seconds": 60; kept in one place for the C8 window below).
+REQUESTED_DURATION_S = 60
+
+# 381-C8 补腿 (YUE-VOCAL-FORENSICS-1): the engine may end a song early —
+# run_20261116_000009 v2 hit its semantic end token at step 1274 and
+# rendered 50.96s for a 60s request (ratio 0.849), which passed unnoticed
+# because the original harness only asserted the v1 40-150s window and
+# never any v2 duration. Ratio window [0.6, 1.5] of the requested duration:
+#   - accepts both observed samples (v1 59.998s/60s = 0.99998,
+#     v2 50.96s/60s = 0.849 — the v2 behavior stays a recorded observation,
+#     not a failure; this leg exists to catch SEVERE short outputs, e.g.
+#     30s/60s = 0.5);
+#   - upper bound 1.5: the engine clamps the frame budget to the requested
+#     duration (engine stderr "Frame budget clamped to 1500 by the requested
+#     duration"), so renders cannot legitimately run long; 1.5 leaves
+#     measurement headroom only.
+C8_DURATION_RATIO_WINDOW = (0.6, 1.5)
+
+
+def wav_duration_in_request_window(duration_s, requested_s):
+    """True when a render length is within the accepted ratio window of the
+    requested duration (381-C8 补腿; invalid inputs fail closed)."""
+    if requested_s <= 0 or duration_s < 0:
+        return False
+    ratio = duration_s / float(requested_s)
+    lo, hi = C8_DURATION_RATIO_WINDOW
+    return lo <= ratio <= hi
+
+
 # ---------------------------------------------------------------------------
 # ABC melody parsing (independent re-implementation of the dialect semantics
 # for the roundtrip cross-check: per-voice bar cursors, Z multi-bar rests
@@ -579,6 +609,21 @@ def main():
     if job_v1 == job_v2 or task1 == task2 or wav_v1 == wav_v2:
         save_report()
         return fail(report, "legW5_not_two_jobs", "W5", "v1/v2 not independent (job/task/wav identity collision)")
+
+    # 381-C8 补腿 (YUE-VOCAL-FORENSICS-1): assert BOTH versions' render
+    # duration against the requested duration ratio window. run_20261116_
+    # 000009 v2 rendered 50.96s for a 60s request and passed unnoticed
+    # because only the v1 40-150s window existed. The v1 wide window above
+    # is kept (372-validated semantics); this adds the request-ratio check.
+    for tag, wav_path in (("v1", wav_v1), ("v2", wav_v2)):
+        dur = wav_duration_seconds(wav_path) if wav_path and os.path.isfile(wav_path) else -1.0
+        report["w5"]["duration_" + tag] = dur
+        if not wav_duration_in_request_window(dur, REQUESTED_DURATION_S):
+            save_report()
+            return fail(
+                report, "legW8_short_output", "W5",
+                "%s WAV %.3fs vs requested %ss — ratio outside window [%.2f, %.2f] (severe engine short output or artifact corruption)"
+                % (tag, dur, REQUESTED_DURATION_S, C8_DURATION_RATIO_WINDOW[0], C8_DURATION_RATIO_WINDOW[1]))
     listing, _ = invoke_tool(args.agent_base, "gen.jobs.list", {}, timeout=60)
     jobs_list = ((listing or {}).get("result") or listing or {}).get("jobs") or []
     ids = {str(j.get("job_id")) for j in jobs_list}

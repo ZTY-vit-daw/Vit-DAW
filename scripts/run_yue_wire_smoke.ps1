@@ -36,7 +36,10 @@ execution):
                 legW2_status, legW7_engine_bringup, legW3_roundtrip,
                 legW3_vocal_not_rested, legW4_style_not_mapped,
                 legW4_hygiene, legW5_not_two_jobs, legW6_blocking,
-                legW8_artifacts, legW9_transcribe, legW9_vocal_detected,
+                legW8_artifacts, legW8_short_output (381-C8 补腿: render
+                duration outside the [0.6, 1.5] ratio window of the
+                requested duration — severe engine short output),
+                legW9_transcribe, legW9_vocal_detected,
                 timeout, env_failure (ports busy, engine unreachable after
                 supervisor bring-up, kernel/agent start failure),
                 vram_over_budget (>6451 MiB engine peak — environment
