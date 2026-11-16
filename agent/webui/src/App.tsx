@@ -505,14 +505,18 @@ function App() {
   if (surface === "project") {
     return (
       <ProjectLoadingGate>
-        <ProjectSurface fill />
+        {/* SCORE-ENTRY-REACH-1（382）：工程面显式「打开工作台」入口——谱面/媒体/
+            历史/宏工作台此前只在 full/main surface 可达（VitShell 工程态=project
+            surface 无入口，374 M4「没看到」的结构性断点）。React 内部切 surface
+            （零导航零重载，343 不变量）。 */}
+        <ProjectSurface fill onOpenWorkbench={() => setSurface("workbench")} />
       </ProjectLoadingGate>
     );
   }
-  return <MainApp />;
+  return <MainApp onExitWorkbench={surface === "workbench" ? () => setSurface("project") : undefined} />;
 }
 
-function MainApp() {
+function MainApp({ onExitWorkbench }: { onExitWorkbench?: () => void }) {
   const surface = useMemo(() => appSurface(), []);
   const isWorkbenchSurface = surface === "workbench";
   const isMainSurface = surface === "main";
@@ -2008,6 +2012,15 @@ function MainApp() {
           void handleUpload(event.dataTransfer.files);
         }}
       >
+        {/* SCORE-ENTRY-REACH-1（382）：standalone 工作台的返回工程条（从工程面
+            「打开工作台」进来的用户有回头路；宿主桥/浏览器 dev 均适用）。 */}
+        {onExitWorkbench ? (
+          <div className="workbench-return-bar" data-workbench-return-bar>
+            <button type="button" className="workbench-return-button" data-workbench-exit-project onClick={onExitWorkbench}>
+              ← 返回工程
+            </button>
+          </div>
+        ) : null}
         {workbenchPanel}
         {hiddenFileInput}
       </main>

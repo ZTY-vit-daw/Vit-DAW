@@ -407,3 +407,9 @@
 .v5-project-bridge-exec-message {
   color: var(--v5-ui-muted);
 }
+
+/* SCORE-ENTRY-REACH-1（382）：工程面「打开工作台」入口（titlebar 右侧） */
+.v5-project-titlebar .v5-project-open-workbench {
+  margin-left: auto;
+  white-space: nowrap;
+}
