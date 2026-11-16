@@ -7,7 +7,8 @@ import type { AgentUIState, Artifact, ArtifactSummary } from "../types";
 import { readArtifact, registerResourceURL, revealArtifact, scanDownloads, watchDownloads } from "../lib/api";
 import { uploadMetadata } from "../settings/config";
 import { clampNumber, formatBytes } from "../lib/util";
-import { EmptyState, defaultExternalBrowserURL, normalizeBrowserURL, postExternalBrowserMessage, readonlyAuditMode } from "../App";
+import { EmptyState, defaultExternalBrowserURL, readonlyAuditMode } from "../App";
+import { normalizeBrowserURL, postExternalBrowserMessage } from "../browser/BrowserPane";
 import { artifactAddress, artifactIcon, artifactIsImage, artifactLabel, artifactMetaLine, renderArtifactPreview } from "./artifacts";
 
 export type MediaContextMenuState = { artifact: ArtifactSummary; x: number; y: number };
