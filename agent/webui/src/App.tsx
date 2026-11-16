@@ -196,6 +196,156 @@ import type {
   MultimodalRouteConfig,
   RuntimeStatusResponse
 } from "./types";
+// T9-PRE-1A-1（施工图 §3.1 批 1 / 步 1f-A）：通用工具域出域至 src/lib/util.ts——
+// 纯移动+re-export 兼容层：import 供 MainApp 既有引用零改动，export * 保持 App 命名面兼容。
+import {
+  numericValue,
+  finiteNumber,
+  asRecord,
+  firstArray,
+  textValue,
+  compactJSON,
+  parseJSONRecord,
+  stableIDPart,
+  stableTextHash,
+  clampNumber,
+  defaultComposerInteractionHeight,
+  clampComposerInteractionHeight,
+  truthy,
+  formatBytes,
+  lastPathPart,
+  uniqueID,
+  currentConversationTitle,
+  conversationTitleCandidate,
+  compactConversationTitle,
+  panelWidthStorageKey,
+  loadPanelWidth,
+  savePanelWidth
+} from "./lib/util";
+export * from "./lib/util";
+// T9-PRE-1A-1（施工图 §3.1 批 1）：出域模块 re-export 兼容层——import 供 MainApp 既有
+// 引用零改动，export * 保持 App 命名面兼容；App 侧对出域函数的跨域引用（动作标签/
+// confirmation 域）经此往返，1e 卡移动 actions 域后剪断。
+import {
+  multimodalRouteMeta,
+  defaultSettingsConfig,
+  mergeSettingsConfig,
+  retainSecretInputs,
+  settingsSavedStatus,
+  buildChatContext,
+  uploadMetadata,
+  mediaScopeKeyFromUIState,
+} from "./settings/config";
+export * from "./settings/config";
+// T9-PRE-1A-1（施工图 §3.1 批 1）：出域模块 re-export 兼容层——import 供 MainApp 既有
+// 引用零改动，export * 保持 App 命名面兼容；App 侧对出域函数的跨域引用（动作标签/
+// confirmation 域）经此往返，1e 卡移动 actions 域后剪断。
+import {
+  noteSessionSeedMessages,
+  historyMessagesFromUIState,
+  removeDisposableConfirmationPromptMessages,
+  mergeRestoredChatMessages,
+  mergeAssistantMessageIntoChat,
+  upsertPersistentMixBoardMessage,
+  messageMixBoardAction,
+  isSameMixBoardSession,
+  mixBoardActionSessionID,
+} from "./chat/merge";
+export * from "./chat/merge";
+// T9-PRE-1A-1（施工图 §3.1 批 1）：出域模块 re-export 兼容层——import 供 MainApp 既有
+// 引用零改动，export * 保持 App 命名面兼容；App 侧对出域函数的跨域引用（动作标签/
+// confirmation 域）经此往返，1e 卡移动 actions 域后剪断。
+import {
+  initialMessage,
+  resolveHistorySyncMessages,
+  migrateStoredConversationScope,
+  messagesOrIntro,
+  hasMeaningfulChatMessages,
+  createConversationID,
+  scopedConversationRuntimeKey,
+  loadStoredScopedConversationID,
+  saveStoredScopedConversationID,
+  serverConversationIDFromContinuations,
+  resolveScopedConversationID,
+  conversationMessagesStorageKey,
+  loadStoredConversationMessages,
+  saveStoredConversationMessages,
+} from "./chat/storage";
+export * from "./chat/storage";
+// T9-PRE-1A-1（施工图 §3.1 批 1）：出域模块 re-export 兼容层——import 供 MainApp 既有
+// 引用零改动，export * 保持 App 命名面兼容；App 侧对出域函数的跨域引用（动作标签/
+// confirmation 域）经此往返，1e 卡移动 actions 域后剪断。
+import {
+  HistoryTreeNode,
+  HistoryBranchRow,
+  HistoryWorktreeRow,
+  HistoryLoadedWorktree,
+  HistoryNodeMenuState,
+  historyTreeNodes,
+  historyTreeLayout,
+  historyBranchRows,
+  historyWorktreeRows,
+  historyWorktreeRowFromRecord,
+  historyToolArgs,
+  historyWorktreeCheckoutArgs,
+  buildHistoryInvokeContext,
+  historyProjectPath,
+  historyActiveBranch,
+  historyNodeTitle,
+  historyNodeCanCreateFrom,
+  historyStatusIsError,
+  historyShortID,
+  historySafeName,
+} from "./history/tree";
+export * from "./history/tree";
+// T9-PRE-1A-1（施工图 §3.1 批 1）：出域模块 re-export 兼容层——import 供 MainApp 既有
+// 引用零改动，export * 保持 App 命名面兼容；App 侧对出域函数的跨域引用（动作标签/
+// confirmation 域）经此往返，1e 卡移动 actions 域后剪断。
+import {
+  macroControlsFromUIState,
+  patchMacroControlValueInUIState,
+  applyMacroValueOverridesToUIState,
+  patchMacroControlNameInUIState,
+  normalizeMacroControl,
+  mergeMacroControls,
+  macroControlID,
+  macroControlLabel,
+  macroControlValue,
+  macroControlDisabledReason,
+  macroControlMeta,
+  macroBindingSummary,
+  macroValueText,
+  macroPaneSubtitle,
+  activeWorkflowModeLabel,
+  macroControlCardAction,
+  isMacroControlAction,
+  macroControlValueMutation,
+  macroControlRenameMutation,
+} from "./macro/normalize";
+export * from "./macro/normalize";
+// T9-PRE-1A-1（施工图 §3.1 批 1）：出域模块 re-export 兼容层——import 供 MainApp 既有
+// 引用零改动，export * 保持 App 命名面兼容；App 侧对出域函数的跨域引用（动作标签/
+// confirmation 域）经此往返，1e 卡移动 actions 域后剪断。
+import {
+  DawInvoke,
+  DawClip,
+  DawPlugin,
+  DawTrack,
+  dawTracksFromUIState,
+  isSystemRackPluginRecord,
+  selectedTrackIDFromUIState,
+  selectedClipIDFromUIState,
+  selectedClipIDsFromUIState,
+  isMidiClip,
+  focusDawTarget,
+  auditionDawTarget,
+  actionDawTarget,
+  actionLooksLikeDawTarget,
+  formatTimelineSeconds,
+  numberFromKeys,
+  textFromKeys,
+} from "./daw/parse";
+export * from "./daw/parse";
 
 const WEBUI_BUILD_MARK = "vit-confirmation-consumption-v1-20260801";
 const readonlyAuditMode = import.meta.env.VITE_READONLY_AUDIT === "1";
@@ -209,7 +359,7 @@ type WorkbenchTab = "history" | "media" | "macro" | "score";
 type SettingsTab = "agent" | "llm" | "multimodal" | "browser" | "diagnostics";
 type MediaContextMenuState = { artifact: ArtifactSummary; x: number; y: number };
 type AppSurface = "full" | "main" | "workbench" | "launcher" | "project";
-type MacroValueOverride = { value: number; macro: MacroControl; expiresAt: number };
+export type MacroValueOverride = { value: number; macro: MacroControl; expiresAt: number };
 type BrowserBridgeState = {
   ready?: boolean;
   loading?: boolean;
@@ -226,10 +376,7 @@ const browserBridgeChannel = "ask_vit_browser";
 const externalBrowserChannel = "ask_vit_external_browser";
 const agentMutationBridgeChannel = "ask_vit_agent_mutations";
 const defaultExternalBrowserURL = "https://www.bing.com/";
-const conversationMessagesStoragePrefix = "ask_vit_conversation_messages";
-const conversationScopedIDStoragePrefix = "ask_vit_conversation_id_scope";
 const attachedArtifactStorageKey = "ask_vit_attached_artifact";
-const panelWidthStoragePrefix = "ask_vit_project_workbench_width";
 const defaultRightPanelWidth = 390;
 const minRightPanelWidth = 280;
 
@@ -253,26 +400,6 @@ const settingsTabs: Array<{ key: SettingsTab; label: string; icon: LucideIcon }>
   { key: "browser", label: "浏览器", icon: Globe },
   { key: "diagnostics", label: "诊断", icon: Activity }
 ];
-
-export const multimodalRouteMeta: Array<{ key: string; label: string; hint: string }> = [
-  { key: "text", label: "文本 LLM", hint: "Agent 对话与规划" },
-  { key: "image_understanding", label: "图片理解", hint: "图片、截图、视觉素材分析" },
-  { key: "image_generation", label: "图片生成", hint: "生成图像与设计稿" },
-  { key: "audio_understanding", label: "音频理解", hint: "音频内容和素材分析" },
-  { key: "transcription", label: "音频转写", hint: "语音、采样说明、口述转写" },
-  { key: "video_browser", label: "视频/浏览器理解", hint: "WebView2 页面与视频上下文" },
-  { key: "embeddings", label: "Embedding / 检索", hint: "历史、媒体和工程语义检索" }
-];
-
-const initialMessage: ChatMessage = {
-  id: "intro",
-  role: "assistant",
-  content: "Ask Vit 就绪。",
-  createdAt: Date.now(),
-  lifecycle: "durable",
-  persistence: "local",
-  message_kind: "assistant"
-};
 
 /**
  * UI-LAUNCHER-1（345）：surface 分发入口。launcher 面独立组件（自带数据加载，
@@ -2440,603 +2567,6 @@ export function TopStatusBar({
   );
 }
 
-type DawInvoke = (tool: string, args?: JsonRecord, source?: string, confirmed?: boolean) => Promise<AgentInvokeResponse>;
-type DawActivitySegment = { left: number; width: number; height: number };
-type DawClip = {
-  id: string;
-  name: string;
-  type: string;
-  startSeconds: number;
-  lengthSeconds: number;
-  startBeats: number;
-  lengthBeats: number;
-  selected: boolean;
-  noteCount: number;
-  notes: JsonRecord[];
-  activity: DawActivitySegment[];
-  activityKnown: boolean;
-};
-type DawPlugin = {
-  id: string;
-  itemID: string;
-  name: string;
-  kind: string;
-  role: string;
-  clipScope: string;
-  selected: boolean;
-  bypass: boolean;
-  path: string;
-  vendor: string;
-  source: string;
-  deletable: boolean;
-};
-type DawTrack = {
-  id: string;
-  name: string;
-  type: string;
-  color: string;
-  selected: boolean;
-  mute: boolean;
-  solo: boolean;
-  armed: boolean;
-  volumeDB: number | null;
-  pan: number | null;
-  levelDB: number | null;
-  clips: DawClip[];
-  plugins: DawPlugin[];
-  rackEdges: JsonRecord[];
-};
-
-const dawTrackPalette = ["#1f55d8", "#0f8f6d", "#a35d00", "#7c3aed", "#b42318", "#2e6f95", "#8a6f00", "#4d66c7"];
-
-function dawTracksFromUIState(uiState: AgentUIState | null): DawTrack[] {
-  const selectedTrackID = selectedTrackIDFromUIState(uiState);
-  const selectedPlugin = selectedPluginFromUIState(uiState);
-  const selectedClipIDs = selectedClipIDsFromUIState(uiState);
-  const bpm = bpmFromUIState(uiState);
-  return (uiState?.tracks ?? [])
-    .map(asRecord)
-    .map((track, index) => dawTrackFromRecord(track, index, selectedTrackID, selectedPlugin, selectedClipIDs, bpm))
-    .filter((track) => track.id !== "");
-}
-
-function dawTrackFromRecord(
-  raw: JsonRecord,
-  index: number,
-  selectedTrackID: string,
-  selectedPlugin: { id: string; trackID: string; name: string },
-  selectedClipIDs: Set<string>,
-  bpm: number
-): DawTrack {
-  const id = textFromKeys(raw, "track_id", "id", "uid", "kernel_track_id");
-  const rack = asRecord(raw.rack);
-  const rackNodes = firstArray(rack.nodes, raw.plugins, raw.devices, raw.rack_nodes, rack.items, rack.chain);
-  const rackEdges = firstArray(rack.edges, raw.rack_edges, raw.edges).map(asRecord);
-  const clips = firstArray(raw.clips, raw.clip_summaries)
-    .map(asRecord)
-    .map((clip) => dawClipFromRecord(clip, selectedClipIDs, bpm))
-    .filter((clip) => clip.id !== "")
-    .sort((left, right) => left.startSeconds - right.startSeconds);
-  const plugins = rackNodes
-    .map(asRecord)
-    .filter((plugin) => !isSystemRackPluginRecord(plugin))
-    .map((plugin, pluginIndex) => dawPluginFromRecord(plugin, pluginIndex, selectedPlugin))
-    .filter((plugin) => plugin.id !== "");
-  const selected = truthy(raw.selected ?? raw.is_selected) || (selectedTrackID !== "" && selectedTrackID === id) || selectedPlugin.trackID === id;
-  return {
-    id,
-    name: textFromKeys(raw, "track_name", "name", "label") || id || `Track ${index + 1}`,
-    type: statusLabel(textFromKeys(raw, "track_type", "type", "vit_type"), textFromKeys(raw, "track_type", "type", "vit_type") || "track"),
-    color: textFromKeys(raw, "color", "track_color") || dawTrackPalette[index % dawTrackPalette.length],
-    selected,
-    mute: truthy(raw.mute ?? raw.muted ?? raw.is_muted),
-    solo: truthy(raw.solo ?? raw.is_solo),
-    armed: truthy(raw.armed ?? raw.is_armed ?? raw.record_armed),
-    volumeDB: numberFromKeys(raw, "volume_db", "volumeDb", "fader_db", "faderDb", "gain_db", "gainDb"),
-    pan: numberFromKeys(raw, "pan", "pan_value"),
-    levelDB: trackLevelDB(raw),
-    clips,
-    plugins,
-    rackEdges
-  };
-}
-
-function dawClipFromRecord(raw: JsonRecord, selectedClipIDs: Set<string>, bpm: number): DawClip {
-  const id = textFromKeys(raw, "clip_id", "id", "uid");
-  const type = textFromKeys(raw, "clip_type", "type", "media_type", "kind") || "clip";
-  const beatSeconds = 60 / Math.max(1, bpm);
-  const startBeats = finiteNumber(valueFromKeys(raw, "start_beats", "startBeat", "beat"), finiteNumber(valueFromKeys(raw, "start_seconds", "start_time", "start"), 0) / beatSeconds);
-  const startSeconds = finiteNumber(valueFromKeys(raw, "start_seconds", "start_time_seconds", "start_time", "startSeconds"), startBeats * beatSeconds);
-  const notesRaw = firstArray(raw.notes, raw.midi_notes, raw.note_summary);
-  const notes = notesRaw.map(asRecord).filter((note) => Object.keys(note).length > 0);
-  const noteCount = Math.max(numericValue(raw.note_count ?? raw.notes_count), notes.length);
-  const endBeats = finiteNumber(valueFromKeys(raw, "end_beats", "endBeat"), NaN);
-  const endSeconds = finiteNumber(valueFromKeys(raw, "end_seconds", "end_time_seconds", "end_time", "endSeconds"), NaN);
-  let lengthBeats = finiteNumber(valueFromKeys(raw, "length_beats", "duration_beats", "lengthBeats"), Number.isFinite(endBeats) ? endBeats - startBeats : NaN);
-  let lengthSeconds = finiteNumber(valueFromKeys(raw, "length_seconds", "duration_seconds", "lengthSeconds", "duration"), Number.isFinite(endSeconds) ? endSeconds - startSeconds : NaN);
-  if (!Number.isFinite(lengthBeats) || lengthBeats <= 0) {
-    lengthBeats = Number.isFinite(lengthSeconds) && lengthSeconds > 0 ? lengthSeconds / beatSeconds : midiNoteEndBeats(notes);
-  }
-  if (!Number.isFinite(lengthSeconds) || lengthSeconds <= 0) {
-    lengthSeconds = Number.isFinite(lengthBeats) && lengthBeats > 0 ? lengthBeats * beatSeconds : 1;
-  }
-  lengthBeats = Math.max(0.25, lengthBeats);
-  lengthSeconds = Math.max(0.25, lengthSeconds);
-  const activity = clipActivitySegments(raw, notes, lengthBeats);
-  const activityKnown = hasArrayValue(raw, "notes", "midi_notes", "note_summary", "activity", "activity_segments", "peaks", "waveform_peaks", "waveform", "rms", "amplitudes");
-  return {
-    id,
-    name: textFromKeys(raw, "name", "clip_name", "title") || id || "Clip",
-    type,
-    startSeconds,
-    lengthSeconds,
-    startBeats,
-    lengthBeats,
-    selected: selectedClipIDs.has(id) || truthy(raw.selected ?? raw.is_selected),
-    noteCount,
-    notes,
-    activity,
-    activityKnown
-  };
-}
-
-function dawPluginFromRecord(raw: JsonRecord, index: number, selectedPlugin: { id: string; trackID: string; name: string }): DawPlugin {
-  const id = textFromKeys(raw, "plugin_id", "id", "node_id", "item_id", "plugin_item_id");
-  const itemID = textFromKeys(raw, "plugin_item_id", "item_id", "plugin_id", "id", "node_id") || id;
-  const scope = textFromKeys(raw, "clip_scope", "scope", "target_scope", "lane").toLowerCase();
-  const role = textFromKeys(raw, "role", "slot", "lane", "chain", "chain_id", "group");
-  const kind = textFromKeys(raw, "type", "plugin_type", "kind") || "plugin";
-  return {
-    id,
-    itemID,
-    name: textFromKeys(raw, "plugin_name", "name", "display_name", "label") || id || `Plugin ${index + 1}`,
-    kind,
-    role,
-    clipScope: scope.includes("clip") || textFromKeys(raw, "clip_id", "target_clip_id") ? scope || "clip" : "track",
-    selected: selectedPlugin.id !== "" && selectedPlugin.id === id,
-    bypass: truthy(raw.bypass ?? raw.bypassed ?? raw.disabled ?? raw.is_bypassed),
-    path: textFromKeys(raw, "plugin_path", "path", "file_path", "module_path", "vst_path", "binary_path"),
-    vendor: textFromKeys(raw, "vendor", "manufacturer", "maker"),
-    source: textFromKeys(raw, "track_id", "source_track_id", "owner_track_id"),
-    deletable: !truthy(raw.system ?? raw.builtin ?? raw.internal ?? raw.locked ?? raw.protected)
-  };
-}
-
-function isSystemRackPluginRecord(raw: JsonRecord): boolean {
-  if (truthy(raw.system ?? raw.builtin ?? raw.internal ?? raw.hidden ?? raw.is_default ?? raw.default_plugin)) {
-    return true;
-  }
-  if (raw.user_visible === false || raw.visible === false) {
-    return true;
-  }
-  const label = normalizeRackPluginText(textFromKeys(raw, "plugin_name", "name", "display_name", "label"));
-  const kind = normalizeRackPluginText(textFromKeys(raw, "type", "plugin_type", "kind", "role", "slot"));
-  if (label === "volumepanplugin" || label === "volumepan" || label === "trackvolumepan") {
-    return true;
-  }
-  if (label === "levelmeter" || label === "levelmeterlevel" || label === "tracklevelmeter") {
-    return true;
-  }
-  if ((kind.includes("system") || kind.includes("builtin") || kind.includes("internal")) && (label.includes("meter") || label.includes("volumepan"))) {
-    return true;
-  }
-  return false;
-}
-
-function normalizeRackPluginText(value: string): string {
-  return value.toLowerCase().replace(/[^a-z0-9]+/g, "");
-}
-
-function selectedTrackIDFromUIState(uiState: AgentUIState | null): string {
-  const selectedTrack = asRecord(uiState?.selected_track);
-  const context = asRecord(uiState?.ui_context);
-  const selectedPlugin = asRecord(uiState?.selected_plugin);
-  return textValue(
-    selectedTrack.track_id ??
-      selectedTrack.id ??
-      context.selected_track_id ??
-      context.selected_clip_track_id ??
-      context.selected_plugin_track_id ??
-      selectedPlugin.track_id,
-    ""
-  );
-}
-
-function selectedClipIDFromUIState(uiState: AgentUIState | null): string {
-  const context = asRecord(uiState?.ui_context);
-  const selectedClip = asRecord(asRecord(uiState).selected_clip);
-  const ids = firstArray(context.selected_clip_ids, selectedClip.selected_clip_ids);
-  return textValue(selectedClip.clip_id ?? selectedClip.id ?? context.selected_clip_id ?? ids[0], "");
-}
-
-function selectedMidiClipIDFromUIState(uiState: AgentUIState | null): string {
-  const context = asRecord(uiState?.ui_context);
-  return textValue(context.piano_roll_focus_clip_id ?? context.active_midi_clip_id ?? selectedClipIDFromUIState(uiState), "");
-}
-
-function selectedMidiTrackIDFromUIState(uiState: AgentUIState | null): string {
-  const context = asRecord(uiState?.ui_context);
-  return textValue(context.piano_roll_focus_track_id ?? context.active_midi_track_id ?? context.selected_clip_track_id ?? selectedTrackIDFromUIState(uiState), "");
-}
-
-function selectedClipIDsFromUIState(uiState: AgentUIState | null): Set<string> {
-  const context = asRecord(uiState?.ui_context);
-  const selected = selectedClipIDFromUIState(uiState);
-  const ids = firstArray(context.selected_clip_ids)
-    .map((id) => textValue(id, ""))
-    .filter(Boolean);
-  if (selected) {
-    ids.push(selected);
-  }
-  return new Set(ids);
-}
-
-function selectedPluginFromUIState(uiState: AgentUIState | null): { id: string; trackID: string; name: string } {
-  const plugin = asRecord(uiState?.selected_plugin);
-  const context = asRecord(uiState?.ui_context);
-  const id = textValue(plugin.plugin_id ?? plugin.id ?? plugin.node_id ?? plugin.plugin_item_id ?? context.selected_plugin_id, "");
-  return {
-    id,
-    trackID: textValue(plugin.track_id ?? plugin.selected_plugin_track_id ?? context.selected_plugin_track_id ?? context.selected_track_id, ""),
-    name: textValue(plugin.plugin_name ?? plugin.name ?? context.selected_plugin_name, "")
-  };
-}
-
-function isMidiClip(clip: DawClip): boolean {
-  const type = clip.type.toLowerCase();
-  return type.includes("midi") || type.includes("sequencer") || clip.notes.length > 0 || clip.noteCount > 0;
-}
-
-async function focusDawTarget(onInvoke: DawInvoke, target: JsonRecord): Promise<void> {
-  const trackID = textValue(target.track_id ?? target.target_track_id, "");
-  const clipID = textValue(target.clip_id ?? target.selected_clip_id, "");
-  const pluginID = textValue(target.plugin_id ?? target.node_id ?? target.plugin_item_id, "");
-  if (pluginID) {
-    await onInvoke("select_plugin", { track_id: trackID, plugin_id: pluginID }, "ask_vit_webui_focus", true);
-  } else if (clipID) {
-    await onInvoke("select_clip", { track_id: trackID, clip_id: clipID, start_seconds: target.start_seconds, start_beats: target.start_beats }, "ask_vit_webui_focus", true);
-  } else if (trackID) {
-    await onInvoke("select_track", { track_id: trackID }, "ask_vit_webui_focus", true);
-  }
-  const seekSeconds = finiteNumber(target.start_seconds ?? target.start_time ?? target.time, NaN);
-  if (clipID && Number.isFinite(seekSeconds) && seekSeconds >= 0) {
-    await onInvoke("transport.seek", { time: seekSeconds }, "ask_vit_webui_focus_seek", true);
-  }
-}
-
-async function auditionDawTarget(onInvoke: DawInvoke, target: JsonRecord): Promise<void> {
-  await focusDawTarget(onInvoke, target);
-  await onInvoke("transport.play", {}, "ask_vit_webui_audition", true);
-}
-
-function actionDawTarget(action: JsonRecord, uiState: AgentUIState | null): JsonRecord | null {
-  const source = textValue(action._ui_source, "");
-  if (source !== "executed" && source !== "event") {
-    return null;
-  }
-  const command = asRecord(action.command);
-  const args = asRecord(command.args ?? action.args);
-  const payload = asRecord(action.payload);
-  const result = asRecord(action.result);
-  const verification = asRecord(action.verification);
-  const evidence = asRecord(verification.evidence);
-  const merged = mergeJsonRecords(action, command, args, payload, result, verification, evidence);
-  const commandName = textValue(
-    action.command_name ??
-      action.tool ??
-      action.cmd ??
-      action.command ??
-      payload.command_name ??
-      payload.tool ??
-      payload.cmd ??
-      payload.command ??
-      result.command_name ??
-      result.tool ??
-      result.cmd ??
-      verification.command_name ??
-      verification.tool,
-    ""
-  ).toLowerCase();
-  const uiAction = textValue(result.ui_action ?? payload.ui_action ?? action.ui_action, "").toLowerCase();
-  if (!actionLooksLikeDawTarget(commandName, uiAction, merged)) {
-    return null;
-  }
-
-  let trackID = textValue(
-    merged.track_id ?? merged.target_track_id ?? merged.selected_track_id ?? merged.source_track_id ?? merged.observed_track_id ?? merged.expected_track_id,
-    ""
-  );
-  const clipID = textValue(
-    merged.clip_id ?? merged.target_clip_id ?? merged.selected_clip_id ?? merged.new_clip_id ?? merged.created_clip_id ?? merged.observed_clip_id ?? merged.expected_clip_id,
-    ""
-  );
-  const pluginID = textValue(
-    merged.plugin_id ?? merged.plugin_item_id ?? merged.node_id ?? merged.selected_plugin_id ?? merged.observed_plugin_id ?? merged.expected_plugin_id ?? merged.observed_node_id ?? merged.expected_node_id,
-    ""
-  );
-  const clipContext = clipTargetFromUIState(uiState, clipID, trackID);
-  if (!trackID) {
-    trackID = textValue(clipContext.track_id, "") || pluginTrackIDFromUIState(uiState, pluginID);
-  }
-  const startSeconds = actionTargetStartSeconds(merged, clipContext, uiState);
-  const startBeats = finiteNumber(merged.start_beats ?? merged.start_beat ?? merged.beat, finiteNumber(clipContext.start_beats, NaN));
-  if (!trackID && !clipID && !pluginID) {
-    return null;
-  }
-  return {
-    track_id: trackID,
-    clip_id: clipID,
-    plugin_id: pluginID,
-    start_seconds: Number.isFinite(startSeconds) ? startSeconds : undefined,
-    start_beats: Number.isFinite(startBeats) ? startBeats : undefined,
-    can_audition: actionTargetCanAudition(commandName, uiAction, { track_id: trackID, clip_id: clipID, plugin_id: pluginID })
-  };
-}
-
-function actionLooksLikeDawTarget(commandName: string, uiAction: string, payload: JsonRecord): boolean {
-  if (uiAction || textValue(payload.track_id ?? payload.clip_id ?? payload.plugin_id ?? payload.new_clip_id ?? payload.created_clip_id, "")) {
-    return true;
-  }
-  return /^(track|midi|clip|plugin|rack|control|transport)\b/.test(commandName) || /(track|midi|clip|plugin|rack|control|transport)/.test(commandName);
-}
-
-function actionTargetCanAudition(commandName: string, uiAction: string, target: JsonRecord): boolean {
-  if (textValue(target.clip_id ?? target.plugin_id, "")) {
-    return true;
-  }
-  if (!textValue(target.track_id, "")) {
-    return false;
-  }
-  const joined = `${commandName} ${uiAction}`;
-  if (/add_track|create_track|rename_track|delete_track|select_track/.test(joined)) {
-    return false;
-  }
-  return /mute|solo|arm|volume|pan|mixer|plugin|rack|control/.test(joined);
-}
-
-function actionTargetStartSeconds(payload: JsonRecord, clipContext: JsonRecord, uiState: AgentUIState | null): number {
-  const directSeconds = finiteNumber(
-    payload.start_seconds ??
-      payload.start_time_seconds ??
-      payload.position_seconds ??
-      payload.playhead_seconds ??
-      payload.new_start_seconds ??
-      payload.time,
-    NaN
-  );
-  if (Number.isFinite(directSeconds)) {
-    return directSeconds;
-  }
-  const bpm = bpmFromUIState(uiState);
-  const beatSeconds = 60 / Math.max(1, bpm);
-  const timeUnit = textValue(payload.time_unit ?? payload.unit, "").toLowerCase();
-  const startTime = finiteNumber(payload.start_time ?? payload.start, NaN);
-  if (Number.isFinite(startTime)) {
-    return timeUnit.includes("beat") ? startTime * beatSeconds : startTime;
-  }
-  const newStart = finiteNumber(payload.new_start, NaN);
-  if (Number.isFinite(newStart)) {
-    return timeUnit.includes("beat") ? newStart * beatSeconds : newStart;
-  }
-  const startBeats = finiteNumber(payload.start_beats ?? payload.start_beat ?? payload.beat, NaN);
-  if (Number.isFinite(startBeats)) {
-    return startBeats * beatSeconds;
-  }
-  return finiteNumber(clipContext.start_seconds, NaN);
-}
-
-function clipTargetFromUIState(uiState: AgentUIState | null, clipID: string, trackID = ""): JsonRecord {
-  if (!clipID) {
-    return {};
-  }
-  for (const track of dawTracksFromUIState(uiState)) {
-    if (trackID && track.id !== trackID) {
-      continue;
-    }
-    const clip = track.clips.find((item) => item.id === clipID);
-    if (clip) {
-      return {
-        track_id: track.id,
-        clip_id: clip.id,
-        start_seconds: clip.startSeconds,
-        start_beats: clip.startBeats
-      };
-    }
-  }
-  return {};
-}
-
-function pluginTrackIDFromUIState(uiState: AgentUIState | null, pluginID: string): string {
-  if (!pluginID) {
-    return "";
-  }
-  for (const track of dawTracksFromUIState(uiState)) {
-    if (track.plugins.some((plugin) => plugin.id === pluginID || plugin.itemID === pluginID)) {
-      return track.id;
-    }
-  }
-  return "";
-}
-
-function clipBlockStyle(clip: DawClip, pixelsPerSecond: number, timelineWidth: number, dragDeltaX = 0, dragDeltaY = 0): React.CSSProperties {
-  const safeScale = clampNumber(pixelsPerSecond, 0.05, 80);
-  const left = Math.max(0, clip.startSeconds * safeScale);
-  const width = clampNumber(clip.lengthSeconds * safeScale, 18, Math.max(18, timelineWidth - left));
-  return {
-    left: `${left}px`,
-    width: `${width}px`,
-    transform: dragDeltaX !== 0 || dragDeltaY !== 0 ? `translate(${dragDeltaX}px, ${dragDeltaY}px)` : undefined
-  };
-}
-
-function formatTimelineSeconds(seconds: number): string {
-  const safe = Math.max(0, Math.round(seconds));
-  if (safe < 60) {
-    return `${safe}s`;
-  }
-  const minutes = Math.floor(safe / 60);
-  const rest = safe % 60;
-  return `${minutes}:${String(rest).padStart(2, "0")}`;
-}
-
-function clipActivitySegments(raw: JsonRecord, notes: JsonRecord[], lengthBeats: number): DawActivitySegment[] {
-  if (notes.length > 0) {
-    return midiActivitySegments(notes, lengthBeats);
-  }
-  const declared = firstArray(raw.activity, raw.activity_segments).map(asRecord);
-  if (declared.length > 0) {
-    return declared
-      .map((segment) => ({
-        left: clampNumber(finiteNumber(segment.left ?? segment.start_percent ?? segment.start, 0), 0, 100),
-        width: clampNumber(finiteNumber(segment.width ?? segment.duration_percent ?? segment.length, 2), 0.5, 100),
-        height: clampNumber(finiteNumber(segment.height ?? segment.value ?? segment.amplitude, 45), 8, 100)
-      }))
-      .filter((segment) => segment.width > 0);
-  }
-  const peaks = numericSeriesFromAny(
-    firstPresentArray(raw.peaks, raw.waveform_peaks, raw.waveform, raw.rms, raw.amplitudes, asRecord(raw.waveform_data).peaks)
-  );
-  if (peaks.length === 0) {
-    return [];
-  }
-  const bucketCount = Math.min(64, peaks.length);
-  const bucketSize = Math.max(1, Math.ceil(peaks.length / bucketCount));
-  const segments: DawActivitySegment[] = [];
-  for (let bucket = 0; bucket < bucketCount; bucket += 1) {
-    const slice = peaks.slice(bucket * bucketSize, (bucket + 1) * bucketSize);
-    if (slice.length === 0) {
-      continue;
-    }
-    const amplitude = slice.reduce((max, value) => Math.max(max, Math.abs(value)), 0);
-    if (amplitude <= 0.001) {
-      continue;
-    }
-    segments.push({
-      left: (bucket / bucketCount) * 100,
-      width: Math.max(0.8, 100 / bucketCount),
-      height: clampNumber(amplitude * 100, 8, 100)
-    });
-  }
-  return segments;
-}
-
-function midiActivitySegments(notes: JsonRecord[], lengthBeats: number): DawActivitySegment[] {
-  const safeLength = Math.max(0.25, lengthBeats);
-  return notes.slice(0, 120).map((note) => {
-    const start = finiteNumber(note.start ?? note.start_beats ?? note.beat, 0);
-    const duration = Math.max(0.05, finiteNumber(note.length ?? note.length_beats ?? note.duration, 0.25));
-    const velocity = clampNumber(finiteNumber(note.velocity ?? note.vel, 96), 1, 127);
-    return {
-      left: clampNumber((start / safeLength) * 100, 0, 100),
-      width: clampNumber((duration / safeLength) * 100, 0.7, 100),
-      height: clampNumber((velocity / 127) * 100, 14, 100)
-    };
-  });
-}
-
-function midiNoteEndBeats(notes: JsonRecord[]): number {
-  return notes.reduce((end, note) => {
-    const start = finiteNumber(note.start ?? note.start_beats ?? note.beat, 0);
-    const length = Math.max(0.05, finiteNumber(note.length ?? note.length_beats ?? note.duration, 0.25));
-    return Math.max(end, start + length);
-  }, 0);
-}
-
-function numericSeriesFromAny(value: unknown): number[] {
-  if (!Array.isArray(value)) {
-    return [];
-  }
-  return value
-    .map((item) => {
-      if (Array.isArray(item)) {
-        const values = item.map(Number).filter(Number.isFinite);
-        return values.length > 0 ? Math.max(...values.map((next) => Math.abs(next))) : NaN;
-      }
-      const record = asRecord(item);
-      if (Object.keys(record).length > 0) {
-        return finiteNumber(record.peak ?? record.rms ?? record.value ?? record.amplitude ?? record.height, NaN);
-      }
-      return Number(item);
-    })
-    .filter(Number.isFinite)
-    .map((value) => Math.abs(value));
-}
-
-function bpmFromUIState(uiState: AgentUIState | null): number {
-  const transport = asRecord(uiState?.transport);
-  const project = asRecord(uiState?.project);
-  return Math.max(1, finiteNumber(transport.bpm ?? transport.tempo ?? project.bpm ?? project.tempo, 120));
-}
-
-function trackLevelDB(raw: JsonRecord): number | null {
-  const direct = numberFromKeys(raw, "level_db", "levelDb", "meter_db", "current_db", "peak_db", "peakDb", "meter_peak_db", "meter_level_db");
-  if (direct != null) {
-    return direct;
-  }
-  const stereo = [
-    numberFromKeys(raw, "left_level_db", "leftLevelDb", "left_peak_db", "leftPeakDb", "level_l_db", "peak_l_db"),
-    numberFromKeys(raw, "right_level_db", "rightLevelDb", "right_peak_db", "rightPeakDb", "level_r_db", "peak_r_db")
-  ].filter((value): value is number => value != null);
-  if (stereo.length > 0) {
-    return Math.max(...stereo);
-  }
-  const meters = asRecord(raw.meter ?? raw.levels ?? raw.telemetry);
-  const nestedDirect = numberFromKeys(meters, "level_db", "levelDb", "meter_db", "current_db", "peak_db", "peakDb", "meter_peak_db", "meter_level_db", "left_db", "rms_db");
-  if (nestedDirect != null) {
-    return nestedDirect;
-  }
-  const nestedStereo = [
-    numberFromKeys(meters, "left_level_db", "leftLevelDb", "left_peak_db", "leftPeakDb", "level_l_db", "peak_l_db"),
-    numberFromKeys(meters, "right_level_db", "rightLevelDb", "right_peak_db", "rightPeakDb", "level_r_db", "peak_r_db")
-  ].filter((value): value is number => value != null);
-  return nestedStereo.length > 0 ? Math.max(...nestedStereo) : null;
-}
-
-function numberFromKeys(record: JsonRecord, ...keys: string[]): number | null {
-  for (const key of keys) {
-    if (!(key in record)) {
-      continue;
-    }
-    const value = Number(record[key]);
-    if (Number.isFinite(value)) {
-      return value;
-    }
-  }
-  return null;
-}
-
-function textFromKeys(record: JsonRecord, ...keys: string[]): string {
-  for (const key of keys) {
-    const value = textValue(record[key], "");
-    if (value) {
-      return value;
-    }
-  }
-  return "";
-}
-
-function valueFromKeys(record: JsonRecord, ...keys: string[]): unknown {
-  for (const key of keys) {
-    if (key in record && record[key] !== undefined && record[key] !== null && textValue(record[key], "") !== "") {
-      return record[key];
-    }
-  }
-  return undefined;
-}
-
-function hasArrayValue(record: JsonRecord, ...keys: string[]): boolean {
-  return keys.some((key) => Array.isArray(record[key]));
-}
-
-function firstPresentArray(...values: unknown[]): unknown[] {
-  for (const value of values) {
-    if (Array.isArray(value)) {
-      return value;
-    }
-  }
-  return [];
-}
-
 function StatusCell({ icon: Icon, label, tone = "neutral" }: { icon: LucideIcon; label: string; tone?: "neutral" | "ok" | "warn" }) {
   return (
     <span className={`status-cell ${tone}`}>
@@ -4329,7 +3859,7 @@ function mixBoardPeakRmsLabel(summary: JsonRecord): string {
   return textValue(waveform.status, "未接入");
 }
 
-function isMixBoardAction(action: JsonRecord): boolean {
+export function isMixBoardAction(action: JsonRecord): boolean {
   const kind = textValue(action.kind ?? action.type, "").toLowerCase();
   const type = textValue(action.type, "").toLowerCase();
   const workflow = textValue(action.workflow, "").toLowerCase();
@@ -4749,7 +4279,7 @@ function ProjectResultCard({ action, respondingActionID, onInvoke, uiState }: Ac
   );
 }
 
-function isProjectResultAction(action: JsonRecord): boolean {
+export function isProjectResultAction(action: JsonRecord): boolean {
   return textValue(action.kind ?? action.type, "").toLowerCase() === "project_result";
 }
 
@@ -5229,11 +4759,11 @@ function StandardActionCard({
   );
 }
 
-function actionRenderID(action: JsonRecord): string {
+export function actionRenderID(action: JsonRecord): string {
   return textValue(action.id ?? action.interaction_id ?? action.plan_id ?? action.title ?? action.type ?? action.kind, "");
 }
 
-function resolveInteractionInMessages(messages: ChatMessage[], interactionID: string, actionID: string, response: ChatResponse): ChatMessage[] {
+export function resolveInteractionInMessages(messages: ChatMessage[], interactionID: string, actionID: string, response: ChatResponse): ChatMessage[] {
   const id = interactionID.trim();
   if (!id) {
     return messages;
@@ -5322,7 +4852,7 @@ function isDisposableInteractionCarrierMessage(
   return dismissesConfirmation && isDisposableConfirmationPromptText(message.content);
 }
 
-function isDisposableConfirmationPromptMessage(message: ChatMessage): boolean {
+export function isDisposableConfirmationPromptMessage(message: ChatMessage): boolean {
   if (message.status === "error" || message.artifacts?.length) {
     return false;
   }
@@ -5333,7 +4863,7 @@ function isDisposableConfirmationPromptMessage(message: ChatMessage): boolean {
   return actions.length === 0 || actions.some((action) => isApprovalPromptAction(action) || isConfirmationAction(action) || isComposerInteraction(action));
 }
 
-function isDisposableConfirmationPromptText(content: string): boolean {
+export function isDisposableConfirmationPromptText(content: string): boolean {
   const text = content.trim();
   if (!text) {
     return false;
@@ -5546,7 +5076,7 @@ function latestComposerInteraction(messages: ChatMessage[], dismissedIDs: string
 // 兜底——覆盖事件未达与刷新竞态两个窗口，应答后 pending 消失即自动撤卡；
 // F3 起按 conversation_id 归属过滤，他会话的 stale pending 卡不再挤占新会话 composer。
 
-function isComposerInteraction(action: JsonRecord): boolean {
+export function isComposerInteraction(action: JsonRecord): boolean {
 	if (textValue(action._ui_source, "") !== "interaction") {
     return false;
   }
@@ -5579,7 +5109,7 @@ function isComposerInteraction(action: JsonRecord): boolean {
   return true;
 }
 
-function isCapabilityProposalInteraction(action: JsonRecord): boolean {
+export function isCapabilityProposalInteraction(action: JsonRecord): boolean {
   const payload = interactionPayload(action);
   const presentation = asRecord(payload.proposal_presentation ?? action.proposal_presentation);
   const kind = textValue(action.kind, "").toLowerCase();
@@ -5587,7 +5117,7 @@ function isCapabilityProposalInteraction(action: JsonRecord): boolean {
   return kind === "proposal_approval" || type === "proposal_approval" || textValue(presentation.schema_version, "") === "vit.proposal_presentation.v1";
 }
 
-function hasPendingComposerInteraction(messages: ChatMessage[]): boolean {
+export function hasPendingComposerInteraction(messages: ChatMessage[]): boolean {
   return messages.some((message) => (message.actions ?? []).map(asRecord).some(isComposerInteraction));
 }
 
@@ -6356,7 +5886,7 @@ function actionTone(action: JsonRecord, isInteractive: boolean): "info" | "atten
   return "info";
 }
 
-function isConfirmationAction(action: JsonRecord): boolean {
+export function isConfirmationAction(action: JsonRecord): boolean {
   if (isMixTreatmentPendingAction(action)) {
     return false;
   }
@@ -6376,7 +5906,7 @@ function isConfirmationAction(action: JsonRecord): boolean {
   );
 }
 
-function isPendingInteractionAction(action: JsonRecord): boolean {
+export function isPendingInteractionAction(action: JsonRecord): boolean {
   return isConfirmationAction(action) || isMixTreatmentPendingAction(action) || isComposerInteraction(action);
 }
 
@@ -6591,7 +6121,7 @@ function confirmationCommandName(command: JsonRecord, payload: JsonRecord): stri
   return textValue(command.name ?? command.command_name ?? payload.name ?? payload.command_name ?? command.tool ?? command.cmd ?? payload.tool ?? payload.cmd ?? payload.command ?? payload.action, "").toLowerCase();
 }
 
-function mergeJsonRecords(...records: JsonRecord[]): JsonRecord {
+export function mergeJsonRecords(...records: JsonRecord[]): JsonRecord {
   const out: JsonRecord = {};
   records.forEach((record) => {
     Object.entries(record).forEach(([key, value]) => {
@@ -6904,7 +6434,7 @@ function interactionPayloadForAction(interaction: JsonRecord, action: JsonRecord
 
 
 
-function interactionPayload(action: JsonRecord): JsonRecord {
+export function interactionPayload(action: JsonRecord): JsonRecord {
   return asRecord(action.payload ?? action.data);
 }
 
@@ -8517,11 +8047,6 @@ function isClipStateRefreshCommand(commandName: string, uiAction: string): boole
   ].includes(commandName);
 }
 
-function numericValue(value: unknown): number {
-  const n = Number(value);
-  return Number.isFinite(n) ? n : 0;
-}
-
 function compactAgentMutations(mutations: JsonRecord[]): JsonRecord[] {
   const seen = new Set<string>();
   const out: JsonRecord[] = [];
@@ -8883,517 +8408,6 @@ function MacroContextCard({ macro, onRemove }: { macro: MacroControl; onRemove?:
   );
 }
 
-function macroControlsFromUIState(uiState: AgentUIState | null): MacroControl[] {
-  const capabilities = asRecord(uiState?.capabilities);
-  const uiContext = asRecord(uiState?.ui_context);
-  return mergeMacroControls(
-    firstArray(uiState?.macro_controls).map((item) => normalizeMacroControl(asRecord(item))),
-    firstArray(capabilities.macro_controls, capabilities.macros, capabilities.macro_panels, capabilities.quick_actions).map((item) => normalizeMacroControl(asRecord(item))),
-    macroRowsFromAny(uiContext.rack_control_macros).map((item) => normalizeMacroControl(asRecord(item))),
-    macroRowsFromAny(uiContext.active_macro_controls).map((item) => normalizeMacroControl(asRecord(item)))
-  );
-}
-
-function patchMacroControlValueInUIState(uiState: AgentUIState, macroID: string, value: number, macro?: MacroControl): AgentUIState {
-  const capabilities = asRecord(uiState.capabilities);
-  const uiContext = asRecord(uiState.ui_context);
-  const rackControls = asRecord(uiContext.rack_control_macros);
-  const shouldPatchTrackVolume = macro?.control === "track.volume" && Boolean(macro.track_id);
-  return {
-    ...uiState,
-    tracks: shouldPatchTrackVolume ? patchTrackVolumeList(uiState.tracks, macro.track_id ?? "", value) as JsonRecord[] | undefined : uiState.tracks,
-    selected_track: shouldPatchTrackVolume ? patchTrackVolumeRecord(uiState.selected_track, macro.track_id ?? "", value) as JsonRecord | null | undefined : uiState.selected_track,
-    macro_controls: patchMacroControlValueList(uiState.macro_controls, macroID, value) as MacroControl[] | undefined,
-    capabilities: {
-      ...capabilities,
-      macro_controls: patchMacroControlValueList(capabilities.macro_controls, macroID, value)
-    },
-    ui_context: {
-      ...uiContext,
-      active_macro_controls: patchMacroControlValueList(uiContext.active_macro_controls, macroID, value),
-      rack_control_macros: {
-        ...rackControls,
-        macros: patchMacroControlValueList(rackControls.macros, macroID, value)
-      }
-    }
-  };
-}
-
-function applyMacroValueOverridesToUIState(uiState: AgentUIState, overrides: Record<string, MacroValueOverride>): AgentUIState {
-  const now = Date.now();
-  let next = uiState;
-  Object.entries(overrides).forEach(([macroID, override]) => {
-    if (!override || override.expiresAt <= now) {
-      delete overrides[macroID];
-      return;
-    }
-    const trackVolume = uiStateTrackVolumeDB(next, override.macro.track_id ?? "");
-    if (trackVolume != null && Math.abs(trackVolume - override.value) <= 0.05) {
-      delete overrides[macroID];
-      next = patchMacroControlValueInUIState(next, macroID, override.value, override.macro);
-      return;
-    }
-    next = patchMacroControlValueInUIState(next, macroID, override.value, override.macro);
-  });
-  return next;
-}
-
-function uiStateTrackVolumeDB(uiState: AgentUIState, trackID: string): number | null {
-  if (!trackID) {
-    return null;
-  }
-  for (const track of firstArray(uiState.tracks).map(asRecord)) {
-    const id = textValue(track.track_id ?? track.id, "");
-    if (id !== trackID) {
-      continue;
-    }
-    const value = finiteNumber(track.volume_db ?? track.volumeDb ?? track.fader_db ?? track.faderDb ?? track.gain_db ?? track.gainDb ?? track.db, NaN);
-    return Number.isNaN(value) ? null : value;
-  }
-  return null;
-}
-
-function patchTrackVolumeList(raw: unknown, trackID: string, value: number): unknown {
-  if (!Array.isArray(raw) || !trackID) {
-    return raw;
-  }
-  return raw.map((item) => patchTrackVolumeRecord(item, trackID, value));
-}
-
-function patchTrackVolumeRecord(raw: unknown, trackID: string, value: number): unknown {
-  const record = asRecord(raw);
-  if (Object.keys(record).length === 0 || !trackID) {
-    return raw;
-  }
-  const id = textValue(record.track_id ?? record.id, "");
-  if (id !== trackID) {
-    return raw;
-  }
-  return { ...record, volume_db: value, gain_db: value, fader_db: value, db: value };
-}
-
-function patchMacroControlValueList(raw: unknown, macroID: string, value: number): unknown {
-  if (!Array.isArray(raw)) {
-    return raw;
-  }
-  return raw.map((item) => {
-    const record = asRecord(item);
-    const id = textValue(record.macro_id ?? record.id ?? record.control_id, "");
-    if (id !== macroID) {
-      return item;
-    }
-    return { ...record, value };
-  });
-}
-
-function patchMacroControlNameInUIState(uiState: AgentUIState, macroID: string, name: string): AgentUIState {
-  const capabilities = asRecord(uiState.capabilities);
-  const uiContext = asRecord(uiState.ui_context);
-  const rackControls = asRecord(uiContext.rack_control_macros);
-  return {
-    ...uiState,
-    macro_controls: patchMacroControlNameList(uiState.macro_controls, macroID, name) as MacroControl[] | undefined,
-    capabilities: {
-      ...capabilities,
-      macro_controls: patchMacroControlNameList(capabilities.macro_controls, macroID, name),
-      macros: patchMacroControlNameList(capabilities.macros, macroID, name),
-      macro_panels: patchMacroControlNameList(capabilities.macro_panels, macroID, name),
-      quick_actions: patchMacroControlNameList(capabilities.quick_actions, macroID, name)
-    },
-    ui_context: {
-      ...uiContext,
-      active_macro_controls: patchMacroControlNameList(uiContext.active_macro_controls, macroID, name),
-      rack_control_macros: {
-        ...rackControls,
-        macros: patchMacroControlNameList(rackControls.macros, macroID, name)
-      }
-    }
-  };
-}
-
-function patchMacroControlNameList(raw: unknown, macroID: string, name: string): unknown {
-  if (!Array.isArray(raw)) {
-    return raw;
-  }
-  return raw.map((item) => {
-    const record = asRecord(item);
-    const id = textValue(record.macro_id ?? record.id ?? record.control_id, "");
-    if (id !== macroID) {
-      return item;
-    }
-    return { ...record, name, label: name, title: name };
-  });
-}
-
-function macroRowsFromAny(raw: unknown): JsonRecord[] {
-  if (Array.isArray(raw)) {
-    return raw.map(asRecord).filter((item) => Object.keys(item).length > 0);
-  }
-  const record = asRecord(raw);
-  if (Object.keys(record).length === 0) {
-    return [];
-  }
-  const nested = firstArray(record.macros, record.macro_controls, record.controls, record.items);
-  if (nested.length > 0) {
-    return nested.map(asRecord).filter((item) => Object.keys(item).length > 0);
-  }
-  return record.macro_id || record.id ? [record] : [];
-}
-
-function normalizeMacroControl(raw: JsonRecord): MacroControl {
-  const macroID = textValue(raw.macro_id ?? raw.id ?? raw.control_id, "");
-  const name = textValue(raw.name ?? raw.label ?? raw.title, macroID || "Macro");
-  const trackID = textValue(raw.track_id ?? raw.track, "");
-  const control = inferMacroControlKind(raw, macroID, name);
-  let min = finiteNumber(raw.min ?? raw.minimum, 0);
-  let max = Math.max(min + 0.0001, finiteNumber(raw.max ?? raw.maximum, 1));
-  if (control === "track.volume" && min === 0 && max === 1) {
-    min = -60;
-    max = 12;
-  }
-  const value = clampNumber(finiteNumber(raw.value ?? raw.default, min), min, max);
-  const bindings = firstArray(raw.bindings, raw.targets).map((item) => normalizeMacroBinding(asRecord(item)));
-  if (bindings.length === 0 && control === "track.volume" && trackID) {
-    bindings.push({
-      binding_id: `binding_${macroID || "macro"}_track_volume`,
-      control: "track.volume",
-      track_id: trackID,
-      plugin_id: "",
-      param_id: "track.volume",
-      param_name: "Track volume",
-      source_min: 0,
-      source_max: 1,
-      target_min: min,
-      target_max: max,
-      enabled: true,
-      unit: textValue(raw.unit, "dB")
-    });
-  }
-  return {
-    macro_id: macroID,
-    id: macroID,
-    name,
-    track_id: trackID,
-    plugin_id: textValue(raw.plugin_id ?? raw.plugin ?? raw.node_id, ""),
-    role: textValue(raw.role, ""),
-    control,
-    control_type: textValue(raw.control_type ?? raw.type, "slider"),
-    value,
-    min,
-    max,
-    unit: textValue(raw.unit, control === "track.volume" ? "dB" : ""),
-    bindings: normalizeTrackVolumeMacroBindings(bindings, control, min, max, textValue(raw.unit, control === "track.volume" ? "dB" : "")),
-    binding_count: Math.max(bindings.length, numericValue(raw.binding_count)),
-    source: textValue(raw.source ?? raw.created_by, "godot_rack"),
-    status: textValue(raw.status ?? raw.state, "ready"),
-    enabled: raw.enabled === undefined ? true : truthy(raw.enabled),
-    updated_at: textValue(raw.updated_at, ""),
-    updated_at_unix: numericValue(raw.updated_at_unix)
-  };
-}
-
-function normalizeMacroBinding(raw: JsonRecord) {
-  return {
-    binding_id: textValue(raw.binding_id ?? raw.id, ""),
-    control: textValue(raw.control, ""),
-    track_id: textValue(raw.track_id ?? raw.track, ""),
-    plugin_id: textValue(raw.plugin_id ?? raw.plugin ?? raw.node_id, ""),
-    param_id: textValue(raw.param_id ?? raw.parameter_id ?? raw.key, ""),
-    param_name: textValue(raw.param_name ?? raw.parameter_name ?? raw.label ?? raw.name, ""),
-    source_min: finiteNumber(raw.source_min, 0),
-    source_max: finiteNumber(raw.source_max, 1),
-    target_min: finiteNumber(raw.target_min ?? raw.min, 0),
-    target_max: finiteNumber(raw.target_max ?? raw.max, 1),
-    enabled: raw.enabled === undefined ? true : truthy(raw.enabled),
-    unit: textValue(raw.unit, "")
-  };
-}
-
-function normalizeTrackVolumeMacroBindings(bindings: MacroControlBinding[], control: string, min: number, max: number, unit: string): MacroControlBinding[] {
-  if (control !== "track.volume") {
-    return bindings;
-  }
-  return bindings.map((binding) => {
-    const isTrackVolumeBinding = binding.control === "track.volume" || binding.param_id === "track.volume";
-    if (!isTrackVolumeBinding) {
-      return binding;
-    }
-    return {
-      ...binding,
-      control: "track.volume",
-      param_id: binding.param_id || "track.volume",
-      param_name: binding.param_name || "Track volume",
-      target_min: min,
-      target_max: max,
-      unit: binding.unit || unit || "dB"
-    };
-  });
-}
-
-function inferMacroControlKind(raw: JsonRecord, macroID: string, name: string): string {
-  const explicit = textValue(raw.control ?? raw.param_id ?? raw.parameter_id, "");
-  if (explicit) {
-    return explicit;
-  }
-  const probe = `${macroID} ${name} ${textValue(raw.role, "")}`.toLowerCase();
-  if (probe.includes("track_volume") || probe.includes("track.volume")) {
-    return "track.volume";
-  }
-  return "";
-}
-
-function mergeMacroControls(...groups: MacroControl[][]): MacroControl[] {
-  const byID = new Map<string, MacroControl>();
-  groups.flat().forEach((macro) => {
-    const normalized = normalizeMacroControl(asRecord(macro));
-    const id = macroControlID(normalized);
-    if (!id) {
-      return;
-    }
-    byID.set(id, mergeMacroControlRecords(byID.get(id), normalized));
-  });
-  return Array.from(byID.values()).sort((a, b) => macroControlLabel(a).localeCompare(macroControlLabel(b)));
-}
-
-function mergeMacroControlRecords(previous: MacroControl | undefined, next: MacroControl): MacroControl {
-  if (!previous) {
-    return next;
-  }
-  const previousBindings = previous.bindings ?? [];
-  const nextBindings = next.bindings ?? [];
-  const merged: MacroControl = { ...previous, ...next };
-  if (previousBindings.length > 0 && nextBindings.length === 0) {
-    merged.bindings = previousBindings;
-    merged.binding_count = Math.max(previous.binding_count ?? 0, previousBindings.length);
-    if (isDefaultMacroRange(next) && !isDefaultMacroRange(previous)) {
-      merged.min = previous.min;
-      merged.max = previous.max;
-      merged.unit = previous.unit;
-      merged.value = previous.value;
-    }
-    if (!merged.control && previous.control) {
-      merged.control = previous.control;
-    }
-    if (!merged.role && previous.role) {
-      merged.role = previous.role;
-    }
-  }
-  return normalizeMacroControl(asRecord(merged));
-}
-
-function isDefaultMacroRange(macro: MacroControl): boolean {
-  return finiteNumber(macro.min, 0) === 0 && finiteNumber(macro.max, 1) === 1;
-}
-
-function macroControlID(macro: MacroControl): string {
-  return textValue(macro.macro_id ?? macro.id, "");
-}
-
-function macroControlLabel(macro: MacroControl): string {
-  return textValue(macro.name, macroControlID(macro) || "Macro");
-}
-
-function macroControlValue(macro: MacroControl): number {
-  const min = finiteNumber(macro.min, 0);
-  const max = Math.max(min + 0.0001, finiteNumber(macro.max, 1));
-  return clampNumber(finiteNumber(macro.value, min), min, max);
-}
-
-function macroControlDisabledReason(macro: MacroControl): string {
-  if (!macroControlID(macro)) {
-    return "缺少宏控制 ID";
-  }
-  if (macro.enabled === false) {
-    return "宏控制已禁用";
-  }
-  if ((macro.bindings ?? []).filter((binding) => binding.enabled !== false).length === 0) {
-    return "暂无参数绑定，只能引用";
-  }
-  return "";
-}
-
-function macroControlMeta(macro: MacroControl): string {
-  const parts = [
-    macro.track_id ? `轨道 ${macro.track_id}` : "",
-    macro.plugin_id ? `插件 ${macro.plugin_id}` : "",
-    statusLabel(macro.status, textValue(macro.status, "ready")),
-    textValue(macro.source, "")
-  ].filter(Boolean);
-  return parts.join(" · ") || "工程宏控制";
-}
-
-function macroBindingSummary(macro: MacroControl): string {
-  const bindings = macro.bindings ?? [];
-  if (bindings.length === 0) {
-    return "暂无参数绑定";
-  }
-  const names = bindings
-    .slice(0, 2)
-    .map((binding) => textValue(binding.param_name ?? binding.param_id, "参数"))
-    .filter(Boolean);
-  const suffix = bindings.length > names.length ? ` +${bindings.length - names.length}` : "";
-  return `${bindings.length} 个绑定${names.length > 0 ? `，${names.join("、")}${suffix}` : ""}`;
-}
-
-function macroValueText(value: number, macro?: MacroControl): string {
-  const unit = textValue(macro?.unit, "");
-  if (macro?.control === "track.volume" || unit.toLowerCase() === "db") {
-    return `${value.toFixed(2)} dB`;
-  }
-  if (value >= 0 && value <= 1) {
-    return `${Math.round(value * 100)}%`;
-  }
-  return unit ? `${value.toFixed(2)} ${unit}` : value.toFixed(2);
-}
-
-function macroPaneSubtitle(count: number, summary: JsonRecord, selectedPlugin: JsonRecord): string {
-  const bindingCount = numericValue(summary.binding_count);
-  const activeCount = numericValue(summary.active_macro_count);
-  const pluginName = textValue(selectedPlugin.plugin_name, "");
-  if (pluginName) {
-    return `${pluginName} / ${activeCount || count} 个相关宏控 / ${bindingCount} 个绑定`;
-  }
-  return `${count} 个工程宏控 / ${bindingCount} 个绑定`;
-}
-
-function activeWorkflowModeLabel(uiState: AgentUIState | null): string {
-  const uiContext = asRecord(uiState?.ui_context);
-  const goal = asRecord(uiState?.goal);
-  const raw = textValue(uiContext.active_workflow_mode ?? uiContext.active_mode_status ?? goal.status, "即时模式");
-  if (raw === "plan") {
-    return "计划模式";
-  }
-  if (raw === "goal") {
-    return "目标模式";
-  }
-  if (raw === "auto_learn") {
-    return "插件学习自动学习";
-  }
-  if (raw === "teach") {
-    return "插件学习教学模式";
-  }
-  return statusLabel(raw, raw);
-}
-
-function macroControlCardAction(macro: MacroControl, source: string): JsonRecord {
-  return {
-    _ui_source: source,
-    kind: "macro_control_card",
-    type: "macro_control_card",
-    id: `macro_card_${macroControlID(macro) || uniqueID("macro")}`,
-    macro_id: macroControlID(macro),
-    title: macroControlLabel(macro),
-    status: macroControlDisabledReason(macro) ? "attention" : "ready",
-    macro: normalizeMacroControl(asRecord(macro))
-  };
-}
-
-function isMacroControlAction(action: JsonRecord): boolean {
-  const kind = textValue(action.kind ?? action.type, "").toLowerCase();
-  const commandName = textValue(action.command_name ?? action.cmd ?? action.command, "").toLowerCase();
-  const result = asRecord(action.result);
-  return (
-    kind === "macro_control_card" ||
-    kind === "macro_control" ||
-    kind === "rack_macro_upserted" ||
-    kind === "rack_macro_renamed" ||
-    commandName === "control.set_macro_values" ||
-    commandName === "control_set_macro_values" ||
-    commandName === "control.rename_macro" ||
-    commandName === "control_rename_macro" ||
-    commandName === "plugin_map_macro_to_params" ||
-    Boolean(action.macro_id && (asRecord(action.macro).macro_id || asRecord(result.macro).macro_id))
-  );
-}
-
-function macroControlValueMutation(macro: MacroControl, value: number, commit: boolean, source: string): JsonRecord {
-  const normalized = normalizeMacroControl(asRecord({ ...macro, value }));
-  return {
-    kind: "rack_macro_value_changed",
-    macro_id: macroControlID(normalized),
-    value,
-    commit,
-    source,
-    requires_refresh: commit
-  };
-}
-
-function macroControlRenameMutation(macro: MacroControl, name: string, source: string): JsonRecord {
-  const normalized = normalizeMacroControl(asRecord({ ...macro, name }));
-  return {
-    kind: "rack_macro_renamed",
-    macro_id: macroControlID(normalized),
-    name,
-    macro: normalized,
-    source,
-    requires_refresh: true
-  };
-}
-
-function finiteNumber(value: unknown, fallback: number): number {
-  const next = Number(value);
-  return Number.isFinite(next) ? next : fallback;
-}
-
-type HistoryTreeNode = {
-  index: number;
-  id: string;
-  nodeID: string;
-  parentID: string;
-  parentIndex: number;
-  kind: string;
-  label: string;
-  meta: string;
-  summary: string;
-  branch: string;
-  commitID: string;
-  createdAt: string;
-  active: boolean;
-  depth: number;
-  raw: JsonRecord;
-};
-
-type HistoryBranchRow = {
-  name: string;
-  head: string;
-  active: boolean;
-};
-
-type HistoryWorktreeRow = {
-  key: string;
-  name: string;
-  label: string;
-  path: string;
-  projectFilePath: string;
-  commitID: string;
-  active: boolean;
-  isRoot: boolean;
-  raw: JsonRecord;
-};
-
-type HistoryLoadedWorktree = {
-  key: string;
-  history: JsonRecord;
-};
-
-type HistoryNodeMenuState = {
-  node: HistoryTreeNode;
-  x: number;
-  y: number;
-};
-
-type HistoryTreeLayout = {
-  nodes: Array<
-    HistoryTreeNode & {
-      x: number;
-      y: number;
-    }
-  >;
-  connections: Array<{ id: string; points: string }>;
-  width: number;
-  height: number;
-};
-
 function HistoryPane({ uiState, onRefresh, checkoutBlocked }: { uiState: AgentUIState | null; onRefresh: () => Promise<void>; checkoutBlocked: boolean }) {
   const activeHistory = asRecord(uiState?.project_history);
   const worktrees = useMemo(() => historyWorktreeRows(activeHistory), [activeHistory]);
@@ -9748,314 +8762,6 @@ function HistoryPane({ uiState, onRefresh, checkoutBlocked }: { uiState: AgentUI
   );
 }
 
-function historyTreeNodes(history: JsonRecord): HistoryTreeNode[] {
-  const graph = asRecord(history.conversation_graph);
-  const rawNodes = firstArray(graph.nodes).map(asRecord).filter((node) => textValue(node.id, "") && textValue(node.commit_id, ""));
-  const activeNodeID = textValue(history.active_node_id ?? graph.active_node_id, "");
-  const activeBranch = historyActiveBranch(history);
-  const byID = new Map<string, JsonRecord>();
-  rawNodes.forEach((node) => byID.set(textValue(node.id, ""), node));
-  const childrenByParent = new Map<string, JsonRecord[]>();
-  rawNodes.forEach((node) => {
-    const parentID = textValue(node.parent_node_id, "");
-    if (!parentID || !byID.has(parentID)) {
-      return;
-    }
-    const children = childrenByParent.get(parentID) ?? [];
-    children.push(node);
-    childrenByParent.set(parentID, children);
-  });
-  const ordered: Array<Omit<HistoryTreeNode, "index" | "parentIndex">> = [];
-  const visited = new Set<string>();
-  const appendNode = (node: JsonRecord, depth: number) => {
-    const id = textValue(node.id, "");
-    if (!id || visited.has(id)) {
-      return;
-    }
-    visited.add(id);
-    const kind = textValue(node.kind, "checkpoint").toLowerCase();
-    const commitID = textValue(node.commit_id, "");
-    const branch = textValue(node.branch, activeBranch);
-    ordered.push({
-      id,
-      nodeID: id,
-      parentID: textValue(node.parent_node_id, ""),
-      kind,
-      label: historyKindLabel(kind),
-      meta: historyShortID(commitID),
-      summary: historyNodeSummary(node, kind),
-      branch,
-      commitID,
-      createdAt: textValue(node.created_at, ""),
-      active: id === activeNodeID,
-      depth,
-      raw: node
-    });
-    (childrenByParent.get(id) ?? []).forEach((child) => appendNode(child, depth + 1));
-  };
-  rawNodes.forEach((node) => {
-    const parentID = textValue(node.parent_node_id, "");
-    if (!parentID || !byID.has(parentID)) {
-      appendNode(node, 0);
-    }
-  });
-  rawNodes.forEach((node) => appendNode(node, 0));
-  const indexByID = new Map<string, number>();
-  ordered.forEach((node, index) => indexByID.set(node.id, index));
-  return ordered.map((node, index) => ({
-    ...node,
-    index,
-    parentIndex: node.parentID ? indexByID.get(node.parentID) ?? -1 : -1
-  }));
-}
-
-function historyTreeLayout(nodes: HistoryTreeNode[]): HistoryTreeLayout {
-  if (nodes.length === 0) {
-    return { nodes: [], connections: [], width: 260, height: 160 };
-  }
-  const cardWidth = 108;
-  const cardHeight = 42;
-  const rowHeight = 72;
-  const laneGap = 92;
-  const pad = 8;
-  const children = new Map<number, number[]>();
-  nodes.forEach((node, index) => {
-    if (node.parentIndex < 0 || node.parentIndex >= nodes.length) {
-      return;
-    }
-    const rows = children.get(node.parentIndex) ?? [];
-    rows.push(index);
-    children.set(node.parentIndex, rows);
-  });
-  const roots = nodes.map((node, index) => ({ node, index })).filter(({ node }) => node.parentIndex < 0 || node.parentIndex >= nodes.length).map(({ index }) => index);
-  const layout = new Map<number, { lane: number; depth: number }>();
-  const visiting = new Set<number>();
-  let nextLane = 0;
-  const assign = (index: number, depth: number): number => {
-    const existing = layout.get(index);
-    if (existing) {
-      return existing.lane;
-    }
-    if (visiting.has(index)) {
-      const lane = nextLane++;
-      layout.set(index, { lane, depth });
-      return lane;
-    }
-    visiting.add(index);
-    const childRows = children.get(index) ?? [];
-    let lane = 0;
-    if (childRows.length === 0) {
-      lane = nextLane++;
-    } else {
-      const childLanes = childRows.map((childIndex) => assign(childIndex, depth + 1));
-      lane = (childLanes[0] + childLanes[childLanes.length - 1]) / 2;
-    }
-    visiting.delete(index);
-    layout.set(index, { lane, depth });
-    return lane;
-  };
-  (roots.length > 0 ? roots : [0]).forEach((index) => assign(index, 0));
-  nodes.forEach((_, index) => {
-    if (!layout.has(index)) {
-      assign(index, 0);
-    }
-  });
-  const maxDepth = Math.max(0, ...Array.from(layout.values()).map((row) => row.depth));
-  const leafCount = Math.max(1, Math.ceil(nextLane));
-  const naturalWidth = cardWidth + Math.max(0, leafCount - 1) * laneGap;
-  const width = Math.max(260, pad * 2 + naturalWidth);
-  const height = Math.max(160, pad * 2 + cardHeight + maxDepth * rowHeight);
-  const horizontalOffset = Math.max(pad, (width - naturalWidth) / 2);
-  const positioned = nodes.map((node, index) => {
-    const row = layout.get(index) ?? { lane: 0, depth: node.depth };
-    return {
-      ...node,
-      x: horizontalOffset + row.lane * laneGap,
-      y: pad + row.depth * rowHeight
-    };
-  });
-  const connections = positioned
-    .filter((node) => node.parentIndex >= 0 && positioned[node.parentIndex])
-    .map((node) => {
-      const parent = positioned[node.parentIndex];
-      const startX = parent.x + cardWidth / 2;
-      const startY = parent.y + cardHeight;
-      const endX = node.x + cardWidth / 2;
-      const endY = node.y;
-      const midY = startY + (endY - startY) * 0.52;
-      return {
-        id: `${parent.id}:${node.id}`,
-        points: `${startX},${startY} ${startX},${midY} ${endX},${midY} ${endX},${endY}`
-      };
-    });
-  return { nodes: positioned, connections, width, height };
-}
-
-function historyBranchRows(history: JsonRecord): HistoryBranchRow[] {
-  const activeBranch = historyActiveBranch(history);
-  const branches = asRecord(history.branches);
-  const names = Object.keys(branches).sort((left, right) => left.localeCompare(right));
-  if (names.length === 0 && activeBranch) {
-    return [{ name: activeBranch, head: textValue(history.head, ""), active: true }];
-  }
-  return names.map((name) => ({
-    name,
-    head: textValue(branches[name], ""),
-    active: name === activeBranch
-  }));
-}
-
-function historyWorktreeRows(history: JsonRecord): HistoryWorktreeRow[] {
-  const rows: HistoryWorktreeRow[] = [];
-  const rootProjectPath = textValue(history.root_project_path, "") || textValue(history.project_path, "");
-  if (rootProjectPath) {
-    const rootPath = rootProjectPath.replace(/[/\\][^/\\]+$/, "");
-    rows.push({
-      key: historyWorktreeKey(rootProjectPath, rootPath, "main"),
-      name: "",
-      label: "主工作树",
-      path: rootPath,
-      projectFilePath: rootProjectPath,
-      commitID: textValue(history.head, ""),
-      active: historyActiveWorktree(history) === "main",
-      isRoot: true,
-      raw: { project_file_path: rootProjectPath, is_root: true }
-    });
-  }
-  const seen = new Set(rows.map((row) => row.key));
-  firstArray(history.worktrees).map(asRecord).forEach((row) => {
-    const item = historyWorktreeRowFromRecord(row, history);
-    if (!item.key || seen.has(item.key)) {
-      return;
-    }
-    seen.add(item.key);
-    rows.push(item);
-  });
-  return rows;
-}
-
-function historyWorktreeRowFromRecord(row: JsonRecord, history: JsonRecord): HistoryWorktreeRow {
-  const name = textValue(row.name, "");
-  const projectFilePath = textValue(row.project_file_path, "");
-  const path = textValue(row.path, "");
-  const commitID = textValue(row.worktree_head_commit_id ?? row.head ?? row.commit_id ?? row.origin_commit_id, "");
-  const isRoot = truthy(row.is_root);
-  const label = textValue(row.label, "") || (isRoot ? "主工作树" : name || lastPathPart(projectFilePath || path) || "工作树");
-  const key = historyWorktreeKey(projectFilePath, path, isRoot ? "main" : name || label);
-  const activeWorktree = historyActiveWorktree(history);
-  const active = isRoot ? activeWorktree === "main" : Boolean(name) && name === textValue(history.active_worktree, "");
-  return { key, name, label, path, projectFilePath, commitID, active, isRoot, raw: row };
-}
-
-function historyWorktreeKey(projectFilePath: string, path: string, name: string): string {
-  return (projectFilePath || path || name).replace(/\\/g, "/").trim().toLowerCase();
-}
-
-function historyToolArgs(history: JsonRecord, args: JsonRecord): JsonRecord {
-  const out: JsonRecord = { ...args };
-  if (!textValue(out.project_path, "")) {
-    const projectPath = historyProjectPath(history);
-    if (projectPath) {
-      out.project_path = projectPath;
-    }
-  }
-  return out;
-}
-
-function historyWorktreeCheckoutArgs(worktree: HistoryWorktreeRow): JsonRecord {
-  const args: JsonRecord = {};
-  if (worktree.name && !worktree.isRoot) {
-    args.name = worktree.name;
-  }
-  if (worktree.projectFilePath) {
-    args.project_file_path = worktree.projectFilePath;
-  }
-  return args;
-}
-
-function buildHistoryInvokeContext(uiState: AgentUIState | null, sourceHistory?: JsonRecord): JsonRecord {
-  const history = sourceHistory && Object.keys(sourceHistory).length > 0 ? sourceHistory : asRecord(uiState?.project_history);
-  return {
-    project_history: history,
-    history_scope_key: historyScopeKeyFromUIState(uiState),
-    project_path: historyProjectPath(history),
-    root_project_path: textValue(history.root_project_path, ""),
-    active_branch: historyActiveBranch(history),
-    active_worktree: textValue(history.active_worktree, ""),
-    active_node_id: textValue(history.active_node_id, "")
-  };
-}
-
-function historyProjectPath(history: JsonRecord): string {
-  return textValue(history.project_path ?? history.current_project_path ?? history.root_project_path, "");
-}
-
-function historyActiveBranch(history: JsonRecord): string {
-  if (truthy(history.detached)) {
-    return "detached";
-  }
-  return textValue(history.active_branch, "main");
-}
-
-function historyActiveWorktree(history: JsonRecord): string {
-  return textValue(history.active_worktree, "") || "main";
-}
-
-function historyKindLabel(kind: string): string {
-  switch (kind.toLowerCase()) {
-    case "ask":
-      return "Ask";
-    case "vit":
-      return "Vit";
-    case "branch_marker":
-      return "分支点";
-    case "checkpoint":
-      return "Saved";
-    default:
-      return kind || "鑺傜偣";
-  }
-}
-
-function historyNodeSummary(node: JsonRecord, kind: string): string {
-  const summary = textValue(node.text_preview ?? node.text ?? node.summary ?? node.message, "");
-  if (summary) {
-    return summary.length > 92 ? `${summary.slice(0, 89)}...` : summary;
-  }
-  return `${historyKindLabel(kind)} saved state`;
-}
-
-function historyNodeTitle(node: HistoryTreeNode): string {
-  const label = node.label || historyKindLabel(node.kind);
-  const branch = node.branch && node.branch !== "main" ? ` / ${node.branch}` : "";
-  return `${label}${branch}`;
-}
-
-function historyNodeCanCreateFrom(node: HistoryTreeNode): boolean {
-  return Boolean(node.commitID) && node.kind === "vit";
-}
-
-function historyStatusIsError(status: string): boolean {
-  const lower = status.toLowerCase();
-  return lower.includes("error") || lower.includes("failed") || status.includes("失败") || status.includes("不可用");
-}
-
-function historyShortID(value: string): string {
-  const clean = value.trim();
-  if (!clean || clean === "-") {
-    return "";
-  }
-  return clean.length > 10 ? clean.slice(0, 10) : clean;
-}
-
-function historySafeName(value: string): string {
-  return value
-    .trim()
-    .replace(/[\\/:*?"<>|]+/g, "-")
-    .replace(/\s+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 64);
-}
-
 function historyMessageRoleLabel(role: string): string {
   const clean = role.toLowerCase();
   if (clean === "user" || clean === "ask") {
@@ -10246,7 +8952,7 @@ function assistantMessageFromResponse(response: ChatResponse): ChatMessage {
   });
 }
 
-function confirmationFallbackActionsFromResponse(response: ChatResponse): JsonRecord[] {
+export function confirmationFallbackActionsFromResponse(response: ChatResponse): JsonRecord[] {
   const planID = textValue(response.plan_id, "");
   if (!planID || !responseNeedsConfirmationFallback(response)) {
     return [];
@@ -10497,7 +9203,7 @@ function firstNonEmptyRecord(...records: JsonRecord[]): JsonRecord {
 }
 
 
-function interactionActionsFrom(...values: unknown[]): JsonRecord[] {
+export function interactionActionsFrom(...values: unknown[]): JsonRecord[] {
   const seen = new Set<string>();
   const out: JsonRecord[] = [];
   values.forEach((value) => {
@@ -10518,7 +9224,7 @@ function interactionActionsFrom(...values: unknown[]): JsonRecord[] {
   return out;
 }
 
-function artifactSummariesFrom(...values: unknown[]): ArtifactSummary[] {
+export function artifactSummariesFrom(...values: unknown[]): ArtifactSummary[] {
   const seen = new Set<string>();
   const out: ArtifactSummary[] = [];
   values.forEach((value) => {
@@ -10538,7 +9244,7 @@ function artifactSummariesFrom(...values: unknown[]): ArtifactSummary[] {
 // artifact 定位上下文用的全量 scope 键（含 state_dir/worktree/branch 等晚物化
 // 字段，与服务端 artifactHistoryScopeKey 语义对齐）。CONTRACT-3 起 history-sync
 // 与会话/消息存储桶改用 historyScope.ts 的稳定身份键，不再消费本函数。
-function artifactHistoryScopeKeyFromUIState(uiState: AgentUIState | null): string {
+export function artifactHistoryScopeKeyFromUIState(uiState: AgentUIState | null): string {
   if (!uiState) {
     return "";
   }
@@ -10562,935 +9268,6 @@ function artifactHistoryScopeKeyFromUIState(uiState: AgentUIState | null): strin
     activeWorktree || "main",
     activeBranch || "main"
   ].join("::");
-}
-
-// CONTRACT-3/C3：history-sync 的消息解析纯函数（恢复优先级统一实现）——
-// 任务状态以 runtime snapshot 为权威、过程轨迹以事件流为权威、终局以
-// Project History 为恢复权威：
-// - switch：真工程切换照旧清流（回落问候语），旧工程终局不带入新工程；
-// - initial：刷新/首锚以 Project History 为恢复权威并幂等带回事件路径终局
-//   （GUI-1 ② 语义）；但空 Project History 不得覆盖已恢复/已回放的终局流
-//   （C3：刷新后终局消息不消失——终局由服务端事件重放先行交付时锚定滞后）；
-// - evolution/none：同会话演进只合并（保留在流消息与事件 seq 投影）。
-export function resolveHistorySyncMessages(input: {
-  changeKind: HistoryScopeChangeKind;
-  current: ChatMessage[];
-  historyMessages: ChatMessage[];
-}): ChatMessage[] {
-  const hasPendingInteraction = hasPendingComposerInteraction(input.current);
-  const baseMessages = hasPendingInteraction ? input.current : removeDisposableConfirmationPromptMessages(input.current);
-  if (input.changeKind === "switch") {
-    return messagesOrIntro(input.historyMessages);
-  }
-  if (input.changeKind === "initial") {
-    if (!hasMeaningfulChatMessages(input.historyMessages) && hasMeaningfulChatMessages(input.current)) {
-      return input.current;
-    }
-    return messagesOrIntro(appendChainResultMessages(input.historyMessages, input.current.filter(isChainResultChatMessage)));
-  }
-  return mergeChatMessages(baseMessages, input.historyMessages);
-}
-
-// CONTRACT-3：演进后重新锚定存储桶——把旧 scope 桶里的已存消息合并进新桶，
-// 会话 id 一并迁移（旧桶保留作回退，不删除）。
-export function migrateStoredConversationScope(previousScope: string, nextScope: string, conversationID: string): void {
-  if (!previousScope || !nextScope || previousScope === nextScope) {
-    return;
-  }
-  const continuingConversationID = conversationID || loadStoredScopedConversationID(previousScope);
-  if (!continuingConversationID) {
-    return;
-  }
-  // CONV-ID-BOOT-1（2026-09-14）：新桶已锚定到「另一个会话」时不得覆写锚定。
-  // 首拍 scope 未物化造出的随机会话 id 走到这里，会把真实 scope 桶里用户
-  // 上一会话的锚整个抹掉——刷新后裸启动再也回不到原会话（轨迹块/A-B 卡/
-  // 收据全灭）。空桶或同值重写照常落锚；消息与台账按 (会话 id, scope) 分桶
-  // 迁移，不碰被锚定会话自己的数据。
-  const existingNextAnchor = loadStoredScopedConversationID(nextScope);
-  if (!existingNextAnchor || existingNextAnchor === continuingConversationID) {
-    saveStoredScopedConversationID(nextScope, continuingConversationID);
-  }
-  // TRAJ-IMPL-3：回执行台账与消息存档同一条迁移语义（scope 演进 = 同一会话换桶，
-  // 旧桶保留作回退不删除）。漏了这一步，scope 演进后的刷新会看不见演进前的回执行。
-  const previousReceipts = loadTurnReceipts(continuingConversationID, previousScope);
-  if (previousReceipts.length > 0) {
-    const mergedReceipts = mergeTurnReceipts(loadTurnReceipts(continuingConversationID, nextScope), previousReceipts);
-    persistTurnReceipts(continuingConversationID, nextScope, mergedReceipts);
-  }
-  const previousMessages = loadStoredConversationMessages(continuingConversationID, previousScope);
-  if (previousMessages.length === 0) {
-    return;
-  }
-  const existingMessages = loadStoredConversationMessages(continuingConversationID, nextScope);
-  const merged = mergeStoredScopeMessages(existingMessages, previousMessages);
-  if (merged.length > 0) {
-    saveStoredConversationMessages(continuingConversationID, nextScope, merged);
-  }
-}
-
-function mergeStoredScopeMessages(existingMessages: ChatMessage[], previousMessages: ChatMessage[]): ChatMessage[] {
-  return durableMessagesForStorage(mergeChatMessages(existingMessages, previousMessages)).filter(
-    (message) => message.id !== "intro"
-  );
-}
-
-function messagesOrIntro(messages: ChatMessage[]): ChatMessage[] {
-  if (messages.length > 0) {
-    return messages;
-  }
-  return [{ ...initialMessage, id: uniqueID("intro"), createdAt: Date.now() }];
-}
-
-export function hasMeaningfulChatMessages(messages: ChatMessage[]): boolean {
-  return messages.some((message) => {
-    // CONV-ID-BOOT-1（2026-09-14）：开机问候由 messagesOrIntro 克隆成
-    // intro_<ts>_<rand>（不是整串 "intro"）。旧排除只匹配整串 id，问候被计成
-    // 有效消息，演进拍的采纳守卫（不劫持现役会话）因此在裸启动上永远误触：
-    // 存档锚定不被回读，fall-through 迁移把真实 scope 桶覆写成新随机会话 id
-    // ——刷新后轨迹块/A-B 卡/收据全灭的独占根因。
-    if (message.role === "assistant" && (message.id === "intro" || message.id.startsWith("intro_"))) {
-      return false;
-    }
-    return textValue(message.content, "").trim() !== "" || (message.actions?.length ?? 0) > 0 || (message.artifacts?.length ?? 0) > 0;
-  });
-}
-
-function createConversationID(): string {
-  return `webui_${Date.now().toString(36)}`;
-}
-
-function conversationScopedIDStorageKey(scope: string): string {
-  return `${conversationScopedIDStoragePrefix}:${stableIDPart(scope)}`;
-}
-
-function scopedConversationRuntimeKey(scope: string, conversationID: string): string {
-  return `${stableIDPart(scope)}:${stableIDPart(conversationID || "latest")}`;
-}
-
-export function loadStoredScopedConversationID(scope: string): string {
-  if (typeof window === "undefined" || !scope) {
-    return "";
-  }
-  try {
-    return window.localStorage.getItem(conversationScopedIDStorageKey(scope))?.trim() ?? "";
-  } catch {
-    return "";
-  }
-}
-
-export function saveStoredScopedConversationID(scope: string, conversationID: string): void {
-  if (typeof window === "undefined" || !scope || !conversationID) {
-    return;
-  }
-  try {
-    window.localStorage.setItem(conversationScopedIDStorageKey(scope), conversationID);
-  } catch {
-    // Scoped local history is best-effort; the backend Project History remains authoritative.
-  }
-}
-
-// REFRESH-VANISH-2（2026-09-15）：空 storage 裸开（Godot webview 面板销毁重建丢
-// localStorage 的用户形态）时的服务端会话身份兜底。服务端没有「当前会话」直读面，
-// 但 runtimeStatus.continuations 投影行携带 conversation_id + project_path/uuid +
-// updated_at——按 scope 匹配取最新行即得权威会话身份；事件缓冲（/agent/events）按
-// 该 id 键控，采纳它即可经 since=0 全量回放重建轨迹块/A-B 卡（消息面走 uiState
-// 服务端历史恢复、不依赖本地 storage，这正是「消息在、轨迹无」的分裂成因）。
-export function serverConversationIDFromContinuations(continuations: unknown, parts: HistoryScopeParts): string {
-  if (!Array.isArray(continuations)) {
-    return "";
-  }
-  const scopePath = normalizeServerContinuationPath(parts.projectPath || parts.rootProjectPath);
-  const scopeUUID = (parts.projectUUID || "").trim().toLowerCase();
-  if (!scopePath && !scopeUUID) {
-    return "";
-  }
-  let bestID = "";
-  let bestAt = "";
-  for (const raw of continuations) {
-    const row = asRecord(raw);
-    const conversationID = textValue(row.conversation_id, "").trim();
-    if (!conversationID) {
-      continue;
-    }
-    const rowPath = normalizeServerContinuationPath(row.project_path);
-    const rowUUID = textValue(row.project_uuid, "").trim().toLowerCase();
-    const scopeMatched = (scopePath !== "" && rowPath === scopePath) || (scopeUUID !== "" && rowUUID === scopeUUID);
-    if (!scopeMatched) {
-      continue;
-    }
-    const updatedAt = textValue(row.updated_at, "");
-    // 同刻并列时按会话 id 决胜：选择只由数据决定，不依赖服务端列表顺序。
-    if (!bestID || updatedAt > bestAt || (updatedAt === bestAt && conversationID > bestID)) {
-      bestID = conversationID;
-      bestAt = updatedAt;
-    }
-  }
-  return bestID;
-}
-
-function normalizeServerContinuationPath(value: unknown): string {
-  return textValue(value, "").trim().replace(/\\/g, "/").replace(/\/+$/, "").toLowerCase();
-}
-
-// REFRESH-VANISH-2：scope 会话身份的统一解析链（initial/switch 引导与 evolution
-// 锚定候选共用）。优先级：URL 绑定 > 本地锚定 > 服务端兜底 > 新建。服务端兜底
-// 只在本地映射缺失时生效（storage 正常形态零行为变化）；evolution 调用侧传
-// url="" fresh=""，把链退化为「本地锚定 || 服务端兜底」的锚定候选。
-export function resolveScopedConversationID(input: {
-  urlConversationID: string;
-  storedScopedConversationID: string;
-  serverConversationID: string;
-  freshConversationID: string;
-}): string {
-  for (const value of [input.urlConversationID, input.storedScopedConversationID, input.serverConversationID, input.freshConversationID]) {
-    const trimmed = value.trim();
-    if (trimmed) {
-      return trimmed;
-    }
-  }
-  return "";
-}
-
-function conversationMessagesStorageKey(conversationID: string, scope = ""): string {
-  const id = stableIDPart(conversationID || "latest");
-  const scoped = scope ? `:${stableIDPart(scope)}` : "";
-  return `${conversationMessagesStoragePrefix}:${id}${scoped}`;
-}
-
-export function loadStoredConversationMessages(conversationID: string, scope = ""): ChatMessage[] {
-  if (typeof window === "undefined" || !conversationID || !scope) {
-    return [];
-  }
-  try {
-    const raw = window.localStorage.getItem(conversationMessagesStorageKey(conversationID, scope));
-    if (!raw) {
-      return [];
-    }
-    const parsed = JSON.parse(raw);
-    return firstArray(asRecord(parsed).messages ?? parsed).map(sanitizeStoredChatMessage).filter(Boolean) as ChatMessage[];
-  } catch {
-    // Ignore corrupt local history and let Project History hydrate what it can.
-    return [];
-  }
-}
-
-export function saveStoredConversationMessages(conversationID: string, scope: string, messages: ChatMessage[]): void {
-  if (typeof window === "undefined" || !conversationID || !scope) {
-    return;
-  }
-  const rows = durableMessagesForStorage(messages)
-    .filter((message) => message.id !== "intro")
-    .slice(-120)
-    .map(sanitizeChatMessageForStorage);
-  if (rows.length === 0) {
-    return;
-  }
-  const payload = JSON.stringify({
-    schema_version: "ask_vit_conversation_messages.v2",
-    conversation_id: conversationID,
-    scope,
-    saved_at: new Date().toISOString(),
-    messages: rows
-  });
-  try {
-    window.localStorage.setItem(conversationMessagesStorageKey(conversationID, scope), payload);
-  } catch {
-    // Local history is best-effort; Project History remains the durable backend record.
-  }
-}
-
-function sanitizeChatMessageForStorage(message: ChatMessage): ChatMessage {
-  return durableMessage({
-    id: textValue(message.id, uniqueID("stored_msg")),
-    source_id: textValue(message.source_id, ""),
-    role: message.role,
-    content: textValue(message.content, ""),
-    mode: message.mode,
-    artifacts: message.artifacts ?? [],
-    actions: (message.actions ?? []).map(asRecord).filter((action) => Object.keys(action).length > 0),
-    createdAt: Number.isFinite(message.createdAt) ? message.createdAt : Date.now(),
-    status: message.status,
-    lifecycle: message.lifecycle,
-    persistence: message.persistence,
-    message_kind: message.message_kind,
-    turn_id: message.turn_id,
-    logical_message_id: message.logical_message_id,
-    supersedes: message.supersedes
-  });
-}
-
-function sanitizeStoredChatMessage(value: unknown): ChatMessage | null {
-  const row = asRecord(value);
-  const roleText = textValue(row.role, "assistant");
-  const role: ChatMessage["role"] = roleText === "user" || roleText === "system" ? roleText : "assistant";
-  const content = textValue(row.content, "");
-  const actions = firstArray(row.actions).map(asRecord).filter((action) => Object.keys(action).length > 0);
-  const artifacts = artifactSummariesFrom(row.artifacts);
-  if (!content && actions.length === 0 && artifacts.length === 0) {
-    return null;
-  }
-  const createdAt = Number(row.createdAt ?? row.created_at);
-  const candidate: ChatMessage = {
-    id: textValue(row.id, uniqueID("stored_msg")),
-    source_id: textValue(row.source_id, ""),
-    role,
-    content,
-    mode: textValue(row.mode, "") as AgentMode,
-    artifacts,
-    actions,
-    createdAt: Number.isFinite(createdAt) ? createdAt : Date.now(),
-    status: chatMessageStatusFromStored(row.status),
-    lifecycle: textValue(row.lifecycle, "") as ChatMessage["lifecycle"],
-    persistence: textValue(row.persistence, "") as ChatMessage["persistence"],
-    message_kind: textValue(row.message_kind, "") as ChatMessage["message_kind"],
-    turn_id: textValue(row.turn_id, ""),
-    logical_message_id: textValue(row.logical_message_id, ""),
-    supersedes: firstArray(row.supersedes).map((item) => textValue(item, "")).filter(Boolean)
-  };
-  if (isLegacyTransientMessage(candidate) || !isDurableMessage(candidate)) {
-    return null;
-  }
-  return durableMessage(candidate);
-}
-
-function chatMessageStatusFromStored(value: unknown): ChatMessage["status"] {
-  const status = textValue(value, "sent").toLowerCase();
-  if (status === "pending" || status === "error") {
-    return status;
-  }
-  return "sent";
-}
-
-// VITNOTE-NOTESTREAM-2：切换到 note 会话时的消息种子——note 问答不经 webui 发送
-//（本地桶无消息、/agent/events 无轨迹），从 note_sessions 投影行回放问答对；非
-// note 会话/无投影行回落常规开机问候（既有恢复效应接管）。fail-open：异形行按空处理。
-export function noteSessionSeedMessages(targetConversationID: string, noteSessions: JsonRecord[] | undefined): ChatMessage[] {
-  const intro = () => [{ ...initialMessage, id: uniqueID("intro"), createdAt: Date.now() }];
-  const target = targetConversationID.trim();
-  if (!target || !Array.isArray(noteSessions)) {
-    return intro();
-  }
-  const row = noteSessions.find((candidate) => textValue(candidate.conversation_id, "") === target);
-  if (!row) {
-    return intro();
-  }
-  const messages: ChatMessage[] = [];
-  for (const raw of firstArray(row.messages)) {
-    const record = asRecord(raw);
-    const content = textValue(record.content ?? record.text, "");
-    const roleText = textValue(record.role, "").toLowerCase();
-    if (!content || (roleText !== "user" && roleText !== "assistant")) {
-      continue;
-    }
-    const created = Date.parse(textValue(record.created_at, ""));
-    messages.push({
-      id: uniqueID("vitnote"),
-      role: roleText === "user" ? "user" : "assistant",
-      content,
-      createdAt: Number.isFinite(created) ? created : Date.now(),
-      lifecycle: "durable",
-      persistence: "project_history"
-    });
-  }
-  return messages.length > 0 ? messages : intro();
-}
-
-function historyMessagesFromUIState(uiState: AgentUIState | null): ChatMessage[] {
-  const projectHistory = asRecord(uiState?.project_history);
-  const rows = firstArray(projectHistory.conversation_messages);
-  const artifacts = uiState?.artifacts ?? [];
-  const messages: ChatMessage[] = [];
-  rows.forEach((raw, index) => {
-    const row = asRecord(raw);
-    const content = textValue(row.content ?? row.text ?? row.text_preview, "");
-    if (!content) {
-      return;
-    }
-    const sourceID = textValue(row.node_id ?? row.id, `history_${index}`);
-    const roleText = textValue(row.role ?? row.kind, "assistant").toLowerCase();
-    const role: ChatMessage["role"] = roleText === "user" || roleText === "ask" ? "user" : "assistant";
-    if (role === "assistant" && isDisposableConfirmationPromptText(content)) {
-      return;
-    }
-    const created = Date.parse(textValue(row.created_at, ""));
-    const messageData = asRecord(row.message_data);
-    const workflowData = asRecord(messageData.workflow_data);
-    const messageInteractions = interactionActionsFrom(messageData.interaction_requests);
-    const historyResponse: ChatResponse = {
-      reply: content,
-      needs_confirmation: truthy(messageData.needs_confirmation),
-      plan_id: textValue(messageData.plan_id, ""),
-      preview: textValue(messageData.preview, ""),
-      workflow: textValue(messageData.workflow, ""),
-      workflow_data: workflowData,
-      proposal_presentation: asRecord(messageData.proposal_presentation ?? workflowData.proposal_presentation),
-      interaction_requests: firstArray(messageData.interaction_requests).map(asRecord),
-      message_kind: textValue(row.message_kind, "") as ChatResponse["message_kind"],
-      lifecycle: "durable",
-      persistence: "project_history"
-    };
-    const historyFallbackActions = messageInteractions.some(isPendingInteractionAction)
-      ? []
-      : confirmationFallbackActionsFromResponse(historyResponse);
-    const actions =
-      role === "assistant"
-        ? [
-            ...messageInteractions,
-            ...historyFallbackActions,
-            ...firstArray(row.project_result_cards)
-              .map(asRecord)
-              .filter((card) => Object.keys(card).length > 0)
-              .map((card, cardIndex) => ({
-                ...card,
-                _ui_source: "project_result",
-                kind: "project_result",
-                type: "project_result",
-                id: textValue(card.id, `history_project_result_${sourceID}_${cardIndex}`)
-              }))
-          ]
-        : [];
-    const messageArtifacts = artifactSummariesFrom(row.artifacts);
-    const protocol = historyMessageProtocol(row, role);
-    const historyMessage = durableMessage({
-      id: `history_${sourceID}`,
-      role,
-      content,
-      artifacts: messageArtifacts,
-      actions,
-      createdAt: Number.isFinite(created) ? created : Date.now() + index,
-      status: "sent",
-      ...protocol
-    }, { persistence: "project_history" });
-    if (isDurableMessage(historyMessage)) {
-      messages.push(historyMessage);
-    }
-  });
-  return settleSupersededInteractionFamilies(resolveCompletedTurnProposals(resolveSupersededMessages(messages)));
-}
-
-function removeDisposableConfirmationPromptMessages(messages: ChatMessage[]): ChatMessage[] {
-  return messages.filter((message) => !isDisposableConfirmationPromptMessage(message));
-}
-
-function mergeChatMessages(current: ChatMessage[], incoming: ChatMessage[]): ChatMessage[] {
-  if (incoming.length === 0) {
-    return current;
-  }
-  const base = current.length === 1 && current[0].id === "intro" ? [] : current;
-  return settleSupersededInteractionFamilies(resolveCompletedTurnProposals(mergeMessageCollections(base, incoming, chatMessageKeys, mergeChatMessage)));
-}
-
-// FIX-BUCKET-SAVE-RACE-1：restore 合流核（自 restore 效应体抽出，供 reload 桶
-// save/restore 管线的回归测试直接驱动）。现流无有效消息（裸启动只有问候克隆）
-// 时以桶内容起流；否则桶内容并回现流（去重/收口语义同 mergeChatMessages）。
-export function mergeRestoredChatMessages(current: ChatMessage[], storedMessages: ChatMessage[]): ChatMessage[] {
-  if (!hasMeaningfulChatMessages(current)) {
-    return messagesOrIntro(storedMessages);
-  }
-  return mergeChatMessages(storedMessages, current);
-}
-
-function mergeAssistantMessageIntoChat(current: ChatMessage[], incoming: ChatMessage): ChatMessage[] {
-  return messageMixBoardAction(incoming) ? upsertPersistentMixBoardMessage(current, incoming) : mergeChatMessages(current, [incoming]);
-}
-
-function upsertPersistentMixBoardMessage(current: ChatMessage[], incoming: ChatMessage): ChatMessage[] {
-  const incomingAction = messageMixBoardAction(incoming);
-  if (!incomingAction) {
-    return mergeChatMessages(current, [incoming]);
-  }
-  const incomingSessionID = mixBoardActionSessionID(incomingAction);
-  let replaced = false;
-  let inserted = false;
-  const next = current.flatMap((message) => {
-    const actions = (message.actions ?? []).map(asRecord);
-    if (actions.length === 0) {
-      return [message];
-    }
-    const mixActions = actions.filter(isMixBoardAction);
-    if (mixActions.length === 0) {
-      return [message];
-    }
-    const sessionMatches = mixActions.some((action) => isSameMixBoardSession(action, incomingAction, incomingSessionID));
-    const shouldReplaceHere = !replaced && (sessionMatches || !incomingSessionID);
-    if (!shouldReplaceHere) {
-      const remaining = actions.filter((action) => !isMixBoardAction(action));
-      if (remaining.length === 0 && !message.artifacts?.length && !message.content.trim()) {
-        return [];
-      }
-      return [{ ...message, actions: remaining }];
-    }
-    replaced = true;
-    inserted = true;
-    const mergedActions = actions.map((action) => (isMixBoardAction(action) ? incomingAction : action));
-    return [{
-      ...message,
-      content: incoming.content || message.content,
-      mode: incoming.mode || message.mode,
-      artifacts: mergeArtifacts(message.artifacts ?? [], incoming.artifacts ?? []),
-      actions: mergedActions,
-      status: incoming.status
-    }];
-  });
-  if (inserted) {
-    return next;
-  }
-  const stripped = next.filter((message) => {
-    const actions = (message.actions ?? []).map(asRecord);
-    return !actions.some(isMixBoardAction);
-  });
-  return mergeChatMessages(stripped, [incoming]);
-}
-
-function messageMixBoardAction(message: ChatMessage): JsonRecord | null {
-  return firstArray(message.actions).map(asRecord).find(isMixBoardAction) ?? null;
-}
-
-function isSameMixBoardSession(action: JsonRecord, incomingAction: JsonRecord, incomingSessionID: string): boolean {
-  if (!isMixBoardAction(action)) {
-    return false;
-  }
-  const existingSessionID = mixBoardActionSessionID(action);
-  if (incomingSessionID && existingSessionID) {
-    return incomingSessionID === existingSessionID;
-  }
-  return actionRenderID(action) === actionRenderID(incomingAction);
-}
-
-function mixBoardActionSessionID(action: JsonRecord): string {
-  const payload = interactionPayload(action);
-  const session = asRecord(payload.mix_session ?? action.mix_session);
-  const observationEnvelope = asRecord(payload.mix_observation ?? action.mix_observation);
-  const observation = asRecord(observationEnvelope.observation);
-  const mixboard = asRecord(observationEnvelope.mixboard);
-  return textValue(
-    session.mix_session_id ??
-      observation.mix_session_id ??
-      mixboard.mix_session_id ??
-      payload.mix_session_id ??
-      action.mix_session_id,
-    ""
-  );
-}
-
-function mergeChatMessage(existing: ChatMessage, incoming: ChatMessage): ChatMessage {
-  return {
-    ...incoming,
-    ...existing,
-    source_id: existing.source_id || incoming.source_id,
-    lifecycle: existing.lifecycle === "durable" || incoming.lifecycle === "durable" ? "durable" : existing.lifecycle ?? incoming.lifecycle,
-    persistence: existing.persistence === "project_history" || incoming.persistence === "project_history"
-      ? "project_history"
-      : existing.persistence ?? incoming.persistence,
-    message_kind: inferMessageKind(existing) === "proposal" || inferMessageKind(incoming) === "proposal"
-      ? "proposal"
-      : existing.message_kind ?? incoming.message_kind,
-    turn_id: existing.turn_id || incoming.turn_id,
-    logical_message_id: existing.logical_message_id || incoming.logical_message_id,
-    supersedes: Array.from(new Set([...(existing.supersedes ?? []), ...(incoming.supersedes ?? [])])),
-    artifacts: mergeArtifacts(existing.artifacts ?? [], incoming.artifacts ?? []),
-    actions: mergeMessageActions(existing.actions ?? [], incoming.actions ?? []),
-    createdAt: Math.min(existing.createdAt, incoming.createdAt),
-    status: existing.status === "error" || incoming.status === "error" ? "error" : existing.status ?? incoming.status
-  };
-}
-
-export function mergeMessageActions(current: JsonRecord[], incoming: JsonRecord[]): JsonRecord[] {
-  if (current.length === 0) {
-    return incoming;
-  }
-  if (incoming.length === 0) {
-    return current;
-  }
-  const byKey = new Map<string, JsonRecord>();
-  const order: string[] = [];
-  [...current, ...incoming].forEach((action, index) => {
-    const key = actionMergeKey(action, index);
-    const existing = byKey.get(key);
-    if (existing) {
-      byKey.set(key, mergeActionRecord(existing, action));
-      return;
-    }
-    byKey.set(key, action);
-    order.push(key);
-  });
-  return order.map((key) => byKey.get(key)).filter((action): action is JsonRecord => Boolean(action));
-}
-
-function mergeActionRecord(existing: JsonRecord, incoming: JsonRecord): JsonRecord {
-  if (isComposerInteraction(existing) && !isComposerInteraction(incoming)) {
-    return existing;
-  }
-  // FIX-CONFIRM-CARD-1 ②：已结算的交互动作不得从 incoming 复活子按钮。结算
-  // 写入口径一律摘按钮（resolveInteractionInMessages / guard 盖章 / 回合终结
-  // 与同族替代结算），existing.actions 为空是"已结算"而非"缺按钮数据"；旧
-  // 回退取 incoming.actions 会把死卡复活成可点击形态（点击命中 server 4022
-  // 过期口径——E2E K1/K2 实证：settle 后的二次同键合并与台账盖章版合并均
-  // 触发）。已结算形态以 existing 为权威终稿。
-  if (isSettledInteractionRecord(existing)) {
-    return existing;
-  }
-  return {
-    ...incoming,
-    ...existing,
-    actions: firstArray(existing.actions).length > 0 ? existing.actions : incoming.actions
-  };
-}
-
-function isSettledInteractionRecord(action: JsonRecord): boolean {
-  if (textValue(action._ui_source, "") !== "interaction") {
-    return false;
-  }
-  if (textValue(action.resolved_action_id, "") !== "") {
-    return true;
-  }
-  const status = textValue(action.status ?? action.stage, "").toLowerCase();
-  return isConsumedInteractionStatus(status) ||
-    status.includes("complete") ||
-    status.includes("cancel") ||
-    status.includes("fail");
-}
-
-function actionMergeKey(action: JsonRecord, index: number): string {
-  if (isCapabilityProposalInteraction(action)) {
-    const proposalID = proposalActionIdentity(action);
-    if (proposalID) {
-      return `proposal:${proposalID}`;
-    }
-  }
-  return actionRenderID(action) || stableActionIdentity(action) || `${textValue(action._ui_source, "action")}:${index}`;
-}
-
-function stableActionIdentity(action: JsonRecord): string {
-  const source = textValue(action._ui_source, "action");
-  const payload = asRecord(action.result ?? action.payload);
-  const tool = textValue(action.tool ?? payload.tool, "");
-  const command = textValue(action.command_name ?? action.cmd ?? action.command ?? payload.command_name ?? payload.cmd ?? payload.command, "");
-  const status = textValue(action.status ?? payload.status, "");
-  const objectID = textValue(
-    action.tool_call_id ??
-      action.agent_action_id ??
-      payload.tool_call_id ??
-      payload.agent_action_id ??
-      payload.track_id ??
-      payload.clip_id ??
-      payload.plugin_id ??
-      payload.new_clip_id ??
-      payload.created_clip_id,
-    ""
-  );
-  if (objectID) {
-    return `${source}:${tool || command || "action"}:${objectID}:${status}`;
-  }
-  const preview = textValue(
-    action.preview ??
-      action.body ??
-      action.title ??
-      payload.message ??
-      payload.summary ??
-      payload.preview,
-    ""
-  ).slice(0, 120);
-  if (tool || command || status || preview) {
-    return `${source}:${tool || command || "action"}:${status}:${preview}`;
-  }
-  return "";
-}
-
-function chatMessageKeys(message: ChatMessage): string[] {
-  const actions = (message.actions ?? []).map(asRecord);
-  const actionKeys = actions
-    .filter(isMessageMergeKeyAction)
-    .map((action) => actionRenderID(action))
-    .filter(Boolean);
-  const keys: string[] = messageProtocolIdentityKeys(message);
-  if (message.id) {
-    keys.push(`id:${message.id}`);
-  }
-  if (actionKeys.length > 0) {
-    keys.push(`actions:${message.role}:${actionKeys.join("|")}`);
-  }
-  if (!actions.some(isProjectResultAction) && (actionKeys.length === 0 || inferMessageKind(message) === "proposal")) {
-    keys.push(`text:${message.role}:${message.content}`);
-  }
-  return Array.from(new Set(keys));
-}
-
-function isMessageMergeKeyAction(action: JsonRecord): boolean {
-  if (isProjectResultAction(action)) {
-    return false;
-  }
-  const source = textValue(action._ui_source, "");
-  return source === "interaction" || isComposerInteraction(action) || isConfirmationAction(action);
-}
-
-export function defaultSettingsConfig(): EngineConfig {
-  return {
-    baseUrl: "",
-    apiKey: "",
-    defaultModel: "",
-    multimodalRoutes: Object.fromEntries(
-      multimodalRouteMeta.map((meta, index) => [
-        meta.key,
-        {
-          enabled: meta.key === "text",
-          provider: "default",
-          baseUrl: "",
-          apiKey: "",
-          model: "",
-          priority: (index + 1) * 10,
-          fallback: ""
-        } satisfies MultimodalRouteConfig
-      ])
-    ),
-    browser: {
-      enabled: false,
-      mode: "webview2_companion",
-      profilePath: "",
-      rememberSession: true
-    }
-  };
-}
-
-export function mergeSettingsConfig(config?: EngineConfig): EngineConfig {
-  const defaults = defaultSettingsConfig();
-  return {
-    ...defaults,
-    ...(config ?? {}),
-    multimodalRoutes: {
-      ...(defaults.multimodalRoutes ?? {}),
-      ...(config?.multimodalRoutes ?? {})
-    },
-    browser: {
-      ...(defaults.browser ?? {}),
-      ...(config?.browser ?? {})
-    },
-    apiKey: ""
-  };
-}
-
-// 保存成功后 response.config 是 RedactSecrets 的产物（主/路由 key 均无明文）；
-// 以 merged 为基准、沿用 current 的 key 输入态，其余字段以服务端回传为准。
-export function retainSecretInputs(merged: EngineConfig, current: EngineConfig): EngineConfig {
-  const mergedRoutes = merged.multimodalRoutes ?? {};
-  const currentRoutes = current.multimodalRoutes ?? {};
-  const multimodalRoutes: Record<string, MultimodalRouteConfig> = { ...mergedRoutes };
-  for (const key of Object.keys(currentRoutes)) {
-    multimodalRoutes[key] = { ...(mergedRoutes[key] ?? currentRoutes[key]), apiKey: currentRoutes[key].apiKey ?? "" };
-  }
-  return { ...merged, apiKey: current.apiKey ?? "", multimodalRoutes };
-}
-
-// 状态行区分两种保存情形：已输入 key（输入态保持）与留空（沿用已存 key）。
-export function settingsSavedStatus(apiKey: string, hasApiKey: boolean): string {
-  if (apiKey.trim()) {
-    return "已保存。API Key 已更新，输入框保留所输内容；下一条消息会使用新配置。";
-  }
-  if (hasApiKey) {
-    return "已保存。API Key 留空=沿用已存 key；下一条消息会使用新配置。";
-  }
-  return "已保存。下一条消息会使用新配置。";
-}
-
-function selectedPluginContextFromUIState(uiState: AgentUIState | null): { track_id: string; plugin_id: string; plugin_name: string } {
-  const selectedPlugin = asRecord(uiState?.selected_plugin);
-  const uiContext = asRecord(uiState?.ui_context);
-  const rack = asRecord(uiState?.plugin_rack);
-  const rackTrack = asRecord(rack.track);
-  const selectedTrack = asRecord(uiState?.selected_track);
-  const plugins = firstArray(rack.plugins, rack.items, rack.chain, rack.rack)
-    .map(asRecord)
-    .filter((item) => Object.keys(item).length > 0 && !isSystemRackPluginRecord(item));
-  const rackSelection = plugins.find((plugin) => truthy(plugin.selected) || truthy(plugin.current) || truthy(plugin.active) || truthy(plugin.focused)) ??
-    (plugins.length === 1 ? plugins[0] : {});
-  return {
-    track_id: textValue(selectedPlugin.track_id ?? uiContext.selected_plugin_track_id ?? uiContext.selected_track_id ?? rackTrack.track_id ?? rackTrack.id ?? selectedTrack.track_id ?? selectedTrack.id, ""),
-    plugin_id: textValue(selectedPlugin.plugin_id ?? uiContext.selected_plugin_id ?? rackSelection.plugin_id ?? rackSelection.id ?? rackSelection.plugin_item_id ?? rackSelection.item_id, ""),
-    plugin_name: textValue(selectedPlugin.plugin_name ?? uiContext.selected_plugin_name ?? rackSelection.plugin_name ?? rackSelection.name ?? rackSelection.title, "")
-  };
-}
-
-function buildChatContext(mode: AgentMode, uiState: AgentUIState | null, artifacts: ArtifactSummary[], macroRefs: MacroControl[] = [], authorityMode: AuthorityMode = "manual_confirmation"): JsonRecord {
-  const selectedTrack = asRecord(uiState?.selected_track);
-  const uiContext = asRecord(uiState?.ui_context);
-  const selectedTrackID = selectedTrackIDFromUIState(uiState);
-  const selectedTrackName = textValue(selectedTrack.name ?? selectedTrack.track_name ?? uiContext.selected_track_name, "");
-  const selectedClipID = selectedClipIDFromUIState(uiState);
-  const selectedClipIDs = Array.from(selectedClipIDsFromUIState(uiState));
-  const selectedClipTrackID = textValue(uiContext.selected_clip_track_id ?? selectedTrackID, "");
-  const pianoRollFocusClipID = textValue(uiContext.piano_roll_focus_clip_id, "");
-  const pianoRollFocusTrackID = textValue(uiContext.piano_roll_focus_track_id, "");
-  const playheadSeconds = uiContext.playhead_seconds ?? uiContext.current_playhead_seconds ?? uiContext.transport_position_seconds;
-  const currentSelection = compactChatContextRecord({
-    selected_track_id: selectedTrackID,
-    selected_track_name: selectedTrackName,
-    selected_clip_id: selectedClipID,
-    selected_clip_ids: selectedClipIDs,
-    selected_clip_track_id: selectedClipTrackID,
-    piano_roll_focus_clip_id: pianoRollFocusClipID,
-    piano_roll_focus_track_id: pianoRollFocusTrackID,
-    playhead_seconds: playheadSeconds,
-    current_playhead_seconds: uiContext.current_playhead_seconds ?? playheadSeconds,
-    transport_position_seconds: uiContext.transport_position_seconds ?? playheadSeconds
-  });
-  const mergedUIContext = compactChatContextRecord({
-    ...uiContext,
-    ...currentSelection
-  });
-  const pluginTarget = selectedPluginContextFromUIState(uiState);
-  const project = asRecord(uiState?.project);
-  const projectHistory = asRecord(uiState?.project_history);
-  const scope = artifactScopeMetadata(uiState);
-  const macroControls = macroControlsFromUIState(uiState);
-  return compactChatContextRecord({
-    agent_mode: mode,
-    ...authorityContext(authorityMode),
-    // WEBUI-IA-REDESIGN-1: focus 视窗族已删，聊天上下文固定对话面
-    active_focus: "dialogue",
-    history_scope_key: scope.history_scope_key,
-    media_scope_key: scope.media_scope_key,
-    project_path: textValue(projectHistory.project_path ?? projectHistory.current_project_path ?? project.project_path, ""),
-    root_project_path: textValue(projectHistory.root_project_path, ""),
-    active_branch: textValue(projectHistory.active_branch, ""),
-    active_node_id: textValue(projectHistory.active_node_id, ""),
-    active_worktree: textValue(projectHistory.active_worktree, ""),
-    selected_track_id: selectedTrackID,
-    selected_track_name: selectedTrackName,
-    selected_clip_id: selectedClipID,
-    selected_clip_ids: selectedClipIDs,
-    selected_clip_track_id: selectedClipTrackID,
-    piano_roll_focus_clip_id: pianoRollFocusClipID,
-    piano_roll_focus_track_id: pianoRollFocusTrackID,
-    playhead_seconds: playheadSeconds,
-    current_playhead_seconds: currentSelection.current_playhead_seconds,
-    transport_position_seconds: currentSelection.transport_position_seconds,
-    current_selection: currentSelection,
-    ui_context: mergedUIContext,
-    selected_plugin_track_id: pluginTarget.track_id,
-    selected_plugin_id: pluginTarget.plugin_id,
-    selected_plugin_name: pluginTarget.plugin_name,
-    macro_refs: macroRefs.map(compactMacroForContext),
-    available_macro_controls: macroControls.slice(0, 12).map(compactMacroForContext),
-    artifacts: artifacts.map((artifact) => ({
-      id: artifact.id,
-      kind: artifact.kind,
-      title: artifactLabel(artifact),
-      mime: artifact.mime
-    }))
-  });
-}
-
-function compactChatContextRecord(record: JsonRecord): JsonRecord {
-  return Object.fromEntries(
-    Object.entries(record).filter(([, value]) => {
-      if (Array.isArray(value)) {
-        return value.length > 0;
-      }
-      if (value && typeof value === "object") {
-        return Object.keys(value as JsonRecord).length > 0;
-      }
-      return textValue(value, "") !== "";
-    })
-  );
-}
-
-function compactMacroForContext(macro: MacroControl): JsonRecord {
-  const normalized = normalizeMacroControl(asRecord(macro));
-  return {
-    macro_id: macroControlID(normalized),
-    name: macroControlLabel(normalized),
-    track_id: normalized.track_id,
-    plugin_id: normalized.plugin_id,
-    role: normalized.role,
-    control: normalized.control,
-    value: macroControlValue(normalized),
-    binding_count: normalized.bindings?.length ?? 0,
-    bindings: (normalized.bindings ?? []).slice(0, 6).map((binding) => ({
-      control: binding.control,
-      track_id: binding.track_id,
-      plugin_id: binding.plugin_id,
-      param_id: binding.param_id,
-      param_name: binding.param_name,
-      target_min: binding.target_min,
-      target_max: binding.target_max,
-      enabled: binding.enabled !== false
-    }))
-  };
-}
-
-function uploadMetadata(conversationID: string, uiState: AgentUIState | null): {
-  conversation_id: string;
-  goal_id?: string;
-  run_id?: string;
-  project_path?: string;
-  root_project_path?: string;
-  active_worktree?: string;
-  active_branch?: string;
-  active_node_id?: string;
-  history_scope_key?: string;
-  media_scope_key?: string;
-} {
-  const goal = asRecord(uiState?.goal);
-  const plan = asRecord(uiState?.agent_plan);
-  return {
-    conversation_id: conversationID,
-    goal_id: textValue(goal.goal_id ?? plan.goal_id, ""),
-    run_id: textValue(goal.run_id ?? plan.run_id, ""),
-    ...artifactScopeMetadata(uiState)
-  };
-}
-
-function artifactScopeMetadata(uiState: AgentUIState | null): {
-  project_path?: string;
-  root_project_path?: string;
-  active_worktree?: string;
-  active_branch?: string;
-  active_node_id?: string;
-  history_scope_key?: string;
-  media_scope_key?: string;
-} {
-  const project = asRecord(uiState?.project);
-  const projectHistory = asRecord(uiState?.project_history);
-  const uiContext = asRecord(uiState?.ui_context);
-  const projectPath = textValue(
-    projectHistory.project_path ?? projectHistory.current_project_path ?? project.project_path ?? uiContext.project_path ?? uiContext.current_project_path,
-    ""
-  );
-  const rootProjectPath = textValue(projectHistory.root_project_path, "");
-  const activeWorktree = textValue(projectHistory.active_worktree, "");
-  const activeBranch = textValue(projectHistory.active_branch, "");
-  const activeNodeID = textValue(projectHistory.active_node_id, "");
-  const historyScopeKey = artifactHistoryScopeKeyFromUIState(uiState);
-  return compactMetadata({
-    project_path: projectPath,
-    root_project_path: rootProjectPath,
-    active_worktree: activeWorktree,
-    active_branch: activeBranch,
-    active_node_id: activeNodeID,
-    history_scope_key: historyScopeKey,
-    media_scope_key: mediaScopeKeyFromParts(projectPath, rootProjectPath, activeWorktree, activeBranch, historyScopeKey)
-  });
-}
-
-function mediaScopeKeyFromUIState(uiState: AgentUIState | null): string {
-  return artifactScopeMetadata(uiState).media_scope_key ?? "";
-}
-
-function mediaScopeKeyFromParts(projectPath: string, rootProjectPath: string, activeWorktree: string, activeBranch: string, historyScopeKey: string): string {
-  if (rootProjectPath) {
-    return ["root", rootProjectPath, activeWorktree || "main", activeBranch || "main"].join("::");
-  }
-  if (projectPath) {
-    return `project::${projectPath}`;
-  }
-  if (historyScopeKey) {
-    return `history::${historyScopeKey}`;
-  }
-  return "";
-}
-
-function compactMetadata<T extends Record<string, string>>(metadata: T): Partial<T> {
-  return Object.fromEntries(Object.entries(metadata).filter(([, value]) => value.trim() !== "")) as Partial<T>;
 }
 
 function renderArtifactPreview(artifact: ArtifactSummary | Artifact, options: { imageZoom?: number } = {}) {
@@ -11578,7 +9355,7 @@ function artifactIcon(artifact: ArtifactSummary) {
   return <Icon size={16} />;
 }
 
-function artifactLabel(artifact: ArtifactSummary): string {
+export function artifactLabel(artifact: ArtifactSummary): string {
   return (
     textValue(artifact.title, "") ||
     textValue(artifact.url, "") ||
@@ -11645,7 +9422,7 @@ function artifactLooksLikeAdapter(artifact: ArtifactSummary): boolean {
   );
 }
 
-function mergeArtifacts(...groups: ArtifactSummary[][]): ArtifactSummary[] {
+export function mergeArtifacts(...groups: ArtifactSummary[][]): ArtifactSummary[] {
   const byID = new Map<string, ArtifactSummary>();
   groups.flat().forEach((artifact) => {
     if (artifact.id) {
@@ -11653,192 +9430,6 @@ function mergeArtifacts(...groups: ArtifactSummary[][]): ArtifactSummary[] {
     }
   });
   return Array.from(byID.values()).sort((left, right) => textValue(right.created_at, "").localeCompare(textValue(left.created_at, "")));
-}
-
-function asRecord(value: unknown): JsonRecord {
-  return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
-}
-
-function firstArray(...values: unknown[]): unknown[] {
-  for (const value of values) {
-    if (Array.isArray(value)) {
-      return value;
-    }
-  }
-  return [];
-}
-
-function textValue(value: unknown, fallback: string): string {
-  if (typeof value === "string") {
-    const trimmed = value.trim();
-    if (trimmed === "<nil>" || trimmed === "null" || trimmed === "undefined") {
-      return fallback;
-    }
-    return trimmed || fallback;
-  }
-  if (typeof value === "number" || typeof value === "boolean") {
-    return String(value);
-  }
-  return fallback;
-}
-
-function compactJSON(value: unknown): string {
-  try {
-    return JSON.stringify(value);
-  } catch {
-    return String(value);
-  }
-}
-
-function parseJSONRecord(value: unknown): JsonRecord {
-  const text = textValue(value, "");
-  if (!text) {
-    return {};
-  }
-  try {
-    return asRecord(JSON.parse(text));
-  } catch {
-    return {};
-  }
-}
-
-function stableIDPart(value: string): string {
-  const clean = value.trim().replace(/[^a-zA-Z0-9_-]+/g, "_").replace(/^_+|_+$/g, "");
-  return clean.slice(0, 96) || stableTextHash(value);
-}
-
-function stableTextHash(value: string): string {
-  let hash = 2166136261;
-  for (let index = 0; index < value.length; index += 1) {
-    hash ^= value.charCodeAt(index);
-    hash = Math.imul(hash, 16777619);
-  }
-  return (hash >>> 0).toString(36);
-}
-
-function clampNumber(value: number, min: number, max: number): number {
-  return Math.min(max, Math.max(min, value));
-}
-
-function defaultComposerInteractionHeight(): number {
-  if (typeof window === "undefined") {
-    return 560;
-  }
-  const saved = Number(window.localStorage?.getItem("ask_vit_composer_interaction_height"));
-  if (Number.isFinite(saved) && saved > 0) {
-    return clampComposerInteractionHeight(saved);
-  }
-  return clampComposerInteractionHeight(window.innerHeight * 0.74);
-}
-
-function clampComposerInteractionHeight(value: number): number {
-  if (typeof window === "undefined") {
-    return clampNumber(value, 340, 880);
-  }
-  return clampNumber(value, 320, Math.max(420, window.innerHeight - 124));
-}
-
-function truthy(value: unknown): boolean {
-  return value === true || value === "true" || value === 1 || value === "1";
-}
-
-function formatBytes(value: unknown): string {
-  const bytes = typeof value === "number" ? value : 0;
-  if (bytes <= 0) {
-    return "-";
-  }
-  if (bytes < 1024) {
-    return `${bytes} B`;
-  }
-  if (bytes < 1024 * 1024) {
-    return `${(bytes / 1024).toFixed(1)} KB`;
-  }
-  if (bytes < 1024 * 1024 * 1024) {
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  }
-  return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
-}
-
-function lastPathPart(path: string): string {
-  const normalized = path.replace(/\\/g, "/");
-  const parts = normalized.split("/").filter(Boolean);
-  return parts[parts.length - 1] || path || "Vit Project";
-}
-
-function uniqueID(prefix: string): string {
-  return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
-}
-
-function currentConversationTitle(uiState: AgentUIState | null, messages: ChatMessage[]): string {
-  const history = asRecord(uiState?.project_history);
-  const graph = asRecord(history.conversation_graph);
-  const nodes = firstArray(graph.nodes).map(asRecord);
-  const activeNodeID = textValue(history.active_node_id ?? graph.active_node_id, "");
-  const byID = new Map(nodes.map((node) => [textValue(node.id, ""), node]));
-  const activePath: JsonRecord[] = [];
-  const visited = new Set<string>();
-  let cursor = activeNodeID ? byID.get(activeNodeID) : undefined;
-  while (cursor) {
-    const id = textValue(cursor.id, "");
-    if (!id || visited.has(id)) {
-      break;
-    }
-    visited.add(id);
-    activePath.unshift(cursor);
-    cursor = byID.get(textValue(cursor.parent_node_id, ""));
-  }
-  const latestTaskAsk = [...activePath].reverse().find((node) => {
-    if (textValue(node.kind, "").toLowerCase() !== "ask") {
-      return false;
-    }
-    return conversationTitleCandidate(textValue(node.text_preview ?? node.text ?? node.message, ""));
-  });
-  const latestTaskText = latestTaskAsk ? textValue(latestTaskAsk.text_preview ?? latestTaskAsk.text ?? latestTaskAsk.message, "") : "";
-  if (latestTaskText) {
-    return compactConversationTitle(latestTaskText);
-  }
-  const localTaskMessage = [...messages].reverse().find((message) => message.role === "user" && conversationTitleCandidate(textValue(message.content, "")));
-  return localTaskMessage ? compactConversationTitle(localTaskMessage.content) : "新对话";
-}
-
-function conversationTitleCandidate(value: string): boolean {
-  const clean = value.replace(/\s+/g, " ").trim().toLowerCase();
-  if (clean.length < 3) {
-    return false;
-  }
-  return !/^(可以|可以执行|执行|确认|确定|同意|继续|好的|好|ok|okay|yes|取消|不用了)[。.!！\s]*$/i.test(clean);
-}
-
-function compactConversationTitle(value: string): string {
-  const clean = value.replace(/\s+/g, " ").replace(/^[#>*`\-\s]+/, "").trim();
-  if (!clean) {
-    return "新对话";
-  }
-  return clean.length > 28 ? `${clean.slice(0, 27)}…` : clean;
-}
-
-function panelWidthStorageKey(side: "left" | "right", panel: string): string {
-  return `${panelWidthStoragePrefix}_${side}_${panel}`;
-}
-
-function loadPanelWidth(side: "left" | "right", panel: string, fallback: number, minimum: number): number {
-  if (typeof window === "undefined") {
-    return fallback;
-  }
-  try {
-    const stored = Number(window.localStorage.getItem(panelWidthStorageKey(side, panel)));
-    return Number.isFinite(stored) && stored >= minimum ? stored : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-function savePanelWidth(side: "left" | "right", panel: string, width: number): void {
-  try {
-    window.localStorage.setItem(panelWidthStorageKey(side, panel), String(Math.round(width)));
-  } catch {
-    // Panel sizing is best-effort and must never block the workbench.
-  }
 }
 
 function loadRightPanelWidths(): Record<WorkbenchTab, number> {
