@@ -1,0 +1,30 @@
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+D3D12 12_0 - Forward+ - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4070
+
+[AgentChatWindow] boot {"boot_index":1,"main_hwnd":15074436,"mode_active":true,"size":{"x":1920,"y":1080},"title":"Vit","url_target":"http://127.0.0.1:7878/app/"}
+[AgentChatWindow] os_event {"data":{"visible":true},"kind":"restored","mode_active":true}
+[AgentChatWindow] visible {"boot_index":1,"child_hwnd":12324594,"mode_active":true,"visible":true}
+[AgentChatWindow] main_window.hidden {"mode":"maximized","mode_active":true,"reason":"startup_launcher_exclusive","via":"extension_showwindow"}
+[AgentChatWindow] os_event {"data":{"topmost":false},"kind":"minimized","mode_active":true}
+WARNING: start_page: VitAgent spawned but /agent/tools did not become ready
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] _bootstrap_runtime_and_request_recent_projects (res://app/startup/start_page.gd:851)
+       [1] _wait_for_agent_ready (res://app/startup/start_page.gd:1265)
+[AgentChatWindow] health.failed {"mode_active":true,"retries":24}
+[AgentChatWindow] unavailable {"mode_active":true,"reason":"VitAgent not reachable at http://127.0.0.1:7878/health"}
+WARNING: AgentChatWindow: VitAgent not reachable at http://127.0.0.1:7878/health
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] _mark_unavailable (res://app/shell/agent_chat_window.gd:711)
+       [1] _boot_page_deferred (res://app/shell/agent_chat_window.gd:372)
+       [2] _wait_agent_health (res://app/shell/agent_chat_window.gd:412)
+[AgentChatWindow] navigate {"child_hwnd":12324594,"mode_active":true,"navigate_count":1,"url":"http://127.0.0.1:7878/app/?surface=launcher"}
+[AgentChatWindow] navigation_started {"mode_active":true,"url":"http://127.0.0.1:7878/app/?surface=launcher"}
+[AgentChatWindow] navigation_started {"mode_active":true,"url":"http://127.0.0.1:7878/app/?surface=launcher"}
+[AgentChatWindow] page_loaded {"boot_index":1,"child_hwnd":12324594,"mode_active":true,"scene":"StartPage","url":"http://127.0.0.1:7878/app/?surface=launcher"}
+[AgentChatWindow] page_loaded {"boot_index":1,"child_hwnd":12324594,"mode_active":true,"scene":"StartPage","url":"http://127.0.0.1:7878/app/?surface=launcher"}
+[AgentChatWindow] navigation_started {"mode_active":true,"url":"http://127.0.0.1:7878/app/?surface=launcher"}
+[AgentChatWindow] page_loaded {"boot_index":1,"child_hwnd":12324594,"mode_active":true,"scene":"StartPage","url":"http://127.0.0.1:7878/app/?surface=launcher"}
+[AgentChatWindow] navigation_started {"mode_active":true,"url":"http://127.0.0.1:7878/app/?surface=launcher"}
+[AgentChatWindow] page_loaded {"boot_index":1,"child_hwnd":12324594,"mode_active":true,"scene":"StartPage","url":"http://127.0.0.1:7878/app/?surface=launcher"}
