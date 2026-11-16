@@ -1,0 +1,72 @@
+{
+  "conversation_id": "b3_ablation_20261107_211045_r1",
+  "task_id": "task_84fc8e4a10e22f5c",
+  "goal_id": "goal_4393962a21b9f493",
+  "run_id": "run_b9838affbce155b2",
+  "slice_id": "slice_82dd77c1f1421aab",
+  "original_intent": "主唱留在中间，两把吉他分别放到左右两侧，帮我规划整个工程的声像布局",
+  "reply": "B Capability Contract v0\n\n结论\n- B 粗混 / Static Mix 是 static_mix capability 能力族，不是线性工作流。B1-B4 可以按用户目标独立调用，不互相阻塞。\n- B5 / static_mix.focus_position.v0 已退役：静态焦点、主次和支撑关系属于 B2；插件产生的空间深度属于后续 C 系列。focus_position 仅保留为 B2 用户意图别名。\n\nB 能力状态\n- B 粗混 / Static Mix：能力族已建模；B1-B4 独立状态见下方；尚未记录为已执行\n- B1 Gain Staging（static_mix.gain_staging.v0）：not_started / 尚未记录为已执行；建立安全电平和 headroom\n- B2 Static Balance（static_mix.static_balance.v0）：not_started / 尚未记录为已执行；不依赖插件，用静态推子建立 foreground、anchors、support 与 effects 的主次关系\n- B3 Pan Layout（static_mix.pan_layout.v0）：not_started / 尚未记录为已执行；中心元素、左右展开、宽度、mono 风险\n- B4 Low-End Relation（static_mix.low_end_relation.v0）：not_started / 尚未记录为已执行；kick、bass、low synth、低频堆积和遮蔽\n\n统一状态\n- not_started / observed / suggested / pending_confirmation / applied / blocked / skipped / deferred / needs_review\n\n统一结果结构\n- capability_id / capability_name / status / scope\n- evidence_refs / observations / candidate_actions\n- pending_action_refs / executor_result_refs / risk / limitation / recommended_next_step\n\n工具映射\n- 观察：project.state、mix.observe、mix.read、mix.derive\n- 建议与确认：mix.propose_tick、pending confirmation\n- 执行：mix.apply_tick、track.volume、track.pan、clip.gain.set\n- 回滚：mix.rollback_tick\n\n边界\n- B1-B3 可以在 v0 中形成待确认动作；所有修改都必须等用户确认。\n- B4 只能复用已验证的普通 Agent generic-EQ 闭环；证据不足时不能伪造 EQ、压缩或空间处理。\n- 大工程使用 project-level compact observation，不做每轨 LLM 循环。\n- A-F 与 B1-B4 都不作为线性门禁；A-F and B1-B4 are capability layers, not a linear gate.",
+  "agent_mode": "default",
+  "needs_confirmation": false,
+  "goal_status": "completed",
+  "goal_summary": "主唱留在中间，两把吉他分别放到左右两侧，帮我规划整个工程的声像布局",
+  "stop_reason": "done",
+  "project_history": {
+    "active_branch": "main",
+    "active_node_id": "n_20261107T131053_59c24673",
+    "active_worktree": "",
+    "available": true,
+    "branches": {
+      "main": "c_20261107T131049_f2c122a0"
+    },
+    "commit_count": 1,
+    "conversation_messages": [
+      {
+        "content": "主唱留在中间，两把吉他分别放到左右两侧，帮我规划整个工程的声像布局",
+        "logical_message_id": "n_20261107T131049_f5f4cea8",
+        "message_kind": "user",
+        "node_id": "n_20261107T131049_f5f4cea8",
+        "role": "user"
+      },
+      {
+        "content": "B Capability Contract v0\n\n结论\n- B 粗混 / Static Mix 是 static_mix capability 能力族，不是线性工作流。B1-B4 可以按用户目标独立调用，不互相阻塞。\n- B5 / static_mix.focus_position.v0 已退役：静态焦点、主次和支撑关系属于 B2；插件产生的空间深度属于后续 C 系列。focus_position 仅保留为 B2 用户意图别名。\n\nB 能力状态\n- B 粗混 / Static Mix：能力族已建模；B1-B4 独立状态见下方；尚未记录为已执行\n- B1 Gain Staging（static_mix.gain_staging.v0）：not_started / 尚未记录为已执行；建立安全电平和 headroom\n- B2 Static Balance（static_mix.static_balance.v0）：not_started / 尚未记录为已执行；不依赖插件，用静态推子建立 foreground、anchors、support 与 effects 的主次关系\n- B3 Pan Layout（static_mix.pan_layout.v0）：not_started / 尚未记录为已执行；中心元素、左右展开、宽度、mono 风险\n- B4 Low-End Relation（static_mix.low_end_relation.v0）：not_started / 尚未记录为已执行；kick、bass、low synth、低频堆积和遮蔽\n\n统一状态\n- not_started / observed / suggested / pending_confirmation / applied / blocked / skipped / deferred / needs_review\n\n统一结果结构\n- capability_id / capability_name / status / scope\n- evidence_refs / observations / candidate_actions\n- pending_action_refs / executor_result_refs / risk / limitation / recommended_next_step\n\n工具映射\n- 观察：project.state、mix.observe、mix.read、mix.derive\n- 建议与确认：mix.propose_tick、pending confirmation\n- 执行：mix.apply_tick、track.volume、track.pan、clip.gain.set\n- 回滚：mix.rollback_tick\n\n边界\n- B1-B3 可以在 v0 中形成待确认动作；所有修改都必须等用户确认。\n- B4 只能复用已验证的普通 Agent generic-EQ 闭环；证据不足时不能伪造 EQ、压缩或空间处理。\n- 大工程使用 project-level compact observation，不做每轨 LLM 循环。\n- A-F 与 B1-B4 都不作为线性门禁；A-F and B1-B4 are capability layers, not a linear gate.",
+        "logical_message_id": "n_20261107T131053_59c24673",
+        "message_kind": "assistant",
+        "node_id": "n_20261107T131053_59c24673",
+        "role": "assistant"
+      }
+    ],
+    "detached": false,
+    "draft": false,
+    "head": "c_20261107T131049_f2c122a0",
+    "initialized": true,
+    "project_label": "fixture_project",
+    "project_path": "D:\\Vit_DAW_wt_275impl\\VitApp\\Workspace\\Artifacts\\smoke\\b3_ablation_20261107_211020\\fixture_project.vit",
+    "project_uuid": "vitproj_f65614b07ea94e0084f404319e1abb51",
+    "refs": {
+      "refs/heads/main": "c_20261107T131049_f2c122a0"
+    },
+    "root_project_path": "",
+    "unsaved": false,
+    "warnings": [],
+    "worktrees": [
+      {
+        "commit_id": "c_20261107T131049_f2c122a0",
+        "created_at": "2026-11-07T13:10:53.4677242Z",
+        "is_root": true,
+        "label": "主工作树",
+        "name": "main",
+        "origin_commit_id": "c_20261107T131049_f2c122a0",
+        "path": "D:\\Vit_DAW_wt_275impl\\VitApp\\Workspace\\Artifacts\\smoke\\b3_ablation_20261107_211020",
+        "project_file_path": "D:\\Vit_DAW_wt_275impl\\VitApp\\Workspace\\Artifacts\\smoke\\b3_ablation_20261107_211020\\fixture_project.vit",
+        "project_path": "D:\\Vit_DAW_wt_275impl\\VitApp\\Workspace\\Artifacts\\smoke\\b3_ablation_20261107_211020\\fixture_project.vit",
+        "root_project_path": "D:\\Vit_DAW_wt_275impl\\VitApp\\Workspace\\Artifacts\\smoke\\b3_ablation_20261107_211020\\fixture_project.vit"
+      }
+    ]
+  },
+  "lifecycle": "durable",
+  "persistence": "project_history",
+  "message_kind": "assistant",
+  "turn_id": "turn_5fab05b8ae663e95",
+  "logical_message_id": "n_20261107T131053_59c24673"
+}

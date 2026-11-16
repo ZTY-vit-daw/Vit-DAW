@@ -1,0 +1,95 @@
+{
+  "schema_version": "b3_ablation.v1",
+  "scenario": "B3-ABLATION-1: pan-layout phrase family under the B3 ablation hook (LLM-turn evidence only)",
+  "ablation_hook": true,
+  "hook_env": "VIT_PAN_LAYOUT_ABLATION=1 (set by the ps1 wrapper on the agent)",
+  "phrase": "主唱留在中间，两把吉他分别放到左右两侧，帮我规划整个工程的声像布局",
+  "rounds_requested": 5,
+  "rounds_run": 3,
+  "rounds": [
+    {
+      "round": 1,
+      "phrase": "主唱留在中间，两把吉他分别放到左右两侧，帮我规划整个工程的声像布局",
+      "conversation": "b3_ablation_20261107_211045_r1",
+      "verdict": "boundary_ok",
+      "tools": [],
+      "detail": "{\"workflow\": \"\", \"stop_reason\": \"done\", \"goal_status\": \"completed\", \"tools\": [], \"needs_confirmation\": false, \"reply_head\": \"B Capability Contract v0\\n\\n结论\\n- B 粗混 / Static Mix 是 static_mix capability 能力族，不是线性工作流。B1-B4 可以按用户目标独立调用，不互相阻塞。\\n- B5 / static_mix.focus_position.v0 已退役：静态焦点、主次和支撑关系属于 B2；插件产生的空间深度属于后续 C 系列。focus_positio\"}"
+    },
+    {
+      "round": 2,
+      "phrase": "主唱留在中间，两把吉他分别放到左右两侧，帮我规划整个工程的声像布局",
+      "conversation": "b3_ablation_20261107_211045_r2",
+      "verdict": "boundary_ok",
+      "tools": [],
+      "detail": "{\"workflow\": \"\", \"stop_reason\": \"done\", \"goal_status\": \"completed\", \"tools\": [], \"needs_confirmation\": false, \"reply_head\": \"B Capability Contract v0\\n\\n结论\\n- B 粗混 / Static Mix 是 static_mix capability 能力族，不是线性工作流。B1-B4 可以按用户目标独立调用，不互相阻塞。\\n- B5 / static_mix.focus_position.v0 已退役：静态焦点、主次和支撑关系属于 B2；插件产生的空间深度属于后续 C 系列。focus_positio\"}"
+    },
+    {
+      "round": 3,
+      "phrase": "主唱留在中间，两把吉他分别放到左右两侧，帮我规划整个工程的声像布局",
+      "conversation": "b3_ablation_20261107_211045_r3",
+      "verdict": "boundary_ok",
+      "tools": [],
+      "detail": "{\"workflow\": \"\", \"stop_reason\": \"done\", \"goal_status\": \"completed\", \"tools\": [], \"needs_confirmation\": false, \"reply_head\": \"B Capability Contract v0\\n\\n结论\\n- B 粗混 / Static Mix 是 static_mix capability 能力族，不是线性工作流。B1-B4 可以按用户目标独立调用，不互相阻塞。\\n- B5 / static_mix.focus_position.v0 已退役：静态焦点、主次和支撑关系属于 B2；插件产生的空间深度属于后续 C 系列。focus_positio\"}"
+    }
+  ],
+  "verdict_counts": {
+    "boundary_ok": 3
+  },
+  "tool_chain_ok": 0,
+  "boundary_ok": 3,
+  "pass_verdict": "tool_chain_ok",
+  "group_pass": false,
+  "stop_loss": {
+    "after_round": 3,
+    "verdict": "boundary_ok",
+    "rounds_saved": 2
+  },
+  "lexicon_hit_seen": false,
+  "zero_raw_write_violations": 0,
+  "read_only_verified": true,
+  "mix_state_mutations": [],
+  "fixture": {
+    "project_path": "D:\\Vit_DAW_wt_275impl\\VitApp\\Workspace\\Artifacts\\smoke\\b3_ablation_20261107_211020\\fixture_project.vit",
+    "created": [
+      {
+        "track_id": "1007",
+        "track_name": "Lead Vocal"
+      },
+      {
+        "track_id": "1012",
+        "track_name": "Guitar Double 1"
+      },
+      {
+        "track_id": "1017",
+        "track_name": "Guitar Double 2"
+      },
+      {
+        "track_id": "1022",
+        "track_name": "Backing Vocal 1"
+      },
+      {
+        "track_id": "1027",
+        "track_name": "Backing Vocal 2"
+      },
+      {
+        "track_id": "1032",
+        "track_name": "Percussion 1"
+      },
+      {
+        "track_id": "1037",
+        "track_name": "Percussion 2"
+      }
+    ],
+    "track_count": 7
+  },
+  "health": {
+    "service": "VitAgent",
+    "status": "ok"
+  },
+  "artifact_dir": "D:\\Vit_DAW_wt_275impl\\VitApp\\Workspace\\Artifacts\\smoke\\b3_ablation_20261107_211020",
+  "telemetry_path": "D:\\Vit_DAW_wt_275impl\\VitApp\\Workspace\\Artifacts\\smoke\\b3_ablation_20261107_211020\\logs\\agent_llm_telemetry.jsonl",
+  "prompt_render_path": "D:\\Vit_DAW_wt_275impl\\VitApp\\Workspace\\Artifacts\\smoke\\b3_ablation_20261107_211020\\logs\\agent_prompt_render.jsonl",
+  "payload_capture_path": "D:\\Vit_DAW_wt_275impl\\VitApp\\Workspace\\Artifacts\\smoke\\b3_ablation_20261107_211020\\logs\\agent_llm_payload_capture.jsonl",
+  "agent_log": "D:\\Vit_DAW_wt_275impl\\VitApp\\Workspace\\Logs\\agent_last.log",
+  "started_at": "20261107_211045"
+}

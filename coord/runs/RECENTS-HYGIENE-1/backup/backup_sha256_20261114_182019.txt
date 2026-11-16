@@ -1,0 +1,3 @@
+\c3543f451d37d9013dff55cff123a367da9682a5c33e989de04a6424746c4fdf *C:\\Users\\timoz\\AppData\\Roaming/Vit-DAW/global_project_config.json
+b773c82d1f021840ba620370821bb36cfd279f5f9d459d386877311d796f8d18 *D:/Vit_DAW/VitApp/Workspace/Settings/Settings.xml
+C:\Users\timoz\AppData\Roaming/Vit-DAW/global_project_config.json 1418 2026-11-10 00:29:51.481649300 +0800

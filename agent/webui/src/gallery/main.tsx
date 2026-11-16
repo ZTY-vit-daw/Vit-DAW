@@ -26,9 +26,14 @@ import type { MacroCardView, ProjectThreadItem } from "../project/projectData";
 import { LoadingCard } from "../project/loading/LoadingCard";
 import { ProjectLoadingGate } from "../project/loading/ProjectLoadingGate";
 import type { LoadingCardView } from "../project/loading/loadingData";
+// WIDGET-KIT-1（379）：音乐控件 fixture 样张（轻量播放器/A-B 对比组合/卡内挂载）。
+import { AudioPlayer } from "../widgets/AudioPlayer";
+import { ComparePair } from "../widgets/ComparePair";
+import { DeclarativeInteractionCard, declarativeCardFromAction } from "../interactionCardKit";
 import "../styles/tokens.css";
 import "../design/sprite.css";
 import "../components/components.css";
+import "../widgets/widgets.css";
 import "./gallery.css";
 
 /**
@@ -975,6 +980,153 @@ function ProjectLiveFixturePage() {
   );
 }
 
+/**
+ * WIDGET-KIT-1（379）音乐控件 fixture 渲染页（gallery.html?surface=widgets）。
+ * 三段样张（全离线，音频=data URI 静音 WAV，零网络零代理）：
+ *  ① audio_player 轻量播放器（收起/展开/不可播降级三态）；
+ *  ② compare_pair A/B 对比组合（异长版本 duration-hint 各自绑定坐标，
+ *    偏好四态+理由输入；onCompareEvent 样张空操作）；
+ *  ③ interactionCardKit 卡内挂载（collapse 布局 + audio_player/compare_pair
+ *    字段 + 理由字段回流声明 + 提交/取消动作）。
+ * 比较面不携带任何试听会话/实验身份（红线①）；不路由混音裁决（红线②）；
+ * 不渲染共享时间轴（红线③）。
+ */
+function fixtureWavDataURL(seconds = 0.5): string {
+  const sampleRate = 8000;
+  const samples = Math.max(8, Math.floor(sampleRate * seconds));
+  const dataSize = samples;
+  const buffer = new ArrayBuffer(44 + dataSize);
+  const view = new DataView(buffer);
+  const writeText = (offset: number, value: string) => {
+    for (let i = 0; i < value.length; i += 1) {
+      view.setUint8(offset + i, value.charCodeAt(i));
+    }
+  };
+  writeText(0, "RIFF");
+  view.setUint32(4, 36 + dataSize, true);
+  writeText(8, "WAVE");
+  writeText(12, "fmt ");
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate, true);
+  view.setUint16(32, 1, true);
+  view.setUint16(34, 8, true);
+  writeText(36, "data");
+  view.setUint32(40, dataSize, true);
+  for (let i = 0; i < samples; i += 1) {
+    view.setUint8(44 + i, 128);
+  }
+  let binary = "";
+  const bytes = new Uint8Array(buffer);
+  for (let i = 0; i < bytes.length; i += 1) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return `data:audio/wav;base64,${btoa(binary)}`;
+}
+
+const WIDGETS_FIXTURE_AUDIO = fixtureWavDataURL();
+const WIDGETS_FIXTURE_AUDIO_LONG = fixtureWavDataURL(1.5);
+
+const WIDGETS_FIXTURE_CARD_ACTION = {
+  _ui_source: "interaction",
+  id: "fixture_widget_card_1",
+  kind: "lesson_compare",
+  type: "lesson_compare",
+  status: "waiting",
+  title: "节奏比较练习（fixture）",
+  body: "先听示范播放器，再对比两版节奏，选择偏好并说明理由。",
+  actions: [
+    { id: "submit", label: "提交比较", style: "primary" },
+    { id: "cancel", label: "取消", style: "secondary" }
+  ],
+  payload: {
+    card: {
+      schema: "interaction_card.v1",
+      title: "节奏比较练习（fixture）",
+      layout: {
+        type: "collapse",
+        groups: [
+          { id: "fold-compare", title: "点开播放与对比", fields: ["player", "compare"] }
+        ]
+      },
+      fields: [
+        { id: "intro", type: "text", label: "说明", value: "先听 A，再听 B" },
+        { id: "player", type: "audio_player", label: "示范旋律（fixture）.wav", media: { src: WIDGETS_FIXTURE_AUDIO } },
+        {
+          id: "compare",
+          type: "compare_pair",
+          label: "两版节奏对比（fixture）",
+          value: "",
+          context_id: "fixture-compare-1",
+          reason_field: "reason",
+          a: { label: "原版节奏", src: WIDGETS_FIXTURE_AUDIO, duration_hint: 12 },
+          b: { label: "修改节奏", src: WIDGETS_FIXTURE_AUDIO_LONG, duration_hint: 30 }
+        },
+        { id: "reason", type: "text", label: "理由", value: "" }
+      ],
+      actions: [
+        { action_id: "submit", label: "提交比较", style: "primary" },
+        { action_id: "cancel", label: "取消", style: "secondary" }
+      ]
+    }
+  }
+};
+
+function WidgetsFixturePage() {
+  const fixtureCard = declarativeCardFromAction(WIDGETS_FIXTURE_CARD_ACTION);
+  return (
+    <div className="v5-design v5-gal-root" data-gallery-page="widgets" data-widgets-fixture="true">
+      <DesignSprite />
+      <header className="v5-gal-header">
+        <h1 className="v5-gal-title">Vit 音乐控件 · fixture 渲染页</h1>
+        <p className="v5-gal-note" data-fixture="notice">
+          本页音频均为 data URI 静音 WAV fixture（零网络零代理），比较上下文与偏好均为样张，
+          不接真实 agent 数据、不路由混音裁决；真实内核预览平面接线留后续真栈卡。
+        </p>
+      </header>
+
+      <div data-gallery="widgets-audio-player" data-widget-section="audio-player">
+        <h2 className="v5-gal-caption">audio_player · 收起态（标题/图标/时长/展开钮）</h2>
+        <AudioPlayer title="示范旋律（fixture）.wav" src={WIDGETS_FIXTURE_AUDIO} />
+        <h2 className="v5-gal-caption">audio_player · 展开态（播放/进度/时值常驻）</h2>
+        <AudioPlayer title="跟练旋律（fixture）.wav" src={WIDGETS_FIXTURE_AUDIO} expandable={false} />
+        <h2 className="v5-gal-caption">audio_player · 不可播诚实降级（无媒体声明，收起/展开两态均披露）</h2>
+        <AudioPlayer title="缺失样张（fixture）.wav" />
+        <AudioPlayer title="缺失样张展开（fixture）.wav" expandable={false} />
+      </div>
+
+      <div data-gallery="widgets-compare-pair" data-widget-section="compare-pair">
+        <h2 className="v5-gal-caption">compare_pair · 异长两版各自绑定坐标（12s vs 30s，per-side，无共享轴）</h2>
+        <ComparePair
+          title="两版节奏对比（fixture）"
+          layout="row"
+          a={{ label: "原版节奏", src: WIDGETS_FIXTURE_AUDIO, durationHint: 12 }}
+          b={{ label: "修改节奏", src: WIDGETS_FIXTURE_AUDIO_LONG, durationHint: 30 }}
+          context={{ contextID: "fixture-compare-standalone" }}
+        />
+      </div>
+
+      <div data-gallery="widgets-card-mount" data-widget-section="card-mount">
+        <h2 className="v5-gal-caption">interactionCardKit 卡内挂载 · collapse 布局 + audio_player/compare_pair + 理由回流字段</h2>
+        {fixtureCard && (
+          <DeclarativeInteractionCard
+            action={WIDGETS_FIXTURE_CARD_ACTION}
+            card={fixtureCard}
+            respondingActionID=""
+            onInteractionAction={() => undefined}
+          />
+        )}
+      </div>
+
+      <footer className="v5-gal-footer">
+        <p>WIDGET-KIT-1 · 本页为音乐控件渲染烟测 fixture，不接 App.tsx 业务、不出网。</p>
+      </footer>
+    </div>
+  );
+}
+
 const root = document.getElementById("gallery-root");
 if (root) {
   const surfaceParam = new URLSearchParams(window.location.search).get("surface")?.toLowerCase();
@@ -983,6 +1135,7 @@ if (root) {
   const loadingFixturePage = surfaceParam === "loading";
   const launcherLiveFixturePage = surfaceParam === "launcher-live";
   const projectLiveFixturePage = surfaceParam === "project-live";
+  const widgetsFixturePage = surfaceParam === "widgets";
   createRoot(root).render(
     <StrictMode>
       {launcherFixturePage ? (
@@ -995,6 +1148,8 @@ if (root) {
         <LauncherLiveFixturePage />
       ) : projectLiveFixturePage ? (
         <ProjectLiveFixturePage />
+      ) : widgetsFixturePage ? (
+        <WidgetsFixturePage />
       ) : (
         <Gallery />
       )}

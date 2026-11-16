@@ -1,0 +1,68 @@
+ok: draft root isolation: source=default VIT_HISTORY_DRAFT_ROOT=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261107_211019\agent_drafts
+ok: GUI leg project isolation: VIT_PROJECT_XML=D:\Vit_DAW_wt_275impl\VitApp\Workspace\Artifacts\smoke\gui_project_isolation_20261107_211020\default_project.xml (git-clean run-dir copy; deployed default_project.xml stays untouched)
+ok: B3 ablation engine override: VIT_AGENT_LLM_MODEL=deepseek-flash
+ok: B3 ablation hook: VIT_PAN_LAYOUT_ABLATION=1
+ok: B3 ablation telemetry capture: telemetry=D:\Vit_DAW_wt_275impl\VitApp\Workspace\Artifacts\smoke\b3_ablation_20261107_211020\logs\agent_llm_telemetry.jsonl prompt_render=D:\Vit_DAW_wt_275impl\VitApp\Workspace\Artifacts\smoke\b3_ablation_20261107_211020\logs\agent_prompt_render.jsonl payload_capture=D:\Vit_DAW_wt_275impl\VitApp\Workspace\Artifacts\smoke\b3_ablation_20261107_211020\logs
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_wt_275impl
+agent http: http://127.0.0.1:7878
+
+== Build VitAgent
+ok: build passed: D:\Vit_DAW_wt_275impl\agent\bin\VitAgent.dev-smoke.exe
+ok: installed agent bin: D:\Vit_DAW_wt_275impl\agent\bin\VitAgent.exe
+ok: installed agent root compatibility exe: D:\Vit_DAW_wt_275impl\agent\vitagent.exe
+
+== Start kernel
+ok: started kernel: D:\Vit_DAW_wt_228\VitApp\build_release\VitApp_artefacts\Release\VitApp.exe pid=1992 workdir=D:\Vit_DAW_wt_228\VitApp\build_release\VitApp_artefacts\Release
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW_wt_275impl\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=296
+shadow.initialized=True track_count=6
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=1992
+ok: ZMQ SUB listening: 5556 pid=1992
+
+== Project state invoke
+project.state status=ok error=
+
+== Strip Silence agent invoke smoke
+strip.import status=ok error=
+strip.clip_id=1038 track_id=1007
+strip.chat.stop_reason=needs_confirmation
+strip.chat.reply=这个操作需要你确认后才会执行。
+ok: Strip Silence chat route used deterministic suggest without legacy mix routing
+strip.chat.confirm status=ok goal_status=completed message=已执行片段清理：1038 已删除 3 个静音区域。
+ok: Strip Silence chat confirmation executed apply
+strip.chat.cleanup status=ok ids=1038
+
+== B3 pan-layout ablation (B3-ABLATION-1)
+[b3-ablation] round 1/5 verdict=boundary_ok tools=[]
+[b3-ablation] round 2/5 verdict=boundary_ok tools=[]
+[b3-ablation] round 3/5 verdict=boundary_ok tools=[]
+[b3-ablation] stop-loss: 3 consecutive boundary_ok rounds; remaining rounds not spent
+{"rounds_run": 3, "verdict_counts": {"boundary_ok": 3}, "tool_chain_ok": 0, "group_pass": false, "stop_loss": {"after_round": 3, "verdict": "boundary_ok", "rounds_saved": 2}, "lexicon_hit_seen": false, "zero_raw_write_violations": 0, "read_only_verified": true}
+[b3-ablation] summary: D:\Vit_DAW_wt_275impl\VitApp\Workspace\Artifacts\smoke\b3_ablation_20261107_211020\b3_ablation_summary.json
+ok: B3 ablation executed to completion (judgment face in summary: D:\Vit_DAW_wt_275impl\VitApp\Workspace\Artifacts\smoke\b3_ablation_20261107_211020\b3_ablation_summary.json)
+
+== Chat route smoke
+Invoke-WebRequest : 请求被中止: 操作超时。
+所在位置 D:\Vit_DAW_wt_275impl\scripts\dev_agent_smoke.ps1:577 字符: 17
++ ...     $resp = Invoke-WebRequest -UseBasicParsing -Method POST -Uri $Uri ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (System.Net.HttpWebRequest:HttpWebRequest) [Invoke-WebRequest]，WebExce
+    ption
+    + FullyQualifiedErrorId : WebCmdletWebResponseException,Microsoft.PowerShell.Commands.InvokeWebRequestCommand
+ 
