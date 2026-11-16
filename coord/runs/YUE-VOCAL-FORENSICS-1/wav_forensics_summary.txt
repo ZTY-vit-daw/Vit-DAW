@@ -1,0 +1,14 @@
+== v1 (6d7289990beafcec) ==
+duration=59.999s voiced_time=56.33s (in 5 segments)
+audible segments: [(0.08, 59.96)]
+  voiced   0.09-  8.26s (8.17s) f0~255.4hz [86-800] cv=0.778 harm=0.751 formant2k5k=0.006
+  voiced   8.62- 14.36s (5.74s) f0~266.2hz [78-800] cv=0.956 harm=0.555 formant2k5k=0.014
+  voiced  15.61- 40.37s (24.76s) f0~228.2hz [70-800] cv=0.575 harm=0.723 formant2k5k=0.013
+  voiced  40.86- 46.47s (5.61s) f0~175.1hz [70-800] cv=0.865 harm=0.544 formant2k5k=0.029
+  voiced  47.91- 59.96s (12.05s) f0~286.3hz [95-528] cv=0.429 harm=0.838 formant2k5k=0.013
+== v2 (45b1a3cbc41bbef5) ==
+duration=50.959s voiced_time=49.94s (in 3 segments)
+audible segments: [(0.09, 50.91)]
+  voiced   0.09-  8.06s (7.97s) f0~250.4hz [73-787] cv=0.706 harm=0.783 formant2k5k=0.005
+  voiced   8.54- 23.52s (14.98s) f0~278.3hz [84-676] cv=0.574 harm=0.779 formant2k5k=0.02
+  voiced  23.92- 50.91s (26.99s) f0~249.5hz [71-686] cv=0.53 harm=0.782 formant2k5k=0.024
