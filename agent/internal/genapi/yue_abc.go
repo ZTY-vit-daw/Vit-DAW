@@ -68,8 +68,10 @@ type YueScoreInput struct {
 // ConvertMidiToYueABC renders the student score as a YuE2 ABC dialect score.
 // The melody rides the MelodyVoice (Ins by default — the student melody is
 // the instrumental lead); the other voice rests for the full length, which
-// is the validated instrumental conditioning path (Vocal part rested, audit
-// H6 item 3).
+// is the request-side instrumental conditioning (Vocal part rested, audit
+// H6 item 3). The YuE2 engine itself has no instrumental switch: a rested
+// Vocal score does not guarantee a vocal-free render (YUE-VOCAL-FORENSICS-1
+// forensics, run_20261116_000009).
 func ConvertMidiToYueABC(in YueScoreInput) (string, error) {
 	num, den := in.Numerator, in.Denominator
 	if num <= 0 {
