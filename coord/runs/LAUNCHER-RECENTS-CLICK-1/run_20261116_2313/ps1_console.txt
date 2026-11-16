@@ -1,0 +1,28 @@
+=== UI-BRIDGE-1 smoke; run dir: D:\Vit_DAW_wt_383click\coord\runs\LAUNCHER-RECENTS-CLICK-1\run_20261116_2313
+repo HEAD=5c25a181b6c5ea3a9bed764849f16db5e2d9e7bd  frontend HEAD=d05043e11a79452b9155a89f3405668994eafdcb
+--- Prereq: ports must be free (7878/5555/5556/8787)
+ports free
+recents seeded (prepended 2 fixtures; snapshot=D:\Vit_DAW_wt_383click\coord\runs\LAUNCHER-RECENTS-CLICK-1\run_20261116_2313\artifacts\global_project_config.before.json)
+--- Build VitAgent (isolated binary in run dir)
+--- Start VitApp kernel (isolated workspace)
+--- Import pass (rebuild .godot cache in a fresh worktree)
+--- RC1: recents tape-card click -> governance switch -> open -> in-project chat roundtrip (zero LLM)
+FAIL: RC1 chat round1 not deterministic list reply: 目前能确认的只有**当前已打开的工程**，最近工程列表（启动器里的“最近项目”）这次没读到：查询它的工具在当前只读观察模式下被拦住了，所以只能给你已打开工程的实况。
+
+**结论**
+当前工程：**烟测桥甲**（工程文件 烟测桥甲.vit）
+
+**证据（来自工程状态与版本信息）**
+- 已加载、无未保存改动，分支 main，历史里只有 1 个检查点（“Conversation ask”）
+- 6 条轨道，每条各 1 段 20 秒音频、各挂 Volume & Pan + Level Meter：
+  1. bass 2. drums 3. guitar 4. other 5. piano 6. vocals
+
+**限制**
+“有哪些工程”若指启动器/最近打开列表，需要读取项目历史目录（最近项目索引）。该读取在本次只读会话中被禁止，所以我不能凭空列其它工程名。
+
+**建议**
+1) 你在启动器里看“最近项目”列表最快；2) 或允许我退出只读模式/打开项目列表权限，我再把完整最近工程列表（名称＋路径＋最后修改时间）列给你。你想用哪种？
+--- Finally: stop stack and confirm port release
+recents restored from snapshot
+report: D:\Vit_DAW_wt_383click\coord\runs\LAUNCHER-RECENTS-CLICK-1\run_20261116_2313\artifacts\ui_bridge_smoke_report.json
+UI-BRIDGE-1 smoke: FAIL

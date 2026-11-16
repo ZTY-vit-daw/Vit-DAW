@@ -7,6 +7,7 @@
 
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
+import { ConvergedLauncher } from "./ConvergedLauncher";
 import { LauncherSurface } from "./LauncherSurface";
 import {
   buildDirectNewDirective,
@@ -122,6 +123,38 @@ describe("cardsToEntries 回执卡映射", () => {
     expect(entries).toHaveLength(1);
     expect(entries[0].name).toBe("测试工程乙");
     expect(entries[0].directive?.action).toBe("open_project");
+  });
+
+  it("LAUNCHER-RECENTS-CLICK-1：exists 字段映射（true/false 如实透传，缺省=未知 undefined 不误灰）", () => {
+    const entries = cardsToEntries([
+      {
+        kind: "launcher_project",
+        id: "launcher_project_exists_1",
+        name: "在位工程",
+        file_path: "D:/fixtures/在位.vit",
+        exists: true,
+        launcher_directive: { action: "open_project", file_path: "D:/fixtures/在位.vit", requires_governance: true }
+      },
+      {
+        kind: "launcher_project",
+        id: "launcher_project_exists_0",
+        name: "移走工程",
+        file_path: "D:/fixtures/移走.vit",
+        exists: false,
+        launcher_directive: { action: "open_project", file_path: "D:/fixtures/移走.vit", requires_governance: true }
+      },
+      {
+        kind: "launcher_project",
+        id: "launcher_project_exists_legacy",
+        name: "旧agent工程",
+        file_path: "D:/fixtures/旧.vit",
+        launcher_directive: { action: "open_project", file_path: "D:/fixtures/旧.vit", requires_governance: true }
+      }
+    ]);
+    expect(entries).toHaveLength(3);
+    expect(entries[0].exists).toBe(true);
+    expect(entries[1].exists).toBe(false);
+    expect(entries[2].exists).toBeUndefined();
   });
 
   it("undefined/空数组安全", () => {
@@ -387,5 +420,70 @@ describe("launcherSurface 页内治理三键卡（SHELL-2）", () => {
     expect(markup).not.toContain("data-launcher-governance-save");
     // 态未知 headline 保守呈现（不虚构工程名）。
     expect(markup).toContain("状态未知");
+  });
+});
+
+describe("ConvergedLauncher recents 磁带卡可点（LAUNCHER-RECENTS-CLICK-1，fixture 静态渲染）", () => {
+  const RECENTS_FIXTURE = [
+    { ...FIXTURE_CARD },
+    {
+      id: "launcher_project_missing_test",
+      kind: "launcher_project",
+      type: "project_open_candidate",
+      name: "移走工程丙",
+      filePath: "D:/fixtures/移走工程丙.vit",
+      exists: false,
+      directive: { action: "open_project", file_path: "D:/fixtures/移走工程丙.vit", requires_governance: true }
+    }
+  ];
+
+  it("每个 recents 行=整卡按钮（data-launcher-recent-open 在场，磁带卡结构不丢）", () => {
+    const markup = renderToStaticMarkup(
+      <ConvergedLauncher
+        fixture={{
+          greeting: { status: "ok", reply: "fixture" },
+          drawerState: "ready",
+          drawerEntries: RECENTS_FIXTURE
+        }}
+      />
+    );
+    expect(markup).toContain('data-launcher-recent-open="launcher_project_1_test"');
+    expect(markup).toContain('data-launcher-recent-open="launcher_project_missing_test"');
+    // 366 磁带卡结构锚点维持（387 断言面不回退）。
+    expect(markup).toContain("data-tape-shell");
+    expect(markup).toContain("data-tape-window");
+    expect(markup).toContain('data-tape-card-mode="named"');
+  });
+
+  it("在位条目=可点（无 missing 标记无 disabled）；exists=false 条目=置灰不可点+如实注记", () => {
+    const markup = renderToStaticMarkup(
+      <ConvergedLauncher
+        fixture={{
+          greeting: { status: "ok", reply: "fixture" },
+          drawerState: "ready",
+          drawerEntries: RECENTS_FIXTURE
+        }}
+      />
+    );
+    // 在位条目：无 missing 标记。
+    expect(markup).not.toContain('data-launcher-recent-missing="launcher_project_1_test"');
+    // 缺失条目：行级标记 + 按钮 disabled + 注记文案（不虚报可打开）。
+    expect(markup).toContain('data-launcher-recent-missing="true"');
+    expect(markup).toContain("disabled=\"\"");
+    expect(markup).toContain("文件已不在原位置");
+  });
+
+  it("exists 字段缺省（旧 agent）不置灰——按可点呈现，失败走宿主降级文案", () => {
+    const markup = renderToStaticMarkup(
+      <ConvergedLauncher
+        fixture={{
+          greeting: { status: "ok", reply: "fixture" },
+          drawerState: "ready",
+          drawerEntries: [{ ...FIXTURE_CARD, exists: undefined }]
+        }}
+      />
+    );
+    expect(markup).not.toContain('data-launcher-recent-missing="true"');
+    expect(markup).not.toContain("文件已不在原位置");
   });
 });

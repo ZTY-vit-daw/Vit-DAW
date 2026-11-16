@@ -1,0 +1,44 @@
+﻿{
+    "run_root":  "D:\\Vit_DAW_wt_383click\\coord\\runs\\LAUNCHER-RECENTS-CLICK-1\\run_20261116_2313",
+    "started_utc":  "2026-11-16T15:13:55.4248588Z",
+    "head":  "5c25a181b6c5ea3a9bed764849f16db5e2d9e7bd",
+    "frontend_head":  "d05043e11a79452b9155a89f3405668994eafdcb",
+    "godot_project_root":  "D:\\Godot\\vit-daw-frontend_wt_383click",
+    "project_source":  "D:\\Godot\\project\\vit-daw-frontend\\912.vit",
+    "legs":  {
+                 "prereq":  {
+                                "kernel_exe":  "D:\\Vit_DAW\\VitApp\\build\\VitApp_artefacts\\Release\\VitApp.exe"
+                            },
+                 "stack":  {
+                               "kernel_pid":  25788,
+                               "agent_pid_rc1":  2016,
+                               "godot_boot_rc1_pid":  20960
+                           },
+                 "RC1_recents_click_open_roundtrip":  {
+                                                          "boot_line":  "{\"boot_index\":1,\"main_hwnd\":4262982,\"mode_active\":true,\"size\":{\"x\":1920,\"y\":1080},\"title\":\"Vit\",\"url_target\":\"http://127.0.0.1:7878/app/\"}",
+                                                          "child_hwnd":  262974,
+                                                          "smoke_navigate_url":  "http://127.0.0.1:7878/app/?surface=launcher\u0026launcher_smoke=1\u0026launcher_smoke_message=%E6%9C%89%E5%93%AA%E4%BA%9B%E5%B7%A5%E7%A8%8B\u0026launcher_smoke_followup_delay_ms=8000\u0026launcher_smoke_followup=recents_click",
+                                                          "directive_request_id":  "webui_launcher_br_mwjenm2p",
+                                                          "followup_url_ok":  true,
+                                                          "result_posted_status":  "opened",
+                                                          "result_governance":  "switch",
+                                                          "result_ack":  "opened",
+                                                          "scene_hwnd":  262974,
+                                                          "same_hwnd_across_open":  true,
+                                                          "agent_current_project":  "D:\\Vit_DAW_wt_383click\\coord\\runs\\LAUNCHER-RECENTS-CLICK-1\\run_20261116_2313\\fixture\\烟测桥甲.vit",
+                                                          "chat_round1_reply":  "目前能确认的只有**当前已打开的工程**，最近工程列表（启动器里的“最近项目”）这次没读到：查询它的工具在当前只读观察模式下被拦住了，所以只能给你已打开工程的实况。\n\n**结论**\n当前工程：**烟测桥甲**（工程文件 烟测桥甲.vit）\n\n**证据（来自工程状态与版本信息）**\n- 已加载、无未保存改动，分支 main，历史里只有 1 个检查点（“Conversation ask”）\n- 6 条轨道，每条各 1 段 20 秒音频、各挂 Volume \u0026 Pan + Level Meter：\n  1. bass 2. drums 3. guitar 4. other 5. piano 6. vocals\n\n**限制**\n“有哪些工程”若指启动器/最近打开列表，需要读取项目历史目录（最近项目索引）。该读取在本次只读会话中被禁止，所以我不能凭空列其它工程名。\n\n**建议**\n1) 你在启动器里看“最近项目”列表最快；2) 或允许我退出只读模式/打开项目列表权限，我再把完整最近工程列表（名称＋路径＋最后修改时间）列给你。你想用哪种？"
+                                                      }
+             },
+    "isolation":  {
+                      "fixture_source_sha256_before":  "F6CA36FA080D97E7B91CBAC755E7D2096393D453140E10563771466EB774D8BD",
+                      "fixture_a":  "D:\\Vit_DAW_wt_383click\\coord\\runs\\LAUNCHER-RECENTS-CLICK-1\\run_20261116_2313\\fixture\\烟测桥甲.vit",
+                      "fixture_b":  "D:\\Vit_DAW_wt_383click\\coord\\runs\\LAUNCHER-RECENTS-CLICK-1\\run_20261116_2313\\fixture\\烟测桥乙.vit",
+                      "fixture_corrupt":  "D:\\Vit_DAW_wt_383click\\coord\\runs\\LAUNCHER-RECENTS-CLICK-1\\run_20261116_2313\\fixture\\烟测桥坏.vit",
+                      "agent_binary_sha256":  "A981604DDCCAE9F38C7C8C92D4ABFFF46C67044ABA90315F719F1E944AB59573",
+                      "ports_busy_after_teardown":  ""
+                  },
+    "exit_code":  1,
+    "error":  "RC1 chat round1 not deterministic list reply: 目前能确认的只有**当前已打开的工程**，最近工程列表（启动器里的“最近项目”）这次没读到：查询它的工具在当前只读观察模式下被拦住了，所以只能给你已打开工程的实况。\n\n**结论**\n当前工程：**烟测桥甲**（工程文件 烟测桥甲.vit）\n\n**证据（来自工程状态与版本信息）**\n- 已加载、无未保存改动，分支 main，历史里只有 1 个检查点（“Conversation ask”）\n- 6 条轨道，每条各 1 段 20 秒音频、各挂 Volume \u0026 Pan + Level Meter：\n  1. bass 2. drums 3. guitar 4. other 5. piano 6. vocals\n\n**限制**\n“有哪些工程”若指启动器/最近打开列表，需要读取项目历史目录（最近项目索引）。该读取在本次只读会话中被禁止，所以我不能凭空列其它工程名。\n\n**建议**\n1) 你在启动器里看“最近项目”列表最快；2) 或允许我退出只读模式/打开项目列表权限，我再把完整最近工程列表（名称＋路径＋最后修改时间）列给你。你想用哪种？",
+    "error_type":  "RuntimeException",
+    "finished_utc":  "2026-11-16T15:15:51.8440611Z"
+}

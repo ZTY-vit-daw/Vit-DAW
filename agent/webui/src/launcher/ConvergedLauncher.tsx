@@ -18,6 +18,9 @@
  *     （TapeCardFace：壳/窗/双带轮/底标结构节点，工程名/路径排布进卡结构；
  *     氛围色=工程名 FNV-1a 哈希 tapeAtmos 沿用）；对话流建议卡工程位同形态
  *     （compact 档）；TapeBadge 小尺寸档保留给 SPEC-V5 §7.3.1 场用位清单其余位。
+ *  5. LAUNCHER-RECENTS-CLICK-1（383）：recents 磁带卡整卡可点=发起该工程 open
+ *     （同对话流结果卡/「打开…」open 链；agent 卡 exists=false 置灰档）；
+ *     烟测接缝扩展 launcher_smoke_followup=recents_click[:N]（生产零行为）。
  *
  * 冻结令牌（磁带卡）：main-window-v3/SPEC.md §3 逐字（TAPE_INK/WIN/HUB/ACC/TINT），
  * 带量公式 d=r*(0.34+0.5*fill)、毂比 0.32r、壳填充 rgba(c1,0.62) 逐字保留——
@@ -169,12 +172,18 @@ function mapResultState(status: string): LauncherDirectiveState {
   }
 }
 
+/** 烟测 followup 模式（LAUNCHER-RECENTS-CLICK-1 扩展 recents_click 档）。 */
+export type LauncherSmokeFollowup =
+  | "message"
+  | "choose_file"
+  | { kind: "recents_click"; index: number };
+
 /** 烟测 URL 参数（生产 URL 无 launcher_smoke → 全零行为）。 */
 function parseSmokeParams(): {
   enabled: boolean;
   messages: string[];
   delayMs: number;
-  followup: string;
+  followup: LauncherSmokeFollowup;
   governance: LauncherGovernanceChoice | "";
 } {
   const params = new URLSearchParams(window.location.search);
@@ -188,8 +197,18 @@ function parseSmokeParams(): {
     : [];
   const delayRaw = Number.parseInt(params.get("launcher_smoke_followup_delay_ms") ?? "8000", 10);
   const delayMs = Number.isFinite(delayRaw) && delayRaw > 0 ? delayRaw : 8000;
-  // followup=choose_file：回执后下一段改发 launcher_choose_file（dock 降级腿）。
-  const followup = params.get("launcher_smoke_followup") === "choose_file" ? "choose_file" : "message";
+  // followup：choose_file=回执后下一段改发桥 choose_file 请求（dock 降级腿）；
+  // recents_click[:N]=greeting+recents 就绪且消息轮收尾后，延迟点磁带卡 N（默认 0，
+  // LAUNCHER-RECENTS-CLICK-1 列表可点真栈腿——经同一 openRecentProject 链）。
+  const rawFollowup = params.get("launcher_smoke_followup") ?? "";
+  let followup: LauncherSmokeFollowup = "message";
+  if (rawFollowup === "choose_file") {
+    followup = "choose_file";
+  } else if (/^recents_click(:\d+)?$/.test(rawFollowup)) {
+    const indexPart = rawFollowup.split(":")[1];
+    const parsedIndex = indexPart === undefined ? 0 : Number.parseInt(indexPart, 10);
+    followup = { kind: "recents_click", index: Number.isFinite(parsedIndex) && parsedIndex >= 0 ? parsedIndex : 0 };
+  }
   // SHELL-2：治理卡自动应答（save|switch|cancel；出现即经真实桥路径回投）。
   const rawGovernance = (params.get("launcher_smoke_governance") ?? "").toLowerCase();
   const governance =
@@ -331,7 +350,7 @@ export function ConvergedLauncher({ fixture, fill = false }: ConvergedLauncherPr
   const smokeParams = useMemo(
     () =>
       fixture
-        ? { enabled: false, messages: [] as string[], delayMs: 8000, followup: "message", governance: "" as LauncherGovernanceChoice | "" }
+        ? { enabled: false, messages: [] as string[], delayMs: 8000, followup: "message" as LauncherSmokeFollowup, governance: "" as LauncherGovernanceChoice | "" }
         : parseSmokeParams(),
     [fixture]
   );
@@ -339,7 +358,7 @@ export function ConvergedLauncher({ fixture, fill = false }: ConvergedLauncherPr
   const lastDirectiveRef = useRef<LauncherDirective | null>(null);
   const isSmokeRef = useRef(false);
   const smokeDelayRef = useRef(8000);
-  const smokeFollowupRef = useRef("message");
+  const smokeFollowupRef = useRef<LauncherSmokeFollowup>("message");
   const smokeGovernanceRef = useRef<LauncherGovernanceChoice | "">("");
   const smokeQueueRef = useRef<string[]>([]);
   const smokeStartedRef = useRef(false);
@@ -470,6 +489,25 @@ export function ConvergedLauncher({ fixture, fill = false }: ConvergedLauncherPr
     }
     executeDirective(directive);
   }, [executeDirective, fixture]);
+
+  // ── LAUNCHER-RECENTS-CLICK-1（383）：抽屉磁带卡点选 = 该工程 open——走与对话流
+  // 结果卡/抽屉「打开…」相同的 open 链（executeDirective → 宿主治理 → 内核公共链；
+  // requires_governance 恒真语义沿用）。agent 卡内嵌 directive 优先；缺省防御性本地
+  // 构造同 schema。线程内落 directive 占位（「正在打开《X》…」+桥执行态）=装载反馈面。
+  const openRecentProject = useCallback(
+    (entry: LauncherProjectCard) => {
+      if (fixture) return;
+      const directive: LauncherDirective = entry.directive ?? {
+        action: "open_project",
+        file_path: entry.filePath,
+        requires_governance: true
+      };
+      const view = directivePlaceholder(directive) ?? cardPendingPlaceholder(entry);
+      setThread((prev) => [...prev, { kind: "directive", view, directive }]);
+      executeDirective(directive);
+    },
+    [executeDirective, fixture]
+  );
 
   const loadRecents = useCallback(async (run: number) => {
     setDrawerState("loading");
@@ -613,6 +651,24 @@ export function ConvergedLauncher({ fixture, fill = false }: ConvergedLauncherPr
     smokeQueueRef.current = [...smokeParams.messages];
     smokeNextRef.current();
   }, [fixture, greetingState, smokeParams, sendNextSmokeMessage]);
+
+  // 383 真栈腿接缝：followup=recents_click[:N] 时，greeting+recents 就绪且烟测消息
+  // 轮收尾（!busy）后，按 FOLLOWUP_MS 延迟经同一 openRecentProject 链点磁带卡 N
+  // （恰好一次；**跳过 exists=false 条目**——烟测驱动尊重 disabled 语义，不模拟
+  // 点不可点按钮；生产 URL 无 launcher_smoke → 全零行为）。
+  const recentsClickFiredRef = useRef(false);
+  useEffect(() => {
+    if (fixture || !smokeParams.enabled) return;
+    const followup = smokeParams.followup;
+    if (typeof followup !== "object" || followup.kind !== "recents_click") return;
+    if (recentsClickFiredRef.current || !smokeStartedRef.current || busy) return;
+    if (greetingState !== "ready" || drawerState !== "ready" || drawerEntries.length === 0) return;
+    const entry = drawerEntries[followup.index];
+    if (!entry || entry.exists === false) return;
+    recentsClickFiredRef.current = true;
+    const delay = smokeDelayRef.current;
+    window.setTimeout(() => openRecentProject(entry), delay);
+  }, [fixture, smokeParams, busy, greetingState, drawerState, drawerEntries, openRecentProject]);
 
   const onSubmit = (event?: FormEvent) => {
     event?.preventDefault();
@@ -884,19 +940,51 @@ export function ConvergedLauncher({ fixture, fill = false }: ConvergedLauncherPr
             ) : null}
             {drawerEntries.length > 0 ? (
               <ul className="v5-launcher-recents" data-launcher-recents>
-                {drawerEntries.map((entry) => (
+                {drawerEntries.map((entry) => {
                   // 366（用户裁定 b 案）：工程条目本身=磁带盒造型整卡（非图标+文字行）——
                   // 工程名/路径排布进磁带卡结构（底标位），氛围色=工程名哈希沿用。
-                  <li
-                    key={entry.id}
-                    className="v5-launcher-recent v5-converged-recent"
-                    data-launcher-recent
-                    data-tape-card
-                    data-tape-card-mode={entry.name ? "named" : "derived"}
-                  >
-                    <TapeCardFace name={entry.name} filePath={entry.filePath} />
-                  </li>
-                ))}
+                  // 383（LAUNCHER-RECENTS-CLICK-1）：整卡可点=发起该工程 open（同对话流
+                  // 结果卡链）；agent os.Stat 实测缺失（exists===false）→置灰不可点+如实
+                  // 注记（健康度标注最小档；字段缺省=旧 agent 未知，按可点，点后失败走
+                  // 宿主降级文案，不虚报）。禁用门与「＋新建」同语义（busy/桥在飞/未就绪）。
+                  const missing = entry.exists === false;
+                  const displayName = entry.name || launcherDisplayFileName(entry.filePath);
+                  return (
+                    <li
+                      key={entry.id}
+                      className="v5-launcher-recent v5-converged-recent"
+                      data-launcher-recent
+                      data-tape-card
+                      data-tape-card-mode={entry.name ? "named" : "derived"}
+                      data-launcher-recent-missing={missing ? "true" : undefined}
+                    >
+                      <button
+                        type="button"
+                        className="v5-launcher-recent-open"
+                        data-launcher-recent-open={entry.id}
+                        disabled={missing || busy || bridgeBusy || (!fixture && greetingState !== "ready")}
+                        onClick={() => openRecentProject(entry)}
+                        title={
+                          missing
+                            ? `《${displayName}》的工程文件已不在原位置——检查文件后重试`
+                            : `打开工程《${displayName}》（${entry.filePath}）`
+                        }
+                        aria-label={
+                          missing
+                            ? `工程 ${displayName}（文件缺失，不可打开）`
+                            : `打开工程 ${displayName}`
+                        }
+                      >
+                        <TapeCardFace name={entry.name} filePath={entry.filePath} />
+                      </button>
+                      {missing ? (
+                        <span className="v5-launcher-recent-missing-note" data-launcher-recent-missing-note>
+                          文件已不在原位置
+                        </span>
+                      ) : null}
+                    </li>
+                  );
+                })}
               </ul>
             ) : null}
           </aside>

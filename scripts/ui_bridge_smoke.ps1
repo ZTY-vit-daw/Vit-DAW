@@ -13,7 +13,12 @@ param(
     [string]$RunRoot = "",
     [int]$WaitSeconds = 60,
     [int]$LegSettleSeconds = 50,
-    [switch]$SkipBuild
+    [switch]$SkipBuild,
+    # LAUNCHER-RECENTS-CLICK-1（383）：仅跑列表点击腿（RC1 磁带卡点击→治理→打开→
+    # 工程内对话往返 / RC2 文件移走后点击→failed 降级 / RC3 损坏文件点击→failed
+    # 降级）；L1/L2a/b/c 不跑。驱动=React 烟测接缝 launcher_smoke_followup=recents_click[:N]
+    # （宿主 VIT_SMOKE_LAUNCHER_FOLLOWUP 既有 env 透传，Godot 零改动）。
+    [switch]$RecentsClickLeg
 )
 
 # UI-BRIDGE-1 端侧烟测（343 ui_host_smoke.ps1 / 349 ui_os_smoke.ps1 同模式新脚本；授权=卡面文件域 scripts/）。
@@ -27,6 +32,18 @@ param(
 # 断言面：[LauncherBridge] 日志链 + scene_added VitDockRoot + boot 内同 HWND + /agent/state current_project
 #         + fixture 源哈希 + recents 还原 + 零 LLM telemetry（chat 全确定性路由）。
 # 通过标准：退出码 0（AGENTS §5 烟测门槛）。
+# LAUNCHER-RECENTS-CLICK-1（383）扩展（-RecentsClickLeg）：
+#   RC1 列表点击→打开→工程内对话往返（boot，kernel 无工程→治理 dialog on boot scratch →switch）：
+#      React recents 磁带卡[0]（烟测接缝 followup=recents_click，greeting+recents 就绪后 +8s 经
+#      同一 openRecentProject 链点击）→ directive.received → 治理三键 → open.begin → result=opened
+#      → scene_added VitDockRoot → /agent/state=烟测桥甲 → 工程内对话往返（同会话 HTTP 两轮：
+#      launcher list 轮 + 桥接播报轮 stop_reason=launcher_bridge_broadcast + volume_switch，零 LLM）。
+#   RC2 文件移走失败降级（boot，kernel 有甲）：surface_ready 后删除烟测桥乙.vit → recents[1] 点击
+#      （followup=recents_click:1，+25s——列表在删除前已装载）→ 治理 switch → open 失败 →
+#      result=failed（file_path=乙）+ result_ack=failed（React 真收降级回执）+ 无场景切换。
+#   RC3 损坏文件失败降级（boot，kernel 有甲）：烟测桥坏.vit（非工程内容，存在→可点）为 recents[2]
+#      点击（followup=recents_click:2）→ 治理 switch → open 失败 → result=failed + ack + 无场景切换。
+#   LLM 预算：RC 全腿 0 调用（telemetry 断言行数 0；播报轮/checkpoint 先于 LLM）。
 
 $ErrorActionPreference = "Stop"
 if ([string]::IsNullOrWhiteSpace($RepoRoot)) { $RepoRoot = "D:\Vit_DAW_wt_uibridge1" }
@@ -154,16 +171,20 @@ if (-not (Test-Path -LiteralPath $KernelExe -PathType Leaf)) { throw ("kernel ex
 $assert["prereq"] = [ordered]@{ kernel_exe = $KernelExe }
 
 # fixture 隔离：两份不同名副本（同内容异名=340 先例），不触碰样例/用户工程（AGENTS §10）。
+# 383 RC 腿追加坡坏文件 fixture（存在但非工程内容——损坏降级腿用；agent os.Stat 通过=可点）。
 $fixtureA = Join-Path $FixtureDir "烟测桥甲.vit"
 $fixtureB = Join-Path $FixtureDir "烟测桥乙.vit"
+$fixtureCorrupt = Join-Path $FixtureDir "烟测桥坏.vit"
 Copy-Item -LiteralPath $ProjectSource -Destination $fixtureA -Force
 Copy-Item -LiteralPath $ProjectSource -Destination $fixtureB -Force
+[System.IO.File]::WriteAllText($fixtureCorrupt, "not a vit project (corrupt fixture, ui_bridge_smoke RC3)", (New-Object System.Text.UTF8Encoding($false)))
 $fixtureSourceHashBefore = (Get-FileHash -Algorithm SHA256 -LiteralPath $ProjectSource).Hash
 $report.isolation["fixture_source_sha256_before"] = $fixtureSourceHashBefore
 $report.isolation["fixture_a"] = $fixtureA
 $report.isolation["fixture_b"] = $fixtureB
+$report.isolation["fixture_corrupt"] = $fixtureCorrupt
 
-# recents 种子：snapshot → prepend 两 fixture（BOM-less UTF-8 手工数组，dev_agent_smoke 同款）。
+# recents 种子：snapshot → prepend fixture（BOM-less UTF-8 手工数组，dev_agent_smoke 同款）。
 $recentsConfig = Join-Path $env:APPDATA "Vit-DAW\global_project_config.json"
 if (-not (Test-Path -LiteralPath $recentsConfig)) { throw ("kernel recents config missing: " + $recentsConfig) }
 $recentsBackup = Join-Path $ArtDir "global_project_config.before.json"
@@ -173,12 +194,14 @@ $recentsExisting = @()
 if ($null -ne $recentsJson.recent_projects) {
     $recentsExisting = @($recentsJson.recent_projects | ForEach-Object { [string]$_ })
 }
-$recentsMerged = @((@($fixtureA, $fixtureB) + $recentsExisting) | Select-Object -Unique)
+$recentsSeed = @($fixtureA, $fixtureB)
+if ($RecentsClickLeg) { $recentsSeed = @($fixtureA, $fixtureB, $fixtureCorrupt) }
+$recentsMerged = @(($recentsSeed + $recentsExisting) | Select-Object -Unique)
 $recentsItems = @($recentsMerged | ForEach-Object { $_ | ConvertTo-Json })
 $recentsText = "{`n  `"recent_projects`": [`n    " + ($recentsItems -join ",`n    ") + "`n  ]`n}"
 [System.IO.File]::WriteAllText($recentsConfig, $recentsText, (New-Object System.Text.UTF8Encoding($false)))
 Copy-Item -LiteralPath $recentsConfig -Destination (Join-Path $ArtDir "global_project_config.seeded.json") -Force
-Write-Host ("recents seeded (prepended 2 fixtures; snapshot=" + $recentsBackup + ")")
+Write-Host ("recents seeded (prepended " + $recentsSeed.Count + " fixtures; snapshot=" + $recentsBackup + ")")
 
 # kernel workspace 隔离。
 $KernelWorkspace = Join-Path $RunRoot "kernel_workspace"
@@ -256,15 +279,20 @@ function Start-BridgeGodot {
 # directive 不再路由；重启 agent = 每腿全新门态。内核不重启（在开工程跨 agent 存活，
 # L2 治理前提=新 agent shadow 从内核态同步 project_path，337 双面同源）。
 function Start-BridgeAgent {
-    param([string]$DraftRoot)
+    param([string]$DraftRoot, [string]$TelemetryPath = "")
     New-Item -ItemType Directory -Force -Path $DraftRoot | Out-Null
     $env:VIT_HISTORY_DRAFT_ROOT = $DraftRoot
     $env:VIT_DAW_DEV_ROOT = $RepoRoot
+    # 383 RC 腿：LLM telemetry 显式落 run 目录（零 LLM 断言=行数 0）。
+    if (-not [string]::IsNullOrWhiteSpace($TelemetryPath)) {
+        $env:VIT_AGENT_LLM_TELEMETRY_PATH = $TelemetryPath
+    }
     try {
         $proc = Start-Process -FilePath $AgentBinary -ArgumentList @("-http", ($AgentHttp -replace '^http://',''), "-last-log-path", $agentLog, "-keep-last-log-lines", "8000") -WorkingDirectory $AgentDir -WindowStyle Hidden -PassThru
     }
     finally {
         Remove-Item Env:VIT_HISTORY_DRAFT_ROOT -ErrorAction SilentlyContinue
+        Remove-Item Env:VIT_AGENT_LLM_TELEMETRY_PATH -ErrorAction SilentlyContinue
     }
     if (-not (Wait-HttpReady -BaseUrl $AgentHttp -TimeoutSeconds $WaitSeconds)) {
         throw ("agent HTTP did not become ready (leg restart)")
@@ -338,6 +366,172 @@ try {
     if (-not (Test-Path -LiteralPath (Join-Path $GodotProjectRoot ".godot\extension_list.cfg"))) {
         throw ("Godot import pass did not produce .godot/extension_list.cfg")
     }
+
+    # ============================================== LAUNCHER-RECENTS-CLICK-1（383）RC 腿
+    if ($RecentsClickLeg) {
+    $rcTelemetry = Join-Path $RunRoot "llm_telemetry_rc.jsonl"
+
+    # ------------------------------------------------------------------ RC1
+    Write-Step0 "RC1: recents tape-card click -> governance switch -> open -> in-project chat roundtrip (zero LLM)"
+    $agentProcId = Start-BridgeAgent -DraftRoot (Join-Path $RunRoot "agent_drafts_rc1") -TelemetryPath $rcTelemetry
+    $assert["stack"]["agent_pid_rc1"] = $agentProcId
+    # 工程内对话往返·轮1（attempt1 教训：**进入工程后** launcher gate 关（userEnteredProject
+    # 置位）→「有哪些工程」落 LLM 7 调用）。轮1 必须在 Godot boot/打开前发（gate 开=
+    # 确定性 list 零 LLM），并为本会话注册 launcher 起源——轮2 桥接播报 checkpoint 的前提。
+    Start-Sleep -Seconds 2
+    $chatUri = $AgentHttp.TrimEnd("/") + "/agent/chat"
+    $rcConv = "webui_rc1_http_" + (Get-Date -Format "yyyyMMdd_HHmmss")
+    $rc1Pre = [ordered]@{}
+    $assert["RC1_pre_open_launcher_list_round"] = $rc1Pre
+    $round1 = $null
+    for ($attempt = 1; $attempt -le 3; $attempt++) {
+        $round1 = Invoke-RestMethod -Method Post -Uri $chatUri -ContentType "application/json; charset=utf-8" -Body ([System.Text.Encoding]::UTF8.GetBytes((ConvertTo-Json @{ conversation_id = $rcConv; message = "有哪些工程"; context = @{ launcher = $true } } -Compress))) -TimeoutSec 30
+        $rc1Pre.chat_round1_reply = [string]$round1.reply
+        if ($rc1Pre.chat_round1_reply -like "*最近的工程*") { break }
+        if ($rc1Pre.chat_round1_reply -notlike "*连不上内核*") {
+            throw ("RC1 chat round1 (pre-open) not deterministic list reply — gate already closed? reply=" + $rc1Pre.chat_round1_reply)
+        }
+        # 内核引导窗口内的确定性降级回执（零 LLM）——等 3s 重试（不盲目重试防 LLM 消耗）。
+        Start-Sleep -Seconds 3
+    }
+    if ($rc1Pre.chat_round1_reply -notlike "*最近的工程*") {
+        throw ("RC1 chat round1 (pre-open) kernel never became reachable: " + $rc1Pre.chat_round1_reply)
+    }
+    $rc1Pre.rounds_ok = $true
+    $logR1 = Join-Path $LogsDir "godot_boot_rc1.log"
+    $godotPid = Start-BridgeGodot -LogPath $logR1 -BridgeMessage "有哪些工程" -Governance "switch" -FollowupMs "8000" -Followup "recents_click"
+    $assert["stack"]["godot_boot_rc1_pid"] = $godotPid
+    $rc1 = [ordered]@{}
+    $assert["RC1_recents_click_open_roundtrip"] = $rc1
+    Assert-BridgeBoot -LogPath $logR1 -Leg $rc1
+    if ($rc1.smoke_navigate_url -notlike "*launcher_smoke_followup=recents_click*") {
+        throw ("RC1 smoke.navigate URL missing recents_click followup: " + $rc1.smoke_navigate_url)
+    }
+    $rc1.followup_url_ok = $true
+    # 治理（boot scratch 保守判据=L1 同形态）：dialog → 宿主自动 switch。
+    $govR1 = Test-LogLine -LogPath $logR1 -Pattern '\[LauncherBridge\] governance\.dialog_shown ' -TimeoutSeconds 30
+    if ($null -eq $govR1) { throw ("RC1 governance dialog not seen") }
+    $gpR1 = Test-LogLine -LogPath $logR1 -Pattern '\[LauncherBridge\] smoke\.governance\.press .*"choice":\s*"switch"' -TimeoutSeconds 30
+    if ($null -eq $gpR1) { throw ("RC1 governance press (switch) not seen") }
+    $obR1 = Test-LogLine -LogPath $logR1 -Pattern '\[LauncherBridge\] open\.begin ' -TimeoutSeconds 20
+    if ($null -eq $obR1) { throw ("RC1 open.begin not seen") }
+    Assert-BridgeResult -LogPath $logR1 -Leg $rc1 -ExpectStatus "opened" -ExpectGovernance "switch"
+    $sceneR1 = Test-LogLine -LogPath $logR1 -Pattern 'scene_added.*VitDockRoot' -TimeoutSeconds $LegSettleSeconds
+    if ($null -eq $sceneR1) { throw ("RC1 scene_added VitDockRoot not seen (click-to-open chain did not dock)") }
+    $rc1.scene_hwnd = Get-JsonField -Line $sceneR1.Line -Field "child_hwnd"
+    if (-not ($rc1.scene_hwnd -eq $rc1.child_hwnd -and $rc1.child_hwnd -gt 0)) {
+        throw ("RC1 HWND changed across open: child=$($rc1.child_hwnd) scene=$($rc1.scene_hwnd)")
+    }
+    $rc1.same_hwnd_across_open = $true
+    # 打开工程绑定观察（L2a 先例：open 后 shadow 同步，/agent/state=被点条目）。
+    $bindDeadline = (Get-Date).AddSeconds(30)
+    $rc1Bound = ""
+    while ((Get-Date) -lt $bindDeadline) {
+        $rc1Bound = Get-AgentCurrentProject -BaseUrl $AgentHttp
+        if ($rc1Bound -like "*烟测桥甲*") { break }
+        Start-Sleep -Milliseconds 800
+    }
+    if ($rc1Bound -notlike "*烟测桥甲*") { throw ("RC1 agent current_project not fixture A after open: '$rc1Bound'") }
+    $rc1.agent_current_project = $rc1Bound
+    # 工程内对话往返·轮2（同会话，进入工程后）：launcher 起源会话+绑定工程+进入事实
+    # 在案 → 桥接播报 checkpoint 先于 LLM（339 leg1 同款断言面，零 LLM）。
+    Start-Sleep -Seconds 5
+    $round2 = Invoke-RestMethod -Method Post -Uri $chatUri -ContentType "application/json; charset=utf-8" -Body ([System.Text.Encoding]::UTF8.GetBytes((ConvertTo-Json @{ conversation_id = $rcConv; message = "现在到哪了" } -Compress))) -TimeoutSec 60
+    $rc1.chat_round2_reply = [string]$round2.reply
+    $rc1.chat_round2_stop_reason = [string]$round2.stop_reason
+    $rc1.chat_round2_context_flow = [string]$round2.context_flow
+    $rc1.chat_round2_typed_event0 = [string]$round2.typed_events[0].type
+    if ($rc1.chat_round2_stop_reason -ne "launcher_bridge_broadcast" -or $rc1.chat_round2_context_flow -ne "project" -or $rc1.chat_round2_reply -notlike "*已进入《烟测桥甲*" -or $rc1.chat_round2_typed_event0 -ne "volume_switch") {
+        throw ("RC1 in-project chat roundtrip mismatch: stop_reason=$($rc1.chat_round2_stop_reason) context_flow=$($rc1.chat_round2_context_flow) reply=$($rc1.chat_round2_reply) typed0=$($rc1.chat_round2_typed_event0)")
+    }
+    $rc1.in_project_roundtrip = $true
+
+    Stop-GuiProcess $godotPid; $godotPid = 0
+    Stop-GuiProcess $agentProcId; $agentProcId = 0
+    Start-Sleep -Seconds 2
+
+    # ------------------------------------------------------------------ RC2
+    Write-Step0 "RC2: file moved away after list load -> recents click fails with degradation receipt"
+    $agentProcId = Start-BridgeAgent -DraftRoot (Join-Path $RunRoot "agent_drafts_rc2") -TelemetryPath $rcTelemetry
+    $assert["stack"]["agent_pid_rc2"] = $agentProcId
+    $logR2 = Join-Path $LogsDir "godot_boot_rc2.log"
+    $godotPid = Start-BridgeGodot -LogPath $logR2 -BridgeMessage "有哪些工程" -Governance "switch" -FollowupMs "25000" -Followup "recents_click:1"
+    $assert["stack"]["godot_boot_rc2_pid"] = $godotPid
+    $rc2 = [ordered]@{}
+    $assert["RC2_moved_file_click_failed"] = $rc2
+    # 前段手工断言（不走 Assert-BridgeBoot——directive.received 在点击后才出现）。
+    foreach ($pat in @('\[AgentChatWindow\] boot ', '\[AgentChatWindow\] visible ', '\[AgentChatWindow\] page_loaded ', '\[LauncherBridge\] smoke\.navigate ', '\[LauncherBridge\] surface_ready ')) {
+        if ($null -eq (Test-LogLine -LogPath $logR2 -Pattern $pat -TimeoutSeconds 90)) { throw ("RC2 pre-click marker not seen: $pat") }
+    }
+    # 列表装载（surface_ready 后 greeting+list 轮，正常 <5s）→ 等待 8s 后移走乙；
+    # 点击在条件就绪后 +25s（FOLLOWUP_MS），删除窗口余量 ~17s。
+    Start-Sleep -Seconds 8
+    Remove-Item -LiteralPath $fixtureB -Force
+    $rc2.fixture_b_deleted = $true
+    $drR2 = Test-LogLine -LogPath $logR2 -Pattern '\[LauncherBridge\] directive\.received ' -TimeoutSeconds 90
+    if ($null -eq $drR2) { throw ("RC2 directive.received not seen (click did not fire — entry greyed by exists=false or seam failure)") }
+    $rc2.directive_request_id = Get-JsonString -Line $drR2.Line -Field "request_id"
+    $govR2 = Test-LogLine -LogPath $logR2 -Pattern '\[LauncherBridge\] governance\.dialog_shown ' -TimeoutSeconds 30
+    if ($null -eq $govR2) { throw ("RC2 governance dialog not seen") }
+    $rc2.dialog_current_project = Get-JsonString -Line $govR2.Line -Field "current_project"
+    $gpR2 = Test-LogLine -LogPath $logR2 -Pattern '\[LauncherBridge\] smoke\.governance\.press .*"choice":\s*"switch"' -TimeoutSeconds 30
+    if ($null -eq $gpR2) { throw ("RC2 governance press (switch) not seen") }
+    Assert-BridgeResult -LogPath $logR2 -Leg $rc2 -ExpectStatus "failed"
+    # attempt2 教训：宿主 result.posted 日志行不含 file_path——失败对象的证据锚=
+    # 宿主警告行（launcher directive chain failed: Project file does not exist: <乙路径>）。
+    $failRefR2 = Select-String -LiteralPath $logR2 -Pattern 'launcher directive chain failed.*烟测桥乙' | Select-Object -Last 1
+    if ($null -eq $failRefR2) { throw ("RC2 failure detail does not reference fixture B (moved-away file): no chain-failed warning line") }
+    $rc2.failure_detail_refs_fixture_b = $true
+    Start-Sleep -Seconds 3
+    $noDockR2 = Select-String -LiteralPath $logR2 -Pattern 'scene_added.*VitDockRoot' -ErrorAction SilentlyContinue
+    $rc2.no_scene_switch = ($null -eq $noDockR2)
+    if (-not $rc2.no_scene_switch) { throw ("RC2 unexpectedly entered the dock after failed open") }
+
+    Stop-GuiProcess $godotPid; $godotPid = 0
+    Stop-GuiProcess $agentProcId; $agentProcId = 0
+    Start-Sleep -Seconds 2
+
+    # ------------------------------------------------------------------ RC3
+    Write-Step0 "RC3: corrupt-but-present project file -> recents click fails with degradation receipt"
+    $agentProcId = Start-BridgeAgent -DraftRoot (Join-Path $RunRoot "agent_drafts_rc3") -TelemetryPath $rcTelemetry
+    $assert["stack"]["agent_pid_rc3"] = $agentProcId
+    $logR3 = Join-Path $LogsDir "godot_boot_rc3.log"
+    $godotPid = Start-BridgeGodot -LogPath $logR3 -BridgeMessage "有哪些工程" -Governance "switch" -FollowupMs "8000" -Followup "recents_click:2"
+    $assert["stack"]["godot_boot_rc3_pid"] = $godotPid
+    $rc3 = [ordered]@{}
+    $assert["RC3_corrupt_file_click_failed"] = $rc3
+    Assert-BridgeBoot -LogPath $logR3 -Leg $rc3
+    $govR3 = Test-LogLine -LogPath $logR3 -Pattern '\[LauncherBridge\] governance\.dialog_shown ' -TimeoutSeconds 30
+    if ($null -eq $govR3) { throw ("RC3 governance dialog not seen") }
+    $gpR3 = Test-LogLine -LogPath $logR3 -Pattern '\[LauncherBridge\] smoke\.governance\.press .*"choice":\s*"switch"' -TimeoutSeconds 30
+    if ($null -eq $gpR3) { throw ("RC3 governance press (switch) not seen") }
+    Assert-BridgeResult -LogPath $logR3 -Leg $rc3 -ExpectStatus "failed"
+    # 同 RC2：失败对象证据锚=宿主警告行（损坏文件解析失败形态的 detail 文案可能不同，
+    # 锚=警告行含 fixture 名）。
+    $failRefR3 = Select-String -LiteralPath $logR3 -Pattern '烟测桥坏' | Select-Object -Last 1
+    if ($null -eq $failRefR3) { throw ("RC3 failure detail does not reference corrupt fixture: no warning line with fixture name") }
+    $rc3.failure_detail_refs_corrupt_fixture = $true
+    Start-Sleep -Seconds 3
+    $noDockR3 = Select-String -LiteralPath $logR3 -Pattern 'scene_added.*VitDockRoot' -ErrorAction SilentlyContinue
+    $rc3.no_scene_switch = ($null -eq $noDockR3)
+    if (-not $rc3.no_scene_switch) { throw ("RC3 unexpectedly entered the dock after failed open") }
+
+    Stop-GuiProcess $godotPid; $godotPid = 0
+    Stop-GuiProcess $agentProcId; $agentProcId = 0
+    Start-Sleep -Seconds 2
+
+    # RC 零 LLM 断言（telemetry 行数 0；播报轮/checkpoint 先于 LLM）。
+    $rcTelemetryLines = 0
+    if (Test-Path -LiteralPath $rcTelemetry) {
+        $rcTelemetryLines = @(Get-Content -LiteralPath $rcTelemetry -ErrorAction SilentlyContinue | Where-Object { $_.Trim() -ne "" }).Count
+    }
+    $report.isolation["rc_llm_telemetry_lines"] = $rcTelemetryLines
+    if ($rcTelemetryLines -ne 0) { throw ("RC legs spent LLM calls (telemetry lines=$rcTelemetryLines) — expected 0") }
+
+    # RC fixture 复原（乙被 RC2 删除——重建副本供后续核查；不影响源 912.vit 断言）。
+    Copy-Item -LiteralPath $ProjectSource -Destination $fixtureB -Force
+    }
+    else {
 
     # ================================================================== L1
     Write-Step0 "L1: first open via bridge from boot state (governance switch; zero-friction premise refuted -> finding)"
@@ -480,6 +674,7 @@ try {
     Stop-GuiProcess $godotPid; $godotPid = 0
     Stop-GuiProcess $agentProcId; $agentProcId = 0
     Start-Sleep -Seconds 2
+    } # end else（L1-L2c 原腿，-RecentsClickLeg 时跳过）
 
     # ---------------------------------------------------------- zero LLM + isolation
     Write-Step0 "Isolation: fixture source hash + recents restore + zero LLM telemetry"

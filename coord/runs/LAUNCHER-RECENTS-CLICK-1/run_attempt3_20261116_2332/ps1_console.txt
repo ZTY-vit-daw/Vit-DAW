@@ -1,0 +1,15 @@
+=== UI-BRIDGE-1 smoke; run dir: D:\Vit_DAW_wt_383click\coord\runs\LAUNCHER-RECENTS-CLICK-1\run_attempt3_20261116_2332
+repo HEAD=76a0ffa3ef4747ea9ac00519be2a8d62895951e9  frontend HEAD=d05043e11a79452b9155a89f3405668994eafdcb
+--- Prereq: ports must be free (7878/5555/5556/8787)
+ports free
+recents seeded (prepended 3 fixtures; snapshot=D:\Vit_DAW_wt_383click\coord\runs\LAUNCHER-RECENTS-CLICK-1\run_attempt3_20261116_2332\artifacts\global_project_config.before.json)
+--- Start VitApp kernel (isolated workspace)
+--- Import pass (rebuild .godot cache in a fresh worktree)
+--- RC1: recents tape-card click -> governance switch -> open -> in-project chat roundtrip (zero LLM)
+--- RC2: file moved away after list load -> recents click fails with degradation receipt
+--- RC3: corrupt-but-present project file -> recents click fails with degradation receipt
+--- Isolation: fixture source hash + recents restore + zero LLM telemetry
+--- Finally: stop stack and confirm port release
+recents restored from snapshot
+report: D:\Vit_DAW_wt_383click\coord\runs\LAUNCHER-RECENTS-CLICK-1\run_attempt3_20261116_2332\artifacts\ui_bridge_smoke_report.json
+UI-BRIDGE-1 smoke: PASS

@@ -1130,3 +1130,34 @@ func TestLauncherDefaultNewProjectNameFormat(t *testing.T) {
 		t.Fatalf("default new project name value: %q", name)
 	}
 }
+
+// LAUNCHER-RECENTS-CLICK-1（383）：结果卡 exists 字段=工程文件 os.Stat 实测（UI 置灰
+// 档数据源）。Stat 失败=exists:false 如实呈报（fail-soft，不猜原因）。
+func TestLauncherProjectCardsExistsStat(t *testing.T) {
+	dir := t.TempDir()
+	existing := filepath.Join(dir, "在位工程.vit")
+	if err := os.WriteFile(existing, []byte("fixture"), 0o644); err != nil {
+		t.Fatalf("write fixture: %v", err)
+	}
+	missing := filepath.Join(dir, "移走工程.vit")
+	cards := launcherProjectCards([]launcherProjectEntry{
+		{Path: existing, Name: "在位工程"},
+		{Path: missing, Name: "移走工程"},
+	}, 0)
+	if len(cards) != 2 {
+		t.Fatalf("cards=%d want 2", len(cards))
+	}
+	if got := cards[0]["exists"]; got != true {
+		t.Fatalf("existing card exists=%v want true", got)
+	}
+	if got := cards[1]["exists"]; got != false {
+		t.Fatalf("missing card exists=%v want false", got)
+	}
+	// directive 嵌入不因 exists 缺失而丢（缺失条目仍是完整卡——置灰是 UI 态）。
+	for _, card := range cards {
+		inner, _ := card["launcher_directive"].(*LauncherDirective)
+		if inner == nil || inner.Action != "open_project" || inner.FilePath == "" || !inner.RequiresGovernance {
+			t.Fatalf("card must keep embedding an executable open directive, got %+v", inner)
+		}
+	}
+}

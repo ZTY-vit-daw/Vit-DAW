@@ -1,0 +1,14 @@
+=== UI-BRIDGE-1 smoke; run dir: D:\Vit_DAW_wt_383click\coord\runs\LAUNCHER-RECENTS-CLICK-1\run_attempt2_20261116_2320
+repo HEAD=d6266e6f786508b5b27d951af6337e17d1718b01  frontend HEAD=d05043e11a79452b9155a89f3405668994eafdcb
+--- Prereq: ports must be free (7878/5555/5556/8787)
+ports free
+recents seeded (prepended 3 fixtures; snapshot=D:\Vit_DAW_wt_383click\coord\runs\LAUNCHER-RECENTS-CLICK-1\run_attempt2_20261116_2320\artifacts\global_project_config.before.json)
+--- Start VitApp kernel (isolated workspace)
+--- Import pass (rebuild .godot cache in a fresh worktree)
+--- RC1: recents tape-card click -> governance switch -> open -> in-project chat roundtrip (zero LLM)
+--- RC2: file moved away after list load -> recents click fails with degradation receipt
+FAIL: RC2 failed result does not reference fixture B: [LauncherBridge] result.posted {"request_id":"webui_launcher_br_mwjewpw7","status":"failed","governance":"switch","action":"open_project"}
+--- Finally: stop stack and confirm port release
+recents restored from snapshot
+report: D:\Vit_DAW_wt_383click\coord\runs\LAUNCHER-RECENTS-CLICK-1\run_attempt2_20261116_2320\artifacts\ui_bridge_smoke_report.json
+UI-BRIDGE-1 smoke: FAIL

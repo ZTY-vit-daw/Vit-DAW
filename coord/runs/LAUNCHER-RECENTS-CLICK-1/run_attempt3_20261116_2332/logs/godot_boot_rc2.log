@@ -1,0 +1,37 @@
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+D3D12 12_0 - Forward+ - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4070
+
+[AgentChatWindow] boot {"boot_index":1,"main_hwnd":10031026,"mode_active":true,"size":{"x":1920,"y":1080},"title":"Vit","url_target":"http://127.0.0.1:7878/app/"}
+[AgentChatWindow] os_event {"data":{"visible":true},"kind":"restored","mode_active":true}
+[AgentChatWindow] visible {"boot_index":1,"child_hwnd":525118,"mode_active":true,"visible":true}
+[LauncherBridge] smoke.hook.begin {"governance_choice":"switch"}
+[AgentChatWindow] main_window.hidden {"mode":"maximized","mode_active":true,"reason":"startup_launcher_exclusive","via":"extension_showwindow"}
+[AgentChatWindow] health.ok {"attempt":1,"mode_active":true}
+[AgentChatWindow] navigate {"child_hwnd":525118,"mode_active":true,"navigate_count":1,"url":"http://127.0.0.1:7878/app/?surface=launcher"}
+[AgentChatWindow] navigation_started {"mode_active":true,"url":"http://127.0.0.1:7878/app/?surface=launcher"}
+[AgentChatWindow] navigation_started {"mode_active":true,"url":"http://127.0.0.1:7878/app/?surface=launcher"}
+[AgentChatWindow] page_loaded {"boot_index":1,"child_hwnd":525118,"mode_active":true,"scene":"StartPage","url":"http://127.0.0.1:7878/app/?surface=launcher"}
+[AgentChatWindow] page_loaded {"boot_index":1,"child_hwnd":525118,"mode_active":true,"scene":"StartPage","url":"http://127.0.0.1:7878/app/?surface=launcher"}
+[LauncherBridge] surface_ready {"surface":"launcher"}
+[AgentChatWindow] navigation_started {"mode_active":true,"url":"http://127.0.0.1:7878/app/?surface=launcher&launcher_smoke=1&launcher_smoke_message=%E6%9C%89%E5%93%AA%E4%BA%9B%E5%B7%A5%E7%A8%8B&launcher_smoke_followup_delay_ms=25000&launcher_smoke_followup=recents_click%3A1"}
+[LauncherBridge] smoke.navigate {"url":"http://127.0.0.1:7878/app/?surface=launcher&launcher_smoke=1&launcher_smoke_message=%E6%9C%89%E5%93%AA%E4%BA%9B%E5%B7%A5%E7%A8%8B&launcher_smoke_followup_delay_ms=25000&launcher_smoke_followup=recents_click%3A1"}
+[AgentChatWindow] navigation_started {"mode_active":true,"url":"http://127.0.0.1:7878/app/?surface=launcher&launcher_smoke=1&launcher_smoke_message=%E6%9C%89%E5%93%AA%E4%BA%9B%E5%B7%A5%E7%A8%8B&launcher_smoke_followup_delay_ms=25000&launcher_smoke_followup=recents_click%3A1"}
+[AgentChatWindow] page_loaded {"boot_index":1,"child_hwnd":525118,"mode_active":true,"scene":"StartPage","url":"http://127.0.0.1:7878/app/?surface=launcher&launcher_smoke=1&launcher_smoke_message=%E6%9C%89%E5%93%AA%E4%BA%9B%E5%B7%A5%E7%A8%8B&launcher_smoke_followup_delay_ms=25000&launcher_smoke_followup=recents_click%3A1"}
+[LauncherBridge] surface_ready {"surface":"launcher"}
+[LauncherBridge] directive.received {"request_id":"webui_launcher_br_mwjf319n"}
+[LauncherBridge] governance.dialog_shown {"current_project":"烟测桥甲"}
+[LauncherBridge] smoke.governance.press {"choice":"switch"}
+[LauncherBridge] governance.choice {"choice":"switch"}
+[LauncherBridge] open.begin {"action":"open_project"}
+WARNING: start_page: launcher directive chain failed: Project file does not exist: D:\Vit_DAW_wt_383click\coord\runs\LAUNCHER-RECENTS-CLICK-1\run_attempt3_20261116_2332\fixture\烟测桥乙.vit
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] _execute_launcher_directive (res://app/startup/start_page.gd:505)
+       [1] open_project_by_path (res://app/startup/start_page.gd:1608)
+       [2] _send_open_project_ipc (res://app/startup/start_page.gd:1731)
+       [3] open_project (res://app/kernel/clients/project_client.gd:37)
+       [4] send (res://app/kernel/clients/kernel_command_client.gd:16)
+       [5] send_raw (res://app/kernel/clients/kernel_command_client.gd:25)
+       [6] send_command_async_await (res://app/kernel/autoloads/vit_ipc_client.gd:456)
+[LauncherBridge] result.posted {"request_id":"webui_launcher_br_mwjf319n","status":"failed","governance":"switch","action":"open_project"}
+[LauncherBridge] result_ack {"request_id":"webui_launcher_br_mwjf319n","status":"failed"}

@@ -41,6 +41,12 @@ export interface LauncherProjectCard extends LauncherProjectEntry {
   kind?: string;
   type?: string;
   directive?: LauncherDirective | null;
+  /**
+   * LAUNCHER-RECENTS-CLICK-1（383）：agent 侧 os.Stat 实测的工程文件存在性。
+   * 缺省 true=旧 agent 无该字段时不误灰（webui 与 agent 同批部署；未知按可点，
+   * 点后失败走宿主降级文案——诚实链兜底）。
+   */
+  exists?: boolean;
 }
 
 /** GET /agent/launcher/greeting 回执。 */
@@ -153,7 +159,8 @@ export function cardsToEntries(cards: Array<Record<string, unknown>> | undefined
       type: typeof card.type === "string" ? card.type : undefined,
       name,
       filePath,
-      directive
+      directive,
+      exists: typeof card.exists === "boolean" ? card.exists : undefined
     });
   }
   return out;
