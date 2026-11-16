@@ -451,6 +451,9 @@ func launcherOpenDirective(entry launcherProjectEntry) *LauncherDirective {
 
 // launcherProjectCards 构造可点选的启动台结果卡（ProjectResultCards 字段族
 // 先例 F15；kind=launcher_project，卡内嵌 directive——点卡=执行同一指令）。
+// LAUNCHER-RECENTS-CLICK-1（383）：每卡附 exists=工程文件 os.Stat 实测——UI 据此
+// 对已消失条目置灰（健康度标注最小档）；fail-soft（Stat 错误=exists:false 如实
+// 呈报，不猜测路径暂时不可达的原因）。
 func launcherProjectCards(entries []launcherProjectEntry, limit int) []map[string]any {
 	if len(entries) == 0 {
 		return nil
@@ -460,12 +463,14 @@ func launcherProjectCards(entries []launcherProjectEntry, limit int) []map[strin
 	}
 	cards := make([]map[string]any, 0, len(entries))
 	for index, entry := range entries {
+		_, statErr := os.Stat(entry.Path)
 		cards = append(cards, map[string]any{
 			"kind":               "launcher_project",
 			"type":               "project_open_candidate",
 			"id":                 fmt.Sprintf("launcher_project_%d_%s", index+1, launcherCardIDSuffix(entry.Name)),
 			"name":               entry.Name,
 			"file_path":          entry.Path,
+			"exists":             statErr == nil,
 			"launcher_directive": launcherOpenDirective(entry),
 		})
 	}
