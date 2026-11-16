@@ -1,6 +1,6 @@
 {
   "run": "UI-MSG-SHADOWBOX-1 user message shadowbox render smoke",
-  "date": "2026-11-15T20:33:02.330Z",
+  "date": "2026-11-15T21:15:18.646Z",
   "ruling": "coord/decisions/2026-11-15-user-message-shadowbox-ruling.md",
   "surfaces": {
     "launcher": {
