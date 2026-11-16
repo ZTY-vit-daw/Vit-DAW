@@ -44,4 +44,15 @@
 - **零栈零 LLM 零计费亲证**：未登记栈位、未启动进程；只读勘察（代码+卡卷+盘面只读文件）；生产代码零改动（diff=本报告+卡面）；无 run ID。
 - 领取协调提交=main `5c9f98c5`；勘察工件分支=`port/src-preset-agent-1` @ `fd74896a`。
 
+## 回执二（腿 A+E，2026-11-16 晚窗；主管验收 pass 后授权，范围=授权四项）
+
+- **实现 commit**：`b1e41ba3` @ `port/src-preset-agent-1`（已推远端）；worktree 续用保留候验。
+- **腿 A（范围 1/2/4）**：新包 `agent/internal/instruments`（=主管授权「等价语义面」，按勘察报告腿 A 建议形态；processorintent 未动）——
+  ① GM Level 1 官方 128 音色表（Wikipedia/MMA GM 1 Sound Set 逐条核对；1-128 显示口径，**82=Lead 2 (sawtooth) 与 373 manifest 配对亲证**；含 ProgramChange() 换算）+打击键位表 35-81（36/38/42 与模板 percussion_keys 对齐亲证）；② 中英乐器词→乐器类有序规则（bass drum→drums 先于 bass、电钢琴→epiano 先于钢琴等序敏感 case 有单测钉死）+专用音源规则（钢琴→Grand Rhapsody、电钢→Electric88/200/Grand80、Clavinet、Bass Fingers/Slapper；Surge XT 为 synth_preset_library 候选且显式排除 Surge XT Effects）；③ Surge 盘面预设只读索引（一级分类 .fxp 枚举+CcnK/FPCh 头校验+无效文件如实标记；分类→乐器语义，Keys 按名细分 EP/organ/harpsi/suitcase/keys_misc；嵌套目录=教程内容如实排除）；④ fail-honest 降级四态码（no_instrument_class/no_installed_candidate/surge_factory_index_unavailable/installed_instrument_list_empty），打击/铜管/木管预设=Approximate 标记+诚实注记（GM 键位语义不成立等），无候选不硬造。
+- **腿 A 真机证据（只读零栈）**：env 门控冒烟 `VIT_INSTRUMENTS_REAL_SMOKE=1`（默认 skip）——出厂库 **624 个 .fxp/16 分类全枚举 invalid=0**（勘察腿 637=含 Tutorials/Formula Modulator 嵌套 13 文件的总文件数，本腿如实修正）；17 件 VSTi 语义索引入参；「这曲用钢琴→Grand Rhapsody（dedicated）」「电钢琴→3 专用+Surge Keys(EP)」「贝斯→2 专用+Basses:59」「鼓→Surge Percussion:9 近似」「弦乐→诚实降级」「gm:82→Leads:131」全链日志在卷。
+- **测试与三门**：新包 **26 测试全 PASS**（GM 表完整性/manifest 配对/词序/降级分支/索引 fixture=t.TempDir 不依赖真机）；`go build ./...` exit 0；`go test ./...` **全包 exit 0 两轮**（第二轮=终代码）；webui 未触碰（npm 面不适用，如实声明边界）。
+- **腿 E（范围 3）**：报告 `coord/runs/SRC-PRESET-AGENT-1/LEG-E-STATE-FORENSICS.md`（同 commit）——**外层编码已解（铁证）**：state=`<size>.<JUCE 自定义 base64>`，字母表 `.ABC…z0-9+`（**'.'=值 0**；内核自身 JUCE 子模块源码+真实工件回环逐字相同双重证明；**纠正勘察腿「三候选替换」误读**——任意双射都保长度，本腿以源码定论）；**tracktion 层已解**：state=getStateInformation 原文逐字 base64、还原直喂 setStateInformation（fork @60ab1a49 源码亲读，零包装零加密）；**插件契约层已解**：fxp chunk 体≡Surge `save_patch` 序列化（上游源码 loadPatchByPath 同一 loadRaw，'sub3' 格式）——fxp→state=剥头即得（机械定义）；**内容实证层一处未解**：309 工件（Nov-09 内核保存）解码=高熵二进制（`58 d9 0c` 三字节跨插件同头+长度区+~69B 共享段+载荷），与现行内核源码预期（XML 包裹明文）不符——疑 11-09 构建与现行子模块源码版本差；**离线合成管道逐段定义但端到端未证，腿 D 前须 10 分钟栈时解闸**（现行内核一次 save 对比归层；若仍二进制则与内核域相关，**建议与 doing 卡 378 KERNEL-SAVE-FORENSICS-1 的 D1-D3 锚点交叉**——其领取提交 3bfaad42 恰在本回执分支建点前）。
+- **零栈零 LLM 零计费**：腿 A/E 全程未登记栈位、未启动 VitApp/Godot/agent 进程；取证=只读源码/仓内工件/盘面只读文件；无 run ID。生产域外零改动（diff=新包+腿 E 报告，11 文件 +1618 行）。
+- 领取协调提交=main `5c9f98c5`；勘察=`fd74896a`；腿 A+E=`b1e41ba3`（均 @ `port/src-preset-agent-1`）。
+
 ## 验收：待回填
