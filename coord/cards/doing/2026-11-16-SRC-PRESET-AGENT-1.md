@@ -65,4 +65,14 @@
 - **工件**：`coord/runs/SRC-PRESET-AGENT-1/legd_gate_20261116_2115/`（driver v1-v3+分析器+RUNBOOK §8 跑前成文+双样本 XML sidecar+state_analysis×2+perturb_report+recents before/after+runtime_provenance）@ `port/src-preset-agent-1` commit `0c354d57`（已推）。
 - 领取协调提交=main `5c9f98c5`；勘察=`fd74896a`；腿 A+E=`b1e41ba3`；腿 D 闸门=`0c354d57`（均 @ `port/src-preset-agent-1`）。
 
+## 回执四（腿 D 模板重做+382 上交项处置，2026-11-16 22:50；主管授权扩域）
+
+- **382 上交项收口（拍数修正，双向）**：builder MIDICLIP length 拍→秒换算（8 拍=6.0s/16 拍=12.0s@80bpm，按 tempo 计算非硬编码）；`coursetemplate.go` 解析秒→拍换算（LengthBeats=length_s×bpm/60，tempo 无效 fail-loud——382 缺陷现有 Go 端绊线：改回秒值即测试红）；真栈判据 **A2 全绿：length_seconds=6.0/6.0/12.0=8/8/16 拍@80bpm**。
+- **音色换血（Surge craft 路线，闸门分支 B）**：旋律/主题=soft-keys craft（单振荡+低通 0.38+延音 0.55 等 **10 patch 内参**，真栈写读回 |Δ|<1e-3 全过）；鼓=percussion craft（attack0/decay0.18/sustain0/release0.08/噪声0.4 等 **11 参**）+groove 重写（每小节 open-hat@1.75 增补=GM46 键位，21 音）；**两 state 互异+均异 init 亲证=patch 内参数确实入序列化**（与 Global Volume 不入形成对照实证）；states 固化入模板目录+builder 确定性装配；manifest 声明升级为 soft_key_approximation_declaration（GM 1 钢琴类缺省；「会响的钢琴」本机不存在〔309 Waves 全系 RT-SILENT 四腿 -120dBFS〕如实声明，M2 用户复听节点裁定）。
+- **真栈验证 VERIFY_PASS 12/12 exit 0**：A1 五轨（超集）/A2 拍数×3/A3 音符 8/21/16+鼓键位⊆{36,38,42,46}/A4 三 Surge state=两 craft 钉值（b9daa1f8/8ec4a56d）/**B 三轨离线探针全非静音 max_abs 0.151/0.140/0.156≫0.01**（373 DG1-B B2/B3 同判据）——音色换血出声亲证。
+- **栈协议**：占用 `f230dc88`/释放 `48f9d417` @main（一次登记两段 boot：A=采集+离线装配+三门不占栈；B=终版验证）；attempt 分记=boot A attempt1 probe_defect（提取锚 TRACK name——clear-XML TRACK 无 name 属性，改 track_id）+boot B attempt1 probe_defect（A1 断言超集当全等）；**产品面 12/12 零产品断言失败**；TEARDOWN_ALL_ZERO 亲证 22:45:16；S10 recents 还原哈希亲证 `807226F4AF3F` 22:45:23；LLM 上界 0（全确定性 ZMQ）。
+- **三门**：`go build ./...` exit 0；`go test ./...` 全包 exit 0（终代码）；webui 未触碰（npm 面不适用）；coursetemplate 新绊线=秒→拍换算。
+- **diff**（`47ccf552` @ `port/src-preset-agent-1` 已推）：`scripts/src_template_build.py`（重写：秒值+双 craft 装配）+`agent/internal/coursetemplate/coursetemplate.go`（秒→拍换算）+`coursetemplate_test.go`（helper 模式匹配化）+`templates/melody-drum-v1/`（template.v1.xml 新 sha `aac8f5ac`+manifest+states/ 两 state 文件）+`coord/runs/SRC-PRESET-AGENT-1/legD_stack_20261116_2230/`（RUNBOOK+双 driver+双报告+recents 件+provenance）。
+- 领取协调提交=main `5c9f98c5`；勘察=`fd74896a`；腿 A+E=`b1e41ba3`；腿 D 闸门=`0c354d57`；腿 D=`47ccf552`（均 @ `port/src-preset-agent-1`）。
+
 ## 验收：待回填
