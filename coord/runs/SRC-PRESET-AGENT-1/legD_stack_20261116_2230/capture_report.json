@@ -1,0 +1,260 @@
+{
+ "schema": "src_preset_legd_capture.v1",
+ "started_at": "2026-11-16T22:40:36",
+ "ping": {
+  "status": "ok",
+  "message": "pong"
+ },
+ "melody": {
+  "add_track": {
+   "status": "ok",
+   "message": "Track added",
+   "track_id": "1015",
+   "track_name": "Track 3"
+  },
+  "instantiate": {
+   "status": "ok",
+   "message": "Plugin instantiated",
+   "track_id": "1015",
+   "plugin_id": "1018",
+   "plugin_item_id": "1018",
+   "plugin_name": "Surge XT",
+   "plugin_identifier": "VST3-Surge XT-1e1bcfb-190e4fbd",
+   "template_role": "instrument",
+   "graph_revision": 1,
+   "graph_active_revision": 1,
+   "graph_pending_revision": 0,
+   "graph_last_retired_revision": 0,
+   "graph_retired_snapshot_count": 0,
+   "graph_last_diff_kind": "node_add",
+   "graph_last_diff_summary": "Inserted track plugin Surge XT",
+   "graph_publish_mode": "context_rebuild_idle",
+   "graph_lifecycle_state": "active",
+   "graph_recent_changes": [
+    {
+     "revision": 1,
+     "kind": "node_add",
+     "summary": "Inserted track plugin Surge XT",
+     "track_id": "1015",
+     "rack_item_id": "",
+     "node_id": "1018",
+     "source_id": "",
+     "dest_id": "",
+     "timestamp_ms": 1794840037172
+    }
+   ]
+  }
+ },
+ "melody_params": [
+  {
+   "param_id": "371918428",
+   "name": "A Osc 2 Volume",
+   "requested": 0.0,
+   "actual": 0.0,
+   "ok": true
+  },
+  {
+   "param_id": "371918429",
+   "name": "A Osc 3 Volume",
+   "requested": 0.0,
+   "actual": 0.0,
+   "ok": true
+  },
+  {
+   "param_id": "1788975242",
+   "name": "A Ring Modulation 1x2 Volume",
+   "requested": 0.0,
+   "actual": 0.0,
+   "ok": true
+  },
+  {
+   "param_id": "1788975274",
+   "name": "A Ring Modulation 2x3 Volume",
+   "requested": 0.0,
+   "actual": 0.0,
+   "ok": true
+  },
+  {
+   "param_id": "954746817",
+   "name": "A Noise Volume",
+   "requested": 0.0,
+   "actual": 0.0,
+   "ok": true
+  },
+  {
+   "param_id": "1945359057",
+   "name": "A Filter 1 Cutoff",
+   "requested": 0.38,
+   "actual": 0.379999995231628,
+   "ok": true
+  },
+  {
+   "param_id": "8095466",
+   "name": "A Filter 1 Resonance",
+   "requested": 0.12,
+   "actual": 0.119999997317791,
+   "ok": true
+  },
+  {
+   "param_id": "874858726",
+   "name": "A Amp EG Sustain",
+   "requested": 0.55,
+   "actual": 0.550000011920929,
+   "ok": true
+  },
+  {
+   "param_id": "1669861066",
+   "name": "A Amp EG Release",
+   "requested": 0.35,
+   "actual": 0.349999994039536,
+   "ok": true
+  },
+  {
+   "param_id": "1298982072",
+   "name": "A Volume",
+   "requested": 0.75,
+   "actual": 0.75,
+   "ok": true
+  }
+ ],
+ "groove": {
+  "add_track": {
+   "status": "ok",
+   "message": "Track added",
+   "track_id": "1019",
+   "track_name": "Track 4"
+  },
+  "instantiate": {
+   "status": "ok",
+   "message": "Plugin instantiated",
+   "track_id": "1019",
+   "plugin_id": "1022",
+   "plugin_item_id": "1022",
+   "plugin_name": "Surge XT",
+   "plugin_identifier": "VST3-Surge XT-1e1bcfb-190e4fbd",
+   "template_role": "instrument",
+   "graph_revision": 2,
+   "graph_active_revision": 2,
+   "graph_pending_revision": 0,
+   "graph_last_retired_revision": 1,
+   "graph_retired_snapshot_count": 1,
+   "graph_last_diff_kind": "node_add",
+   "graph_last_diff_summary": "Inserted track plugin Surge XT",
+   "graph_publish_mode": "context_rebuild_idle",
+   "graph_lifecycle_state": "active",
+   "graph_recent_changes": [
+    {
+     "revision": 2,
+     "kind": "node_add",
+     "summary": "Inserted track plugin Surge XT",
+     "track_id": "1019",
+     "rack_item_id": "",
+     "node_id": "1022",
+     "source_id": "",
+     "dest_id": "",
+     "timestamp_ms": 1794840037647
+    },
+    {
+     "revision": 1,
+     "kind": "node_add",
+     "summary": "Inserted track plugin Surge XT",
+     "track_id": "1015",
+     "rack_item_id": "",
+     "node_id": "1018",
+     "source_id": "",
+     "dest_id": "",
+     "timestamp_ms": 1794840037172
+    }
+   ]
+  }
+ },
+ "groove_params": [
+  {
+   "param_id": "371918428",
+   "name": "A Osc 2 Volume",
+   "requested": 0.0,
+   "actual": 0.0,
+   "ok": true
+  },
+  {
+   "param_id": "371918429",
+   "name": "A Osc 3 Volume",
+   "requested": 0.0,
+   "actual": 0.0,
+   "ok": true
+  },
+  {
+   "param_id": "1788975242",
+   "name": "A Ring Modulation 1x2 Volume",
+   "requested": 0.0,
+   "actual": 0.0,
+   "ok": true
+  },
+  {
+   "param_id": "1788975274",
+   "name": "A Ring Modulation 2x3 Volume",
+   "requested": 0.0,
+   "actual": 0.0,
+   "ok": true
+  },
+  {
+   "param_id": "2005836581",
+   "name": "A Amp EG Attack",
+   "requested": 0.0,
+   "actual": 0.0,
+   "ok": true
+  },
+  {
+   "param_id": "1798853437",
+   "name": "A Amp EG Decay",
+   "requested": 0.18,
+   "actual": 0.180000007152557,
+   "ok": true
+  },
+  {
+   "param_id": "874858726",
+   "name": "A Amp EG Sustain",
+   "requested": 0.0,
+   "actual": 0.0,
+   "ok": true
+  },
+  {
+   "param_id": "1669861066",
+   "name": "A Amp EG Release",
+   "requested": 0.08,
+   "actual": 0.079999998211861,
+   "ok": true
+  },
+  {
+   "param_id": "954746817",
+   "name": "A Noise Volume",
+   "requested": 0.4,
+   "actual": 0.400000005960464,
+   "ok": true
+  },
+  {
+   "param_id": "1945359057",
+   "name": "A Filter 1 Cutoff",
+   "requested": 0.5,
+   "actual": 0.5,
+   "ok": true
+  },
+  {
+   "param_id": "8095466",
+   "name": "A Filter 1 Resonance",
+   "requested": 0.2,
+   "actual": 0.200000002980232,
+   "ok": true
+  }
+ ],
+ "save_as_project": {
+  "status": "ok",
+  "project_path": "D:\\Vit_DAW_wt_presetagent\\coord\\runs\\SRC-PRESET-AGENT-1\\legD_stack_20261116_2230\\craft_capture_project.vit",
+  "message": "Project saved"
+ },
+ "melody_state_sha256": "b9daa1f85040bae52bcc643ffe099486e6c46ed9f89974f4044bbbb87051a463",
+ "groove_state_sha256": "8ec4a56d5b6dc9b69d884abd6c42f8606d9b4c6ed4bce44e3c047c75855cf8c1",
+ "melody_differs_from_init": true,
+ "groove_differs_from_init": true,
+ "extraction_fix": "attempt1 keyed on TRACK name; clear-XML TRACK carries no name attr — re-extracted by track_id"
+}

@@ -1,0 +1,2 @@
+a59473614152882b21433dcee684f8b13ae0bd5b632a97cd5e2c8765bb18348e *kernel_runtime/VitApp.exe
+5abf7d95c344d5f1cf8ff34e27ea72905f7209a16a7aba40aa03fc21ebdae076 *kernel_runtime/Workspace/Settings/Settings.xml
