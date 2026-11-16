@@ -17,8 +17,11 @@ import (
 //     mapped verbatim into the style channel (translation to English tags is
 //     the caller's runtime concern, disclosed in the actions list).
 //   - instrumental: the style gains an "instrumental" tag and the ABC score's
-//     Vocal voice is rested (equal-length rests, chords preserved) — the
-//     validated instrumental conditioning path.
+//     Vocal voice is rested (equal-length rests, chords preserved) — REQUEST-
+//     SIDE conditioning only. The YuE2 engine has no instrumental switch and
+//     un-lyriced generation may still produce sung vocals (run_20261116_
+//     000009 forensics: SheetSage2 readback found sustained Vocal melody in
+//     the vocal-rested render); engine-side muting is NOT guaranteed.
 //   - score: a YueScoreInput (student clip notes) converts to the dialect
 //     score when no explicit ABC was provided.
 //
@@ -77,7 +80,7 @@ func YuePrepareRequest(req GenerationRequest, opts YuePrepareOptions) (YuePrepar
 		if !yueStyleHasTag(style, "instrumental") {
 			style = strings.TrimSpace(strings.TrimSpace(style) + ", instrumental")
 		}
-		res.Actions = append(res.Actions, "style: instrumental tag added (instrumental switch requested)")
+		res.Actions = append(res.Actions, "style: instrumental tag added (instrumental switch requested; yue_local has no instrumental parameter, engine-side muting not guaranteed — un-lyriced generation may still produce vocals)")
 		if strings.TrimSpace(res.Request.ABC) != "" {
 			rested, changed, rerr := RestYueVocalPart(res.Request.ABC)
 			if rerr != nil {
@@ -85,9 +88,9 @@ func YuePrepareRequest(req GenerationRequest, opts YuePrepareOptions) (YuePrepar
 			}
 			if changed {
 				res.Request.ABC = rested
-				res.Actions = append(res.Actions, "abc: Vocal voice rested (equal-length rests, chords preserved) — the validated instrumental score path")
+				res.Actions = append(res.Actions, "abc: Vocal voice rested (equal-length rests, chords preserved) — request-side score conditioning; the engine may still sing (no instrumental switch, YUE-VOCAL-FORENSICS-1)")
 			} else if strings.Contains(res.Request.ABC, "V: Vocal") {
-				res.Actions = append(res.Actions, "abc: Vocal voice already silent (no sounding notes to rest)")
+				res.Actions = append(res.Actions, "abc: Vocal voice already silent (no sounding notes to rest; request-side conditioning only — the engine may still sing, YUE-VOCAL-FORENSICS-1)")
 			}
 		}
 	}

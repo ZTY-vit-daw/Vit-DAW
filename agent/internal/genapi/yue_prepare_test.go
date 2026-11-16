@@ -65,6 +65,17 @@ func TestYuePrepareInstrumentalConditioning(t *testing.T) {
 	if perr != nil || len(vocal) != 0 {
 		t.Fatalf("vocal must parse silent after conditioning: %v %#v", perr, vocal)
 	}
+	// YUE-VOCAL-FORENSICS-1: the disclosure must not oversell request-side
+	// conditioning — the engine has no instrumental switch and may still
+	// sing. Guard the wording so a future edit cannot reintroduce
+	// "validated instrumental" claims (372 receipt oversell root cause).
+	joined := strings.Join(res.Actions, "\n")
+	if !strings.Contains(joined, "engine-side muting not guaranteed") {
+		t.Fatalf("instrumental actions must disclose that engine-side muting is not guaranteed: %#v", res.Actions)
+	}
+	if strings.Contains(joined, "validated instrumental") {
+		t.Fatalf("actions must not claim a validated instrumental path: %#v", res.Actions)
+	}
 	// Count>1 collapses to one job per version with disclosure.
 	res2, err := YuePrepareRequest(GenerationRequest{ABC: abc, Count: 2, StyleTags: "x"}, YuePrepareOptions{})
 	if err != nil {

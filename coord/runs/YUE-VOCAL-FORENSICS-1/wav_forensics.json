@@ -1,0 +1,167 @@
+{
+ "schema_version": "yue_vocal_forensics_wav.v1",
+ "v1": {
+  "file": "yue-local-6d7289990beafcec.wav",
+  "sr": 48000,
+  "channels": 2,
+  "duration_from_data_chunk_s": 59.999,
+  "rms_threshold": 0.002843,
+  "audible_time_s": 59.88,
+  "audible_segments": [
+   [
+    0.08,
+    59.96
+   ]
+  ],
+  "voiced_segment_count": 5,
+  "voiced_time_s": 56.33,
+  "voiced_segments": [
+   {
+    "start_s": 0.09,
+    "end_s": 8.26,
+    "len_s": 8.17,
+    "f0_mean_hz": 255.4,
+    "f0_min_hz": 85.6,
+    "f0_max_hz": 800.0,
+    "f0_cv": 0.778,
+    "harm_peak_mean": 0.751,
+    "band_share": {
+     "lt200hz": 0.172,
+     "200_2k": 0.822,
+     "2k_5k_formant": 0.006,
+     "gt5k": 0.0
+    }
+   },
+   {
+    "start_s": 8.62,
+    "end_s": 14.36,
+    "len_s": 5.74,
+    "f0_mean_hz": 266.2,
+    "f0_min_hz": 78.4,
+    "f0_max_hz": 800.0,
+    "f0_cv": 0.956,
+    "harm_peak_mean": 0.555,
+    "band_share": {
+     "lt200hz": 0.562,
+     "200_2k": 0.424,
+     "2k_5k_formant": 0.014,
+     "gt5k": 0.0
+    }
+   },
+   {
+    "start_s": 15.61,
+    "end_s": 40.37,
+    "len_s": 24.76,
+    "f0_mean_hz": 228.2,
+    "f0_min_hz": 70.2,
+    "f0_max_hz": 800.0,
+    "f0_cv": 0.575,
+    "harm_peak_mean": 0.723,
+    "band_share": {
+     "lt200hz": 0.347,
+     "200_2k": 0.635,
+     "2k_5k_formant": 0.013,
+     "gt5k": 0.005
+    }
+   },
+   {
+    "start_s": 40.86,
+    "end_s": 46.47,
+    "len_s": 5.61,
+    "f0_mean_hz": 175.1,
+    "f0_min_hz": 70.2,
+    "f0_max_hz": 800.0,
+    "f0_cv": 0.865,
+    "harm_peak_mean": 0.544,
+    "band_share": {
+     "lt200hz": 0.46,
+     "200_2k": 0.504,
+     "2k_5k_formant": 0.029,
+     "gt5k": 0.007
+    }
+   },
+   {
+    "start_s": 47.91,
+    "end_s": 59.96,
+    "len_s": 12.05,
+    "f0_mean_hz": 286.3,
+    "f0_min_hz": 94.9,
+    "f0_max_hz": 527.5,
+    "f0_cv": 0.429,
+    "harm_peak_mean": 0.838,
+    "band_share": {
+     "lt200hz": 0.019,
+     "200_2k": 0.955,
+     "2k_5k_formant": 0.013,
+     "gt5k": 0.013
+    }
+   }
+  ]
+ },
+ "v2": {
+  "file": "yue-local-45b1a3cbc41bbef5.wav",
+  "sr": 48000,
+  "channels": 2,
+  "duration_from_data_chunk_s": 50.959,
+  "rms_threshold": 0.003942,
+  "audible_time_s": 50.82,
+  "audible_segments": [
+   [
+    0.09,
+    50.91
+   ]
+  ],
+  "voiced_segment_count": 3,
+  "voiced_time_s": 49.94,
+  "voiced_segments": [
+   {
+    "start_s": 0.09,
+    "end_s": 8.06,
+    "len_s": 7.97,
+    "f0_mean_hz": 250.4,
+    "f0_min_hz": 73.3,
+    "f0_max_hz": 786.9,
+    "f0_cv": 0.706,
+    "harm_peak_mean": 0.783,
+    "band_share": {
+     "lt200hz": 0.047,
+     "200_2k": 0.947,
+     "2k_5k_formant": 0.005,
+     "gt5k": 0.0
+    }
+   },
+   {
+    "start_s": 8.54,
+    "end_s": 23.52,
+    "len_s": 14.98,
+    "f0_mean_hz": 278.3,
+    "f0_min_hz": 84.4,
+    "f0_max_hz": 676.1,
+    "f0_cv": 0.574,
+    "harm_peak_mean": 0.779,
+    "band_share": {
+     "lt200hz": 0.047,
+     "200_2k": 0.923,
+     "2k_5k_formant": 0.02,
+     "gt5k": 0.01
+    }
+   },
+   {
+    "start_s": 23.92,
+    "end_s": 50.91,
+    "len_s": 26.99,
+    "f0_mean_hz": 249.5,
+    "f0_min_hz": 71.1,
+    "f0_max_hz": 685.7,
+    "f0_cv": 0.53,
+    "harm_peak_mean": 0.782,
+    "band_share": {
+     "lt200hz": 0.038,
+     "200_2k": 0.932,
+     "2k_5k_formant": 0.024,
+     "gt5k": 0.006
+    }
+   }
+  ]
+ }
+}
