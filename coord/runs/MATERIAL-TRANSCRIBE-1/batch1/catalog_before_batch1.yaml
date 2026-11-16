@@ -1,0 +1,221 @@
+# 教材谱例材料目录；不等于当前运行时支持的 assets MANIFEST。
+# source-image均已缓存；只有status=generated_symbolic_checked的两项有本轮生成MIDI。
+# planned_transcription均待选定实际小节、转写/回读/听核，不可假装加载完成。
+schema_version: vit.lesson_material_catalog.v0
+source_pdf_sha256: 4fe0feddfe8abb15113925dd8480d8d2a2bebc363c8d4343beb8d9958acd4b65
+default_loading: on_demand_into_reference_or_demo_track
+student_answer_assets: separate
+items:
+  - id: pitch-repeat
+    title: 我向党来唱支歌
+    concepts: [同音反复, 节奏对表达的作用]
+    printed_page: 17
+    pdf_page: 22
+    source_image: source/pages/pdf-022_book-017.png
+    excerpt: 教材同音反复标注及必要上下文，小节范围待核
+    file: null
+    status: planned_transcription
+  - id: pitch-step-up
+    title: 哆来咪
+    concepts: [上行级进]
+    printed_page: 18
+    pdf_page: 23
+    source_image: source/pages/pdf-023_book-018.png
+    excerpt: 教材上行级进标注及必要上下文，小节范围待核
+    file: null
+    status: planned_transcription
+  - id: pitch-step-down
+    title: 小白菜
+    concepts: [下行级进]
+    printed_page: 19
+    pdf_page: 24
+    source_image: source/pages/pdf-024_book-019.png
+    excerpt: 教材下行级进示例，小节范围待核
+    file: null
+    status: planned_transcription
+  - id: pitch-small-leap
+    title: 共产儿童团歌
+    concepts: [三度小跳, 同音或级进与小跳结合]
+    printed_page: 19
+    pdf_page: 24
+    source_image: source/pages/pdf-024_book-019.png
+    excerpt: 教材小跳标注及必要上下文，小节范围待核
+    file: null
+    status: planned_transcription
+  - id: pitch-large-leap
+    title: 东方之珠
+    concepts: [大跳, 大跳前的准备]
+    printed_page: 20
+    pdf_page: 25
+    source_image: source/pages/pdf-025_book-020.png
+    excerpt: 含大跳前准备的连贯片段，小节范围待核
+    file: null
+    status: planned_transcription
+  - id: rhythm-even
+    title: 原页均分节奏例
+    concepts: [均分节奏]
+    printed_page: 21
+    pdf_page: 26
+    source_image: source/pages/pdf-026_book-021.png
+    excerpt: 首包选择不含三连音的一项基础例，逐符号核对后定范围
+    file: null
+    status: planned_transcription
+  - id: rhythm-long-short
+    title: 原页前长后短节奏例
+    concepts: [前长后短]
+    printed_page: 21
+    pdf_page: 26
+    source_image: source/pages/pdf-026_book-021.png
+    excerpt: 选一项能说明关系的原例，小节范围待核
+    file: null
+    status: planned_transcription
+  - id: rhythm-short-long
+    title: 原页前短后长节奏例
+    concepts: [前短后长]
+    printed_page: 21
+    pdf_page: 26
+    source_image: source/pages/pdf-026_book-021.png
+    excerpt: 选一项能说明关系的原例，小节范围待核
+    file: null
+    status: planned_transcription
+  - id: rhythm-syncopation
+    title: 原页切分节奏例
+    concepts: [切分, 强弱变化]
+    printed_page: 21
+    pdf_page: 26
+    source_image: source/pages/pdf-026_book-021.png
+    excerpt: 保留跨拍连线或时值关系的原例，小节范围待核
+    file: null
+    status: planned_transcription
+  - id: contour-free
+    title: 二月里来
+    concepts: [自由曲线, 核心音附近的运动]
+    printed_page: 22
+    pdf_page: 27
+    source_image: source/pages/pdf-027_book-022.png
+    excerpt: 教材自由曲线谱例，具体使用的连贯短句待核
+    file: null
+    status: planned_transcription
+  - id: contour-flat
+    title: 乘胜追击
+    concepts: [平直线]
+    printed_page: 22
+    pdf_page: 27
+    source_image: source/pages/pdf-027_book-022.png
+    excerpt: 教材平直线谱例，具体短句待核
+    file: null
+    status: planned_transcription
+  - id: contour-smooth
+    title: 早晨的问候
+    concepts: [平缓进行, 音域与级进小跳]
+    printed_page: 25
+    pdf_page: 30
+    source_image: source/pages/pdf-030_book-025.png
+    excerpt: 能体现五度框架内组织的原例，具体短句待核
+    file: null
+    status: planned_transcription
+  - id: contour-wave
+    title: 海港之夜
+    concepts: [跌宕起伏, 上下大跳]
+    printed_page: 26
+    pdf_page: 31
+    source_image: source/pages/pdf-031_book-026.png
+    excerpt: 含起伏上下文的原例，具体短句待核
+    file: null
+    status: planned_transcription
+  - id: analysis-huainian
+    title: 怀念战友
+    concepts: [同音反复, 级进与大跳, 切分与附点, 音乐语境]
+    printed_page: 27
+    pdf_page: 32
+    source_image: source/pages/pdf-032_book-027.png
+    excerpt: 配合教材分析选取连贯短句，不转写整曲作为首包前提
+    file: null
+    status: planned_transcription
+  - id: analysis-xiaocao
+    title: 小草
+    concepts: [同音级进跳进结合, 均分切分, 重复与统一]
+    printed_page: 28
+    pdf_page: 33
+    source_image: source/pages/pdf-033_book-028.png
+    excerpt: 配合教材分析选取连贯短句，具体范围待核
+    file: null
+    status: planned_transcription
+  - id: develop-prototype
+    title: 实践2原型动机
+    concepts: [旋律发展原型]
+    printed_page: 29
+    pdf_page: 34
+    source_image: source/pages/pdf-034_book-029.png
+    excerpt: 原页两小节全段
+    file: assets/midi/exercise2-prototype_demo-C_80bpm.mid
+    status: generated_symbolic_checked
+    time_signature: 4/4
+    source_key: null
+    demo_key: C_major
+    source_tempo_bpm: null
+    demo_tempo_bpm: 80
+    instrument_hint: GM_program_0_piano_channel_1
+    sound_check: not_performed
+    note: 原页没有调号/BPM，C调和80BPM仅供演示
+  - id: develop-ornament
+    title: 实践2加花示例
+    concepts: [加花]
+    printed_page: 29
+    pdf_page: 34
+    source_image: source/pages/pdf-034_book-029.png
+    excerpt: 即兴一整条，与原型配对
+    file: null
+    status: planned_transcription
+  - id: develop-rhythm
+    title: 实践2改变节奏示例
+    concepts: [改变节奏]
+    printed_page: 29
+    pdf_page: 34
+    source_image: source/pages/pdf-034_book-029.png
+    excerpt: 即兴二整条，与原型配对
+    file: null
+    status: planned_transcription
+  - id: develop-augment-meter
+    title: 实践2节奏放大并改变节拍示例
+    concepts: [节奏放大, 改变节拍]
+    printed_page: 29
+    pdf_page: 34
+    source_image: source/pages/pdf-034_book-029.png
+    excerpt: 即兴三整条，保留3/4及完整时值关系
+    file: null
+    status: planned_transcription
+  - id: develop-shift-rhythm
+    title: 实践2旋律移位并作节奏变化示例
+    concepts: [旋律移位, 节奏变化]
+    printed_page: 29
+    pdf_page: 34
+    source_image: source/pages/pdf-034_book-029.png
+    excerpt: 即兴四整条，与原型及后接变形的关系一起保留
+    file: null
+    status: planned_transcription
+  - id: reference-sanshilipu-melody
+    title: 三十里铺前两句原旋律
+    concepts: [节奏参照的原曲语境]
+    printed_page: 30
+    pdf_page: 35
+    source_image: source/pages/pdf-035_book-030.png
+    excerpt: 原曲前两句8小节，保留音高和节奏
+    file: null
+    status: planned_transcription
+  - id: reference-sanshilipu-rhythm
+    title: 三十里铺前两句节奏
+    concepts: [八小节节奏参照]
+    printed_page: 30
+    pdf_page: 35
+    source_image: source/pages/pdf-035_book-030.png
+    excerpt: 前两句8小节，只有节奏，不含原曲音高
+    file: assets/midi/sanshilipu-first8_rhythm-only_GM37_80bpm.mid
+    status: generated_symbolic_checked
+    time_signature: 2/4
+    source_tempo_text: 慢
+    source_tempo_bpm: null
+    demo_tempo_bpm: 80
+    instrument_hint: GM_note_37_side_stick_channel_10
+    sound_check: not_performed
+    note: 鼓键位和80BPM为演示设定；音源仍需实际装载并听核

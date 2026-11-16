@@ -12,45 +12,45 @@ items:
     printed_page: 17
     pdf_page: 22
     source_image: source/pages/pdf-022_book-017.png
-    excerpt: 教材同音反复标注及必要上下文，小节范围待核
-    file: null
-    status: planned_transcription
+    excerpt: P17 同音反复标注句（1=F 2/4，第 1-4 小节：春风阵阵吹心窝哩，赛罗赛，赛罗赛，）
+    file: assets/midi/pitch-repeat_annotated-phrase_F_96bpm.mid
+    status: transcribed_unverified
   - id: pitch-step-up
     title: 哆来咪
     concepts: [上行级进]
     printed_page: 18
     pdf_page: 23
     source_image: source/pages/pdf-023_book-018.png
-    excerpt: 教材上行级进标注及必要上下文，小节范围待核
-    file: null
-    status: planned_transcription
+    excerpt: P18 上行级进标注句（1=C 2/4，三段递进句共 12 小节：Sol/La/Ti 段，图面所示全部）
+    file: assets/midi/pitch-step-up_textbook-excerpt_C_96bpm.mid
+    status: transcribed_unverified
   - id: pitch-step-down
     title: 小白菜
     concepts: [下行级进]
     printed_page: 19
     pdf_page: 24
     source_image: source/pages/pdf-024_book-019.png
-    excerpt: 教材下行级进示例，小节范围待核
-    file: null
-    status: planned_transcription
+    excerpt: P19 下行级进例（1=G 5/4，图面所示 4 小节：小白菜呀/地里黄呀/三两岁上/没了娘啊）
+    file: assets/midi/pitch-step-down_first4_G_60bpm.mid
+    status: transcribed_unverified
   - id: pitch-small-leap
     title: 共产儿童团歌
     concepts: [三度小跳, 同音或级进与小跳结合]
     printed_page: 19
     pdf_page: 24
     source_image: source/pages/pdf-024_book-019.png
-    excerpt: 教材小跳标注及必要上下文，小节范围待核
-    file: null
-    status: planned_transcription
+    excerpt: P19 小跳标注句（1=F 4/4，图面所示 4 小节：准备好了么/时刻准备着/我们都是/共产儿童团）
+    file: assets/midi/pitch-small-leap_first4_F_100bpm.mid
+    status: transcribed_unverified
   - id: pitch-large-leap
     title: 东方之珠
     concepts: [大跳, 大跳前的准备]
     printed_page: 20
     pdf_page: 25
     source_image: source/pages/pdf-025_book-020.png
-    excerpt: 含大跳前准备的连贯片段，小节范围待核
-    file: null
-    status: planned_transcription
+    excerpt: P20 大跳标注摘引（1=D 4/4，弱起+4 小节：让海风吹拂了五千年，每一滴泪珠仿佛都说出你的尊严[图面所示]）
+    file: assets/midi/pitch-large-leap_excerpt_D_72bpm.mid
+    status: transcribed_unverified
   - id: rhythm-even
     title: 原页均分节奏例
     concepts: [均分节奏]

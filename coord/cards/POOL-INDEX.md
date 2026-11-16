@@ -157,7 +157,7 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 363 | KERNEL-NEWPROJ-NAME-1 | todo（SHELL-4 遗留边界承接：内核 new_project 命令面接受工程名——新建《X》名实相符+空白草稿治理豁免裁定；内核 C++ 域；**候排期**） |
 | 364 | SHELL-5 | done 已验收 pass 合入（主管亲核零绑定/按钮直建/意图自动执行 3/3 轮+三门复跑；实现三提交→main 10f97b12；attempt2 产品缺陷自修复链采纳；用户复测腿就绪）——细节见卡面回执 |
 | 365 | UI-REC-TAPE-1 | done 已验收 pass 合入（主管复跑三门+**磁带造型目检亲证**（外壳+窗口+双带轮 20px 一眼可辨）+收起守卫采纳；实现 62fd380c→main b2eec1dd；氛围色真实名散布辨识度候用户目检）（磁带 cassette 头像 TapeBadge+§7.3/§7.3.1 v5.1.1 修订+§12 收起回归守卫，细节见卡面回执） |
-| 366 | UI-REC-TAPECARD-1 | **暂缓**（[surface 收敛裁定]——磁带卡造型直接做在装修后统一 surface 上（勘察 368 阶段 1 落位），避免双返工；用户可随时提前） |
+| 366 | UI-REC-TAPECARD-1 | 落地于 387（技术面过，**终验=用户目检「条目本身就是磁带盒」候用户**；主管截图预核通过） |
 | 367 | SHELL-6 | done 已验收 pass 合入（工程面意图执行+治理/确认卡全 surface 渲染；L3b 3/3 亲证+vitest 598；实现→main 4ce8862a；**不变式=任何确认必有可点交互面**；用户复测腿就绪） |
 | 368 | UI-CONVERGE-RECON-1 | done 已验收 pass（技术面）——报告七节+分阶段卡草案在卷（阶段 1 五卡 5.5–8.5 天/阶段 2 七卡/关键路径 CONVERGE-SHELL-1）；**分阶段方案候用户过目发卡**；Godot 重试导航收编点纳入 ENTRY-1 |
 
@@ -168,10 +168,23 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 369 | G0-SCORE-SPIKE-1 | done 已验收 pass——**选型定案：VexFlow 5+自研 beat-grid**（双 spike exit 0 亲核；Verovio=材料显示可选件候裁定；内核无 set_time_signature→375 承接）；主开发卡草案→374 |
 | 370 | G0-LEGAME-CONTRACT-1 | done 已验收 pass（技术面）——[docs/LEGAME_DESIGN_CONTRACT_V0.md](../../docs/LEGAME_DESIGN_CONTRACT_V0.md) 34 节+覆盖 119/119；**R1-R6 候用户裁定（主管整理带建议裁定单）**；W01-A/B/C 实施卡候裁定回填后发 |
 | 371 | G0-STACKGATE-1 | done 已验收 pass 合入（[docs/STACKGATE_DG1_DG3_V1.md](../../docs/STACKGATE_DG1_DG3_V1.md)=现行关卡契约——DG1 三能力关/DG2 旅程 J1-J10/DG3 渲染手测 M1-M4+卡面引用模板；锚点抽核真实；CURRENT-STATE 索引登记随 gate） |
-| 372 | GEN-YUE-WIRE-1 | done 已验收 pass 合入（**H6 六项真栈证成 W0-W8**：MIDI→方言/prompt 映射/纯器乐/请求卫生/后台 job/引擎托管；C1 逐音 16/16+C8 双版 WAV；W9=已知概率边界裁定在卡；**用户听核 M1 候用户**——WAV 在 run downloads） |
-| 373 | SRC-TEMPLATE-1 | done 已验收 pass 合入（**DG1-B 真栈 B1-B7 全绿**：melody-drum-v1 模板（2/4/80/C+Surge 血统+鼓 groove）+coursetemplate 包；save→.vit 语义发现入卷；**用户听核 M2 候用户**（Godot 链 lesson_project.vit）） |
-| 374 | SCORE-WORKBENCH-1 | done 已验收 pass 合入（**M1-M5 全过**：模型/推导规则 v1/编辑全集（本地缓冲+显式 apply）/内核真写回读/随谱游标 fail-honest/DG1-A 十五断言真栈；vitest 668 主管复跑；A7/A8→377、D1-D3→378 承接；**用户手测 M4 谱面手感候用户**） |
+| 372 | GEN-YUE-WIRE-1 | done 已验收 pass 合入（**H6 六项真栈证成 W0-W8**：MIDI→方言/prompt 映射/纯器乐/请求卫生/后台 job/引擎托管；C1 逐音 16/16+C8 双版 WAV；W9=已知概率边界裁定在卡；**M1 用户听核 2026-11-16：可听性 PASS/纯器乐+v2 完整性 OPEN→381 取证**） |
+| 373 | SRC-TEMPLATE-1 | done 已验收 pass 合入（**DG1-B 真栈 B1-B7 全绿**：melody-drum-v1 模板（2/4/80/C+Surge 血统+鼓 groove）+coursetemplate 包；save→.vit 语义发现入卷；**M2 用户听核 2026-11-16：机械面 PASS/音色域否决→换音源新裁定候用户**（lesson_project.vit）） |
+| 374 | SCORE-WORKBENCH-1 | done 已验收 pass 合入（**M1-M5 全过**：模型/推导规则 v1/编辑全集（本地缓冲+显式 apply）/内核真写回读/随谱游标 fail-honest/DG1-A 十五断言真栈；vitest 668 主管复跑；A7/A8→377、D1-D3→378 承接；**M4 用户手测 2026-11-16：FAIL 入口不可达→382 取证接入后重测**） |
 | 375 | KERNEL-TIMESIG-1 | done 已验收 pass 合入（set_time_signature+创建 2/4 应用+§11 全过亲证（ctest 15/15+T1-T5 真栈）；实现→main aea3c37a/456b96ef；**374 M3 解锁**；legacy.command 语义发现入卷） |
 | 376 | UI-SMOKE-AUTOASSERT-1 | done 已验收 pass（渲染断言对齐 SHELL-5 自动执行态——主管复跑七段全 PASS 亲证；374 M5 阻塞解除；验收缺口归因闭环） |
-| 377 | SCORE-DG1A-COMPLETE-1 | todo（补完 A7 出声+A8 差分断言——373/375 合入后解锁；微卡；**候领取**） |
-| 378 | KERNEL-SAVE-FORENSICS-1 | todo（D1 XML-boot 加轨 save 丢轨/D2 save 后 clip_id 披露降级/D3 消毒面剥 project_path——374 上交锚点取证修复；**候领取**） |
+| 377 | SCORE-DG1A-COMPLETE-1 | done 已验收 pass 合入（**DG1-A 全断言闭环**：A7 探针非静音+A8 差分 18334，十九断言真栈 exit 0；三门 668/668；attempt1-5 分记；**D4 域外锚点→382 承接**〔非 120bpm 谱面装载崩溃〕；栈协议全合规） |
+| 378 | KERNEL-SAVE-FORENSICS-1 | done 已验收 pass 合入（**D1/D2 五腿证伪不重现**〔374 环境窗部署漂移归因〕；**D3 归因修正+最小修复**=effective_project_path 三层投影——374 归因被证伪；真栈 29/29 exit 0+栈协议全合规；config 事故已修复主管亲核零残留） |
+| 379 | WIDGET-KIT-1 | done 已验收 pass 合入 fc85c016（AudioPlayer+ComparePair+卡挂载；三红线一正一负断言；**698/698 主管复跑**+render 9 段；App.tsx 零触碰；真实内核预览链路留真栈卡） |
+| 380 | MATERIAL-TRANSCRIBE-1 | todo 挂起（候 23:00 freeflash 恢复——用户领 3 亿免费 token 2026-11-16 晚生效） |
+| 381 | YUE-VOCAL-FORENSICS-1 | done 已验收 pass 合入 1001a216+补腿 731a7d9f→main（C8 双版时长比例窗 [0.6,1.5] 干跑 0；**人声定性后被 390 查证修正**：官方有 instrumental 工作流，差距在本地封装） |
+| 390 | YUE-INSTRUMENTAL-PATH-1 | doing 零栈两腿 pass 合入（**模型件齐+接入=纯封装层**：S1/S2/S4/S6 官方语义对齐+干跑断言+go 回归 0；**真栈生成+用户听核候栈**——人声抑制效果无先例，fallback 待命） |
+| 382 | SCORE-ENTRY-REACH-1 | done 已验收 pass 合入（**D4 归因翻案**：内核命令面正确〔377 归因撤销〕，真因=373 模板 MIDICLIP 拍数值被 tracktion loader 当秒读→**模板资产修正并入 384 腿 D**；ErrorBoundary+「打开工作台」入口+J1-J3 旅程断言；702/702 主管复跑+真栈 28/28；**用户 M4 重测就绪**〔VitShell 进工程→打开工作台〕） |
+| 383 | LAUNCHER-RECENTS-CLICK-1 | done 已验收 pass 合入（**磁带卡可点=用户刚需落地**：点击→治理→打开全链+移走/损坏降级+置灰；706/706 port 分支主管亲证+真栈 RC1-RC3 exit 0；LLM 上界 7=attempt1 装置轮如实记） |
+| 384 | SRC-PRESET-AGENT-1 | doing 腿A+E pass 合入（**instruments 语义面落地**：GM 128 全表+乐器词→候选（钢琴→Grand Rhapsody 实证）+Surge 624 预设索引+四态降级；**state 编码三层全解**=JUCE base64 双证+fxp→state 剥头即得；腿 D 闸门已判 **binary_309_identical=内核亲存路径**〔fxp 离线合成证伪；Global Volume 不入 patch 序列化〕；腿 D pass 合入=模板拍数修正+音色换血+state 固化〔真栈 12/12，**Waves 全系 RT-SILENT=会响的钢琴本机不存在**——与 329 授权取证呼应〕；**余腿 C=M2 重测+点音色演示候用户在场，技术面收口**） |
+| 291 | ARR-PRESET-1 | todo **提序候选**（384 勘察证成：运行时预设切换=本卡内核域（258 报告命令面草案）；用户底线的「预设级」一段需此卡——排期待主管与用户定，真栈队列 377→378→382→383 后） |
+| 385 | T9-PRE-1A-1 | done 已验收 pass 合入 8720d5ee（App.tsx 11857→9448/七模块 2861 行/172/172 逐字亲证/**668=668 主管复跑**+build+render 8 段；386 解锁候 379） |
+| 386 | T9-PRE-1B-1 | done 已验收 pass 合入 dd367207（App.tsx **9448→2335 行**/17 域模块；698=698 主管复跑+render 9 段；过程事故 2 起披露在卷无权威丢弃；**387 解锁**） |
+| 387 | CONVERGE-SHELL-1 | done 技术面 pass 合入（**366 磁带卡落地**：磁带盒整卡结构主管截图亲核+渲染断言+真栈 ui_entry2 四腿；**用户目检=366 终验候用户**；ui_entry_smoke 腿1 前提失效+data-tape-badge 断言对齐→389 承接） |
+| 388 | CONVERGE-ENTRY-1 | todo（收敛阶段1卡4：工程管理挂载+进出语义；**387 合入后解锁**；Godot 收编点 A 另微改卡） |
+| 389 | CONVERGE-CLEANUP-1 | todo（收敛阶段1卡5：旧面退役+阶段出口=用户 Godot 拉起全旅程手测；**388 合入后解锁**） |
