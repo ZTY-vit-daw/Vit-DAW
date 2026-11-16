@@ -3820,6 +3820,13 @@ juce::String CommandDispatcher::handleGetProjectState (const juce::DynamicObject
 
     response->setProperty ("status", "ok");
     response->setProperty ("project_path", projectPath);
+    // KERNEL-SAVE-FORENSICS-1 D3: a pre-save XML-boot project has no bound
+    // current path yet, so project_path reads empty and API consumers (score
+    // panel / smoke legs) cannot locate the project until the first save.
+    // Disclose the file the edit actually backs onto (saved path, or the boot
+    // XML fallback) under a distinct key. project_path semantics are
+    // unchanged: it stays empty until a save binds a real path.
+    response->setProperty ("effective_project_path", effectiveProjectFile.getFullPathName());
     const auto projectUUID = edit->state.getProperty ("vit_project_uuid").toString().trim();
     response->setProperty ("project_uuid", projectUUID);
     response->setProperty ("project_id", projectUUID);

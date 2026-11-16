@@ -722,6 +722,11 @@ juce::var makeCompactProjectSnapshot (const juce::DynamicObject& legacyState, co
 
     project->setProperty ("project_id", "project_current");
     copyPropertyIfPresent (legacyState, *project, "project_path");
+    // KERNEL-SAVE-FORENSICS-1 D3: keep the boot-file fallback disclosure
+    // (empty project_path before the first save) visible on the compact
+    // snapshot face as well, so agent-side consumers see the same key on
+    // both the legacy reply and the VSP state face.
+    copyPropertyIfPresent (legacyState, *project, "effective_project_path");
     copyPropertyIfPresent (legacyState, *project, "project_uuid");
     copyPropertyIfPresent (legacyState, *project, "parent_project_uuid");
     copyPropertyIfPresent (legacyState, *project, "analysis_manifest");
