@@ -2063,6 +2063,22 @@ async function main() {
     out.recentsCount = within("[data-launcher-recents] > [data-launcher-recent]").length;
     out.declaredRecentsCount = $("[data-launcher-recents-count]")?.getAttribute("data-launcher-recents-count") ?? "";
     out.recentsTape = within("[data-launcher-recents] > [data-launcher-recent]").map(tapeRowOf);
+    // LAUNCHER-RECENTS-CLICK-1（383）：每行=可点整卡按钮（在场+可点性）。
+    out.recentsOpenButtons = within("[data-launcher-recents] [data-launcher-recent-open]").length;
+    out.recentsOpenDisabled = within("[data-launcher-recents] [data-launcher-recent-open]:disabled").length;
+    // 缺失置灰档样例（exists=false 的独立样例根）。
+    const missingRoot = $('[data-converged-sample="recents-missing"]');
+    out.missingSample = !!missingRoot;
+    out.missingRowAttr = missingRoot?.querySelector("[data-launcher-recent]")?.getAttribute("data-launcher-recent-missing") ?? "(missing)";
+    out.missingButtonDisabled = missingRoot?.querySelector("[data-launcher-recent-open]")?.disabled ?? null;
+    out.missingNoteText = missingRoot?.querySelector("[data-launcher-recent-missing-note]")?.textContent?.trim() ?? "";
+    out.missingTapeNodes = missingRoot
+      ? {
+          shell: missingRoot.querySelectorAll("[data-tape-shell]").length,
+          window: missingRoot.querySelectorAll("[data-tape-window]").length,
+          reels: missingRoot.querySelectorAll("[data-tape-reel]").length
+        }
+      : null;
     out.threadCards = within("[data-launcher-card]").map(tapeRowOf);
     out.newButton = within("[data-launcher-new]").length;
     out.newButtonMode = $("[data-launcher-new]")?.getAttribute("data-launcher-new-mode") ?? "(missing)";
@@ -2145,6 +2161,25 @@ async function main() {
       cDom.recentsTape.every((t, i) => shellFillMatches(t.shellFill, convergedExpectedShells[i])),
     `fills=${JSON.stringify(cDom.recentsTape.map((t) => t.shellFillRaw))} expected=${JSON.stringify(convergedExpectedShells)}`
   );
+  // LAUNCHER-RECENTS-CLICK-1（383）：recents 磁带卡整卡可点——每行按钮在场且可点；
+  // exists=false 缺失档=置灰不可点+如实注记+磁带卡结构不丢（列表不失联）。
+  convergedAssert(
+    "recents 每行=可点整卡按钮（3/3 按钮在场且无禁用，383 可点底座）",
+    cDom.recentsOpenButtons === 3 && cDom.recentsOpenDisabled === 0,
+    `buttons=${cDom.recentsOpenButtons} disabled=${cDom.recentsOpenDisabled}`
+  );
+  convergedAssert(
+    "缺失置灰档（exists=false：行标记+按钮 disabled+如实注记+磁带卡结构在卷）",
+    cDom.missingSample &&
+      cDom.missingRowAttr === "true" &&
+      cDom.missingButtonDisabled === true &&
+      cDom.missingNoteText.includes("文件已不在原位置") &&
+      cDom.missingTapeNodes !== null &&
+      cDom.missingTapeNodes.shell === 1 &&
+      cDom.missingTapeNodes.window === 1 &&
+      cDom.missingTapeNodes.reels === 2,
+    `sample=${cDom.missingSample} attr=${cDom.missingRowAttr} disabled=${cDom.missingButtonDisabled} note=${cDom.missingNoteText} tape=${JSON.stringify(cDom.missingTapeNodes)}`
+  );
   // 对话流复用（MessageStream/Composer import）。
   convergedAssert("对话流：MessageStream 文本段（user×2 + assistant×2）", cDom.messageRows === 4 && cDom.userRows === 2 && cDom.assistantRows === 2,
     `rows=${cDom.messageRows} user=${cDom.userRows} assistant=${cDom.assistantRows}`);
@@ -2175,6 +2210,11 @@ async function main() {
   // ⑤ 桥路径实证：独立 context 注入 chrome.webview mock（生产桥消费面零改动），
   // live 挂载点桥转可用 → 打开…在场，点击 → postMessage 捕获 launcher_choose_file
   // 请求（五 type 面零新增零改名的一枚实证）。
+  // LAUNCHER-RECENTS-CLICK-1（383）扩展：mock 的 addEventListener 记录监听器（可由
+  // 测试侧回投 vit_launcher_result 终态）+ 同源 route mock 供给 greeting/recents
+  // （离线；不触真实端点）→ ①recents 磁带卡真实 DOM 点击 → 捕获 launcher_directive
+  // （action/file_path/requires_governance 逐字段核对）+ waiting 装载态；②回投
+  // failed 终态 → 降级文案+重试钮+列表不失联。
   const convergedBridgeContext = await browser.newContext({
     viewport: { width: 1440, height: 900 },
     deviceScaleFactor: 1,
@@ -2182,16 +2222,59 @@ async function main() {
   });
   await convergedBridgeContext.addInitScript(() => {
     window.__launcherPosts = [];
+    window.__launcherListeners = {};
     window.chrome = {
       webview: {
         postMessage: (msg) => {
           window.__launcherPosts.push(msg);
         },
-        addEventListener: () => {},
+        addEventListener: (type, listener) => {
+          (window.__launcherListeners[type] ??= []).push(listener);
+        },
         removeEventListener: () => {},
       },
     };
   });
+  // 同源离线数据（route mock）：greeting + recents list（一在位一缺失——缺失档在
+  // live 挂载点上同样成立）。
+  const ROUTE_RECENTS = [
+    {
+      kind: "launcher_project",
+      type: "project_open_candidate",
+      id: "route_fixture_project_healthy",
+      name: "点击取证工程（route fixture）",
+      file_path: "D:/route-fixtures/点击取证工程.vit",
+      exists: true,
+      launcher_directive: { action: "open_project", file_path: "D:/route-fixtures/点击取证工程.vit", requires_governance: true }
+    },
+    {
+      kind: "launcher_project",
+      type: "project_open_candidate",
+      id: "route_fixture_project_missing",
+      name: "移走取证工程（route fixture）",
+      file_path: "D:/route-fixtures/移走取证工程.vit",
+      exists: false,
+      launcher_directive: { action: "open_project", file_path: "D:/route-fixtures/移走取证工程.vit", requires_governance: true }
+    }
+  ];
+  const routeJson = (body) => JSON.stringify(body);
+  await convergedBridgeContext.route("**/agent/launcher/greeting", (route) =>
+    route.fulfill({
+      contentType: "application/json",
+      body: routeJson({ status: "ok", launcher: true, reply: "我在。（route fixture greeting）", recent_count: 2 })
+    })
+  );
+  await convergedBridgeContext.route("**/agent/chat", (route) =>
+    route.fulfill({
+      contentType: "application/json",
+      body: routeJson({
+        conversation_id: "webui_launcher_route_fixture",
+        reply: "最近的工程有 2 个——点卡片直接打开，或直接跟我说名字：",
+        context_flow: "launcher",
+        project_result_cards: ROUTE_RECENTS
+      })
+    })
+  );
   const convergedBridgePage = await convergedBridgeContext.newPage();
   try {
     await convergedBridgePage.goto(convergedUrl, { waitUntil: "networkidle", timeout: 30000 });
@@ -2207,13 +2290,98 @@ async function main() {
     convergedAssert("桥 mock 后 live 挂载点：data-launcher-bridge=available + 打开…/＋新建在场",
       bridgeDom.bridge === "available" && bridgeDom.choose === 1 && bridgeDom.newMode === "direct",
       JSON.stringify(bridgeDom));
+    // 383：live 挂载点 recents（route 数据）：2 行——在位可点 + 缺失禁用。
+    await convergedBridgePage.waitForSelector('[data-converged-sample="bridge-live"] [data-launcher-recent]', { timeout: 15000 });
+    const recentsDom = await convergedBridgePage.evaluate(() => {
+      const liveRoot = document.querySelector('[data-converged-sample="bridge-live"] [data-launcher-root]');
+      const buttons = [...(liveRoot?.querySelectorAll("[data-launcher-recents] [data-launcher-recent-open]") ?? [])];
+      return {
+        rows: liveRoot?.querySelectorAll("[data-launcher-recents] [data-launcher-recent]").length ?? 0,
+        buttons: buttons.length,
+        enabled: buttons.filter((b) => !b.disabled).length,
+        missingAttrs: [...(liveRoot?.querySelectorAll("[data-launcher-recent][data-launcher-recent-missing]") ?? [])].map((e) => e.getAttribute("data-launcher-recent-missing")),
+      };
+    });
+    convergedAssert("live 挂载点 recents（route 数据）：2 行=1 可点+1 缺失禁用（exists 链 live 生效）",
+      recentsDom.rows === 2 && recentsDom.buttons === 2 && recentsDom.enabled === 1 &&
+        recentsDom.missingAttrs.length === 1 && recentsDom.missingAttrs[0] === "true",
+      JSON.stringify(recentsDom));
+    // 打开… 桥路径实证（387 原断言维持）。
     await convergedBridgePage.click('[data-converged-sample="bridge-live"] [data-launcher-choose-file]');
     await convergedBridgePage.waitForTimeout(300);
-    const posts = await convergedBridgePage.evaluate(() => window.__launcherPosts ?? []);
+    let posts = await convergedBridgePage.evaluate(() => window.__launcherPosts ?? []);
     const choosePost = posts.find((p) => p && p.type === "launcher_choose_file");
     convergedAssert("打开…点击经真实桥路径（postMessage 捕获 launcher_choose_file，request_id 在卷）",
       !!choosePost && typeof choosePost.request_id === "string" && choosePost.request_id.length > 0,
       JSON.stringify(posts));
+    // 回投 choose_file 终态（dialog_shown）清桥在飞态，让 recents 点击可发。
+    if (choosePost) {
+      await convergedBridgePage.evaluate((requestId) => {
+        for (const listener of window.__launcherListeners.message ?? []) {
+          listener({ data: { type: "vit_launcher_result", request_id: requestId, status: "dialog_shown", action: "choose_file", message: "Vit 已弹出原生文件对话框——请在对话框中选择工程文件（取消则不打开）。" } });
+        }
+      }, choosePost.request_id);
+      await convergedBridgePage.waitForTimeout(200);
+    }
+    // 383 核心：recents 磁带卡真实 DOM 点击 → launcher_directive 桥请求逐字段核对 + 装载反馈。
+    await convergedBridgePage.click('[data-converged-sample="bridge-live"] [data-launcher-recent-open="' + ROUTE_RECENTS[0].id + '"]');
+    await convergedBridgePage.waitForTimeout(300);
+    posts = await convergedBridgePage.evaluate(() => window.__launcherPosts ?? []);
+    const directivePost = posts.find((p) => p && p.type === "launcher_directive");
+    const clickDom = await convergedBridgePage.evaluate(() => {
+      const liveRoot = document.querySelector('[data-converged-sample="bridge-live"] [data-launcher-root]');
+      return {
+        execState: liveRoot?.querySelector("[data-launcher-bridge-exec]")?.getAttribute("data-launcher-bridge-exec-state") ?? "(missing)",
+        directiveHeadline: liveRoot?.querySelector("[data-launcher-directive] .v5-launcher-directive-headline")?.textContent ?? "",
+        recentsRowsStill: liveRoot?.querySelectorAll("[data-launcher-recents] [data-launcher-recent]").length ?? 0,
+      };
+    });
+    convergedAssert("recents 磁带卡点击经真实桥路径（launcher_directive：action=open_project+file_path 逐卡一致+requires_governance=true）",
+      !!directivePost &&
+        directivePost.directive?.action === "open_project" &&
+        directivePost.directive?.file_path === ROUTE_RECENTS[0].file_path &&
+        directivePost.directive?.requires_governance === true &&
+        typeof directivePost.request_id === "string" && directivePost.request_id.length > 0,
+      JSON.stringify(directivePost ?? null));
+    convergedAssert("点击后装载反馈可见（directive 占位「正在打开《…》…」+ 桥执行 waiting 态 + 列表不失联）",
+      clickDom.directiveHeadline.startsWith("正在打开《") &&
+        clickDom.directiveHeadline.endsWith("》…") &&
+        clickDom.execState === "waiting" &&
+        clickDom.recentsRowsStill === 2,
+      JSON.stringify(clickDom));
+    // 383 失败降级：回投宿主 failed 终态（文件已移动/损坏形态）→ 明确文案+重试+列表仍在。
+    if (directivePost) {
+      await convergedBridgePage.evaluate((requestId) => {
+        for (const listener of window.__launcherListeners.message ?? []) {
+          listener({ data: { type: "vit_launcher_result", request_id: requestId, status: "failed", action: "open_project", message: "工程文件不存在或已移动" } });
+        }
+      }, directivePost.request_id);
+      await convergedBridgePage.waitForTimeout(200);
+    }
+    const failDom = await convergedBridgePage.evaluate(() => {
+      const liveRoot = document.querySelector('[data-converged-sample="bridge-live"] [data-launcher-root]');
+      return {
+        execState: liveRoot?.querySelector("[data-launcher-bridge-exec]")?.getAttribute("data-launcher-bridge-exec-state") ?? "(missing)",
+        execMessage: liveRoot?.querySelector("[data-launcher-bridge-exec] .v5-launcher-bridge-exec-message")?.textContent ?? "",
+        retryButton: liveRoot?.querySelectorAll("[data-launcher-bridge-retry]").length ?? 0,
+        recentsRowsStill: liveRoot?.querySelectorAll("[data-launcher-recents] [data-launcher-recent]").length ?? 0,
+      };
+    });
+    convergedAssert("失败降级（宿主 failed 回执）：明确文案（打开未完成+宿主原因）+ 重试钮 + 列表不失联",
+      failDom.execState === "failed" &&
+        failDom.execMessage.includes("打开未完成") &&
+        failDom.execMessage.includes("工程文件不存在或已移动") &&
+        failDom.retryButton === 1 &&
+        failDom.recentsRowsStill === 2,
+      JSON.stringify(failDom));
+    // 383 工件：recents 点击取证截图（点击后线程+抽屉同框）。
+    const convergedClickShot = resolve(convergedScreensDir, "converged-recents-click-failed-degradation.png");
+    try {
+      await convergedBridgePage.locator('[data-converged-sample="bridge-live"] [data-launcher-root]').screenshot({ path: convergedClickShot });
+      convergedNotes.push(`recentsClickShot=${convergedClickShot}`);
+    } catch {
+      convergedNotes.push("recents click screenshot failed (non-fatal)");
+    }
   } catch (err) {
     convergedFailures.push(`CONVERGED: 桥路径实证异常 — ${String(err)}`);
   } finally {
