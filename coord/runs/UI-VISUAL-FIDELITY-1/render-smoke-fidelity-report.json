@@ -1,6 +1,6 @@
 {
   "run": "UI-VISUAL-FIDELITY-1 multi-resolution fidelity smoke",
-  "date": "2026-11-16T11:35:55.909Z",
+  "date": "2026-11-16T13:12:15.949Z",
   "viewports": [
     {
       "label": "1440x900@1",
@@ -67,7 +67,7 @@
           }
         }
       ],
-      "screenshot": "D:\\Vit_DAW_wt_widgetkit\\coord\\runs\\UI-VISUAL-FIDELITY-1\\screens\\fidelity-launcher-live-1440x9001.png",
+      "screenshot": "D:\\Vit_DAW_wt_convshell\\coord\\runs\\UI-VISUAL-FIDELITY-1\\screens\\fidelity-launcher-live-1440x9001.png",
       "failures": [],
       "result": "PASS"
     },
@@ -97,7 +97,7 @@
           }
         }
       ],
-      "screenshot": "D:\\Vit_DAW_wt_widgetkit\\coord\\runs\\UI-VISUAL-FIDELITY-1\\screens\\fidelity-project-live-1440x9001.png",
+      "screenshot": "D:\\Vit_DAW_wt_convshell\\coord\\runs\\UI-VISUAL-FIDELITY-1\\screens\\fidelity-project-live-1440x9001.png",
       "failures": [],
       "result": "PASS"
     },
@@ -136,7 +136,7 @@
           }
         }
       ],
-      "screenshot": "D:\\Vit_DAW_wt_widgetkit\\coord\\runs\\UI-VISUAL-FIDELITY-1\\screens\\fidelity-launcher-live-1920x10801.png",
+      "screenshot": "D:\\Vit_DAW_wt_convshell\\coord\\runs\\UI-VISUAL-FIDELITY-1\\screens\\fidelity-launcher-live-1920x10801.png",
       "failures": [],
       "result": "PASS"
     },
@@ -166,7 +166,7 @@
           }
         }
       ],
-      "screenshot": "D:\\Vit_DAW_wt_widgetkit\\coord\\runs\\UI-VISUAL-FIDELITY-1\\screens\\fidelity-project-live-1920x10801.png",
+      "screenshot": "D:\\Vit_DAW_wt_convshell\\coord\\runs\\UI-VISUAL-FIDELITY-1\\screens\\fidelity-project-live-1920x10801.png",
       "failures": [],
       "result": "PASS"
     },
@@ -205,7 +205,7 @@
           }
         }
       ],
-      "screenshot": "D:\\Vit_DAW_wt_widgetkit\\coord\\runs\\UI-VISUAL-FIDELITY-1\\screens\\fidelity-launcher-live-1536x864125.png",
+      "screenshot": "D:\\Vit_DAW_wt_convshell\\coord\\runs\\UI-VISUAL-FIDELITY-1\\screens\\fidelity-launcher-live-1536x864125.png",
       "failures": [],
       "result": "PASS"
     },
@@ -235,7 +235,7 @@
           }
         }
       ],
-      "screenshot": "D:\\Vit_DAW_wt_widgetkit\\coord\\runs\\UI-VISUAL-FIDELITY-1\\screens\\fidelity-project-live-1536x864125.png",
+      "screenshot": "D:\\Vit_DAW_wt_convshell\\coord\\runs\\UI-VISUAL-FIDELITY-1\\screens\\fidelity-project-live-1536x864125.png",
       "failures": [],
       "result": "PASS"
     },
@@ -274,7 +274,7 @@
           }
         }
       ],
-      "screenshot": "D:\\Vit_DAW_wt_widgetkit\\coord\\runs\\UI-VISUAL-FIDELITY-1\\screens\\fidelity-launcher-live-1280x72015.png",
+      "screenshot": "D:\\Vit_DAW_wt_convshell\\coord\\runs\\UI-VISUAL-FIDELITY-1\\screens\\fidelity-launcher-live-1280x72015.png",
       "failures": [],
       "result": "PASS"
     },
@@ -304,16 +304,16 @@
           }
         }
       ],
-      "screenshot": "D:\\Vit_DAW_wt_widgetkit\\coord\\runs\\UI-VISUAL-FIDELITY-1\\screens\\fidelity-project-live-1280x72015.png",
+      "screenshot": "D:\\Vit_DAW_wt_convshell\\coord\\runs\\UI-VISUAL-FIDELITY-1\\screens\\fidelity-project-live-1280x72015.png",
       "failures": [],
       "result": "PASS"
     }
   ],
-  "screenshotsDir": "D:\\Vit_DAW_wt_widgetkit\\coord\\runs\\UI-VISUAL-FIDELITY-1\\screens",
-  "foundationReport": "D:\\Vit_DAW_wt_widgetkit\\coord\\runs\\UI-FOUNDATION-1\\render-smoke-report.json",
-  "launcherReport": "D:\\Vit_DAW_wt_widgetkit\\coord\\runs\\UI-LAUNCHER-1\\render-smoke-launcher-report.json",
-  "projectReport": "D:\\Vit_DAW_wt_widgetkit\\coord\\runs\\UI-PROJECT-1\\render-smoke-project-report.json",
-  "loadingReport": "D:\\Vit_DAW_wt_widgetkit\\coord\\runs\\UI-LOADING-1\\render-smoke-loading-report.json",
+  "screenshotsDir": "D:\\Vit_DAW_wt_convshell\\coord\\runs\\UI-VISUAL-FIDELITY-1\\screens",
+  "foundationReport": "D:\\Vit_DAW_wt_convshell\\coord\\runs\\UI-FOUNDATION-1\\render-smoke-report.json",
+  "launcherReport": "D:\\Vit_DAW_wt_convshell\\coord\\runs\\UI-LAUNCHER-1\\render-smoke-launcher-report.json",
+  "projectReport": "D:\\Vit_DAW_wt_convshell\\coord\\runs\\UI-PROJECT-1\\render-smoke-project-report.json",
+  "loadingReport": "D:\\Vit_DAW_wt_convshell\\coord\\runs\\UI-LOADING-1\\render-smoke-loading-report.json",
   "failures": [],
   "result": "PASS"
 }

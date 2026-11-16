@@ -1,6 +1,6 @@
 {
   "run": "WIDGET-KIT-1 widgets render smoke",
-  "date": "2026-11-16T11:35:59.973Z",
+  "date": "2026-11-16T13:12:19.313Z",
   "url": "http://127.0.0.1:5391/app/gallery.html?surface=widgets",
   "viewport": "1440x900@1",
   "reducedMotion": "reduce",
@@ -69,8 +69,8 @@
     "widgetsUrl=http://127.0.0.1:5391/app/gallery.html?surface=widgets"
   ],
   "screenshots": [
-    "D:\\Vit_DAW_wt_widgetkit\\coord\\runs\\WIDGET-KIT-1\\screens\\widgets-viewport-1440x900.png",
-    "D:\\Vit_DAW_wt_widgetkit\\coord\\runs\\WIDGET-KIT-1\\screens\\widgets-full.png"
+    "D:\\Vit_DAW_wt_convshell\\coord\\runs\\WIDGET-KIT-1\\screens\\widgets-viewport-1440x900.png",
+    "D:\\Vit_DAW_wt_convshell\\coord\\runs\\WIDGET-KIT-1\\screens\\widgets-full.png"
   ],
   "result": "PASS"
 }
