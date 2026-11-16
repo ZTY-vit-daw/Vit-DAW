@@ -1,0 +1,66 @@
+{
+ "schema": "src_preset_legd_gate_v3.v1",
+ "started_at": "2026-11-16T21:06:36",
+ "out_base": "D:/Vit_DAW_wt_presetagent/coord/runs/SRC-PRESET-AGENT-1/legd_gate_20261116_2115/legd_gate_project",
+ "ping": {
+  "status": "ok",
+  "message": "pong"
+ },
+ "add_track": {
+  "status": "ok",
+  "message": "Track added",
+  "track_id": "1011",
+  "track_name": "Track 2"
+ },
+ "instantiate_plugin": {
+  "status": "ok",
+  "message": "Plugin instantiated",
+  "track_id": "1011",
+  "plugin_id": "1014",
+  "plugin_item_id": "1014",
+  "plugin_name": "Surge XT",
+  "plugin_identifier": "VST3-Surge XT-1e1bcfb-190e4fbd",
+  "template_role": "instrument",
+  "graph_revision": 1,
+  "graph_active_revision": 1,
+  "graph_pending_revision": 0,
+  "graph_last_retired_revision": 0,
+  "graph_retired_snapshot_count": 0,
+  "graph_last_diff_kind": "node_add",
+  "graph_last_diff_summary": "Inserted track plugin Surge XT",
+  "graph_publish_mode": "context_rebuild_idle",
+  "graph_lifecycle_state": "active",
+  "graph_recent_changes": [
+   {
+    "revision": 1,
+    "kind": "node_add",
+    "summary": "Inserted track plugin Surge XT",
+    "track_id": "1011",
+    "rack_item_id": "",
+    "node_id": "1014",
+    "source_id": "",
+    "dest_id": "",
+    "timestamp_ms": 1794834397291
+   }
+  ]
+ },
+ "params": {
+  "status": "ok",
+  "param_count": 776,
+  "template_role": "instrument"
+ },
+ "save_as_project": {
+  "status": "ok",
+  "message": "Project saved",
+  "project_lifecycle": "save_as",
+  "project_path": "D:\\Vit_DAW_wt_presetagent\\coord\\runs\\SRC-PRESET-AGENT-1\\legd_gate_20261116_2115\\legd_gate_project.vit",
+  "current_project_path": "D:\\Vit_DAW_wt_presetagent\\coord\\runs\\SRC-PRESET-AGENT-1\\legd_gate_20261116_2115\\legd_gate_project.vit",
+  "project_uuid": "vitproj_dabafdad60464b3ba7c6398edd592cbb",
+  "project_id": "vitproj_dabafdad60464b3ba7c6398edd592cbb",
+  "source_project_uuid": "vitproj_4897675e512e4e4ea7cfd0f2179f9316",
+  "parent_project_uuid": "vitproj_4897675e512e4e4ea7cfd0f2179f9316"
+ },
+ "sidecar_exists": true,
+ "vit_exists": true,
+ "finished_at": "2026-11-16T21:06:40"
+}

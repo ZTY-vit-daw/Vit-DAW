@@ -1,0 +1,27 @@
+{
+ "schema": "src_preset_legd_gate_v2.v1",
+ "started_at": "2026-11-16T21:05:24",
+ "out_xml": "D:/Vit_DAW_wt_presetagent/coord/runs/SRC-PRESET-AGENT-1/legd_gate_20261116_2115/legd_gate_project.xml",
+ "ping": {
+  "status": "ok",
+  "message": "pong"
+ },
+ "params_recheck": {
+  "status": "ok",
+  "param_count": 776,
+  "template_role": "instrument"
+ },
+ "save_as_project": {
+  "status": "ok",
+  "message": "Project saved",
+  "project_lifecycle": "save_as",
+  "project_path": "D:\\Vit_DAW_wt_presetagent\\coord\\runs\\SRC-PRESET-AGENT-1\\legd_gate_20261116_2115\\legd_gate_project.vit",
+  "current_project_path": "D:\\Vit_DAW_wt_presetagent\\coord\\runs\\SRC-PRESET-AGENT-1\\legd_gate_20261116_2115\\legd_gate_project.vit",
+  "project_uuid": "vitproj_96ce9bad76764c3bab12cb705c9cdbb4",
+  "project_id": "vitproj_96ce9bad76764c3bab12cb705c9cdbb4",
+  "source_project_uuid": "vitproj_4897675e512e4e4ea7cfd0f2179f9316",
+  "parent_project_uuid": "vitproj_4897675e512e4e4ea7cfd0f2179f9316"
+ },
+ "file_exists_after": false,
+ "finished_at": "2026-11-16T21:05:25"
+}

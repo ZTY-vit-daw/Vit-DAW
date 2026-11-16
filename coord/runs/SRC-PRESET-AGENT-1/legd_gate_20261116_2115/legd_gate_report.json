@@ -1,0 +1,56 @@
+{
+ "schema": "src_preset_legd_gate.v1",
+ "started_at": "2026-11-16T21:04:03",
+ "req_url": "tcp://127.0.0.1:5555",
+ "ping": {
+  "status": "ok",
+  "message": "pong"
+ },
+ "add_track": {
+  "status": "ok",
+  "message": "Track added",
+  "track_id": "1007",
+  "track_name": "Track 1"
+ },
+ "instantiate_plugin": {
+  "status": "ok",
+  "message": "Plugin instantiated",
+  "track_id": "1007",
+  "plugin_id": "1010",
+  "plugin_item_id": "1010",
+  "plugin_name": "Surge XT",
+  "plugin_identifier": "VST3-Surge XT-1e1bcfb-190e4fbd",
+  "template_role": "instrument",
+  "graph_revision": 1,
+  "graph_active_revision": 1,
+  "graph_pending_revision": 0,
+  "graph_last_retired_revision": 0,
+  "graph_retired_snapshot_count": 0,
+  "graph_last_diff_kind": "node_add",
+  "graph_last_diff_summary": "Inserted track plugin Surge XT",
+  "graph_publish_mode": "context_rebuild_idle",
+  "graph_lifecycle_state": "active",
+  "graph_recent_changes": [
+   {
+    "revision": 1,
+    "kind": "node_add",
+    "summary": "Inserted track plugin Surge XT",
+    "track_id": "1007",
+    "rack_item_id": "",
+    "node_id": "1010",
+    "source_id": "",
+    "dest_id": "",
+    "timestamp_ms": 1794834243564
+   }
+  ]
+ },
+ "get_plugin_parameters": {
+  "status": "ok",
+  "param_count": 776,
+  "template_role": "instrument"
+ },
+ "save_project": {
+  "status": "require_path",
+  "message": "Please prompt Save As"
+ }
+}

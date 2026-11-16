@@ -1,0 +1,20 @@
+{
+ "path": "legd_gate_project.xml",
+ "declared_size": 67294,
+ "decoded_size": 67294,
+ "blob_sha256": "f245cce2331ae5ab6fef450f4542ac99954b0147d54cbd3ed639748ca719f81c",
+ "raw_sha256": "efd7b85ccb7b6418eef31f46a75264fd4a3ff0a7d44c187a82055e23eb217e3d",
+ "head_hex": "58d90c854b4104000ffe05dbb0189d949ddca7d99bf4848cb808c881499b8fd1",
+ "t309_head_hex": "58d90c854b4104000ffe05dbb0189d949ddca7d99bf4848cb808c881499b8fd1",
+ "verdict": "binary_309_identical",
+ "magic_hits": {
+  "sub3": -1,
+  "<?xml": -1,
+  "<VST3PluginState": -1,
+  "CcnK": -1,
+  "cjs3": -1
+ },
+ "entropy_head_1k": 6.693,
+ "ascii_runs_head": [],
+ "xml_wrapper_text": ""
+}
