@@ -61,6 +61,15 @@
  * 《X》…）+「已自动经 Vit 桥」note + 无手动执行按钮（data-launcher-directive-execute）
  * 与不虚报「已打开」负断言；SHADOWBOX 报告为 launcher/project failures 聚合，随
  * LAUNCHER 转绿。零产品行为改动（diff 仅断言）。
+ * WIDGET-KIT-1（379）扩展：追加音乐控件 fixture 页（gallery.html?surface=widgets）
+ * 渲染烟测——audio_player 轻量播放器三态（收起/展开/不可播诚实降级，preview URL
+ * 通道在场）、compare_pair A/B 对比组合（两实例+偏好四态+理由输入；异长版本
+ * duration-hint 各自绑定坐标；容器 position-rule=per-side；无共享轴标记；页面级
+ * 零 data-audition-session=比较面不路由混音裁决落账）、interactionCardKit 卡内
+ * 挂载（collapse 布局容器 + audio_player/compare_pair 字段 + group-rest 隐式尾组
+ * 不丢字段 + 动作回流按钮）+ 对比度/字号/裁切扫描 + 截图；工件落
+ * coord/runs/WIDGET-KIT-1/{render-smoke-widget-report.json, screens/}
+ * （344/345/346/347/361/362/365 路径不变）。fixture 音频全为 data URI（零网络）。
  * 全离线 fixture（零真实端点请求）；344/345/346 的断言与工件路径不变。
  */
 
@@ -91,6 +100,10 @@ const shadowboxScreensDir = resolve(shadowboxOutDir, "screens");
 // 真实入口守卫报告 + 磁带特写/整面/守卫前后截图）。
 const recTapeOutDir = resolve(repoRoot, "coord/runs/UI-REC-TAPE-1");
 const recTapeScreensDir = resolve(recTapeOutDir, "screens");
+// WIDGET-KIT-1（379）：音乐控件 fixture 页工件目录（audio_player/compare_pair/
+// 卡内挂载渲染断言报告 + 截图）。
+const widgetsOutDir = resolve(repoRoot, "coord/runs/WIDGET-KIT-1");
+const widgetsScreensDir = resolve(widgetsOutDir, "screens");
 
 /** 与 src/design/sprite.tsx 同源（23 symbol）。 */
 const SYMBOL_IDS = [
@@ -1827,6 +1840,130 @@ async function main() {
   const recTapeReportPath = resolve(recTapeOutDir, "render-smoke-rec-tape-report.json");
   writeFileSync(recTapeReportPath, JSON.stringify(recTapeReport, null, 2), "utf-8");
 
+  // ---- 13. WIDGET-KIT-1（379）：音乐控件 fixture 页渲染烟测 ----
+  // gallery.html?surface=widgets 全离线 fixture（音频=data URI 静音 WAV，零网络
+  // 零代理）。断言面（卡面）：
+  //  ① audio_player 三态：收起（展开钮在场/控制面不在场）、展开（播放+进度+时值）、
+  //    不可播诚实降级（data-audio-unavailable + 禁用控制 + 零 audio 元素）；
+  //  ② compare_pair：两实例（standalone + 卡内）、每实例 A/B 两侧、偏好四态齐备、
+  //    理由输入在场、position-rule=per-side、异长 duration-hint（12/30）各自披露、
+  //    负向=零共享轴标记、页面级零 data-audition-session（比较面不路由混音裁决）；
+  //  ③ 卡内挂载：data-card-layout=collapse、组容器（fold-compare + group-rest 隐式
+  //    尾组）、details 折叠语义、字段类型锚点、动作回流按钮；
+  //  ④ 全页对比度/字号/裁切扫描 + 零外部请求 + 截图。
+  const widgetFailures = [];
+  const widgetNotes = [];
+  mkdirSync(widgetsScreensDir, { recursive: true });
+  const widgetsUrl = `${galleryUrl}?surface=widgets`;
+  const widgetRequests = [];
+  const onWidgetRequest = (r) => widgetRequests.push(r.url());
+  page.on("request", onWidgetRequest);
+  await page.goto(widgetsUrl, { waitUntil: "networkidle" });
+  await page.waitForSelector("[data-widgets-fixture]");
+  await page.waitForTimeout(200);
+  const widgetOrigin = new URL(page.url()).origin;
+  const widgetExternalRequests = widgetRequests.filter((u) => {
+    if (u.startsWith("data:") || u.startsWith("blob:")) return false;
+    return !u.startsWith(widgetOrigin);
+  });
+  page.off("request", onWidgetRequest);
+  widgetNotes.push(`widgetsUrl=${widgetsUrl}`);
+
+  const widgetDom = await page.evaluate(() => {
+    const $ = (sel) => document.querySelector(sel);
+    const $$ = (sel) => [...document.querySelectorAll(sel)];
+    const root = $("[data-widgets-fixture]");
+    const within = (sel) => [...(root?.querySelectorAll(sel) ?? [])];
+    return {
+      rootPresent: !!root,
+      fixtureNotice: !!$('[data-fixture="notice"]'),
+      audioPlayers: within("[data-widget-audio-player]").length,
+      audioExpandedTrue: within('[data-audio-expanded="true"]').length,
+      audioExpandedFalse: within('[data-audio-expanded="false"]').length,
+      expandToggles: within("[data-audio-expand-toggle]").length,
+      playToggles: within("[data-audio-play-toggle]").length,
+      progressBars: within("[data-audio-progress]").length,
+      unavailablePlayers: within('[data-audio-unavailable="true"]').length,
+      disabledPlayToggles: within("[data-audio-play-toggle]:disabled").length,
+      audioElements: within("audio[data-audio-element]").length,
+      previewURLPlayers: within('audio[data-audio-element][src*="/agent/artifact/file"]').length,
+      comparePairs: within("[data-widget-compare-pair]").length,
+      compareSideA: within('[data-compare-side="a"]').length,
+      compareSideB: within('[data-compare-side="b"]').length,
+      preferenceValues: within("[data-compare-preference]").map((e) => e.getAttribute("data-compare-preference")),
+      reasonInputs: within("[data-compare-reason]").length,
+      positionRulePerSide: within('[data-compare-position-rule="per-side"]').length,
+      syncedAxisMarkers: within("[data-compare-synced],[data-compare-sync],[data-timeline-shared],[data-shared-axis]").length,
+      durationHints: within("[data-audio-duration-hint]").map((e) => e.getAttribute("data-audio-duration-hint")),
+      auditionSessionMarkers: document.querySelectorAll("[data-audition-session]").length,
+      cardSchemas: within("[data-card-schema]").length,
+      cardLayoutCollapse: within('[data-layout-type="collapse"]').length,
+      layoutGroups: within("[data-layout-group]").map((e) => e.getAttribute("data-layout-group")),
+      collapseDetails: within("details.interaction-collapse").length,
+      fieldAudioPlayers: within('[data-field-type="audio_player"]').length,
+      fieldComparePairs: within('[data-field-type="compare_pair"]').length,
+      actionIDs: within("[data-action-id]").map((e) => e.getAttribute("data-action-id")),
+    };
+  });
+
+  const widgetAssert = (name, ok, detail) => {
+    if (!ok) widgetFailures.push(`WIDGETS: ${name} — ${detail}`);
+  };
+
+  widgetAssert("fixture 根节点在场", widgetDom.rootPresent && widgetDom.fixtureNotice, JSON.stringify({ root: widgetDom.rootPresent, notice: widgetDom.fixtureNotice }));
+  // ① audio_player 四样张（收起/展开/不可播收起/不可播展开）+ compare 2×2 实例 + 卡内 player = 9 播放器
+  widgetAssert("audio_player 计数 ≥9（独立四样张 + 两对比组四实例 + 卡内一播放器）", widgetDom.audioPlayers >= 9, `audioPlayers=${widgetDom.audioPlayers}`);
+  widgetAssert("收起态在场（展开钮 ≥1，收起播放器 ≥2）", widgetDom.expandToggles >= 1 && widgetDom.audioExpandedFalse >= 2, `toggles=${widgetDom.expandToggles} collapsed=${widgetDom.audioExpandedFalse}`);
+  widgetAssert("展开态控制面在场（播放钮 ≥7、进度 ≥7）", widgetDom.playToggles >= 7 && widgetDom.progressBars >= 7, `play=${widgetDom.playToggles} progress=${widgetDom.progressBars}`);
+  widgetAssert("不可播诚实降级（unavailable ≥2 且展开态播放钮禁用）", widgetDom.unavailablePlayers >= 2 && widgetDom.disabledPlayToggles >= 1, `unavailable=${widgetDom.unavailablePlayers} disabled=${widgetDom.disabledPlayToggles}`);
+  widgetAssert("audio 元素只随可播声明在场（≤7，缺媒体声明不出 audio）", widgetDom.audioElements >= 7 && widgetDom.audioElements <= 7, `audioElements=${widgetDom.audioElements}`);
+  // ② compare_pair（standalone + 卡内）
+  widgetAssert("compare_pair 两实例（standalone+卡内）", widgetDom.comparePairs === 2 && widgetDom.compareSideA === 2 && widgetDom.compareSideB === 2, `pairs=${widgetDom.comparePairs} a=${widgetDom.compareSideA} b=${widgetDom.compareSideB}`);
+  widgetAssert("偏好四态齐备（每实例 a/b/neither/unsure）", JSON.stringify(widgetDom.preferenceValues) === JSON.stringify(["a", "b", "neither", "unsure", "a", "b", "neither", "unsure"]), `values=${JSON.stringify(widgetDom.preferenceValues)}`);
+  widgetAssert("理由输入在场（standalone+卡内 ≥2）", widgetDom.reasonInputs >= 2, `reasonInputs=${widgetDom.reasonInputs}`);
+  widgetAssert("position-rule=per-side（两实例）", widgetDom.positionRulePerSide === 2, `perSide=${widgetDom.positionRulePerSide}`);
+  widgetAssert("异长 duration-hint 各自披露（12 与 30 各 ≥2）", widgetDom.durationHints.filter((v) => v === "12").length >= 2 && widgetDom.durationHints.filter((v) => v === "30").length >= 2, `hints=${JSON.stringify(widgetDom.durationHints)}`);
+  widgetAssert("负向：零共享轴标记", widgetDom.syncedAxisMarkers === 0, `synced=${widgetDom.syncedAxisMarkers}`);
+  widgetAssert("负向：页面零 audition 会话标记（比较面不路由混音裁决落账）", widgetDom.auditionSessionMarkers === 0, `auditionMarkers=${widgetDom.auditionSessionMarkers}`);
+  // ③ 卡内挂载（collapse 布局 + 控件字段 + 动作）
+  widgetAssert("卡内挂载：声明卡在场且布局=collapse", widgetDom.cardSchemas === 1 && widgetDom.cardLayoutCollapse === 1, `schemas=${widgetDom.cardSchemas} collapse=${widgetDom.cardLayoutCollapse}`);
+  widgetAssert("布局组容器：声明组 + 隐式尾组（不丢字段）", JSON.stringify(widgetDom.layoutGroups) === JSON.stringify(["fold-compare", "group-rest"]), `groups=${JSON.stringify(widgetDom.layoutGroups)}`);
+  widgetAssert("折叠语义 details 在场（collapse 类型所有组可折叠：声明组+隐式尾组）", widgetDom.collapseDetails === 2, `details=${widgetDom.collapseDetails}`);
+  widgetAssert("控件字段类型锚点（audio_player/compare_pair 各 1）", widgetDom.fieldAudioPlayers === 1 && widgetDom.fieldComparePairs === 1, `audio=${widgetDom.fieldAudioPlayers} compare=${widgetDom.fieldComparePairs}`);
+  widgetAssert("动作回流按钮（submit+cancel）", JSON.stringify(widgetDom.actionIDs) === JSON.stringify(["submit", "cancel"]), `actions=${JSON.stringify(widgetDom.actionIDs)}`);
+  widgetAssert("fixture 零外部请求（data URI 音频，不出网）", widgetExternalRequests.length === 0, JSON.stringify(widgetExternalRequests.slice(0, 6)));
+
+  const wscan = await scanFn();
+  widgetAssert("正文对比度 ≥4.5:1", wscan.text.length === 0, JSON.stringify(wscan.text.slice(0, 6)));
+  widgetAssert("最小字号 ≥13px", wscan.tooSmall.length === 0, JSON.stringify(wscan.tooSmall.slice(0, 6)));
+  if (wscan.clipped.length > 0) widgetFailures.push(`WIDGETS-CLIP: 裁切/溢出 ${JSON.stringify(wscan.clipped.slice(0, 6))}`);
+  if (wscan.docScrollWidth > 1440) widgetFailures.push(`WIDGETS-OVERFLOW: 文档横向溢出 scrollWidth=${wscan.docScrollWidth} > 1440`);
+
+  const widgetsViewportShot = resolve(widgetsScreensDir, "widgets-viewport-1440x900.png");
+  const widgetsFullShot = resolve(widgetsScreensDir, "widgets-full.png");
+  await page.screenshot({ path: widgetsViewportShot, type: "png" });
+  await page.screenshot({ path: widgetsFullShot, type: "png", fullPage: true });
+
+  const widgetsReport = {
+    run: "WIDGET-KIT-1 widgets render smoke",
+    date: new Date().toISOString(),
+    url: widgetsUrl,
+    viewport: "1440x900@1",
+    reducedMotion: "reduce",
+    externalRequestCount: widgetExternalRequests.length,
+    dom: widgetDom,
+    textContrastMin: wscan.textMin,
+    clipIssues: wscan.clipped,
+    docScrollWidth: wscan.docScrollWidth,
+    fontTooSmall: wscan.tooSmall,
+    failures: widgetFailures,
+    notes: widgetNotes,
+    screenshots: [widgetsViewportShot, widgetsFullShot],
+    result: widgetFailures.length === 0 ? "PASS" : "FAIL",
+  };
+  const widgetsReportPath = resolve(widgetsOutDir, "render-smoke-widget-report.json");
+  writeFileSync(widgetsReportPath, JSON.stringify(widgetsReport, null, 2), "utf-8");
+
   await browser.close();
   await server.close();
 
@@ -1852,7 +1989,11 @@ async function main() {
   console.log(
     `[test:render] REC-TAPE_RESULT=${recTapeReport.result} tapeBadges=${ldom.tapeBadgeCount} tapeRows=${ldom.tapeRecentRows} tapeMinContrast=${recTapeReport.launcherTape.tapeGraphicMinRatio}`
   );
-  const allFailures = [...failures, ...launcherFailures, ...projectFailures, ...loadingFailures, ...fidelityFailures, ...appFailures, ...recTapeFailures];
+  console.log(`[test:render] widgetsReport=${widgetsReportPath}`);
+  console.log(
+    `[test:render] WIDGETS_RESULT=${widgetsReport.result} audioPlayers=${widgetDom.audioPlayers} comparePairs=${widgetDom.comparePairs} cardCollapse=${widgetDom.cardLayoutCollapse} external=${widgetExternalRequests.length}`
+  );
+  const allFailures = [...failures, ...launcherFailures, ...projectFailures, ...loadingFailures, ...fidelityFailures, ...appFailures, ...recTapeFailures, ...widgetFailures];
   if (allFailures.length > 0) {
     for (const f of allFailures) console.error(`[test:render] FAIL: ${f}`);
     process.exit(1);

@@ -1,6 +1,6 @@
 {
   "run": "UI-MSG-SHADOWBOX-1 user message shadowbox render smoke",
-  "date": "2026-11-15T20:33:02.330Z",
+  "date": "2026-11-16T11:35:48.191Z",
   "ruling": "coord/decisions/2026-11-15-user-message-shadowbox-ruling.md",
   "surfaces": {
     "launcher": {
@@ -54,14 +54,14 @@
   },
   "failures": [],
   "screenshots": [
-    "D:\\Vit_DAW\\coord\\runs\\UI-MSG-SHADOWBOX-1\\screens\\launcher-fixture-viewport-1440x900.png",
-    "D:\\Vit_DAW\\coord\\runs\\UI-MSG-SHADOWBOX-1\\screens\\launcher-fixture-full.png",
-    "D:\\Vit_DAW\\coord\\runs\\UI-MSG-SHADOWBOX-1\\screens\\project-fixture-viewport-1440x900.png",
-    "D:\\Vit_DAW\\coord\\runs\\UI-MSG-SHADOWBOX-1\\screens\\project-fixture-full.png"
+    "D:\\Vit_DAW_wt_widgetkit\\coord\\runs\\UI-MSG-SHADOWBOX-1\\screens\\launcher-fixture-viewport-1440x900.png",
+    "D:\\Vit_DAW_wt_widgetkit\\coord\\runs\\UI-MSG-SHADOWBOX-1\\screens\\launcher-fixture-full.png",
+    "D:\\Vit_DAW_wt_widgetkit\\coord\\runs\\UI-MSG-SHADOWBOX-1\\screens\\project-fixture-viewport-1440x900.png",
+    "D:\\Vit_DAW_wt_widgetkit\\coord\\runs\\UI-MSG-SHADOWBOX-1\\screens\\project-fixture-full.png"
   ],
   "foundationReports": {
-    "launcher": "D:\\Vit_DAW\\coord\\runs\\UI-LAUNCHER-1\\render-smoke-launcher-report.json",
-    "project": "D:\\Vit_DAW\\coord\\runs\\UI-PROJECT-1\\render-smoke-project-report.json"
+    "launcher": "D:\\Vit_DAW_wt_widgetkit\\coord\\runs\\UI-LAUNCHER-1\\render-smoke-launcher-report.json",
+    "project": "D:\\Vit_DAW_wt_widgetkit\\coord\\runs\\UI-PROJECT-1\\render-smoke-project-report.json"
   },
   "result": "PASS"
 }
