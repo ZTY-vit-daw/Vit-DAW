@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { fullAccessDirectExecutionTargets, stripFullAccessDirectExecutionActions, mergeMessageActions } from "./App";
+import { fullAccessDirectExecutionTargets, stripFullAccessDirectExecutionActions } from "./actions/confirmation";
+import { mergeMessageActions } from "./chat/merge";
 import type { ChatMessage, ChatResponse, JsonRecord } from "./types";
 
 // FIX-CONFIRM-CARD-1 ③（M1 手测缺陷③，2026-09-29 决策侧裁定）：full access 下
