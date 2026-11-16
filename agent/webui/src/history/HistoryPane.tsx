@@ -28,7 +28,7 @@ import {
   type HistoryTreeNode,
   type HistoryWorktreeRow
 } from "./tree";
-import { EmptyState } from "../App";
+import { EmptyState } from "../topbar/diagnostics";
 
 export function HistoryPane({ uiState, onRefresh, checkoutBlocked }: { uiState: AgentUIState | null; onRefresh: () => Promise<void>; checkoutBlocked: boolean }) {
   const activeHistory = asRecord(uiState?.project_history);

@@ -18,7 +18,7 @@ import {
   normalizeMacroControl,
   activeWorkflowModeLabel
 } from "./normalize";
-import { EmptyState } from "../App";
+import { EmptyState } from "../topbar/diagnostics";
 
 export function MacroPane({
 	uiState,

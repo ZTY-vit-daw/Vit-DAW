@@ -1,13 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import {
-  RouteEditor,
-  SettingsPage,
-  SettingsTextField,
-  mergeSettingsConfig,
-  retainSecretInputs,
-  settingsSavedStatus
-} from "./App";
+import { RouteEditor, SettingsPage, SettingsTextField } from "./settings/SettingsPage";
+import { mergeSettingsConfig, retainSecretInputs, settingsSavedStatus } from "./App";
 import type { EngineConfig } from "./types";
 
 function renderSettingsPage() {
