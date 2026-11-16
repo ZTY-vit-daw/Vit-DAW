@@ -52,3 +52,11 @@
 - **RC2 产品链绿、断言装置缺陷**：点击（乙）→ 治理 dialog（current=烟测桥甲）→ switch → **result=failed + result_ack=failed**（降级链通）；败因=断言查错锚——宿主 result.posted 日志行不含 file_path；**正确证据在 godot_boot_rc2.log:26**「launcher directive chain failed: Project file does not exist: …烟测桥乙.vit」。
 - RC3 未跑（RC2 断言红即 throw）。
 - **修复**：RC2/RC3 失败对象断言改锚宿主警告行（含 fixture 名）。attempt3=RC 全三腿重跑（断点各异非同点连败；每次修复=假设缩小）。二进制=attempt1 构建（sha256 A981604D…，含全部 agent 改动；attempt2/3 仅脚本断言变更，§9 provenance 如实记）。
+
+## attempt3 结果（2026-11-16 23:32-23:40，run_attempt3_20261116_2332）——**PASS exit 0**
+
+- RC1 点击→打开→工程内对话往返：磁带卡点击经桥（followup=recents_click URL 亲证）→ 治理 dialog+switch → result=opened + result_ack=opened → scene_added VitDockRoot 同 HWND → /agent/state=烟测桥甲 → 轮1 boot 前确定性 list + 轮2 桥接播报（stop_reason=launcher_bridge_broadcast、context_flow=project、typed_events[0]=volume_switch、reply=已进入《烟测桥甲》…）。
+- RC2 文件移走失败降级：surface_ready+8s 删乙 → recents[1] 点击（+25s，时序窗命中）→ 治理 dialog（current=烟测桥甲）→ switch → **result=failed + result_ack=failed**（React 真收降级回执）+ 无 scene_added + 证据锚 godot_boot_rc2.log「launcher directive chain failed: Project file does not exist: …烟测桥乙.vit」。
+- RC3 损坏文件失败降级：recents[2]=烟测桥坏（存在→可点）点击 → 治理 switch → **result=failed + result_ack=failed** + 无 scene_added + 证据锚「open_project failed for …烟测桥坏.vit」。
+- 零 LLM：rc_llm_telemetry_lines=0（attempt3）；attempt1 超支 7 调用（deepseek-flash）已如实分记——**三 attempt 合计 LLM 计费上界=7 调用**。
+- 隔离：fixture 源哈希前后一致（912.vit 未触）；recents teardown 后还原 **哈希亲证一致 807226F4AF3F**；ports_busy_after_teardown=空；owner 亲核 TEARDOWN 进程/端口/UDP 4445 全零。

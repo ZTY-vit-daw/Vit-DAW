@@ -1,0 +1,33 @@
+2026-11-16T23:27:23 [WARN] [pca-native-seed] family=generation_shell bundle=C:\Users\timoz\Library\Audio\Plug-Ins\VST3\GenShell.vst3 seed failed: processor attestation: inspect plug-in path: GetFileAttributesEx C:\Users\timoz\Library\Audio\Plug-Ins\VST3\GenShell.vst3: The system cannot find the path specified.
+2026-11-16T23:27:23 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=<none>
+2026-11-16T23:27:23 [INFO] VitAgent started req=tcp://127.0.0.1:5555 sub=tcp://127.0.0.1:5556 udp_to=4444 udp_from=4445
+2026-11-16T23:27:23 [INFO] HTTP agent API listening on http://127.0.0.1:7878
+2026-11-16T23:27:23 [INFO] VSP realtime publisher enabled client=vit.agent.realtime_publisher hub=http://127.0.0.1:8787/vsp
+2026-11-16T23:27:23 [INFO] control loop started: UDP:4445 -> tcp://127.0.0.1:5555
+2026-11-16T23:27:23 [INFO] VSP realtime publisher enabled client=vit.agent.transport_publisher hub=http://127.0.0.1:8787/vsp
+2026-11-16T23:27:23 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=1 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-16T23:27:23 [INFO] telemetry thread started: tcp://127.0.0.1:5556 -> UDP:4444
+2026-11-16T23:27:23 [WARN] VSP realtime publish pending failures=1 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-16T23:27:23 [WARN] VSP realtime publish pending failures=1 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-16T23:27:24 [INFO] [shadow] initialized tracks=11 project_path="D:\\Vit_DAW_wt_383click\\coord\\runs\\LAUNCHER-RECENTS-CLICK-1\\run_attempt3_20261116_2332\\fixture\\烟测桥甲.vit" replayed_deltas=0
+2026-11-16T23:27:24 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-11-16T23:27:24 [INFO] [authority] clean-restart seed adopted mode=manual_confirmation project=D:\Vit_DAW_wt_383click\coord\runs\LAUNCHER-RECENTS-CLICK-1\run_attempt3_20261116_2332\fixture\烟测桥甲.vit uuid=vitproj_9ecc5ab9a454400192086c628c07b966
+2026-11-16T23:27:24 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_9ecc5ab9a454400192086c628c07b966
+2026-11-16T23:27:24 [INFO] [workspace] activated project="D:\\Vit_DAW_wt_383click\\coord\\runs\\LAUNCHER-RECENTS-CLICK-1\\run_attempt3_20261116_2332\\fixture\\烟测桥甲.vit" uuid=vitproj_9ecc5ab9a454400192086c628c07b966 recovered=false conversations=0 retired_legacy_b2=0 retired_legacy_b3=0
+2026-11-16T23:27:25 [INFO] [webui] serving root=D:\Vit_DAW_wt_383click\agent\webui\dist index_mod=2026-11-16T22:53:06+08:00 assets=gallery-BXTmcixN.js,gallery-CY77NL5L.css,main-79uD1m8i.js,main-DELB1KAd.css,sprite-B105OIVe.css,sprite-UFf6MX8f.js build_mark=project-aware-mondrian-workbench-v1-20260713
+2026-11-16T23:27:26 [INFO] [media_refs] ms=0 conversation=webui_launcher_mwjf37au user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-11-16T23:27:26 [INFO] [chat.artifacts] conversation=webui_launcher_mwjf37au response_artifacts=0 request_artifacts=0 executed=0 reply_len=149
+2026-11-16T23:27:26 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_9ecc5ab9a454400192086c628c07b966
+2026-11-16T23:27:26 [INFO] [timing] http.chat total_ms=561 conversation=webui_launcher_mwjf37au message_len=15
+2026-11-16T23:27:26 [INFO] [media_refs] ms=0 conversation=webui_launcher_mwjf37gj user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-11-16T23:27:27 [INFO] [chat.artifacts] conversation=webui_launcher_mwjf37gj response_artifacts=0 request_artifacts=0 executed=0 reply_len=82
+2026-11-16T23:27:27 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_9ecc5ab9a454400192086c628c07b966
+2026-11-16T23:27:27 [INFO] [timing] http.chat total_ms=961 conversation=webui_launcher_mwjf37gj message_len=15
+2026-11-16T23:27:27 [INFO] [media_refs] ms=0 conversation=webui_launcher_mwjf37gj user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-11-16T23:27:27 [INFO] [chat.artifacts] conversation=webui_launcher_mwjf37gj response_artifacts=0 request_artifacts=0 executed=0 reply_len=82
+2026-11-16T23:27:27 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_9ecc5ab9a454400192086c628c07b966
+2026-11-16T23:27:27 [INFO] [timing] http.chat total_ms=1637 conversation=webui_launcher_mwjf37gj message_len=15
+2026-11-16T23:27:29 [WARN] VSP realtime publish pending failures=6 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-16T23:27:29 [WARN] VSP realtime publish pending failures=6 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-16T23:27:35 [WARN] VSP realtime publish pending failures=9 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-16T23:27:35 [WARN] VSP realtime publish pending failures=9 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
