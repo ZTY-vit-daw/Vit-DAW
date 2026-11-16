@@ -1,0 +1,10 @@
+SCORE-ENTRY-REACH-1 (382) runtime provenance (binaries excluded from git; hashes recorded)
+kernel VitApp.exe sha256 A59473614152882B21433DCEE684F8B13AE0BD5B632A97CD5E2C8765BB18348E
+  source: D:/Vit_DAW/VitApp/build/VitApp_artefacts/Release/VitApp.exe (Nov-16 04:33 build; same binary as 374/377/384; zero kernel changes this card)
+plugin Settings.xml sha256 5ABF7D95C344D5F1CF8FF34E27EA72905F7209A16A7ABA40AA03FC21EBDAE076
+  source: D:/Vit_DAW/Export/staging/runtime/Workspace/Settings/Settings.xml (read-only copy; Surge XT database; same as 377/384)
+boot default_project.xml (acceptance, git-clean copy) sha256 1F1AEAF989664C2AFDA5FD790E2B3FBBAC1EC940FCB3CDEB67C0B7F08DC8D488
+template source (forensic boot + P5) sha256 0CB22BA39E8B635B3B521F2B3CDEC03935F251BFBA811EF83CA540D5E32321B3
+  source: coord/lesson-designs/music-creation-unit2/templates/melody-drum-v1/template.v1.xml (373 canonical asset, read-only)
+agent: ps1 in-situ go build from worktree source (GO_BUILD_OK; port/score-entry-reach-1)
+webui: worktree npm run build dist (tsc 0 errors; rebuilt after attempt1 surface fix)

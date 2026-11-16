@@ -1,0 +1,184 @@
+{
+  "schema_version": "score_workbench_smoke.v2-a7a8",
+  "card": "SCORE-DG1A-COMPLETE-1 (completes SCORE-WORKBENCH-1 DG1-A leg)",
+  "gate": "DG1-A (docs/STACKGATE_DG1_DG3_V1.md section 3.1)",
+  "leg_form": "berth (kernel + agent, real browser on /app/)",
+  "started_at": "2026-11-16T14:14:23.462Z",
+  "agent_http": "http://127.0.0.1:7878",
+  "kernel_zmq": "tcp://127.0.0.1:5555",
+  "kernel_sub": "tcp://127.0.0.1:5556",
+  "thresholds": {
+    "probe_max_abs_min": 0.01,
+    "wav_non_silent_peak": 500,
+    "wav_non_silent_rms": 20,
+    "wav_diff_max_min": 500
+  },
+  "assertions": {
+    "A4-timesig-disclosed": {
+      "pass": true,
+      "detail": ""
+    },
+    "A1-load-equality": {
+      "pass": true,
+      "detail": ""
+    },
+    "A3-fixture-loaded": {
+      "pass": true,
+      "detail": ""
+    },
+    "A3-svg-glyphs": {
+      "pass": true,
+      "detail": ""
+    },
+    "A3-dotted": {
+      "pass": true,
+      "detail": ""
+    },
+    "A3-rest-window": {
+      "pass": true,
+      "detail": ""
+    },
+    "A3-syncopation": {
+      "pass": true,
+      "detail": ""
+    },
+    "A3-cross-bar-tie": {
+      "pass": true,
+      "detail": ""
+    },
+    "A2-id-binding": {
+      "pass": true,
+      "detail": ""
+    },
+    "A1-write-readback": {
+      "pass": true,
+      "detail": ""
+    },
+    "A5-saved-only-after-verify": {
+      "pass": true,
+      "detail": ""
+    },
+    "A2-id-stable-edit-apply": {
+      "pass": true,
+      "detail": ""
+    },
+    "A6-reopen-readback": {
+      "pass": true,
+      "detail": ""
+    },
+    "A2-id-stable-reopen": {
+      "pass": true,
+      "detail": ""
+    },
+    "A6-panel-reload": {
+      "pass": true,
+      "detail": ""
+    },
+    "A4-template-2-4-disclosed": {
+      "pass": true,
+      "detail": ""
+    },
+    "A7-edit-readback": {
+      "pass": true,
+      "detail": ""
+    },
+    "A7-probe-non-silent": {
+      "pass": true,
+      "detail": ""
+    },
+    "A8-edit-differential": {
+      "pass": true,
+      "detail": ""
+    },
+    "J2-non120-panel-load": {
+      "pass": true,
+      "detail": ""
+    },
+    "J2-non120-clip-grid-snapped": {
+      "pass": true,
+      "detail": ""
+    },
+    "J2-non120-error-boundary-absent": {
+      "pass": true,
+      "detail": ""
+    },
+    "J1-project-surface-reachable": {
+      "pass": true,
+      "detail": ""
+    },
+    "J1-workbench-entry-present": {
+      "pass": true,
+      "detail": ""
+    }
+  },
+  "boundary": [],
+  "failure_class": "env_interrupt",
+  "notes": [],
+  "save_forensics": {
+    "enabled": false,
+    "faces": []
+  },
+  "finished_at": "2026-11-16T14:15:16.050Z",
+  "project_path_source": "leg save_as target (fixture.vit); fallback --project-xml=(none)",
+  "p5_template": {
+    "source": "D:\\Vit_DAW_wt_382reach\\coord\\lesson-designs\\music-creation-unit2\\templates\\melody-drum-v1\\template.v1.xml",
+    "source_sha256": "a188defd2c852d57e1b18e0a2cb811c9b854c1c8063b54383d191f8dc1f0fb29",
+    "copy": "D:\\Vit_DAW_wt_382reach\\coord\\runs\\SCORE-ENTRY-REACH-1\\run_accept_20261116_2210\\lesson_project.xml",
+    "copy_sha256": "a188defd2c852d57e1b18e0a2cb811c9b854c1c8063b54383d191f8dc1f0fb29",
+    "manifest_id": "melody-drum-v1"
+  },
+  "p5_handles": {
+    "melody_track_id": "1110",
+    "melody_clip_id": "1111",
+    "melody_plugins": [
+      "Surge XT",
+      "Volume & Pan Plugin",
+      "Level Meter"
+    ]
+  },
+  "p5_edit_seam": "agent/kernel tool face mutate_midi_notes (373 DG1-B B4 verbatim); panel gesture seam kept as card-designated judgment shape (D4 load crash fixed by 382 -- see J2 assertions)",
+  "p5_music_context": {
+    "tempo_bpm": 80,
+    "tempo_setting_count": 1,
+    "time_sig_setting_count": 1,
+    "time_signature": "2/4",
+    "time_signature_denominator": 4,
+    "time_signature_numerator": 2
+  },
+  "p5_renders": {
+    "before": {
+      "completion": "render_done",
+      "job_id": "d9003ff57ec7480dbf7c60801960f145",
+      "wav_bytes": 3072784,
+      "channels": 2,
+      "width": 2,
+      "frames": 768000,
+      "samples": 1536000,
+      "peak_abs": 17324,
+      "rms_abs": 2497.31
+    },
+    "after": {
+      "completion": "render_done",
+      "job_id": "560ff5222d524009bf0ff2f9b46bcc2b",
+      "wav_bytes": 3072784,
+      "channels": 2,
+      "width": 2,
+      "frames": 768000,
+      "samples": 1536000,
+      "peak_abs": 15712,
+      "rms_abs": 2289.67
+    },
+    "diff": {
+      "max_abs_diff": 18823
+    },
+    "probe_sum_abs": [
+      39804.0318449661,
+      39761.8794693017
+    ],
+    "probe_sum_abs_rel_delta": 0.0011
+  },
+  "fatal": "page.waitForSelector: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.app-shell-workbench') to be visible\u001b[22m\n\n    at main (D:\\Vit_DAW_wt_382reach\\scripts\\score_workbench_smoke.mjs:971:16)",
+  "exit_code": 2,
+  "fail_phase": "runtime",
+  "fail_reason": "leg crashed: page.waitForSelector: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.app-shell-workbench') to be visible\u001b[22m\n\n    at main (D:\\Vit_DAW_wt_382reach\\scripts\\score_workbench_smoke.mjs:971:16)"
+}
