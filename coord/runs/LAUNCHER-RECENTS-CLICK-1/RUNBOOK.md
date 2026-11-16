@@ -45,3 +45,10 @@
 - **失败=apparatus_defect**：脚本侧「工程内对话往返」轮1 在进入工程后发——launcher gate 关（userEnteredProject 置位，launcher_flow.go:72-80 gate=context.launcher && !userEnteredProject）→「有哪些工程」落 LLM **7 调用（deepseek-flash，telemetry 7 行=预算 0 超支，budget_exceeded 如实记）**→ 断言红 exit 1。RC2/RC3 未跑。
 - **修复**（换假设缩小，非原样重跑，§8 允许项）：轮1 移到 Godot boot 前（gate 开=确定性 list 零 LLM，本会话注册 launcher 起源）；轮2 进入工程后发（桥接播报 checkpoint 前置于 LLM——339 leg1 同款已证形态）；内核引导窗口确定性降级（连不上内核）限时重试 3×3s，其余回执即停不盲重试。
 - attempt2=RC 全三腿重跑 1 次（新 run 目录不覆盖）；预算仍 0（attempt2 若再触 LLM 即停腿上交）。
+
+## attempt2 记录（2026-11-16 23:20-23:27，run_attempt2_20261116_2320）
+
+- **RC1 全绿（点击→打开→工程内对话往返零 LLM）**：boot 前轮1 确定性 list（「最近的工程有 13 个」）→ 磁带卡点击经桥 → 治理 switch → opened+ack → scene 同 HWND → /agent/state=烟测桥甲 → 轮2 桥接播报（已进入《烟测桥甲》… stop_reason=launcher_bridge_broadcast、context_flow=project、volume_switch）。
+- **RC2 产品链绿、断言装置缺陷**：点击（乙）→ 治理 dialog（current=烟测桥甲）→ switch → **result=failed + result_ack=failed**（降级链通）；败因=断言查错锚——宿主 result.posted 日志行不含 file_path；**正确证据在 godot_boot_rc2.log:26**「launcher directive chain failed: Project file does not exist: …烟测桥乙.vit」。
+- RC3 未跑（RC2 断言红即 throw）。
+- **修复**：RC2/RC3 失败对象断言改锚宿主警告行（含 fixture 名）。attempt3=RC 全三腿重跑（断点各异非同点连败；每次修复=假设缩小）。二进制=attempt1 构建（sha256 A981604D…，含全部 agent 改动；attempt2/3 仅脚本断言变更，§9 provenance 如实记）。

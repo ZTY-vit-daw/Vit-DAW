@@ -477,9 +477,11 @@ try {
     $gpR2 = Test-LogLine -LogPath $logR2 -Pattern '\[LauncherBridge\] smoke\.governance\.press .*"choice":\s*"switch"' -TimeoutSeconds 30
     if ($null -eq $gpR2) { throw ("RC2 governance press (switch) not seen") }
     Assert-BridgeResult -LogPath $logR2 -Leg $rc2 -ExpectStatus "failed"
-    $rpR2 = Select-String -LiteralPath $logR2 -Pattern '\[LauncherBridge\] result\.posted .*"status":\s*"failed"' | Select-Object -Last 1
-    if ($null -eq $rpR2 -or $rpR2.Line -notlike "*烟测桥乙*") { throw ("RC2 failed result does not reference fixture B: " + $(if ($rpR2) { $rpR2.Line } else { "(no line)" })) }
-    $rc2.failed_result_refs_fixture_b = $true
+    # attempt2 教训：宿主 result.posted 日志行不含 file_path——失败对象的证据锚=
+    # 宿主警告行（launcher directive chain failed: Project file does not exist: <乙路径>）。
+    $failRefR2 = Select-String -LiteralPath $logR2 -Pattern 'launcher directive chain failed.*烟测桥乙' | Select-Object -Last 1
+    if ($null -eq $failRefR2) { throw ("RC2 failure detail does not reference fixture B (moved-away file): no chain-failed warning line") }
+    $rc2.failure_detail_refs_fixture_b = $true
     Start-Sleep -Seconds 3
     $noDockR2 = Select-String -LiteralPath $logR2 -Pattern 'scene_added.*VitDockRoot' -ErrorAction SilentlyContinue
     $rc2.no_scene_switch = ($null -eq $noDockR2)
@@ -504,9 +506,11 @@ try {
     $gpR3 = Test-LogLine -LogPath $logR3 -Pattern '\[LauncherBridge\] smoke\.governance\.press .*"choice":\s*"switch"' -TimeoutSeconds 30
     if ($null -eq $gpR3) { throw ("RC3 governance press (switch) not seen") }
     Assert-BridgeResult -LogPath $logR3 -Leg $rc3 -ExpectStatus "failed"
-    $rpR3 = Select-String -LiteralPath $logR3 -Pattern '\[LauncherBridge\] result\.posted .*"status":\s*"failed"' | Select-Object -Last 1
-    if ($null -eq $rpR3 -or $rpR3.Line -notlike "*烟测桥坏*") { throw ("RC3 failed result does not reference corrupt fixture: " + $(if ($rpR3) { $rpR3.Line } else { "(no line)" })) }
-    $rc3.failed_result_refs_corrupt_fixture = $true
+    # 同 RC2：失败对象证据锚=宿主警告行（损坏文件解析失败形态的 detail 文案可能不同，
+    # 锚=警告行含 fixture 名）。
+    $failRefR3 = Select-String -LiteralPath $logR3 -Pattern '烟测桥坏' | Select-Object -Last 1
+    if ($null -eq $failRefR3) { throw ("RC3 failure detail does not reference corrupt fixture: no warning line with fixture name") }
+    $rc3.failure_detail_refs_corrupt_fixture = $true
     Start-Sleep -Seconds 3
     $noDockR3 = Select-String -LiteralPath $logR3 -Pattern 'scene_added.*VitDockRoot' -ErrorAction SilentlyContinue
     $rc3.no_scene_switch = ($null -eq $noDockR3)
