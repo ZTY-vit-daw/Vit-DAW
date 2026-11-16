@@ -43,25 +43,21 @@ Surge XT 上游源码（surge-synthesizer/surge，main 分支）：
 - **.fxp 同构铁证**：`loadPatchByPath`（SurgeSynthesizerIO.cpp:242-324）读 fxp 头（CcnK/FPCh/fxID='cjs3'）后取 `chunkSize` 字节 chunk，**直喂同一 `loadRaw`**——fxp chunk 体与 DAW state 是同一 `save_patch` 序列化。
 - **推论（机械定义）**：fxp → 插件可接受 state = 剥掉 fxp 头取 chunk 体即可（chunk 体即 setStateInformation 可接受字节，经 §2 层直通插件）。
 
-## §4 内容实证层（一处未解矛盾——离线合成的最后闸门）
+## §4 内容实证层（2026-11-16 21:0x 腿 D 闸门判定：binary_309_identical——版本差假说证伪）
 
-**矛盾**：按 §2+内核现行 JUCE 源码（VST3 宿主 `getStateInformation` = `<VST3PluginState>` XML 包裹 + `copyXmlToBinary`（magic `0x21324356` LE + 明文单行 XML，无压缩；`juce_audio_processors_headless/processors/juce_AudioProcessor.cpp:946-962` 与 `format_types/juce_VST3PluginFormatImpl.h:2987-3005` 亲读），内核保存的 state 解码后应是 `56 43 32 21` 开头的 ASCII XML。
+**腿 D 闸门实测**（主管授权 10 分钟栈时；run=coord/runs/SRC-PRESET-AGENT-1/legd_gate_20261116_2115/，attempt3 PASS，占用 21:02→21:10）：
 
-**实际**（全部按 §1 字母表解码）：
+- 现行内核（VitApp.exe sha256 `a5947361…`，374/377 同一二进制复用+零内核改动）XML-boot → add_track → instantiate Surge XT（776 参=298 全等）→ `VIT_DUMP_CLEAR_XML=1` sidecar 通道取明文样本（attempt1 `save_project{}`=require_path、attempt2 `save_as .xml` 被 normalizeProjectPathForSave 强改 .vit+加密——两轮 probe_defect 装置域，产品面全程 ok）。
+- **判定：`binary_309_identical`**——现行内核产出 state 解码后与 309 模板工件头 32 字节逐字相同，init-patch 全等（67294B，blob sha256 `f245cce2…`）。**「11-09 构建与现行子模块版本差」假说被证伪：高熵二进制是现行内核的本征 state 形态。**
+- 附加取证：`set_plugin_param` Global Volume 0.9（读回 ok）→ 再存 → state **逐字不变**——疑 master volume 在 Surge patch 序列化之外（腿 D 后续做 patch 内参数差分时须选 patch 内参数）。
 
-- 模板 Surge state 头：`58 d9 0c 85 4b 41 04 00 0f fe …`（高熵二进制，熵≈6.7/8，无 zlib/gzip/raw-deflate 流（偏移 0-39 扫描）、无 'sub3'/XML/任何已知魔数）。
-- 同 run 三份 GR state（e2a/e2b/e3）**逐字相同**（sha256 同）→ 确定性序列化，差异区非时间戳。
-- 跨插件对比（Surge 67294B vs GR 1780B）：前 3 字节相同（`58 d9 0c`），第 4-6 字节区相异（疑似长度/插件相关字段），随后 ~69 字节两插件**再次共同**，之后完全发散（各自载荷）。该结构与「[3B 常量头][长度区][跨插件共享头][载荷]」的容器形态吻合，但与任何已核对源码层的预期输出都不符。
+**§4 结论重写**：
 
-**候选解释**（未定）：309 run（2026-11-09）的内核二进制所链 JUCE/路径与现行子模块源码不一致（旧构建或不同 pin）；或该构建存在一处未核对的附加变换。当前子模块源码是 301 卡（11 月中）插桩后的版本，与 11-09 构建有时间差。
+1. 309 工件非陈旧产物；`58 d9 0c` 形态=现行内核本征。腿 E 此前据内核源码推出的「XML 包裹明文」预期与该二进制行为**不符**——即本仓 tracktion 子模块检出的 JUCE 源码与被测二进制在此路径上存在未解释的出入（构建期源码态或未核对的包装层），**源码级 XML 假说降级为「未证伪但被实测压倒」**，按实测为准。
+2. **腿 D 路径裁定依据（主管预设分支 B）**：仍高熵 → **腿 D 走内核亲存 state 路径（309 先例：真栈装载→设预设→save→sidecar 提取 state 入模板）**；fxp→state 离线合成不可行（内容层结构未解+无内核侧 setState 通道）。
+3. state 随补丁内容变化的确认留腿 D（选 patch 内参数做差分；Global Volume 已证不在序列化内）。
 
-**闸门含义**：离线「fxp→state 合成」的管道（§1 字母表 + §2 通道 + §3 剥头）已逐段定义，但**尚未端到端实证**——现行内核保存的 state 内容层与源码预期不符，合成件能否被内核 `setStateInformation` 接受未经证明。**腿 D 不得在验证前宣称免内核换血可行。**
-
-## 解闸动作（腿 C/D 栈时顺带，约 10 分钟，不单独占栈）
-
-1. 现行内核装载 Surge XT → save → 提取 state 属性 → 与 §4 预期（XML 包裹）和 309 工件（二进制）对比归层；
-2. 若现行内核产出 XML 包裹：309 工件=旧构建产物，管道全通；用任一出厂 fxp 合成 state 写入工程 XML → open → 出声探针验证（腿 D 正路）；
-3. 若现行内核仍产出二进制：对二进制层做同法取证（此时需内核二进制 provenance 核对，可能转内核域卡）。
+## 解闸动作——已完成（2026-11-16 21:10）
 
 ## 工件与证据索引
 

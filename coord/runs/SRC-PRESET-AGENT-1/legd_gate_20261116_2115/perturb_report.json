@@ -1,0 +1,38 @@
+{
+ "track_id": "1011",
+ "plugin_id": "1014",
+ "chosen_param": {
+  "target_kind": "plugin_param",
+  "plugin_id": "1014",
+  "plugin_name": "Surge XT",
+  "plugin_type": "vst",
+  "template_role": "instrument",
+  "param_id": "1336600346",
+  "param_name": "Global Volume",
+  "normalized_role": "common_gain",
+  "alias": "Global Volume"
+ },
+ "set_plugin_param": {
+  "status": "ok",
+  "plugin_id": "1014",
+  "param_id": "1336600346",
+  "new_value": 0.899999976158142,
+  "new_normalised_value": 0.899999976158142,
+  "actual_normalized_value": 0.899999976158142,
+  "new_value_text": "-4.80 dB",
+  "display_text": "-4.80 dB",
+  "value_interpretation": "raw"
+ },
+ "save_as_project": {
+  "status": "ok",
+  "message": "Project saved",
+  "project_lifecycle": "save_as",
+  "project_path": "D:\\Vit_DAW_wt_presetagent\\coord\\runs\\SRC-PRESET-AGENT-1\\legd_gate_20261116_2115\\legd_gate_project_perturbed.vit",
+  "current_project_path": "D:\\Vit_DAW_wt_presetagent\\coord\\runs\\SRC-PRESET-AGENT-1\\legd_gate_20261116_2115\\legd_gate_project_perturbed.vit",
+  "project_uuid": "vitproj_4ea0587c2a954954ad15c98d6e99dd9d",
+  "project_id": "vitproj_4ea0587c2a954954ad15c98d6e99dd9d",
+  "source_project_uuid": "vitproj_dabafdad60464b3ba7c6398edd592cbb",
+  "parent_project_uuid": "vitproj_dabafdad60464b3ba7c6398edd592cbb"
+ },
+ "sidecar": true
+}
