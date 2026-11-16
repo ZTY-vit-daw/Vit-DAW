@@ -35,31 +35,31 @@ const SchemaVersion = "vit.course_template.v1"
 
 // Manifest mirrors template_manifest.json (vit.course_template.v1).
 type Manifest struct {
-	SchemaVersion     string          `json:"schema_version"`
-	ID                string          `json:"id"`
-	Card              string          `json:"card"`
-	LessonDesign      LessonDesignRef `json:"lesson_design"`
-	TemplateFile      string          `json:"template_file"`
-	TemplateSHA256    string          `json:"template_sha256"`
-	TemplateUUID      string          `json:"template_project_uuid"`
-	Format            FormatBlock     `json:"format"`
-	Sources           map[string]Voice `json:"sources"`
-	Grooves           []GrooveSpec    `json:"grooves"`
-	Clips             []ClipSpec      `json:"clips"`
-	WorkspaceTiming   Timing          `json:"workspace_timing"`
-	W01Seam           SeamBlock       `json:"w01_seam"`
-	Exclusions        ExclusionsBlock `json:"exclusions"`
-	Gate              GateBlock       `json:"gate"`
-	BuiltBy           string          `json:"built_by"`
-	BuiltAt           string          `json:"built_at"`
+	SchemaVersion   string           `json:"schema_version"`
+	ID              string           `json:"id"`
+	Card            string           `json:"card"`
+	LessonDesign    LessonDesignRef  `json:"lesson_design"`
+	TemplateFile    string           `json:"template_file"`
+	TemplateSHA256  string           `json:"template_sha256"`
+	TemplateUUID    string           `json:"template_project_uuid"`
+	Format          FormatBlock      `json:"format"`
+	Sources         map[string]Voice `json:"sources"`
+	Grooves         []GrooveSpec     `json:"grooves"`
+	Clips           []ClipSpec       `json:"clips"`
+	WorkspaceTiming Timing           `json:"workspace_timing"`
+	W01Seam         SeamBlock        `json:"w01_seam"`
+	Exclusions      ExclusionsBlock  `json:"exclusions"`
+	Gate            GateBlock        `json:"gate"`
+	BuiltBy         string           `json:"built_by"`
+	BuiltAt         string           `json:"built_at"`
 }
 
 // LessonDesignRef points at the lesson design source the template serves.
 type LessonDesignRef struct {
-	Source    string `json:"source"`
-	Schema    string `json:"schema"`
-	DesignID  string `json:"design_id"`
-	Revision  int    `json:"revision"`
+	Source   string `json:"source"`
+	Schema   string `json:"schema"`
+	DesignID string `json:"design_id"`
+	Revision int    `json:"revision"`
 }
 
 // ExclusionsBlock records the honest non-adoption declarations.
@@ -84,13 +84,13 @@ type FormatBlock struct {
 
 // Voice is one instrument voice declaration (melody/theme/groove).
 type Voice struct {
-	Track        string          `json:"track"`
-	TrackName    string          `json:"track_name"`
-	Plugin       *PluginDecl     `json:"plugin,omitempty"`
-	PluginRef    string          `json:"plugin_ref,omitempty"`
-	MIDIChannel  int             `json:"midi_channel"`
-	GMMapping    *GMMapping      `json:"gm_mapping,omitempty"`
-	GMMappingRef string          `json:"gm_mapping_ref,omitempty"`
+	Track        string      `json:"track"`
+	TrackName    string      `json:"track_name"`
+	Plugin       *PluginDecl `json:"plugin,omitempty"`
+	PluginRef    string      `json:"plugin_ref,omitempty"`
+	MIDIChannel  int         `json:"midi_channel"`
+	GMMapping    *GMMapping  `json:"gm_mapping,omitempty"`
+	GMMappingRef string      `json:"gm_mapping_ref,omitempty"`
 }
 
 // PluginDecl pins the plugin identity and state blob ("program 固化").
@@ -106,53 +106,53 @@ type PluginDecl struct {
 
 // GMMapping declares the GM stand-in semantics (never a compatibility claim).
 type GMMapping struct {
-	Kind            string            `json:"kind"`
-	GMProgram       int               `json:"gm_program,omitempty"`
-	GMName          string            `json:"gm_name,omitempty"`
-	PercussionKeys  map[string]string `json:"percussion_keys,omitempty"`
-	Note            string            `json:"note"`
+	Kind           string            `json:"kind"`
+	GMProgram      int               `json:"gm_program,omitempty"`
+	GMName         string            `json:"gm_name,omitempty"`
+	PercussionKeys map[string]string `json:"percussion_keys,omitempty"`
+	Note           string            `json:"note"`
 }
 
 // GrooveSpec describes one auxiliary groove preset (template-library form).
 type GrooveSpec struct {
-	ID             string  `json:"id"`
-	ClipAlias      string  `json:"clip_alias"`
-	Track          string  `json:"track"`
-	TimeSignature  string  `json:"time_signature"`
-	Bars           int     `json:"bars"`
-	Beats          int     `json:"beats"`
-	PatternSummary string  `json:"pattern_summary"`
-	NoteCount      int     `json:"note_count"`
+	ID             string `json:"id"`
+	ClipAlias      string `json:"clip_alias"`
+	Track          string `json:"track"`
+	TimeSignature  string `json:"time_signature"`
+	Bars           int    `json:"bars"`
+	Beats          int    `json:"beats"`
+	PatternSummary string `json:"pattern_summary"`
+	NoteCount      int    `json:"note_count"`
 }
 
 // ClipSpec describes one student scaffold clip (placeholder pitch etc.).
 type ClipSpec struct {
-	Alias           string  `json:"alias"`
-	Track           string  `json:"track"`
-	TimeSignature   string  `json:"time_signature"`
-	Bars            int     `json:"bars"`
-	Beats           int     `json:"beats"`
-	Kind            string  `json:"kind"`
-	PlaceholderPitch int   `json:"placeholder_pitch,omitempty"`
-	Note            string  `json:"note"`
+	Alias            string `json:"alias"`
+	Track            string `json:"track"`
+	TimeSignature    string `json:"time_signature"`
+	Bars             int    `json:"bars"`
+	Beats            int    `json:"beats"`
+	Kind             string `json:"kind"`
+	PlaceholderPitch int    `json:"placeholder_pitch,omitempty"`
+	Note             string `json:"note"`
 }
 
 // Timing mirrors design workspace.timing (W01 contract field-for-field).
 type Timing struct {
-	TimeSignature string   `json:"time_signature"`
-	KeySignature  string   `json:"key_signature"`
-	TempoBPM      float64  `json:"tempo_bpm"`
-	PickupBeats   int      `json:"pickup_beats"`
-	TempoProvenance string `json:"tempo_provenance,omitempty"`
+	TimeSignature   string  `json:"time_signature"`
+	KeySignature    string  `json:"key_signature"`
+	TempoBPM        float64 `json:"tempo_bpm"`
+	PickupBeats     int     `json:"pickup_beats"`
+	TempoProvenance string  `json:"tempo_provenance,omitempty"`
 }
 
 // SeamBlock documents the W01-C creation-side binding seam.
 type SeamBlock struct {
-	Contract       string        `json:"contract"`
-	BindingTarget  string        `json:"binding_target"`
-	FieldMap       []SeamField   `json:"field_map"`
-	TrackMap       []SeamTrack   `json:"track_map"`
-	OutOfScope     string        `json:"out_of_scope"`
+	Contract      string      `json:"contract"`
+	BindingTarget string      `json:"binding_target"`
+	FieldMap      []SeamField `json:"field_map"`
+	TrackMap      []SeamTrack `json:"track_map"`
+	OutOfScope    string      `json:"out_of_scope"`
 }
 
 // SeamField is one design-field -> template-pin -> creation-command seam row.
@@ -180,7 +180,7 @@ type Loaded struct {
 
 // EditDoc is the parsed clear-XML EDIT (only the pins this package asserts).
 type EditDoc struct {
-	ProjectUUID   string
+	ProjectUUID  string
 	KeySignature string
 	Numerator    int
 	Denominator  int
@@ -219,10 +219,10 @@ type NoteDoc struct {
 }
 
 type xmlEdit struct {
-	XMLName        xml.Name   `xml:"EDIT"`
-	ProjectUUID    string     `xml:"vit_project_uuid,attr"`
-	KeySignature   string     `xml:"vit_music_key_signature,attr"`
-	TempoSequence  struct {
+	XMLName       xml.Name `xml:"EDIT"`
+	ProjectUUID   string   `xml:"vit_project_uuid,attr"`
+	KeySignature  string   `xml:"vit_music_key_signature,attr"`
+	TempoSequence struct {
 		Tempo struct {
 			BPM string `xml:"bpm,attr"`
 		} `xml:"TEMPO"`
@@ -235,36 +235,36 @@ type xmlEdit struct {
 }
 
 type xmlTrack struct {
-	Name    string     `xml:"name,attr"`
-	ID      string     `xml:"id,attr"`
+	Name    string      `xml:"name,attr"`
+	ID      string      `xml:"id,attr"`
 	Plugins []xmlPlugin `xml:"PLUGIN"`
-	Clips   []xmlClip  `xml:"MIDICLIP"`
+	Clips   []xmlClip   `xml:"MIDICLIP"`
 }
 
 type xmlPlugin struct {
-	Type         string `xml:"type,attr"`
-	Name         string `xml:"name,attr"`
-	UniqueID     string `xml:"uniqueId,attr"`
-	UID          string `xml:"uid,attr"`
-	State        string `xml:"state,attr"`
+	Type     string `xml:"type,attr"`
+	Name     string `xml:"name,attr"`
+	UniqueID string `xml:"uniqueId,attr"`
+	UID      string `xml:"uid,attr"`
+	State    string `xml:"state,attr"`
 }
 
 type xmlClip struct {
-	Name    string    `xml:"name,attr"`
-	Length  string    `xml:"length,attr"`
-	Seq     struct {
+	Name   string `xml:"name,attr"`
+	Length string `xml:"length,attr"`
+	Seq    struct {
 		ChannelNumber int       `xml:"channelNumber,attr"`
 		Notes         []xmlNote `xml:"NOTE"`
 	} `xml:"SEQUENCE"`
 }
 
 type xmlNote struct {
-	Pitch   string `xml:"p,attr"`
-	Beat    string `xml:"b,attr"`
-	Length  string `xml:"l,attr"`
+	Pitch    string `xml:"p,attr"`
+	Beat     string `xml:"b,attr"`
+	Length   string `xml:"l,attr"`
 	Velocity string `xml:"v,attr"`
-	Channel string `xml:"c,attr"`
-	NoteID  string `xml:"vit_note_id,attr"`
+	Channel  string `xml:"c,attr"`
+	NoteID   string `xml:"vit_note_id,attr"`
 }
 
 // Load reads the manifest + template from dir and verifies the file hash.
@@ -334,9 +334,20 @@ func parseEdit(data []byte) (EditDoc, error) {
 		}
 		for _, c := range tr.Clips {
 			cd := ClipDoc{Name: c.Name, ChannelNumber: c.Seq.ChannelNumber}
-			if cd.LengthBeats, err = strconv.ParseFloat(c.Length, 64); err != nil {
-				return EditDoc{}, fmt.Errorf("clip %s length: %w", c.Name, err)
+			// SRC-PRESET-AGENT-1 leg D (382 handed-over fix): the tracktion
+			// clear-XML MIDICLIP start/length attributes are TimePosition
+			// SECONDS read verbatim by the loader (tracktion_Clip.cpp
+			// CachedValue<TimePosition>; 382 forensics verdict
+			// template_xml_unit_mismatch). Convert to beats with the edit's
+			// own tempo so LengthBeats keeps its beat semantics.
+			lengthSeconds, lengthErr := strconv.ParseFloat(c.Length, 64)
+			if lengthErr != nil {
+				return EditDoc{}, fmt.Errorf("clip %s length: %w", c.Name, lengthErr)
 			}
+			if out.TempoBPM <= 0 {
+				return EditDoc{}, fmt.Errorf("clip %s: tempo bpm %v cannot convert seconds to beats", c.Name, out.TempoBPM)
+			}
+			cd.LengthBeats = lengthSeconds * out.TempoBPM / 60.0
 			for _, n := range c.Seq.Notes {
 				nd := NoteDoc{NoteID: n.NoteID}
 				if nd.Pitch, err = strconv.Atoi(n.Pitch); err != nil {

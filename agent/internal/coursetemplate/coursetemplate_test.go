@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"testing"
 )
 
@@ -135,6 +137,11 @@ func TestValidateDetectsMediaReference(t *testing.T) {
 
 // patchManifestHash rewrites template_sha256 in the copied manifest to the
 // canonical (LF-normalized) content hash so load-time verification passes.
+// The pin is matched by pattern, not by a hardcoded digest: the committed
+// template evolves across cards (384 leg D replaced the 373 pin that used
+// to be hardcoded here).
+var manifestShaPin = regexp.MustCompile(`"template_sha256": "[0-9a-f]{64}"`)
+
 func patchManifestHash(dir string, data []byte) error {
 	sum := sha256Sum(bytes.ReplaceAll(data, []byte("\r\n"), []byte("\n")))
 	manifestPath := filepath.Join(dir, ManifestFile)
@@ -142,7 +149,10 @@ func patchManifestHash(dir string, data []byte) error {
 	if err != nil {
 		return err
 	}
-	out := bytes.Replace(raw, []byte(`"template_sha256": "a188defd2c852d57e1b18e0a2cb811c9b854c1c8063b54383d191f8dc1f0fb29"`), []byte(`"template_sha256": "`+sum+`"`), 1)
+	out := manifestShaPin.ReplaceAll(raw, []byte(`"template_sha256": "`+sum+`"`))
+	if bytes.Equal(out, raw) {
+		return fmt.Errorf("patchManifestHash: no template_sha256 pin found in %s", manifestPath)
+	}
 	return os.WriteFile(manifestPath, out, 0o644)
 }
 

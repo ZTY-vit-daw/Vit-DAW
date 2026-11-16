@@ -1,0 +1,96 @@
+{
+ "schema": "src_preset_legd_verify.v1",
+ "started_at": "2026-11-16T22:44:59",
+ "asserts": [
+  {
+   "name": "boot-ping",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "name": "A1-tracks",
+   "pass": true,
+   "detail": "['Arranger', 'Chord', 'Marker', 'Master', 'Tempo', '参考与示范', '我的八小节主题', '我的成曲版本', '我的旋律', '辅助律动（鼓）']"
+  },
+  {
+   "name": "A2-clip-rhythm-lab",
+   "pass": true,
+   "detail": "length_seconds=6.0 beats=8.0"
+  },
+  {
+   "name": "A2-clip-groove-2-4-basic",
+   "pass": true,
+   "detail": "length_seconds=6.0 beats=8.0"
+  },
+  {
+   "name": "A2-clip-eight-bar-theme",
+   "pass": true,
+   "detail": "length_seconds=12.0 beats=16.0"
+  },
+  {
+   "name": "A3-notes-rhythm-lab",
+   "pass": true,
+   "detail": "notes=8 want=8 length_seconds=6.0"
+  },
+  {
+   "name": "A3-notes-groove-2-4-basic",
+   "pass": true,
+   "detail": "notes=21 want=21 length_seconds=6.0 pitches=[36, 38, 42, 46]"
+  },
+  {
+   "name": "A3-notes-eight-bar-theme",
+   "pass": true,
+   "detail": "notes=16 want=16 length_seconds=12.0"
+  },
+  {
+   "name": "A4-plugin-states",
+   "pass": true,
+   "detail": "melody=b9daa1f85040 groove=8ec4a56d5b6d got=['b9daa1f85040', '8ec4a56d5b6d', 'b9daa1f85040']"
+  },
+  {
+   "name": "B-probe-rhythm-lab",
+   "pass": true,
+   "detail": "status=ready nonzero=True max_abs=0.150982394814491 nan=0"
+  },
+  {
+   "name": "B-probe-groove-2-4-basic",
+   "pass": true,
+   "detail": "status=ready nonzero=True max_abs=0.139670357108116 nan=0"
+  },
+  {
+   "name": "B-probe-eight-bar-theme",
+   "pass": true,
+   "detail": "status=ready nonzero=True max_abs=0.155913889408112 nan=0"
+  }
+ ],
+ "probes": {
+  "rhythm-lab": {
+   "ok": true,
+   "probe_status": "ready",
+   "nonzero": true,
+   "max_abs": 0.150982394814491,
+   "sum_abs": 13557.754268211203,
+   "nan_inf_count": 0,
+   "timed_out": false
+  },
+  "groove-2-4-basic": {
+   "ok": true,
+   "probe_status": "ready",
+   "nonzero": true,
+   "max_abs": 0.139670357108116,
+   "sum_abs": 555.3007335376899,
+   "nan_inf_count": 0,
+   "timed_out": false
+  },
+  "eight-bar-theme": {
+   "ok": true,
+   "probe_status": "ready",
+   "nonzero": true,
+   "max_abs": 0.155913889408112,
+   "sum_abs": 27056.681598507785,
+   "nan_inf_count": 0,
+   "timed_out": false
+  }
+ },
+ "finished_at": "2026-11-16T22:45:00"
+}

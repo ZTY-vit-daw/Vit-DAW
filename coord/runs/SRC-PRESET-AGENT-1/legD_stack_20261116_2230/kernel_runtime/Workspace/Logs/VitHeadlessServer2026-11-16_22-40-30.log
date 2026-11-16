@@ -1,0 +1,711 @@
+
+**********************************************************
+VitHeadlessServer session log
+Log started: 16 Nov 2026 10:40:30pm
+
+VitHeadlessServer: application startup.
+VitPaths: created cache directory: D:\Vit_DAW_wt_presetagent\coord\runs\SRC-PRESET-AGENT-1\legD_stack_20261116_2230\kernel_runtime\Workspace\Cache
+Settings file: D:\Vit_DAW_wt_presetagent\coord\runs\SRC-PRESET-AGENT-1\legD_stack_20261116_2230\kernel_runtime\Workspace\Settings\Settings.xml
+Audio block size: 480  Rate: 48000
+Creating Default Controllers...
+VitEngineDevice: initialising Tracktion Engine device manager.
+Audio block size: 480  Rate: 48000
+Rebuilding Wave Device List...
+Wave In: Input 1 (enabled): 0 (L)
+Wave In: Input 2 (enabled): 1 (L)
+Wave Out: Output 1 + 2 (enabled): 0 (L), 1 (R)
+Default Wave Out: Output 1 + 2
+Default MIDI Out: 
+Default Wave In: Input 1
+Default MIDI In: 
+VitEngineDevice: audio IO ready for playback graph: "扬声器 (USB AUDIO  CODEC)" 48000.00 Hz, block 480 samples
+VitEngineDevice: audio setup outputDevice="扬声器 (USB AUDIO  CODEC)" inputDevice="麦克风 (Sonic Studio Virtual Mixer)" sampleRate=48000.00 bufferSize=480 inputChannels=11 outputChannels=11
+VitEngineDevice: current audio device name="扬声器 (USB AUDIO  CODEC)" type="Windows Audio" activeOutputChannels=Output channel 1, Output channel 2" activeInputChannels=Input channel 1, Input channel 2"
+VitHeadlessService: edit loaded from D:\Vit_DAW_wt_presetagent\coord\runs\SRC-PRESET-AGENT-1\legD_stack_20261116_2230\kernel_runtime\Workspace\default_project.xml
+VitEngineDevice: audio IO ready for playback graph: "扬声器 (USB AUDIO  CODEC)" 48000.00 Hz, block 480 samples
+VitHeadlessService: project reload complete.
+ZmqGateway: bound command endpoint to tcp://127.0.0.1:5555
+ZmqGateway: bound publish endpoint to tcp://127.0.0.1:5556
+ZmqGateway: bound log endpoint to tcp://127.0.0.1:5557
+ZmqGateway: started network thread.
+VitHeadlessService: service started successfully.
+VitHeadlessServer: startup complete, entering background message loop.
+MIDI Input devices scanned in: 0
+Updating MIDI I/O devices
+Found MIDI in: midiin_4b684aa ("SG Device I/O") (enabled)
+Found MIDI in: midiin_1683015f ("StudioRack") (enabled)
+Found MIDI in: all_midi_in ("All MIDI Ins") (enabled)
+Found MIDI out: out_81b0d7ef ("Microsoft GS Wavetable Synth") (enabled)
+Found MIDI out: out_54d4e9aa ("SG Device I/O") (enabled)
+Found MIDI out: out_c683fc5f ("StudioRack") (enabled)
+opening MIDI out device: out_81b0d7ef (Microsoft GS Wavetable Synth)
+opening MIDI out device: out_54d4e9aa (SG Device I/O)
+opening MIDI out device: out_c683fc5f (StudioRack)
+opening MIDI in device: midiin_4b684aa (SG Device I/O)
+opening MIDI in device: midiin_1683015f (StudioRack)
+ZmqGateway: received command payload: {"cmd": "ping"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd": "ping"}
+Command received: {"cmd": "ping"}
+CommandDispatcher: handled ping command.
+Command executed: ping, result: {
+  "status": "ok",
+  "message": "pong"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "pong"
+}
+ZmqGateway: received command payload: {"cmd": "add_track", "name": "melody-craft"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd": "add_track", "name": "melody-craft"}
+Command received: {"cmd": "add_track", "name": "melody-craft"}
+VitHeadlessService: project saved to D:\Vit_DAW_wt_presetagent\coord\runs\SRC-PRESET-AGENT-1\legD_stack_20261116_2230\kernel_runtime\Workspace\default_project.xml
+Command executed: add_track, result: {
+  "status": "ok",
+  "message": "Track added",
+  "track_id": "1015",
+  "track_name": "Track 3"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Track added",
+  "track_id": "1015",
+  "track_name": "Track 3"
+}
+ZmqGateway: received command payload: {"cmd": "instantiate_plugin", "track_id": "1015", "plugin_identifier": "VST3-Surge XT-1e1bcfb-190e4fbd"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd": "instantiate_plugin", "track_id": "1015", "plugin_identifier": "VST3-Surge XT-1e1bcfb-190e4fbd"}
+Command received: {"cmd": "instantiate_plugin", "track_id": "1015", "plugin_identifier": "VST3-Surge XT-1e1bcfb-190e4fbd"}
+PluginRackControlService: resolveExternalPluginDescription/identifier plugin desc name=Surge XT format=VST3 path=C:\Program Files\Common Files\VST3\Surge Synth Team\Surge XT.vst3\Contents\x86_64-win\Surge XT.vst3 uniqueId=420368317 uid=-206033232 identifier=VST3-Surge XT-1e1bcfb-f3b82eb0 known_before=991 known_after=991 added=false
+VitHeadlessService: project saved to D:\Vit_DAW_wt_presetagent\coord\runs\SRC-PRESET-AGENT-1\legD_stack_20261116_2230\kernel_runtime\Workspace\default_project.xml
+Command executed: instantiate_plugin, result: {
+  "status": "ok",
+  "message": "Plugin instantiated",
+  "track_id": "1015",
+  "plugin_id": "1018",
+  "plugin_item_id": "1018",
+  "plugin_name": "Surge XT",
+  "plugin_identifier": "VST3-Surge XT-1e1bcfb-190e4fbd",
+  "template_role": "instrument",
+  "graph_revision": 1,
+  "graph_active_revision": 1,
+  "graph_pending_revision": 0,
+  "graph_last_retired_revision": 0,
+  "graph_retired_snapshot_count": 0,
+  "graph_last_diff_kind": "node_add",
+  "graph_last_diff_summary": "Inserted track plugin Surge XT",
+  "graph_publish_mode": "context_rebuild_idle",
+  "graph_lifecycle_state": "active",
+  "graph_recent_changes": [
+    {
+      "revision": 1,
+      "kind": "node_add",
+      "summary": "Inserted track plugin Surge XT",
+      "track_id": "1015",
+      "rack_item_id": "",
+      "node_id": "1018",
+      "source_id": "",
+      "dest_id": "",
+      "timestamp_ms": 1794840037172
+    }
+  ]
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Plugin instantiated",
+  "track_id": "1015",
+  "plugin_id": "1018",
+  "plugin_item_id": "1018",
+  "plugin_name": "Surge XT",
+  "plugin_identifier": "VST3-Surge XT-1e1bcfb-190e4fbd"
+ZmqGateway: received command payload: {"cmd": "set_plugin_param", "track_id": "1015", "plugin_id": "1018", "param_id": "371918428", "value": 0.0, "confirmed": true}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd": "set_plugin_param", "track_id": "1015", "plugin_id": "1018", "param_id": "371918428", "value": 0.0, "confirmed": true}
+Command received: {"cmd": "set_plugin_param", "track_id": "1015", "plugin_id": "1018", "param_id": "371918428", "value": 0.0, "confirmed": true}
+Command executed: set_plugin_param, result: {
+  "status": "ok",
+  "plugin_id": "1018",
+  "param_id": "371918428",
+  "new_value": 0.0,
+  "new_normalised_value": 0.0,
+  "actual_normalized_value": 0.0,
+  "new_value_text": "-inf dB",
+  "display_text": "-inf dB",
+  "value_interpretation": "raw"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "plugin_id": "1018",
+  "param_id": "371918428",
+  "new_value": 0.0,
+  "new_normalised_value": 0.0,
+  "actual_normalized_value": 0.0,
+  "new_value_text": "-inf dB",
+  "display_text": "-inf dB
+ZmqGateway: received command payload: {"cmd": "set_plugin_param", "track_id": "1015", "plugin_id": "1018", "param_id": "371918429", "value": 0.0, "confirmed": true}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd": "set_plugin_param", "track_id": "1015", "plugin_id": "1018", "param_id": "371918429", "value": 0.0, "confirmed": true}
+Command received: {"cmd": "set_plugin_param", "track_id": "1015", "plugin_id": "1018", "param_id": "371918429", "value": 0.0, "confirmed": true}
+Command executed: set_plugin_param, result: {
+  "status": "ok",
+  "plugin_id": "1018",
+  "param_id": "371918429",
+  "new_value": 0.0,
+  "new_normalised_value": 0.0,
+  "actual_normalized_value": 0.0,
+  "new_value_text": "-inf dB",
+  "display_text": "-inf dB",
+  "value_interpretation": "raw"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "plugin_id": "1018",
+  "param_id": "371918429",
+  "new_value": 0.0,
+  "new_normalised_value": 0.0,
+  "actual_normalized_value": 0.0,
+  "new_value_text": "-inf dB",
+  "display_text": "-inf dB
+ZmqGateway: received command payload: {"cmd": "set_plugin_param", "track_id": "1015", "plugin_id": "1018", "param_id": "1788975242", "value": 0.0, "confirmed": true}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd": "set_plugin_param", "track_id": "1015", "plugin_id": "1018", "param_id": "1788975242", "value": 0.0, "confirmed": true}
+Command received: {"cmd": "set_plugin_param", "track_id": "1015", "plugin_id": "1018", "param_id": "1788975242", "value": 0.0, "confirmed": true}
+Command executed: set_plugin_param, result: {
+  "status": "ok",
+  "plugin_id": "1018",
+  "param_id": "1788975242",
+  "new_value": 0.0,
+  "new_normalised_value": 0.0,
+  "actual_normalized_value": 0.0,
+  "new_value_text": "-inf dB",
+  "display_text": "-inf dB",
+  "value_interpretation": "raw"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "plugin_id": "1018",
+  "param_id": "1788975242",
+  "new_value": 0.0,
+  "new_normalised_value": 0.0,
+  "actual_normalized_value": 0.0,
+  "new_value_text": "-inf dB",
+  "display_text": "-inf d
+ZmqGateway: received command payload: {"cmd": "set_plugin_param", "track_id": "1015", "plugin_id": "1018", "param_id": "1788975274", "value": 0.0, "confirmed": true}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd": "set_plugin_param", "track_id": "1015", "plugin_id": "1018", "param_id": "1788975274", "value": 0.0, "confirmed": true}
+Command received: {"cmd": "set_plugin_param", "track_id": "1015", "plugin_id": "1018", "param_id": "1788975274", "value": 0.0, "confirmed": true}
+Command executed: set_plugin_param, result: {
+  "status": "ok",
+  "plugin_id": "1018",
+  "param_id": "1788975274",
+  "new_value": 0.0,
+  "new_normalised_value": 0.0,
+  "actual_normalized_value": 0.0,
+  "new_value_text": "-inf dB",
+  "display_text": "-inf dB",
+  "value_interpretation": "raw"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "plugin_id": "1018",
+  "param_id": "1788975274",
+  "new_value": 0.0,
+  "new_normalised_value": 0.0,
+  "actual_normalized_value": 0.0,
+  "new_value_text": "-inf dB",
+  "display_text": "-inf d
+ZmqGateway: received command payload: {"cmd": "set_plugin_param", "track_id": "1015", "plugin_id": "1018", "param_id": "954746817", "value": 0.0, "confirmed": true}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd": "set_plugin_param", "track_id": "1015", "plugin_id": "1018", "param_id": "954746817", "value": 0.0, "confirmed": true}
+Command received: {"cmd": "set_plugin_param", "track_id": "1015", "plugin_id": "1018", "param_id": "954746817", "value": 0.0, "confirmed": true}
+Command executed: set_plugin_param, result: {
+  "status": "ok",
+  "plugin_id": "1018",
+  "param_id": "954746817",
+  "new_value": 0.0,
+  "new_normalised_value": 0.0,
+  "actual_normalized_value": 0.0,
+  "new_value_text": "-inf dB",
+  "display_text": "-inf dB",
+  "value_interpretation": "raw"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "plugin_id": "1018",
+  "param_id": "954746817",
+  "new_value": 0.0,
+  "new_normalised_value": 0.0,
+  "actual_normalized_value": 0.0,
+  "new_value_text": "-inf dB",
+  "display_text": "-inf dB
+ZmqGateway: received command payload: {"cmd": "set_plugin_param", "track_id": "1015", "plugin_id": "1018", "param_id": "1945359057", "value": 0.38, "confirmed": true}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd": "set_plugin_param", "track_id": "1015", "plugin_id": "1018", "param_id": "1945359057", "value": 0.38, "confirmed": true}
+Command received: {"cmd": "set_plugin_param", "track_id": "1015", "plugin_id": "1018", "param_id": "1945359057", "value": 0.38, "confirmed": true}
+Command executed: set_plugin_param, result: {
+  "status": "ok",
+  "plugin_id": "1018",
+  "param_id": "1945359057",
+  "new_value": 0.379999995231628,
+  "new_normalised_value": 0.379999995231628,
+  "actual_normalized_value": 0.379999995231628,
+  "new_value_text": "238.53 Hz",
+  "display_text": "238.53 Hz",
+  "value_interpretation": "raw"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "plugin_id": "1018",
+  "param_id": "1945359057",
+  "new_value": 0.379999995231628,
+  "new_normalised_value": 0.379999995231628,
+  "actual_normalized_value": 0.379999995231628,
+  "new_value_te
+ZmqGateway: received command payload: {"cmd": "set_plugin_param", "track_id": "1015", "plugin_id": "1018", "param_id": "8095466", "value": 0.12, "confirmed": true}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd": "set_plugin_param", "track_id": "1015", "plugin_id": "1018", "param_id": "8095466", "value": 0.12, "confirmed": true}
+Command received: {"cmd": "set_plugin_param", "track_id": "1015", "plugin_id": "1018", "param_id": "8095466", "value": 0.12, "confirmed": true}
+Command executed: set_plugin_param, result: {
+  "status": "ok",
+  "plugin_id": "1018",
+  "param_id": "8095466",
+  "new_value": 0.119999997317791,
+  "new_normalised_value": 0.119999997317791,
+  "actual_normalized_value": 0.119999997317791,
+  "new_value_text": "12.00 %",
+  "display_text": "12.00 %",
+  "value_interpretation": "raw"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "plugin_id": "1018",
+  "param_id": "8095466",
+  "new_value": 0.119999997317791,
+  "new_normalised_value": 0.119999997317791,
+  "actual_normalized_value": 0.119999997317791,
+  "new_value_text"
+ZmqGateway: received command payload: {"cmd": "set_plugin_param", "track_id": "1015", "plugin_id": "1018", "param_id": "874858726", "value": 0.55, "confirmed": true}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd": "set_plugin_param", "track_id": "1015", "plugin_id": "1018", "param_id": "874858726", "value": 0.55, "confirmed": true}
+Command received: {"cmd": "set_plugin_param", "track_id": "1015", "plugin_id": "1018", "param_id": "874858726", "value": 0.55, "confirmed": true}
+Command executed: set_plugin_param, result: {
+  "status": "ok",
+  "plugin_id": "1018",
+  "param_id": "874858726",
+  "new_value": 0.550000011920929,
+  "new_normalised_value": 0.550000011920929,
+  "actual_normalized_value": 0.550000011920929,
+  "new_value_text": "55.00 %",
+  "display_text": "55.00 %",
+  "value_interpretation": "raw"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "plugin_id": "1018",
+  "param_id": "874858726",
+  "new_value": 0.550000011920929,
+  "new_normalised_value": 0.550000011920929,
+  "actual_normalized_value": 0.550000011920929,
+  "new_value_tex
+ZmqGateway: received command payload: {"cmd": "set_plugin_param", "track_id": "1015", "plugin_id": "1018", "param_id": "1669861066", "value": 0.35, "confirmed": true}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd": "set_plugin_param", "track_id": "1015", "plugin_id": "1018", "param_id": "1669861066", "value": 0.35, "confirmed": true}
+Command received: {"cmd": "set_plugin_param", "track_id": "1015", "plugin_id": "1018", "param_id": "1669861066", "value": 0.35, "confirmed": true}
+Command executed: set_plugin_param, result: {
+  "status": "ok",
+  "plugin_id": "1018",
+  "param_id": "1669861066",
+  "new_value": 0.349999994039536,
+  "new_normalised_value": 0.349999994039536,
+  "actual_normalized_value": 0.349999994039536,
+  "new_value_text": "91.5 ms",
+  "display_text": "91.5 ms",
+  "value_interpretation": "raw"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "plugin_id": "1018",
+  "param_id": "1669861066",
+  "new_value": 0.349999994039536,
+  "new_normalised_value": 0.349999994039536,
+  "actual_normalized_value": 0.349999994039536,
+  "new_value_te
+ZmqGateway: received command payload: {"cmd": "set_plugin_param", "track_id": "1015", "plugin_id": "1018", "param_id": "1298982072", "value": 0.75, "confirmed": true}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd": "set_plugin_param", "track_id": "1015", "plugin_id": "1018", "param_id": "1298982072", "value": 0.75, "confirmed": true}
+Command received: {"cmd": "set_plugin_param", "track_id": "1015", "plugin_id": "1018", "param_id": "1298982072", "value": 0.75, "confirmed": true}
+Command executed: set_plugin_param, result: {
+  "status": "ok",
+  "plugin_id": "1018",
+  "param_id": "1298982072",
+  "new_value": 0.75,
+  "new_normalised_value": 0.75,
+  "actual_normalized_value": 0.75,
+  "new_value_text": "-7.47 dB",
+  "display_text": "-7.47 dB",
+  "value_interpretation": "raw"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "plugin_id": "1018",
+  "param_id": "1298982072",
+  "new_value": 0.75,
+  "new_normalised_value": 0.75,
+  "actual_normalized_value": 0.75,
+  "new_value_text": "-7.47 dB",
+  "display_text": "-7
+ZmqGateway: received command payload: {"cmd": "add_track", "name": "groove-craft"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd": "add_track", "name": "groove-craft"}
+Command received: {"cmd": "add_track", "name": "groove-craft"}
+VitHeadlessService: project saved to D:\Vit_DAW_wt_presetagent\coord\runs\SRC-PRESET-AGENT-1\legD_stack_20261116_2230\kernel_runtime\Workspace\default_project.xml
+Command executed: add_track, result: {
+  "status": "ok",
+  "message": "Track added",
+  "track_id": "1019",
+  "track_name": "Track 4"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Track added",
+  "track_id": "1019",
+  "track_name": "Track 4"
+}
+ZmqGateway: received command payload: {"cmd": "instantiate_plugin", "track_id": "1019", "plugin_identifier": "VST3-Surge XT-1e1bcfb-190e4fbd"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd": "instantiate_plugin", "track_id": "1019", "plugin_identifier": "VST3-Surge XT-1e1bcfb-190e4fbd"}
+Command received: {"cmd": "instantiate_plugin", "track_id": "1019", "plugin_identifier": "VST3-Surge XT-1e1bcfb-190e4fbd"}
+PluginRackControlService: resolveExternalPluginDescription/identifier plugin desc name=Surge XT format=VST3 path=C:\Program Files\Common Files\VST3\Surge Synth Team\Surge XT.vst3\Contents\x86_64-win\Surge XT.vst3 uniqueId=420368317 uid=-206033232 identifier=VST3-Surge XT-1e1bcfb-f3b82eb0 known_before=991 known_after=991 added=false
+VitHeadlessService: project saved to D:\Vit_DAW_wt_presetagent\coord\runs\SRC-PRESET-AGENT-1\legD_stack_20261116_2230\kernel_runtime\Workspace\default_project.xml
+Command executed: instantiate_plugin, result: {
+  "status": "ok",
+  "message": "Plugin instantiated",
+  "track_id": "1019",
+  "plugin_id": "1022",
+  "plugin_item_id": "1022",
+  "plugin_name": "Surge XT",
+  "plugin_identifier": "VST3-Surge XT-1e1bcfb-190e4fbd",
+  "template_role": "instrument",
+  "graph_revision": 2,
+  "graph_active_revision": 2,
+  "graph_pending_revision": 0,
+  "graph_last_retired_revision": 1,
+  "graph_retired_snapshot_count": 1,
+  "graph_last_diff_kind": "node_add",
+  "graph_last_diff_summary": "Inserted track plugin Surge XT",
+  "graph_publish_mode": "context_rebuild_idle",
+  "graph_lifecycle_state": "active",
+  "graph_recent_changes": [
+    {
+      "revision": 2,
+      "kind": "node_add",
+      "summary": "Inserted track plugin Surge XT",
+      "track_id": "1019",
+      "rack_item_id": "",
+      "node_id": "1022",
+      "source_id": "",
+      "dest_id": "",
+      "timestamp_ms": 1794840037647
+    },
+    {
+      "revision": 1,
+      "kind": "node_add",
+      "summary": "Inserted track plugin Surge XT",
+      "track_id": "1015",
+      "rack_item_id": "",
+      "node_id": "1018",
+      "source_id": "",
+      "dest_id": "",
+      "timestamp_ms": 1794840037172
+    }
+  ]
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Plugin instantiated",
+  "track_id": "1019",
+  "plugin_id": "1022",
+  "plugin_item_id": "1022",
+  "plugin_name": "Surge XT",
+  "plugin_identifier": "VST3-Surge XT-1e1bcfb-190e4fbd"
+ZmqGateway: received command payload: {"cmd": "set_plugin_param", "track_id": "1019", "plugin_id": "1022", "param_id": "371918428", "value": 0.0, "confirmed": true}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd": "set_plugin_param", "track_id": "1019", "plugin_id": "1022", "param_id": "371918428", "value": 0.0, "confirmed": true}
+Command received: {"cmd": "set_plugin_param", "track_id": "1019", "plugin_id": "1022", "param_id": "371918428", "value": 0.0, "confirmed": true}
+Command executed: set_plugin_param, result: {
+  "status": "ok",
+  "plugin_id": "1022",
+  "param_id": "371918428",
+  "new_value": 0.0,
+  "new_normalised_value": 0.0,
+  "actual_normalized_value": 0.0,
+  "new_value_text": "-inf dB",
+  "display_text": "-inf dB",
+  "value_interpretation": "raw"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "plugin_id": "1022",
+  "param_id": "371918428",
+  "new_value": 0.0,
+  "new_normalised_value": 0.0,
+  "actual_normalized_value": 0.0,
+  "new_value_text": "-inf dB",
+  "display_text": "-inf dB
+ZmqGateway: received command payload: {"cmd": "set_plugin_param", "track_id": "1019", "plugin_id": "1022", "param_id": "371918429", "value": 0.0, "confirmed": true}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd": "set_plugin_param", "track_id": "1019", "plugin_id": "1022", "param_id": "371918429", "value": 0.0, "confirmed": true}
+Command received: {"cmd": "set_plugin_param", "track_id": "1019", "plugin_id": "1022", "param_id": "371918429", "value": 0.0, "confirmed": true}
+Command executed: set_plugin_param, result: {
+  "status": "ok",
+  "plugin_id": "1022",
+  "param_id": "371918429",
+  "new_value": 0.0,
+  "new_normalised_value": 0.0,
+  "actual_normalized_value": 0.0,
+  "new_value_text": "-inf dB",
+  "display_text": "-inf dB",
+  "value_interpretation": "raw"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "plugin_id": "1022",
+  "param_id": "371918429",
+  "new_value": 0.0,
+  "new_normalised_value": 0.0,
+  "actual_normalized_value": 0.0,
+  "new_value_text": "-inf dB",
+  "display_text": "-inf dB
+ZmqGateway: received command payload: {"cmd": "set_plugin_param", "track_id": "1019", "plugin_id": "1022", "param_id": "1788975242", "value": 0.0, "confirmed": true}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd": "set_plugin_param", "track_id": "1019", "plugin_id": "1022", "param_id": "1788975242", "value": 0.0, "confirmed": true}
+Command received: {"cmd": "set_plugin_param", "track_id": "1019", "plugin_id": "1022", "param_id": "1788975242", "value": 0.0, "confirmed": true}
+Command executed: set_plugin_param, result: {
+  "status": "ok",
+  "plugin_id": "1022",
+  "param_id": "1788975242",
+  "new_value": 0.0,
+  "new_normalised_value": 0.0,
+  "actual_normalized_value": 0.0,
+  "new_value_text": "-inf dB",
+  "display_text": "-inf dB",
+  "value_interpretation": "raw"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "plugin_id": "1022",
+  "param_id": "1788975242",
+  "new_value": 0.0,
+  "new_normalised_value": 0.0,
+  "actual_normalized_value": 0.0,
+  "new_value_text": "-inf dB",
+  "display_text": "-inf d
+ZmqGateway: received command payload: {"cmd": "set_plugin_param", "track_id": "1019", "plugin_id": "1022", "param_id": "1788975274", "value": 0.0, "confirmed": true}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd": "set_plugin_param", "track_id": "1019", "plugin_id": "1022", "param_id": "1788975274", "value": 0.0, "confirmed": true}
+Command received: {"cmd": "set_plugin_param", "track_id": "1019", "plugin_id": "1022", "param_id": "1788975274", "value": 0.0, "confirmed": true}
+Command executed: set_plugin_param, result: {
+  "status": "ok",
+  "plugin_id": "1022",
+  "param_id": "1788975274",
+  "new_value": 0.0,
+  "new_normalised_value": 0.0,
+  "actual_normalized_value": 0.0,
+  "new_value_text": "-inf dB",
+  "display_text": "-inf dB",
+  "value_interpretation": "raw"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "plugin_id": "1022",
+  "param_id": "1788975274",
+  "new_value": 0.0,
+  "new_normalised_value": 0.0,
+  "actual_normalized_value": 0.0,
+  "new_value_text": "-inf dB",
+  "display_text": "-inf d
+ZmqGateway: received command payload: {"cmd": "set_plugin_param", "track_id": "1019", "plugin_id": "1022", "param_id": "2005836581", "value": 0.0, "confirmed": true}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd": "set_plugin_param", "track_id": "1019", "plugin_id": "1022", "param_id": "2005836581", "value": 0.0, "confirmed": true}
+Command received: {"cmd": "set_plugin_param", "track_id": "1019", "plugin_id": "1022", "param_id": "2005836581", "value": 0.0, "confirmed": true}
+Command executed: set_plugin_param, result: {
+  "status": "ok",
+  "plugin_id": "1022",
+  "param_id": "2005836581",
+  "new_value": 0.0,
+  "new_normalised_value": 0.0,
+  "actual_normalized_value": 0.0,
+  "new_value_text": "0.0 ms",
+  "display_text": "0.0 ms",
+  "value_interpretation": "raw"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "plugin_id": "1022",
+  "param_id": "2005836581",
+  "new_value": 0.0,
+  "new_normalised_value": 0.0,
+  "actual_normalized_value": 0.0,
+  "new_value_text": "0.0 ms",
+  "display_text": "0.0 ms"
+ZmqGateway: received command payload: {"cmd": "set_plugin_param", "track_id": "1019", "plugin_id": "1022", "param_id": "1798853437", "value": 0.18, "confirmed": true}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd": "set_plugin_param", "track_id": "1019", "plugin_id": "1022", "param_id": "1798853437", "value": 0.18, "confirmed": true}
+Command received: {"cmd": "set_plugin_param", "track_id": "1019", "plugin_id": "1022", "param_id": "1798853437", "value": 0.18, "confirmed": true}
+Command executed: set_plugin_param, result: {
+  "status": "ok",
+  "plugin_id": "1022",
+  "param_id": "1798853437",
+  "new_value": 0.180000007152557,
+  "new_normalised_value": 0.180000007152557,
+  "actual_normalized_value": 0.180000007152557,
+  "new_value_text": "19.8 ms",
+  "display_text": "19.8 ms",
+  "value_interpretation": "raw"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "plugin_id": "1022",
+  "param_id": "1798853437",
+  "new_value": 0.180000007152557,
+  "new_normalised_value": 0.180000007152557,
+  "actual_normalized_value": 0.180000007152557,
+  "new_value_te
+ZmqGateway: received command payload: {"cmd": "set_plugin_param", "track_id": "1019", "plugin_id": "1022", "param_id": "874858726", "value": 0.0, "confirmed": true}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd": "set_plugin_param", "track_id": "1019", "plugin_id": "1022", "param_id": "874858726", "value": 0.0, "confirmed": true}
+Command received: {"cmd": "set_plugin_param", "track_id": "1019", "plugin_id": "1022", "param_id": "874858726", "value": 0.0, "confirmed": true}
+Command executed: set_plugin_param, result: {
+  "status": "ok",
+  "plugin_id": "1022",
+  "param_id": "874858726",
+  "new_value": 0.0,
+  "new_normalised_value": 0.0,
+  "actual_normalized_value": 0.0,
+  "new_value_text": "0.00 %",
+  "display_text": "0.00 %",
+  "value_interpretation": "raw"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "plugin_id": "1022",
+  "param_id": "874858726",
+  "new_value": 0.0,
+  "new_normalised_value": 0.0,
+  "actual_normalized_value": 0.0,
+  "new_value_text": "0.00 %",
+  "display_text": "0.00 %",
+ZmqGateway: received command payload: {"cmd": "set_plugin_param", "track_id": "1019", "plugin_id": "1022", "param_id": "1669861066", "value": 0.08, "confirmed": true}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd": "set_plugin_param", "track_id": "1019", "plugin_id": "1022", "param_id": "1669861066", "value": 0.08, "confirmed": true}
+Command received: {"cmd": "set_plugin_param", "track_id": "1019", "plugin_id": "1022", "param_id": "1669861066", "value": 0.08, "confirmed": true}
+Command executed: set_plugin_param, result: {
+  "status": "ok",
+  "plugin_id": "1022",
+  "param_id": "1669861066",
+  "new_value": 0.079999998211861,
+  "new_normalised_value": 0.079999998211861,
+  "actual_normalized_value": 0.079999998211861,
+  "new_value_text": "8.0 ms",
+  "display_text": "8.0 ms",
+  "value_interpretation": "raw"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "plugin_id": "1022",
+  "param_id": "1669861066",
+  "new_value": 0.079999998211861,
+  "new_normalised_value": 0.079999998211861,
+  "actual_normalized_value": 0.079999998211861,
+  "new_value_te
+ZmqGateway: received command payload: {"cmd": "set_plugin_param", "track_id": "1019", "plugin_id": "1022", "param_id": "954746817", "value": 0.4, "confirmed": true}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd": "set_plugin_param", "track_id": "1019", "plugin_id": "1022", "param_id": "954746817", "value": 0.4, "confirmed": true}
+Command received: {"cmd": "set_plugin_param", "track_id": "1019", "plugin_id": "1022", "param_id": "954746817", "value": 0.4, "confirmed": true}
+Command executed: set_plugin_param, result: {
+  "status": "ok",
+  "plugin_id": "1022",
+  "param_id": "954746817",
+  "new_value": 0.400000005960464,
+  "new_normalised_value": 0.400000005960464,
+  "actual_normalized_value": 0.400000005960464,
+  "new_value_text": "-23.79 dB",
+  "display_text": "-23.79 dB",
+  "value_interpretation": "raw"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "plugin_id": "1022",
+  "param_id": "954746817",
+  "new_value": 0.400000005960464,
+  "new_normalised_value": 0.400000005960464,
+  "actual_normalized_value": 0.400000005960464,
+  "new_value_tex
+ZmqGateway: received command payload: {"cmd": "set_plugin_param", "track_id": "1019", "plugin_id": "1022", "param_id": "1945359057", "value": 0.5, "confirmed": true}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd": "set_plugin_param", "track_id": "1019", "plugin_id": "1022", "param_id": "1945359057", "value": 0.5, "confirmed": true}
+Command received: {"cmd": "set_plugin_param", "track_id": "1019", "plugin_id": "1022", "param_id": "1945359057", "value": 0.5, "confirmed": true}
+Command executed: set_plugin_param, result: {
+  "status": "ok",
+  "plugin_id": "1022",
+  "param_id": "1945359057",
+  "new_value": 0.5,
+  "new_normalised_value": 0.5,
+  "actual_normalized_value": 0.5,
+  "new_value_text": "587.33 Hz",
+  "display_text": "587.33 Hz",
+  "value_interpretation": "raw"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "plugin_id": "1022",
+  "param_id": "1945359057",
+  "new_value": 0.5,
+  "new_normalised_value": 0.5,
+  "actual_normalized_value": 0.5,
+  "new_value_text": "587.33 Hz",
+  "display_text": "587.
+ZmqGateway: received command payload: {"cmd": "set_plugin_param", "track_id": "1019", "plugin_id": "1022", "param_id": "8095466", "value": 0.2, "confirmed": true}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd": "set_plugin_param", "track_id": "1019", "plugin_id": "1022", "param_id": "8095466", "value": 0.2, "confirmed": true}
+Command received: {"cmd": "set_plugin_param", "track_id": "1019", "plugin_id": "1022", "param_id": "8095466", "value": 0.2, "confirmed": true}
+Command executed: set_plugin_param, result: {
+  "status": "ok",
+  "plugin_id": "1022",
+  "param_id": "8095466",
+  "new_value": 0.200000002980232,
+  "new_normalised_value": 0.200000002980232,
+  "actual_normalized_value": 0.200000002980232,
+  "new_value_text": "20.00 %",
+  "display_text": "20.00 %",
+  "value_interpretation": "raw"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "plugin_id": "1022",
+  "param_id": "8095466",
+  "new_value": 0.200000002980232,
+  "new_normalised_value": 0.200000002980232,
+  "actual_normalized_value": 0.200000002980232,
+  "new_value_text"
+ZmqGateway: received command payload: {"cmd": "save_as_project", "file_path": "D:/Vit_DAW_wt_presetagent/coord/runs/SRC-PRESET-AGENT-1/legD_stack_20261116_2230/craft_capture_project.xml"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd": "save_as_project", "file_path": "D:/Vit_DAW_wt_presetagent/coord/runs/SRC-PRESET-AGENT-1/legD_stack_20261116_2230/craft_capture_project.xml"}
+Command received: {"cmd": "save_as_project", "file_path": "D:/Vit_DAW_wt_presetagent/coord/runs/SRC-PRESET-AGENT-1/legD_stack_20261116_2230/craft_capture_project.xml"}
+Command executed: save_as_project, result: {
+  "status": "ok",
+  "message": "Project saved",
+  "project_lifecycle": "save_as",
+  "project_path": "D:\\Vit_DAW_wt_presetagent\\coord\\runs\\SRC-PRESET-AGENT-1\\legD_stack_20261116_2230\\craft_capture_project.vit",
+  "current_project_path": "D:\\Vit_DAW_wt_presetagent\\coord\\runs\\SRC-PRESET-AGENT-1\\legD_stack_20261116_2230\\craft_capture_project.vit",
+  "project_uuid": "vitproj_e715cbf8deb649b5906e0a394620e91f",
+  "project_id": "vitproj_e715cbf8deb649b5906e0a394620e91f",
+  "source_project_uuid": "vitproj_4897675e512e4e4ea7cfd0f2179f9316",
+  "parent_project_uuid": "vitproj_4897675e512e4e4ea7cfd0f2179f9316"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Project saved",
+  "project_lifecycle": "save_as",
+  "project_path": "D:\\Vit_DAW_wt_presetagent\\coord\\runs\\SRC-PRESET-AGENT-1\\legD_stack_20261116_2230\\craft_capture_project.vit"
