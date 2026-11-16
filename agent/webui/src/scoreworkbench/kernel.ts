@@ -23,13 +23,30 @@ export type KernelBridgeResult<T> = { ok: true; value: T } | { ok: false; error:
 export type ScoreClipSnapshot = {
   model: ScoreModel;
   // clip 全长（拍）——apply 的 replace_region 覆盖范围（整段覆盖语义）。
+  // SCORE-ENTRY-REACH-1 (D4)：桥面网格化——clip 秒边界换拍后不必落在 16 分网格
+  //（取证 382：373 模板 clip 8.0s@80bpm=10.6667 拍），渲染/apply 用向上取整的
+  // 网格值（音符完整性保住，clip 尾部至多多 1/16 空白）；raw 保留披露真值。
   clipLengthBeats: number;
+  // 网格化前的精确换算值（烟测/显形用；与 clipLengthBeats 相等=恰在网格上）。
+  clipLengthBeatsRaw?: number;
   // 换算依据披露（面板显示用；来源=music_context_echo）。
   tempoBPM: number;
   timeSignatureLabel: string;
   // clip 全局 beat 起点（M4 游标换算用；秒→beat 需要）。
   clipStartSeconds: number;
 };
+
+// snapClipLengthToGrid：clip 拍长→16 分网格（向上取整，浮点 eps 安全）。
+// 音符网格校验不变（fail-closed）；clip 边界是容器不是音符——合法工程可有
+// 非网格 clip 尾（tempo 改后/拍数值模板），桥层宽容到下一网格点。
+export function snapClipLengthToGrid(beats: number): number {
+  if (!Number.isFinite(beats) || beats <= 0) {
+    throw new Error(`clip 拍长不可用（${beats}）——无法网格化`);
+  }
+  const ticks = beats * GRID_PER_BEAT;
+  const snapped = Math.ceil(ticks - 1e-9);
+  return snapped / GRID_PER_BEAT;
+}
 
 // ScoreKernelBridge：面板对内核的全部依赖面。
 export interface ScoreKernelBridge {
@@ -128,7 +145,10 @@ export function createAgentScoreBridge(options: AgentScoreBridgeOptions = {}): S
   };
 
   // clipLength 独立小步（readMusicContext 拿 clip 数据，reload/apply 共用）。
-  const readClipGeometry = async (tempoBPM: number): Promise<{ clipStartSeconds: number; clipLengthBeats: number }> => {
+  // SCORE-ENTRY-REACH-1 (D4)：返回精确换算值（raw）；网格化在 reload 组装点统一做。
+  const readClipGeometry = async (
+    tempoBPM: number
+  ): Promise<{ clipStartSeconds: number; clipLengthBeatsRaw: number }> => {
     const clipData = await invokeTool("get_midi_clip_data", { ...clipArgs() });
     const startSeconds = asNumber(clipData.start_seconds);
     const lengthSeconds = asNumber(clipData.length_seconds);
@@ -136,7 +156,7 @@ export function createAgentScoreBridge(options: AgentScoreBridgeOptions = {}): S
       throw new Error("get_midi_clip_data 未披露 start_seconds/length_seconds——clip 覆盖范围不可得");
     }
     const clipStartSeconds: number = startSeconds;
-    return { clipStartSeconds, clipLengthBeats: (lengthSeconds * tempoBPM) / 60 };
+    return { clipStartSeconds, clipLengthBeatsRaw: (lengthSeconds * tempoBPM) / 60 };
   };
 
   const reload = async (): Promise<KernelBridgeResult<ScoreClipSnapshot | null>> => {
@@ -188,12 +208,18 @@ export function createAgentScoreBridge(options: AgentScoreBridgeOptions = {}): S
         notes
       };
       const measureBeats = beatsPerMeasure(model.timeSignature);
-      const clipLengthBeats = Math.max(geometry.clipLengthBeats, measureBeats);
+      // SCORE-ENTRY-REACH-1 (D4)：raw 精确值先落小节下限再向上网格化——
+      // 非网格 clip 尾（如 10.6667 拍）不再让 buildApplyPatch 抛 grid_misaligned。
+      const clipLengthBeats = Math.max(
+        snapClipLengthToGrid(geometry.clipLengthBeatsRaw),
+        measureBeats
+      );
       return {
         ok: true,
         value: {
           model,
           clipLengthBeats,
+          clipLengthBeatsRaw: geometry.clipLengthBeatsRaw,
           tempoBPM: context.tempoBPM,
           timeSignatureLabel: context.label,
           clipStartSeconds: geometry.clipStartSeconds

@@ -5,7 +5,7 @@
 // 交互全集：点击放符/时值切换/附点开关/休止插入/延音建立解除/删除/拖动（16 分网格）。
 // data-score-* 属性=渲染面烟测锚点（DG3 门槛 1/2 用）。
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Component, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { deriveNotation } from "./derive";
 import {
@@ -64,7 +64,61 @@ type Selection = { kernelId: string; tick: number } | null;
 
 export type ClipOption = { clipID: string; trackID: string; label: string };
 
-export function ScoreWorkbenchPanel({
+// SCORE-ENTRY-REACH-1 (D4) 渲染期错误边界：ModelError/渲染异常不再卸载整面板
+//（377 实证：buildApplyPatch useMemo 渲染期抛 grid_misaligned → 无边界 → 整树
+// 卸载白板）。降级=错误显形+「重试」（重挂子树清状态）；面板本体逻辑零变化。
+export class ScorePanelErrorBoundary extends Component<
+  { children: ReactNode },
+  { error: Error | null; attempt: number }
+> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { error: null, attempt: 0 };
+  }
+
+  static getDerivedStateFromError(error: unknown): { error: Error | null; attempt: number } | null {
+    return { error: error instanceof Error ? error : new Error(String(error)), attempt: Date.now() };
+  }
+
+  render(): ReactNode {
+    if (this.state.error) {
+      const message = this.state.error.message || String(this.state.error);
+      return (
+        <div
+          className="score-workbench score-panel-error"
+          data-score-error-boundary="true"
+          data-score-error-message={message}
+        >
+          <p className="score-panel-error-title">谱面渲染中止（错误已捕获，面板未卸载）</p>
+          <p className="score-panel-error-detail">{message}</p>
+          <button
+            type="button"
+            className="v5-btn v5-btn--secondary"
+            data-score-error-retry
+            onClick={() => this.setState({ error: null })}
+          >
+            重试（重挂面板）
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+export function ScoreWorkbenchPanel(props: {
+  initialModel: ScoreModel;
+  clipLengthBeats?: number;
+  kernelFactory?: ScoreKernelBridgeFactory | null;
+}) {
+  return (
+    <ScorePanelErrorBoundary>
+      <ScorePanelBody {...props} />
+    </ScorePanelErrorBoundary>
+  );
+}
+
+function ScorePanelBody({
   initialModel,
   clipLengthBeats: fallbackClipLengthBeats = 8,
   kernelFactory
@@ -152,7 +206,13 @@ export function ScoreWorkbenchPanel({
         setBuffer(createEditBuffer(result.value.model));
         setSnapshot(result.value);
         setClipLengthBeats(result.value.clipLengthBeats);
-        setStatus(`已从内核装载（${result.value.timeSignatureLabel} @ ${result.value.tempoBPM}bpm，clip ${result.value.clipLengthBeats} 拍）`);
+        // D4（SCORE-ENTRY-REACH-1）：raw 网格值不一致=clip 尾被桥面网格化，显形披露。
+        const raw = result.value.clipLengthBeatsRaw;
+        const gridNote =
+          raw !== undefined && Math.abs(raw - result.value.clipLengthBeats) > 1e-9
+            ? `，clip 拍长 ${raw.toFixed(4)} 非网格已上取整`
+            : "";
+        setStatus(`已从内核装载（${result.value.timeSignatureLabel} @ ${result.value.tempoBPM}bpm，clip ${result.value.clipLengthBeats} 拍${gridNote}）`);
       } else {
         setStatus(`内核装载失败：${result.ok ? "空模型" : result.error}`);
       }

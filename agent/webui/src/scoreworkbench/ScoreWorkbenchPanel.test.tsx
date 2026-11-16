@@ -416,4 +416,53 @@ describe("ScoreWorkbenchPanel interactions (M2)", () => {
     expect(root.getAttribute("data-score-status")).toContain("RiskConfirm rejected");
     expect(root.getAttribute("data-score-dirty")).toBe("true");
   });
+
+  // SCORE-ENTRY-REACH-1 (D4)：非网格 clip 拍长（377 实证形态：80bpm 工程 clip
+  // 8.0s → 10.6667 拍）——渲染期 ModelError 由错误边界捕获，降级 UI 在场，
+  // 面板不再整树卸载白板；重试按钮可用。
+  it("non-grid clipLengthBeats is caught by the panel error boundary (no tree unmount)", async () => {
+    const { container } = mount(
+      createElement(ScoreWorkbenchPanel, { initialModel: fixture, clipLengthBeats: 10.666666666666666 })
+    );
+    const boundary = container.querySelector("[data-score-error-boundary]");
+    expect(boundary).not.toBeNull();
+    expect(boundary?.getAttribute("data-score-error-message") ?? "").toContain("grid_misaligned");
+    expect(container.querySelector("[data-score-root]")).toBeNull(); // 面板本体卸到边界，但容器树在
+    const retry = boundary?.querySelector<HTMLButtonElement>("[data-score-error-retry]");
+    expect(retry).not.toBeNull();
+    act(() => {
+      retry?.click();
+    });
+    // 重试=重挂：同一非网格值仍抛，边界再次捕获（不白屏、不未捕获崩溃）
+    const boundaryAfter = container.querySelector("[data-score-error-boundary]");
+    expect(boundaryAfter).not.toBeNull();
+    expect(boundaryAfter?.getAttribute("data-score-error-message") ?? "").toContain("grid_misaligned");
+  });
+
+  // SCORE-ENTRY-REACH-1 (D4)：桥面网格化后的快照（clipLengthBeats=10.75 上取整
+  // +raw 披露）装载——面板活着，duration 显形 10.75，status 披露上取整事实。
+  it("kernel snapshot with gridded non-grid clip length mounts alive and discloses snap", async () => {
+    const snapshot = {
+      model: fixture,
+      clipLengthBeats: 10.75,
+      clipLengthBeatsRaw: 10.666666666666666,
+      tempoBPM: 80,
+      timeSignatureLabel: "2/4",
+      clipStartSeconds: 0
+    };
+    const bridge: ScoreKernelBridge = {
+      kind: "agent",
+      applyPatch: async () => ({ ok: false, error: "not under test" }),
+      reload: async () => ({ ok: true, value: snapshot })
+    };
+    const { container } = mount(createElement(ScoreWorkbenchPanel, { initialModel: fixture, kernelFactory: () => bridge }));
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(container.querySelector("[data-score-error-boundary]")).toBeNull();
+    const root = rootEl(container);
+    expect(root.getAttribute("data-score-status")).toContain("clip 10.75 拍");
+    expect(root.getAttribute("data-score-status")).toContain("非网格已上取整");
+    expect(root.getAttribute("data-score-tempo")).toBe("80");
+  });
 });
