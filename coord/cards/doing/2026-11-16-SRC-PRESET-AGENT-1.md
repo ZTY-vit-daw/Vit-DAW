@@ -55,4 +55,14 @@
 - **零栈零 LLM 零计费**：腿 A/E 全程未登记栈位、未启动 VitApp/Godot/agent 进程；取证=只读源码/仓内工件/盘面只读文件；无 run ID。生产域外零改动（diff=新包+腿 E 报告，11 文件 +1618 行）。
 - 领取协调提交=main `5c9f98c5`；勘察=`fd74896a`；腿 A+E=`b1e41ba3`（均 @ `port/src-preset-agent-1`）。
 
+## 回执三（腿 D 闸门，2026-11-16 21:10；主管授权 10 分钟栈时）
+
+- **判定：`binary_309_identical`——现行内核 state=高熵二进制本征形态，「11-09 版本差」假说证伪**。腿 E §4 解闸：fxp→state 离线合成不可行（分支 B）→**腿 D 走内核亲存 state 路径（309 先例：真栈装载→设预设→save→sidecar 提取 state 入模板）**。
+- **实测**（attempt3 正式轮 driver v3 exit 0，占用 21:02→21:10=8 分钟）：现行内核（VitApp.exe `a5947361…` 374/377 同一二进制复用+零内核改动）XML-boot→add_track→instantiate Surge XT（**776 参=298 全等**+instrument role）→`VIT_DUMP_CLEAR_XML=1` sidecar 取明文样本→三层解码：与 309 模板工件**头 32 字节逐字相同+init patch 全等**（67294B，blob sha `f245cce2…`）。attempt1（save_project{}=require_path）/attempt2（save_as .xml 被 normalizeProjectPathForSave 强改 .vit+加密）=两轮 probe_defect 装置域（save 形态发现，产品面全程 ok），非产品断言失败。
+- **腿 E 报告已随判定更新**（LEG-E-STATE-FORENSICS.md §4 重写：源码级 XML 包裹假说被实测压倒如实降级；309 工件非陈旧）。
+- **附加取证（腿 D 输入）**：`set_plugin_param` Global Volume 0.9（读回 ok）→再存→state 逐字不变——疑 master volume 在 Surge patch 序列化之外；腿 D 做「预设→state 差分」时须选 patch 内参数。
+- **栈协议**：占用 `1e2b5db5`/释放 `c62aa928` @main（净空亲核+登记后 ≤60s 即时复核+亲拆 pid 26928）；**TEARDOWN_ALL_ZERO 亲证 21:09:16**（Vit 系进程=0+TCP 5555/5556/7878/7879/8787=0+UDP 4445=0）；S10 recents save 写面曾触（a495cacc）→before.json 还原+**哈希亲证一致 807226F4AF3F 21:09:48**；LLM 计费上界=0（全确定性 ZMQ 面）。
+- **工件**：`coord/runs/SRC-PRESET-AGENT-1/legd_gate_20261116_2115/`（driver v1-v3+分析器+RUNBOOK §8 跑前成文+双样本 XML sidecar+state_analysis×2+perturb_report+recents before/after+runtime_provenance）@ `port/src-preset-agent-1` commit `0c354d57`（已推）。
+- 领取协调提交=main `5c9f98c5`；勘察=`fd74896a`；腿 A+E=`b1e41ba3`；腿 D 闸门=`0c354d57`（均 @ `port/src-preset-agent-1`）。
+
 ## 验收：待回填
