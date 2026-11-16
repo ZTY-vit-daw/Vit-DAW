@@ -1,0 +1,9 @@
+# 运行时重物不入库（AGENTS §12，374 先例）：内核运行时拼装目录/内核工作区/派生状态/隔离工程副本/WAV 派生重物
+# （WAV 对留 worktree run 目录本地核验；计量/差分数值在 score_workbench_summary.json；
+#   模板副本逐字节=manifest 钉值，仅正式轮 run_dg1a_20261116_1952 的 lesson_project.xml 以 -f 入库）
+kernel_runtime/
+Workspace/
+.vit_derived/
+default_project.xml
+*.wav
+lesson_project.xml

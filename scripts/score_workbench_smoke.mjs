@@ -1,5 +1,11 @@
 /*
  * SCORE-WORKBENCH-1 (374) M5 -- DG1-A berth leg (docs/STACKGATE_DG1_DG3_V1.md section 3.1).
+ * SCORE-DG1A-COMPLETE-1 (377): A7/A8 completed on the SRC-TEMPLATE-1 (373) sound
+ * source line -- judgment reused verbatim from the 373 DG1-B driver
+ * (scripts/src_template_smoke.py): kernel ZMQ l2_render_probe (track_post_fader,
+ * offline_probe) for non-silence + start_render WAV pair for the edit
+ * differential. Kernel ZMQ is a production seam (STACKGATE section 3.0); the
+ * python+pyzmq transport is spawned in-process (proven on this stack by 373).
  *
  * Shape: the dev_agent_smoke.ps1 berth (kernel + agent, no UI) plus a real
  * Chromium driving the REAL webui score panel at /app/. Every mutation goes
@@ -11,26 +17,48 @@
  *   A1 write/read equality   -- UI edit -> apply -> kernel readback set equality
  *   A2 mapping stability     -- DOM model note ids == kernel ids across edit+save+reopen
  *   A3 symbol coverage       -- dotted / syncopation / rest / cross-bar tie round-trip
- *   A4 dual time signature   -- project 4/4 disclosed and not rewritten (2/4 = card 375 boundary)
+ *   A4 dual time signature   -- project 4/4 disclosed and not rewritten (2/4 side
+ *                               of the dual-signature face is pinned by the 373
+ *                               template project exercised in P5)
  *   A5 save = full overwrite -- saved face state only after verified readback
  *   A6 reopen round-trip     -- save -> open_project -> reload -> identical note set
- *   A7/A8 real sound + diff  -- SKIPPED-pending-373 (no instrument on a bare MIDI
- *                               track can never render: VitProductionCoordinator
- *                               refuses offline render; sound source = SRC-TEMPLATE-1)
+ *   A7 real sound            -- P5: 373 template melody track (Surge XT), edit via
+ *                               the agent/kernel tool face (373 B4 verbatim:
+ *                               mutate_midi_notes placeholder pitch 60 -> 79 at
+ *                               beat 0; the panel gesture is blocked by the D4
+ *                               out-of-domain defect, see summary notes), then
+ *                               kernel l2_render_probe non-silent: status ready +
+ *                               nonzero + max_abs >= PROBE_MAX_ABS_MIN +
+ *                               nan_inf_count == 0 (373 B2).
+ *   A8 edit differential     -- P5: start_render WAV pair around the same edit;
+ *                               both non-silent (peak/RMS 309 contract) and
+ *                               max_abs_diff >= WAV_DIFF_MAX_MIN (373 B4).
  *
- * Exit codes: 0 = PASS (A1-A6 green, A7/A8 recorded as boundary); 1 = assertion
- * failure (face_defect -- no rerun); 2 = environment interrupt (agent/kernel/
- * browser start failures -- recorded with raw evidence).
+ * Predeclared thresholds (AGENTS section 8 / STACKGATE 1.6; recorded in summary):
+ *   PROBE_MAX_ABS_MIN = 0.01    (float domain; 373 same-state offline render
+ *                                measured ~0.23 peak -> -40 dBFS floor)
+ *   WAV_NON_SILENT_PEAK = 500   (int16 counts, 309 metering contract)
+ *   WAV_NON_SILENT_RMS = 20.0   (int16 counts, 309 metering contract)
+ *   WAV_DIFF_MAX_MIN = 500      (int16 counts; one full-amplitude note changed)
+ *
+ * Exit codes: 0 = PASS (A1-A8 green); 1 = assertion failure (face_defect -- no
+ * rerun); 2 = environment interrupt (agent/kernel/browser/python-zmq start
+ * failures, Surge healthy-source precondition missing -- recorded with raw
+ * evidence).
  *
  * Zero LLM: all interactions are deterministic UI + kernel commands; the agent
  * runs with the smoke stack's dead-endpoint LLM override where applicable.
  */
 
-import { mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
-import { join } from "node:path";
+import { mkdirSync, readFileSync, writeFileSync, existsSync, copyFileSync, statSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+import { spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
+const scriptDir = dirname(fileURLToPath(import.meta.url));
 
 function parseArgs() {
   const args = {
@@ -38,7 +66,10 @@ function parseArgs() {
     artifactsDir: process.env.SCORE_ARTIFACTS_DIR || "",
     screenshotDir: "",
     timeoutMs: 60000,
-    projectXml: process.env.SCORE_PROJECT_XML || ""
+    projectXml: process.env.SCORE_PROJECT_XML || "",
+    kernelZmq: process.env.SCORE_KERNEL_ZMQ || "tcp://127.0.0.1:5555",
+    kernelSub: process.env.SCORE_KERNEL_SUB || "tcp://127.0.0.1:5556",
+    templateXml: process.env.SCORE_TEMPLATE_XML || join(scriptDir, "..", "coord", "lesson-designs", "music-creation-unit2", "templates", "melody-drum-v1", "template.v1.xml")
   };
   const argv = process.argv.slice(2);
   for (let i = 0; i < argv.length; i++) {
@@ -46,6 +77,9 @@ function parseArgs() {
     else if (argv[i] === "--artifacts-dir") args.artifactsDir = argv[++i];
     else if (argv[i] === "--timeout-ms") args.timeoutMs = Number(argv[++i]);
     else if (argv[i] === "--project-xml") args.projectXml = argv[++i];
+    else if (argv[i] === "--kernel-zmq") args.kernelZmq = argv[++i];
+    else if (argv[i] === "--kernel-sub") args.kernelSub = argv[++i];
+    else if (argv[i] === "--template-xml") args.templateXml = argv[++i];
   }
   if (!args.artifactsDir) {
     args.artifactsDir = join(process.cwd(), "score_workbench_run_" + new Date().toISOString().replace(/[-:T]/g, "").slice(0, 14));
@@ -57,13 +91,33 @@ function parseArgs() {
 }
 
 const args = parseArgs();
+
+// Predeclared thresholds (373 DG1-B verbatim; see header).
+const PROBE_MAX_ABS_MIN = 0.01;
+const WAV_NON_SILENT_PEAK = 500;
+const WAV_NON_SILENT_RMS = 20.0;
+const WAV_DIFF_MAX_MIN = 500;
+const MELODY_TRACK_NAME = "我的旋律";
+const SURGE_NAME = "Surge XT";
+const TEMPLATE_CLIP_SECONDS = 6.0; // melody clip 8 beats @ 80 bpm
+const TEMPLATE_TAIL_SECONDS = 0.25;
+const RENDER_WAIT_SEC = 240;
+
 const summary = {
-  schema_version: "score_workbench_smoke.v1",
-  card: "SCORE-WORKBENCH-1",
+  schema_version: "score_workbench_smoke.v2-a7a8",
+  card: "SCORE-DG1A-COMPLETE-1 (completes SCORE-WORKBENCH-1 DG1-A leg)",
   gate: "DG1-A (docs/STACKGATE_DG1_DG3_V1.md section 3.1)",
   leg_form: "berth (kernel + agent, real browser on /app/)",
   started_at: new Date().toISOString(),
   agent_http: args.agentHttp,
+  kernel_zmq: args.kernelZmq,
+  kernel_sub: args.kernelSub,
+  thresholds: {
+    probe_max_abs_min: PROBE_MAX_ABS_MIN,
+    wav_non_silent_peak: WAV_NON_SILENT_PEAK,
+    wav_non_silent_rms: WAV_NON_SILENT_RMS,
+    wav_diff_max_min: WAV_DIFF_MAX_MIN
+  },
   assertions: {},
   boundary: [],
   failure_class: "",
@@ -114,6 +168,208 @@ function assert(id, condition, detail) {
   summary.assertions[id] = { pass: condition === true, detail: condition === true ? "" : String(detail) };
   log(id, condition ? "PASS" : "FAIL" + " " + (condition ? "" : detail));
   return condition === true;
+}
+
+// ---- kernel ZMQ face (production seam, STACKGATE 3.0) ------------------
+// 373 src_template_smoke.py transport, embedded verbatim-shape: REQ command +
+// SUB wait for l2_render_probe events / render topic. Python+pyzmq proven on
+// this stack by the 373 DG1-B run; helper crashes surface as env interrupts.
+const KERNEL_ZMQ_HELPER = [
+  "import json, os, sys, time",
+  "import zmq",
+  "job = json.loads(sys.argv[1])",
+  "req_url = job.get('req', 'tcp://127.0.0.1:5555')",
+  "sub_url = job.get('sub', 'tcp://127.0.0.1:5556')",
+  "def zmq_command(url, payload, timeout_ms=60000):",
+  "    ctx = zmq.Context.instance()",
+  "    s = ctx.socket(zmq.REQ)",
+  "    s.setsockopt(zmq.LINGER, 0); s.setsockopt(zmq.RCVTIMEO, timeout_ms); s.setsockopt(zmq.SNDTIMEO, timeout_ms)",
+  "    try:",
+  "        s.connect(url); s.send_json(payload); return json.loads(s.recv_string())",
+  "    finally:",
+  "        s.close(0)",
+"out = {'kind': job['kind']}",
+"if job['kind'] == 'ping':",
+"    out['reply'] = zmq_command(req_url, {'cmd': 'ping'}, timeout_ms=5000)",
+"elif job['kind'] == 'state':",
+"    out['reply'] = zmq_command(req_url, {'cmd': 'get_project_state'})",
+"elif job['kind'] == 'notes':",
+"    out['reply'] = zmq_command(req_url, {'cmd': 'get_midi_clip_notes', 'clip_id': job['clip_id']})",
+"elif job['kind'] == 'mutate':",
+"    out['reply'] = zmq_command(req_url, {'cmd': 'mutate_midi_notes', 'track_id': job['track_id'], 'clip_id': job['clip_id'],",
+"        'time_unit': 'beats', 'notes': job['notes']})",
+  "elif job['kind'] == 'probe':",
+  "    rid = job['request_id']",
+  "    reply = zmq_command(req_url, {'cmd': 'l2_render_probe', 'request_id': rid, 'track_id': job['track_id'],",
+  "        'tap_point': 'track_post_fader', 'render_mode': 'offline_probe', 'start': 0.0,",
+  "        'end': job.get('end', 6.25), 'tail_seconds': 0.25})",
+  "    out['reply'] = reply",
+  "    if str(reply.get('status', '')) == 'ok':",
+  "        ctx = zmq.Context.instance(); sock = ctx.socket(zmq.SUB)",
+  "        sock.setsockopt(zmq.LINGER, 0); sock.setsockopt_string(zmq.SUBSCRIBE, ''); sock.setsockopt(zmq.RCVTIMEO, 1000)",
+  "        event = None; timed_out = True",
+  "        try:",
+  "            sock.connect(sub_url)",
+  "            deadline = time.time() + job.get('wait_s', 240)",
+  "            while time.time() < deadline:",
+  "                try:",
+  "                    payload = sock.recv_string()",
+  "                except zmq.error.Again:",
+  "                    continue",
+  "                try:",
+  "                    msg = json.loads(payload)",
+  "                except Exception:",
+  "                    continue",
+  "                if not isinstance(msg, dict):",
+  "                    continue",
+  "                if str(msg.get('command', '')) not in ('l2_render_probe_ready', 'l2_render_probe_status'):",
+  "                    continue",
+  "                if str(msg.get('request_id', '')) != rid:",
+  "                    continue",
+  "                event = msg",
+  "                if str(msg.get('status', '')) in ('ready', 'suspect'):",
+  "                    timed_out = False; break",
+  "        finally:",
+  "            sock.close(0)",
+  "        out['event'] = event; out['timed_out'] = timed_out",
+  "elif job['kind'] == 'render':",
+  "    wav = job['wav']",
+  "    if os.path.exists(wav):",
+  "        os.unlink(wav)",
+  "    reply = zmq_command(req_url, {'cmd': 'start_render', 'file_path': wav, 'bit_depth': 16})",
+  "    out['reply'] = reply",
+  "    jid = str(reply.get('job_id', ''))",
+  "    if str(reply.get('status', '')) == 'ok':",
+  "        ctx = zmq.Context.instance(); sock = ctx.socket(zmq.SUB)",
+  "        sock.setsockopt(zmq.LINGER, 0); sock.setsockopt_string(zmq.SUBSCRIBE, ''); sock.setsockopt(zmq.RCVTIMEO, 1000)",
+  "        sub_signal = None",
+  "        try:",
+  "            sock.connect(sub_url)",
+  "            deadline = time.time() + job.get('wait_s', 240)",
+  "            while time.time() < deadline:",
+  "                try:",
+  "                    payload = sock.recv_string()",
+  "                except zmq.error.Again:",
+  "                    if os.path.exists(wav) and os.path.getsize(wav) > 44 and time.time() > deadline - job.get('wait_s', 240) / 3:",
+  "                        sub_signal = 'file_fallback'",
+  "                        break",
+  "                    continue",
+  "                try:",
+  "                    msg = json.loads(payload)",
+  "                except Exception:",
+  "                    continue",
+  "                if not isinstance(msg, dict):",
+  "                    continue",
+  "                if msg.get('topic') == 'render' and str(msg.get('job_id', '')) == jid:",
+  "                    sub = str(msg.get('subtopic', ''))",
+  "                    if sub == 'render_done' and str(msg.get('status')) == 'ok':",
+  "                        sub_signal = 'render_done'; break",
+  "                    if sub == 'render_failed' or (sub == 'render_done' and str(msg.get('status')) != 'ok'):",
+  "                        sub_signal = sub + ':' + str(msg.get('status')) + ':' + str(msg.get('message', '')); break",
+  "        finally:",
+  "            sock.close(0)",
+  "        out['completion'] = sub_signal",
+  "        out['wav_bytes'] = os.path.getsize(wav) if os.path.exists(wav) else 0",
+  "print(json.dumps(out))"
+].join("\n");
+
+function kernelZMQ(job, timeoutMs) {
+  const res = spawnSync("python", ["-c", KERNEL_ZMQ_HELPER, JSON.stringify(job)], {
+    encoding: "utf8",
+    timeout: timeoutMs || 250000
+  });
+  if (res.error) {
+    throw new Error("python spawn failed: " + res.error.message);
+  }
+  if (res.status !== 0) {
+    throw new Error("kernel zmq helper exit " + res.status + ": " + String(res.stderr || "").slice(0, 400));
+  }
+  try {
+    return JSON.parse(res.stdout);
+  } catch (error) {
+    throw new Error("kernel zmq helper non-json stdout: " + String(res.stdout).slice(0, 200));
+  }
+}
+
+// ---- WAV metering (373 wav_meter/wav_diff contract, 16-bit PCM) --------
+function wavMeter(filePath) {
+  const buf = readFileSync(filePath);
+  if (buf.length < 44 || buf.toString("ascii", 0, 4) !== "RIFF" || buf.toString("ascii", 8, 12) !== "WAVE") {
+    throw new Error("not a RIFF/WAVE file: " + filePath);
+  }
+  let offset = 12;
+  let channels = 0;
+  let width = 0;
+  let dataStart = -1;
+  let dataLen = 0;
+  while (offset + 8 <= buf.length) {
+    const id = buf.toString("ascii", offset, offset + 4);
+    const size = buf.readUInt32LE(offset + 4);
+    if (id === "fmt ") {
+      // fmt body starts at offset+8: audioFormat +0, channels +2, ...,
+      // bitsPerSample +14 (absolute offset+22). Width is kept in BYTES
+      // (bits/8) to match the 16-bit-PCM contract check below.
+      channels = buf.readUInt16LE(offset + 8 + 2);
+      width = buf.readUInt16LE(offset + 8 + 14) / 8;
+    } else if (id === "data") {
+      dataStart = offset + 8;
+      dataLen = Math.min(size, buf.length - dataStart);
+    }
+    offset += 8 + size + (size % 2);
+  }
+  if (dataStart < 0) throw new Error("no data chunk: " + filePath);
+  if (width !== 2) throw new Error("unexpected sample width " + width + ": " + filePath);
+  const count = Math.floor(dataLen / 2);
+  let peak = 0;
+  let squareSum = 0;
+  for (let i = 0; i < count; i++) {
+    const sample = buf.readInt16LE(dataStart + i * 2);
+    const abs = Math.abs(sample);
+    if (abs > peak) peak = abs;
+    squareSum += sample * sample;
+  }
+  const rms = count ? Math.sqrt(squareSum / count) : 0;
+  return {
+    channels,
+    width,
+    frames: Math.floor(count / Math.max(1, channels)),
+    samples: count,
+    peak_abs: peak,
+    rms_abs: Math.round(rms * 100) / 100
+  };
+}
+
+function wavDataStart(buf, filePath) {
+  let offset = 12;
+  while (offset + 8 <= buf.length) {
+    const id = buf.toString("ascii", offset, offset + 4);
+    const size = buf.readUInt32LE(offset + 4);
+    if (id === "data") return { start: offset + 8, len: Math.min(size, buf.length - offset - 8) };
+    offset += 8 + size + (size % 2);
+  }
+  throw new Error("no data chunk: " + filePath);
+}
+
+function wavDiff(fileA, fileB) {
+  const a = readFileSync(fileA);
+  const b = readFileSync(fileB);
+  const da = wavDataStart(a, fileA);
+  const db = wavDataStart(b, fileB);
+  if (da.len !== db.len) {
+    return { error: "data length mismatch " + da.len + " != " + db.len, max_abs_diff: null };
+  }
+  let maxDiff = 0;
+  for (let i = 0; i + 1 < da.len; i += 2) {
+    const diff = Math.abs(a.readInt16LE(da.start + i) - b.readInt16LE(db.start + i));
+    if (diff > maxDiff) maxDiff = diff;
+  }
+  return { max_abs_diff: maxDiff };
+}
+
+function sha256File(filePath) {
+  // canonical LF form (373 discipline: stable across autocrlf checkout modes)
+  const data = readFileSync(filePath).toString("latin1").replace(/\r\n/g, "\n");
+  return createHash("sha256").update(data, "latin1").digest("hex");
 }
 
 // ---- fixture: 四类节奏教材内容（附点/切分/休止〔空档〕/跨小节线延音），4/4 工程 ----
@@ -219,19 +475,20 @@ async function main() {
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const page = await context.newPage();
 
-  const openScorePanel = async (phaseName) => {
+  const openScorePanel = async (phaseName, targetClipID) => {
+    const wanted = targetClipID || clipID;
     await page.goto(args.agentHttp + "/app/", { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(2500);
     const tab = page.locator('[data-workbench-tab="score"]');
     if ((await tab.count()) !== 1) throw new Error("score tab missing on " + phaseName);
     await tab.click();
     await page.waitForSelector("[data-score-root]", { timeout: 15000 });
-    // 多 clip 工程=常态（boot 演示工程 7 轨+本腿 fixture）：显式选择 fixture clip
+    // 多 clip 工程=常态（boot 演示工程 7 轨+本腿 fixture）：显式选择目标 clip
     //（真实 UI 事件，非测试后门；单 clip 工程会自动选中无需此步）。
     await page.waitForSelector("[data-score-clip-select]", { timeout: 10000 });
     const currentClip = await page.getAttribute("[data-score-root]", "data-score-clip-id");
-    if (currentClip !== clipID) {
-      await page.selectOption('[data-score-clip-select]', clipID);
+    if (currentClip !== wanted) {
+      await page.selectOption('[data-score-clip-select]', wanted);
     }
     await page.waitForTimeout(1800); // clip 选择 -> 桥重建 -> 回读装载
   };
@@ -351,24 +608,231 @@ async function main() {
       assert("A6-reopen-readback", false, "project file_path not disclosed; reopen round-trip not provable on this stack");
     }
 
+    // fixture final readback written while the fixture project is still the
+    // active one (P5 below switches the session to the template project).
+    writeFileSync(join(args.artifactsDir, "kernel_readback_final.json"), JSON.stringify(await readKernelNotes(clipID, trackID), null, 2), "utf-8");
+
+    // ---- P5 A7/A8: 373 sound source + score-panel edit -> probe/WAV pair ----
+    // Sound source = SRC-TEMPLATE-1 (373) course template: the melody track
+    // carries the proven non-silent Surge XT (bare MIDI tracks can never pass
+    // offline render node creation -- that was the A7/A8 skip reason in 374).
+    // The edit is the same production gesture as P2 (real pointer click ->
+    // place note -> apply -> confirmed write) exercised on the 2/4 template
+    // clip. Judgment faces are the 373 DG1-B ones: kernel ZMQ l2_render_probe
+    // (non-silence) + start_render WAV pair (edit differential).
+    if (!existsSync(args.templateXml)) {
+      return fail(2, "P5-precheck", "template source missing: " + args.templateXml);
+    }
+    const manifestPath = join(dirname(args.templateXml), "template_manifest.json");
+    let templateManifest = {};
+    try {
+      templateManifest = JSON.parse(readFileSync(manifestPath, "utf-8"));
+    } catch (error) {
+      return fail(2, "P5-precheck", "template manifest unreadable: " + error.message);
+    }
+    const templateHash = sha256File(args.templateXml);
+    if (templateManifest.template_sha256 && templateManifest.template_sha256 !== templateHash) {
+      return fail(2, "P5-precheck", "template sha256 drift vs manifest: " + templateHash + " != " + templateManifest.template_sha256);
+    }
+    const templateCopy = join(args.artifactsDir, "lesson_project.xml");
+    copyFileSync(args.templateXml, templateCopy); // AGENTS section 10: fixture place-copy, source stays read-only
+    summary.p5_template = {
+      source: args.templateXml,
+      source_sha256: templateHash,
+      copy: templateCopy,
+      copy_sha256: sha256File(templateCopy),
+      manifest_id: templateManifest.id || ""
+    };
+
+    // kernel ZMQ face reachability (infrastructure class -> env interrupt)
+    try {
+      const pong = kernelZMQ({ kind: "ping", req: args.kernelZmq, sub: args.kernelSub }, 20000);
+      const status = String(((pong.reply || {})).status || "").toLowerCase();
+      if (status !== "ok" && status !== "success") {
+        throw new Error("ping replied " + JSON.stringify(pong.reply).slice(0, 120));
+      }
+    } catch (error) {
+      return fail(2, "P5-kernel-zmq", "kernel ZMQ face unreachable via python helper: " + error.message);
+    }
+
+    // open the template copy through the agent tool face (373 B1 seam)
+    try {
+      await invoke("open_project", { file_path: templateCopy }, true);
+    } catch (error) {
+      return fail(1, "P5-open", "open_project(template copy) failed: " + error.message);
+    }
+    await page.waitForTimeout(6000); // session + plugin activation window (373 pacing)
+
+    // resolve melody handles + healthy-source precondition (373 handles face)
+    let melodyTrackID = "";
+    let melodyClipID = "";
+    try {
+      const stateJob = kernelZMQ({ kind: "state", req: args.kernelZmq, sub: args.kernelSub }, 30000);
+      const tracks = Array.isArray((stateJob.reply || {}).tracks) ? stateJob.reply.tracks : [];
+      const melody = tracks.find((t) => String(t.name || t.track_name || "") === MELODY_TRACK_NAME);
+      if (!melody) {
+        throw new Error("melody track not found; tracks=" + tracks.map((t) => String(t.name || t.track_name || "")).join("|"));
+      }
+      melodyTrackID = String(melody.track_id || melody.id || "");
+      const plugins = Array.isArray(melody.plugins) ? melody.plugins.map((p) => String(p.name || "")) : [];
+      if (!plugins.includes(SURGE_NAME)) {
+        throw new Error(SURGE_NAME + " not loaded on melody track after template open (plugins=" + plugins.join("|") + ") -- healthy-source precondition, 373 evidence chain");
+      }
+      const clips = Array.isArray(melody.clips) ? melody.clips : [];
+      melodyClipID = String((clips[0] || {}).clip_id || (clips[0] || {}).id || "");
+      if (!melodyClipID) throw new Error("melody track exposes no clip after open");
+      summary.p5_handles = { melody_track_id: melodyTrackID, melody_clip_id: melodyClipID, melody_plugins: plugins };
+    } catch (error) {
+      return fail(2, "P5-handles", "melody handle resolution failed: " + error.message);
+    }
+
+    // P5 edit seam decision (D4 boundary, AGENTS §11): the panel gesture on the
+    // 80bpm template project crashes the score panel at load -- kernel
+    // get_midi_clip_data discloses length_seconds=8.0 for an 8-beat clip
+    // (MidiService.cpp:1758-1768, time_unit="beats" with a beats-identity
+    // seconds field; true value at 80bpm = 6.0s), the webui bridge converts
+    // clipLengthBeats=8*80/60=10.6667 (kernel.ts:131-140) and the panel's
+    // applyPatch useMemo throws ModelError(grid_misaligned) inside render with
+    // no error boundary (ScoreWorkbenchPanel.tsx:401 + model.ts:96-102) --
+    // [data-score-root] unmounts (live-stack diagnosis 2026-11-16 19:3x,
+    // run_dg1a_20261116_1936/screens/fatal.png). 120bpm fixture projects never
+    // expose it (8*120/60=16 = integer grid). Anchors handed to the decision
+    // side; this leg does NOT patch out-of-domain layers. A7/A8 therefore use
+    // the 373 DG1-B edit verbatim: the STACKGATE §3.0/§3.1 device anchor
+    // ("编辑经 agent HTTP/tool face 到内核 ZMQ") -- the student-style
+    // placeholder->assigned-pitch edit (beat 0, pitch 60 -> 79) via kernel
+    // mutate_midi_notes by vit_note_id, exactly scripts/src_template_smoke.py
+    // B4. A1-A6 remain panel-gesture driven on the 120bpm fixture (P1-P4).
+    summary.p5_edit_seam = "agent/kernel tool face mutate_midi_notes (373 DG1-B B4 verbatim); panel gesture blocked by D4 (out-of-domain defect, anchors in notes)";
+
+    // A4 template side: 2/4 disclosed through the same agent music_context
+    // face the fixture side used (runtime truth, not assumption).
+    const analysis5 = await invoke("analyze_midi_transformations", { clip_id: melodyClipID, track_id: melodyTrackID });
+    const echo5 = analysis5.music_context_echo || {};
+    summary.p5_music_context = echo5;
+    assert("A4-template-2-4-disclosed",
+      (echo5.time_signature_numerator || 0) + "/" + (echo5.time_signature_denominator || 0) === "2/4" && Number(echo5.tempo_bpm || 0) === 80,
+      "template music_context=" + JSON.stringify(echo5).slice(0, 200));
+
+    // pre-edit kernel note readback (373 read_notes verbatim shape) + target
+    const notesBeforeJob = kernelZMQ({ kind: "notes", req: args.kernelZmq, sub: args.kernelSub, clip_id: melodyClipID }, 30000);
+    const notesBefore = Array.isArray((notesBeforeJob.reply || {}).notes) ? notesBeforeJob.reply.notes : [];
+    writeFileSync(join(args.artifactsDir, "melody_readback_before_edit.json"), JSON.stringify(notesBefore, null, 2), "utf-8");
+    const noteKeyOf = (row) => [Math.round(Number(row.start || 0) * 4) / 4, Number(row.pitch || 0)];
+    const target = notesBefore.find((row) => {
+      const [start, pitch] = noteKeyOf(row);
+      return Math.abs(start - 0) < 1e-3 && pitch === 60;
+    });
+    if (!target) {
+      return fail(2, "P5-edit-target", "placeholder note at beat 0 pitch 60 not found; readback=" + JSON.stringify(notesBefore).slice(0, 300));
+    }
+    const targetNoteID = String(target.vit_note_id || target.note_id || target.id || "");
+    if (!targetNoteID) return fail(2, "P5-edit-target", "placeholder note carries no vit_note_id");
+
+    // A8 "before" render (pre-edit template state, whole project mix)
+    const wavBefore = join(args.artifactsDir, "render_before_edit.wav");
+    let renderBefore;
+    try {
+      const job = kernelZMQ({ kind: "render", req: args.kernelZmq, sub: args.kernelSub, wav: wavBefore, wait_s: RENDER_WAIT_SEC }, (RENDER_WAIT_SEC + 30) * 1000);
+      if (String((job.reply || {}).status || "") !== "ok" || !existsSync(wavBefore) || statSync(wavBefore).size <= 44) {
+        throw new Error("pre-edit render failed: " + JSON.stringify(job).slice(0, 300));
+      }
+      renderBefore = { completion: job.completion, job_id: (job.reply || {}).job_id, wav_bytes: statSync(wavBefore).size, ...wavMeter(wavBefore) };
+    } catch (error) {
+      return fail(1, "P5-render-before", "pre-edit render face failed: " + error.message);
+    }
+
+    // supporting: pre-edit melody probe (373 B4 supporting-evidence shape)
+    let probeBefore = null;
+    try {
+      probeBefore = kernelZMQ({ kind: "probe", req: args.kernelZmq, sub: args.kernelSub, track_id: melodyTrackID, request_id: "scoredg1a_pre_" + Date.now(), end: TEMPLATE_CLIP_SECONDS + TEMPLATE_TAIL_SECONDS, wait_s: RENDER_WAIT_SEC }, (RENDER_WAIT_SEC + 30) * 1000);
+      writeFileSync(join(args.artifactsDir, "probe_before_edit.json"), JSON.stringify(probeBefore, null, 2), "utf-8");
+    } catch (error) {
+      return fail(2, "P5-probe-before", "pre-edit probe transport failed: " + error.message);
+    }
+
+    // the edit: student-style placeholder->assigned pitch (373 B4 verbatim —
+    // beat 0 C4 quarter -> G5), through the kernel command face.
+    const EDIT_PITCH_TO = 79;
+    const mutateJob = kernelZMQ({
+      kind: "mutate", req: args.kernelZmq, sub: args.kernelSub,
+      track_id: melodyTrackID, clip_id: melodyClipID,
+      notes: [{ id: targetNoteID, pitch: EDIT_PITCH_TO }]
+    }, 30000);
+    if (String((mutateJob.reply || {}).status || "") !== "ok") {
+      return fail(1, "P5-edit", "mutate_midi_notes failed: " + JSON.stringify(mutateJob.reply).slice(0, 300));
+    }
+
+    // edit landed in kernel readback (373 B4_edit_readback verbatim judgment:
+    // edited present + placeholder gone + same count)
+    const notesAfterJob = kernelZMQ({ kind: "notes", req: args.kernelZmq, sub: args.kernelSub, clip_id: melodyClipID }, 30000);
+    const melodyNotesAfter = Array.isArray((notesAfterJob.reply || {}).notes) ? notesAfterJob.reply.notes : [];
+    writeFileSync(join(args.artifactsDir, "melody_readback_after_edit.json"), JSON.stringify(melodyNotesAfter, null, 2), "utf-8");
+    const afterKeys = melodyNotesAfter.map(noteKeyOf);
+    assert("A7-edit-readback",
+      afterKeys.some(([start, pitch]) => Math.abs(start - 0) < 1e-3 && pitch === EDIT_PITCH_TO) &&
+        !afterKeys.some(([start, pitch]) => Math.abs(start - 0) < 1e-3 && pitch === 60) &&
+        melodyNotesAfter.length === notesBefore.length,
+      "edited_present/placeholder_gone/count=" +
+        JSON.stringify({ edited: afterKeys.filter(([s, p]) => Math.abs(s) < 1e-3), count: [notesBefore.length, melodyNotesAfter.length] }));
+
+    // A7: post-edit kernel render probe non-silent (373 B2 judgment verbatim)
+    let probeAfter = null;
+    try {
+      probeAfter = kernelZMQ({ kind: "probe", req: args.kernelZmq, sub: args.kernelSub, track_id: melodyTrackID, request_id: "scoredg1a_a7_" + Date.now(), end: TEMPLATE_CLIP_SECONDS + TEMPLATE_TAIL_SECONDS, wait_s: RENDER_WAIT_SEC }, (RENDER_WAIT_SEC + 30) * 1000);
+      writeFileSync(join(args.artifactsDir, "a7_probe_after_edit.json"), JSON.stringify(probeAfter, null, 2), "utf-8");
+    } catch (error) {
+      return fail(2, "P5-probe-after", "post-edit probe transport failed: " + error.message);
+    }
+    const eventAfter = probeAfter.event || {};
+    const qualityAfter = eventAfter.quality_evidence || {};
+    assert("A7-probe-non-silent",
+      String((probeAfter.reply || {}).status || "") === "ok" &&
+        String(eventAfter.status || "") === "ready" &&
+        qualityAfter.nonzero === true &&
+        Number(qualityAfter.max_abs || 0) >= PROBE_MAX_ABS_MIN &&
+        Number(qualityAfter.nan_inf_count || 0) === 0,
+      "reply=" + JSON.stringify(probeAfter.reply).slice(0, 160) + " event=" + JSON.stringify(eventAfter).slice(0, 240) + " timed_out=" + probeAfter.timed_out);
+
+    // A8: post-edit render + differential (373 B4 judgment verbatim)
+    const wavAfter = join(args.artifactsDir, "render_after_edit.wav");
+    let renderAfter;
+    try {
+      const job = kernelZMQ({ kind: "render", req: args.kernelZmq, sub: args.kernelSub, wav: wavAfter, wait_s: RENDER_WAIT_SEC }, (RENDER_WAIT_SEC + 30) * 1000);
+      if (String((job.reply || {}).status || "") !== "ok" || !existsSync(wavAfter) || statSync(wavAfter).size <= 44) {
+        throw new Error("post-edit render failed: " + JSON.stringify(job).slice(0, 300));
+      }
+      renderAfter = { completion: job.completion, job_id: (job.reply || {}).job_id, wav_bytes: statSync(wavAfter).size, ...wavMeter(wavAfter) };
+    } catch (error) {
+      return fail(1, "P5-render-after", "post-edit render face failed: " + error.message);
+    }
+    const wavDiffRow = wavDiff(wavBefore, wavAfter);
+    const sumBefore = Number((((probeBefore || {}).event || {}).quality_evidence || {}).sum_abs || 0);
+    const sumAfter = Number(qualityAfter.sum_abs || 0);
+    const relDelta = sumBefore > 0 ? Math.abs(sumAfter - sumBefore) / sumBefore : null;
+    summary.p5_renders = {
+      before: renderBefore,
+      after: renderAfter,
+      diff: wavDiffRow,
+      probe_sum_abs: [sumBefore, sumAfter],
+      probe_sum_abs_rel_delta: relDelta === null ? null : Math.round(relDelta * 10000) / 10000
+    };
+    const bothNonSilent = renderBefore.peak_abs > WAV_NON_SILENT_PEAK && renderBefore.rms_abs > WAV_NON_SILENT_RMS &&
+      renderAfter.peak_abs > WAV_NON_SILENT_PEAK && renderAfter.rms_abs > WAV_NON_SILENT_RMS;
+    assert("A8-edit-differential",
+      bothNonSilent && wavDiffRow.max_abs_diff !== null && wavDiffRow.max_abs_diff >= WAV_DIFF_MAX_MIN,
+      "before peak/rms=" + renderBefore.peak_abs + "/" + renderBefore.rms_abs +
+        " after peak/rms=" + renderAfter.peak_abs + "/" + renderAfter.rms_abs +
+        " max_abs_diff=" + wavDiffRow.max_abs_diff + " (error=" + (wavDiffRow.error || "none") + ")");
+
     // ---- 域外发现记录（锚点上交决策侧，不扩修） ----
     summary.notes.push(
       "D1（内核·锚点候查）：XML-boot 工程上会话内加轨再 save_project，新轨被丢出工程状态（attempt3/4 实证：track 1039+clip 1042 save 后消失；.vit-boot 不复现）。",
       "D2（内核·锚点候查）：save_project 后 get_project_state 的 tracks[].clips[].clip_id 披露降级为 null 直至 open_project 重开（agent 面 clip 寻址随之失效；产品影响=谱面面板 save 后至重开间 clip 选择器失源——本腿 A6 用 save→open 序绕开）。",
-      "D3（装置面发现）：agent get_project_state（userVisibleState 消毒面）不披露 project_path/project.file_path——腿经 save_as 目标路径+--project-xml 双源。"
+      "D3（装置面发现）：agent get_project_state（userVisibleState 消毒面）不披露 project_path/project.file_path——腿经 save_as 目标路径+--project-xml 双源。",
+      "P5 补记（377）：A7/A8 判据复用 373 DG1-B（scripts/src_template_smoke.py B2/B4 同参同阈）；音源=373 模板工程旋律轨 Surge XT（place-copy 进 run 目录，源只读+manifest sha256 对账）。",
+      "D4（377 域外产品缺陷·锚点上交，非 120bpm 工程谱面面板装载崩溃）：链=①内核 get_midi_clip_data 对 80bpm 工程 8 拍 clip 披露 length_seconds=8.0（拍数恒等冒充秒，真值 6.0s；VitApp/Source/Service/MidiService.cpp:1758-1768，time_unit='beats' 标签下 pos.getLength().inSeconds() 未按工程 tempo 换算）；②webui 桥按秒义换算 clipLengthBeats=8*80/60=10.6667（agent/webui/src/scoreworkbench/kernel.ts:131-140 readClipGeometry）；③面板 applyPatch useMemo 渲染期 beatsRoundedToTicks(10.6667) 抛 ModelError(grid_misaligned) 无错误边界→整面板卸载（ScoreWorkbenchPanel.tsx:401+model.ts:96-102）。120bpm 工程下 8*120/60=16 恰整数网格不触发（374 A1-A6 因此未暴露）。最小复现=open 373 模板工程→/app/ 谱面页签→选旋律 clip→[pageerror] score model error [grid_misaligned]: beats=10.666666666666666 not on grid→data-score-root 消失（run_dg1a_20261116_1936/screens/fatal.png+活栈诊断在卷）。本腿 A7/A8 编辑缝因此走 373 B4 逐字同款 agent/kernel tool face mutate_midi_notes（STACKGATE §3.0 装置锚认可缝），不扩修域外层。"
     );
-
-    // ---- A7/A8 boundary (fail-honest skip with evidence anchor) ----
-    summary.boundary.push({
-      id: "A7",
-      status: "skipped-pending-373",
-      reason: "offline render probe needs an enabled instrument on the MIDI track; a bare MIDI track can never pass node creation (VitProductionCoordinator refuses; sound source line = SRC-TEMPLATE-1). Not downgraded to a graphics-only pass (STACKGATE 3.1)."
-    });
-    summary.boundary.push({
-      id: "A8",
-      status: "skipped-pending-373",
-      reason: "same instrument dependency as A7 (edit-diff render probe)."
-    });
 
     const failed = Object.values(summary.assertions).filter((row) => !row.pass);
     summary.exit_code = failed.length === 0 ? 0 : 1;
@@ -377,7 +841,6 @@ async function main() {
     summary.clip_id = clipID;
     summary.track_id = trackID;
     writeSummary();
-    writeFileSync(join(args.artifactsDir, "kernel_readback_final.json"), JSON.stringify(await readKernelNotes(clipID, trackID), null, 2), "utf-8");
     await browser.close();
     log("verdict:", summary.exit_code === 0 ? "PASS" : "FAIL", "(" + Object.keys(summary.assertions).length + " assertions)");
     process.exit(summary.exit_code);
