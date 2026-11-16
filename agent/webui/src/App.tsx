@@ -513,11 +513,20 @@ function App() {
       </ProjectLoadingGate>
     );
   }
-  return <MainApp onExitWorkbench={surface === "workbench" ? () => setSurface("project") : undefined} />;
+  return (
+    <MainApp
+      surface={surface}
+      onExitWorkbench={surface === "workbench" ? () => setSurface("project") : undefined}
+    />
+  );
 }
 
-function MainApp({ onExitWorkbench }: { onExitWorkbench?: () => void }) {
-  const surface = useMemo(() => appSurface(), []);
+function MainApp({ surface: surfaceProp, onExitWorkbench }: { surface?: AppSurface; onExitWorkbench?: () => void }) {
+  // SCORE-ENTRY-REACH-1（382）：surface 以 App() state 为准（URL 初值不变；
+  // 工程面「打开工作台」等 React 内部切换〔零导航〕不再被 URL 旧值覆盖——
+  // attempt1 实证：MainApp 自读 URL 时按钮点击后 workbench 壳层不渲染）。
+  const urlSurface = useMemo(() => appSurface(), []);
+  const surface: AppSurface = surfaceProp ?? urlSurface;
   const isWorkbenchSurface = surface === "workbench";
   const isMainSurface = surface === "main";
   const [connection, setConnection] = useState<ConnectionStatus>("loading");
