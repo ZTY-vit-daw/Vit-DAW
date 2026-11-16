@@ -149,3 +149,20 @@
   pointer-events: none;
   z-index: 3;
 }
+
+/* SCORE-ENTRY-REACH-1 (D4)：渲染期错误边界的降级 UI（错误显形+重试，不卸载面板） */
+.score-panel-error {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+}
+.score-panel-error-title {
+  margin: 0;
+  font-weight: 600;
+}
+.score-panel-error-detail {
+  margin: 0;
+  opacity: 0.85;
+  word-break: break-all;
+}

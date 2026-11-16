@@ -1,0 +1,87 @@
+ok: draft root isolation: source=default VIT_HISTORY_DRAFT_ROOT=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261116_221723\agent_drafts
+ok: GUI leg project isolation: VIT_PROJECT_XML=D:\Vit_DAW_wt_382reach\coord\runs\SCORE-ENTRY-REACH-1\run_accept_20261116_2217\default_project.xml (git-clean run-dir copy; deployed default_project.xml stays untouched)
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_wt_382reach
+agent http: http://127.0.0.1:7878
+
+== Build VitAgent
+ok: build passed: D:\Vit_DAW_wt_382reach\agent\bin\VitAgent.dev-smoke.exe
+ok: installed agent bin: D:\Vit_DAW_wt_382reach\agent\bin\VitAgent.exe
+ok: installed agent root compatibility exe: D:\Vit_DAW_wt_382reach\agent\vitagent.exe
+
+== Start kernel
+ok: started kernel: D:\Vit_DAW_wt_382reach\coord\runs\SCORE-ENTRY-REACH-1\run_accept_20261116_2210\kernel_runtime\VitApp.exe pid=25824 workdir=D:\Vit_DAW_wt_382reach\coord\runs\SCORE-ENTRY-REACH-1\run_accept_20261116_2210\kernel_runtime
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW_wt_382reach\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=302
+shadow.initialized=True track_count=6
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=25824
+ok: ZMQ SUB listening: 5556 pid=25824
+
+== Project state invoke
+project.state status=ok error=
+
+== Strip Silence agent invoke smoke
+strip.import status=ok error=
+strip.clip_id=1038 track_id=1007
+strip.chat.stop_reason=needs_confirmation
+strip.chat.reply=这个操作需要你确认后才会执行。
+ok: Strip Silence chat route used deterministic suggest without legacy mix routing
+strip.chat.confirm status=ok goal_status=waiting_confirmation message=这个操作需要你确认后才会执行。
+warn: Strip Silence chat confirmation did not complete
+strip.suggest status=ok regions=3 pending=2 error=
+warn: Strip Silence suggest did not produce expected pending apply regions
+
+== score workbench DG1-A berth smoke (SCORE-WORKBENCH-1 / STACKGATE 3.1)
+ok: score wb recents snapshot: D:\Vit_DAW_wt_382reach\coord\runs\SCORE-ENTRY-REACH-1\run_accept_20261116_2217\global_project_config.before.json sha256=D087232D8B51
+[score-wb] agent health: {"service":"VitAgent","status":"ok"}
+[score-wb] music_context_echo: {"tempo_bpm":120,"tempo_setting_count":1,"time_sig_setting_count":1,"time_signature":"4/4","time_signature_denominator":4,"time_signature_numerator":4}
+[score-wb] playwright: D:\Vit_DAW_wt_382reach\agent\webui\node_modules\playwright\index.mjs
+[score-wb] A4-timesig-disclosed PASS
+[score-wb] A1-load-equality PASS
+[score-wb] A3-fixture-loaded PASS
+[score-wb] A3-svg-glyphs PASS
+[score-wb] A3-dotted PASS
+[score-wb] A3-rest-window PASS
+[score-wb] A3-syncopation PASS
+[score-wb] A3-cross-bar-tie PASS
+[score-wb] A2-id-binding PASS
+[score-wb] A1-write-readback PASS
+[score-wb] A5-saved-only-after-verify PASS
+[score-wb] A2-id-stable-edit-apply PASS
+[score-wb] A6-reopen-readback PASS
+[score-wb] A2-id-stable-reopen PASS
+[score-wb] A6-panel-reload PASS
+[score-wb] A4-template-2-4-disclosed PASS
+[score-wb] A7-edit-readback PASS
+[score-wb] A7-probe-non-silent PASS
+[score-wb] A8-edit-differential PASS
+[score-wb] J2-non120-panel-load PASS
+[score-wb] J2-non120-clip-grid-snapped PASS
+[score-wb] J2-non120-error-boundary-absent PASS
+[score-wb] J1-project-surface-reachable PASS
+[score-wb] J1-workbench-entry-present PASS
+[score-wb] J1-workbench-surface-switched PASS
+[score-wb] J1-score-panel-from-project-journey PASS
+[score-wb] J3-return-button-present PASS
+[score-wb] J3-return-to-project PASS
+[score-wb] verdict: PASS (28 assertions)
+ok: score wb recents restored and hash-verified: D087232D8B51
+ok: score workbench DG1-A berth smoke passed (browser + agent invoke face; summary: D:\Vit_DAW_wt_382reach\coord\runs\SCORE-ENTRY-REACH-1\run_accept_20261116_2217\score_workbench_summary.json)
+
+== Summary
+ok: dev agent smoke completed

@@ -5082,3 +5082,20 @@ button:focus-visible,[tabindex]:focus-visible{
     min-width: 196px;
   }
 }
+
+/* SCORE-ENTRY-REACH-1（382）：standalone 工作台返回工程条（浮动左上，不占
+   workbench grid 行——面板布局零变化） */
+.workbench-return-bar {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 40;
+}
+.workbench-return-button {
+  border: 1px solid var(--ink, #111);
+  background: var(--panel, #fff);
+  padding: 4px 10px;
+  font-size: 13px;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+}

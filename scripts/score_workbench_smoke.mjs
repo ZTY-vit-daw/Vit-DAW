@@ -807,7 +807,7 @@ async function main() {
     // placeholder->assigned-pitch edit (beat 0, pitch 60 -> 79) via kernel
     // mutate_midi_notes by vit_note_id, exactly scripts/src_template_smoke.py
     // B4. A1-A6 remain panel-gesture driven on the 120bpm fixture (P1-P4).
-    summary.p5_edit_seam = "agent/kernel tool face mutate_midi_notes (373 DG1-B B4 verbatim); panel gesture blocked by D4 (out-of-domain defect, anchors in notes)";
+    summary.p5_edit_seam = "agent/kernel tool face mutate_midi_notes (373 DG1-B B4 verbatim); panel gesture seam kept as card-designated judgment shape (D4 load crash fixed by 382 -- see J2 assertions)"
 
     // A4 template side: 2/4 disclosed through the same agent music_context
     // face the fixture side used (runtime truth, not assumption).
@@ -929,13 +929,88 @@ async function main() {
         " after peak/rms=" + renderAfter.peak_abs + "/" + renderAfter.rms_abs +
         " max_abs_diff=" + wavDiffRow.max_abs_diff + " (error=" + (wavDiffRow.error || "none") + ")");
 
+    // ---- SCORE-ENTRY-REACH-1 (382): J2 -- D4 修复回归（377 attempt3 崩溃点）----
+    // 80bpm 模板工程（当前会话工程）面板真实装载：修复前形态=openScorePanel 选
+    // 旋律 clip → pageerror grid_misaligned → [data-score-root] 消失（377 fatal.png）；
+    // 修复后=面板活着 + status 披露桥面网格化（8.0s@80bpm → raw 10.6667 → 10.75）。
+    const journeyPageErrors = [];
+    const pageErrorHandler = (error) => journeyPageErrors.push(String(error && error.message ? error.message : error));
+    page.on("pageerror", pageErrorHandler);
+    try {
+      await openScorePanel("P5-D4-regression", melodyClipID);
+      await page.screenshot({ path: join(args.screenshotDir, "j2_non120_panel_loaded.png") });
+      const d4Status = await rootAttr("data-score-status");
+      assert("J2-non120-panel-load",
+        (await page.locator("[data-score-root]").count()) === 1 && journeyPageErrors.length === 0,
+        "score-root present, pageerrors=" + JSON.stringify(journeyPageErrors).slice(0, 200));
+      assert("J2-non120-clip-grid-snapped",
+        d4Status.includes("10.75") && d4Status.includes("上取整"),
+        "status='" + d4Status.slice(0, 200) + "' (bridge grids 8.0s@80bpm raw 10.6667 -> 10.75)");
+      assert("J2-non120-error-boundary-absent",
+        (await page.locator("[data-score-error-boundary]").count()) === 0,
+        "boundary must not trigger for gridded non-grid clips");
+    } finally {
+      page.off("pageerror", pageErrorHandler);
+    }
+
+    // ---- SCORE-ENTRY-REACH-1 (382): J1/J3 -- 工程面 → 工作台 → 谱面旅程 ----
+    // 374 M4「GUI 和 webui 都没看到」的旅程级回归：工程面（VitShell 工程态等价
+    // surface=project）此前无 workbench/score 入口（结构性断点）；接入后=工程面
+    // titlebar「打开工作台」按钮 → React 内部切 surface（零导航）→ 谱面页签 →
+    // 面板装载（非 120bpm 工程）→ 返回工程条回到工程面。CDP/headless 浏览器面
+    // =JOURNEY-1 面就位前的卡面指定形态。
+    await page.goto(args.agentHttp + "/app/?surface=project", { waitUntil: "domcontentloaded" });
+    await page.waitForSelector("[data-project-root]", { timeout: 20000 });
+    await page.screenshot({ path: join(args.screenshotDir, "j1_project_surface.png") });
+    assert("J1-project-surface-reachable", true, "?surface=project renders ProjectSurface (data-project-root present)");
+
+    const entryButton = page.locator("[data-project-open-workbench]");
+    assert("J1-workbench-entry-present", (await entryButton.count()) === 1,
+      "project titlebar entry button count=" + (await entryButton.count()) + " (382 wiring; absent = journey broken again)");
+    await entryButton.click();
+    await page.waitForSelector(".app-shell-workbench", { timeout: 20000 });
+    await page.waitForSelector("[data-workbench-return-bar]", { timeout: 20000 });
+    assert("J1-workbench-surface-switched", true, "entry click switches to workbench surface (in-app, no navigation)");
+
+    const journeyTab = page.locator('[data-workbench-tab="score"]');
+    if ((await journeyTab.count()) !== 1) {
+      return fail(1, "J1-score-tab", "score tab missing on workbench surface after journey entry");
+    }
+    await journeyTab.click();
+    await page.waitForSelector("[data-score-root]", { timeout: 15000 });
+    await page.waitForSelector("[data-score-clip-select]", { timeout: 10000 });
+    const journeyClip = await rootAttr("data-score-clip-id");
+    if (journeyClip !== melodyClipID) {
+      await page.selectOption('[data-score-clip-select]', melodyClipID);
+    }
+    await page.waitForTimeout(1800); // clip select -> bridge rebuild -> reload
+    const journeyStatus = await rootAttr("data-score-status");
+    await page.screenshot({ path: join(args.screenshotDir, "j1_score_panel_from_project.png") });
+    assert("J1-score-panel-from-project-journey",
+      (await page.locator("[data-score-root]").count()) === 1 && journeyStatus.includes("10.75"),
+      "score panel loaded from project-surface journey; status='" + journeyStatus.slice(0, 160) + "'");
+
+    const exitButton = page.locator("[data-workbench-exit-project]");
+    assert("J3-return-button-present", (await exitButton.count()) === 1, "workbench return bar button present");
+    await exitButton.click();
+    await page.waitForSelector("[data-project-root]", { timeout: 20000 });
+    await page.screenshot({ path: join(args.screenshotDir, "j3_back_to_project.png") });
+    assert("J3-return-to-project", true, "return click restores project surface (data-project-root back)");
+    summary.journey_leg = {
+      project_surface: "reachable",
+      workbench_entry: "clicked via [data-project-open-workbench]",
+      score_panel: "loaded on 80bpm template project (10.75 gridded)",
+      return: "back to project surface"
+    };
+
     // ---- 域外发现记录（锚点上交决策侧，不扩修） ----
     summary.notes.push(
       "D1（内核·锚点候查）：XML-boot 工程上会话内加轨再 save_project，新轨被丢出工程状态（attempt3/4 实证：track 1039+clip 1042 save 后消失；.vit-boot 不复现）。",
       "D2（内核·锚点候查）：save_project 后 get_project_state 的 tracks[].clips[].clip_id 披露降级为 null 直至 open_project 重开（agent 面 clip 寻址随之失效；产品影响=谱面面板 save 后至重开间 clip 选择器失源——本腿 A6 用 save→open 序绕开）。",
       "D3（装置面发现）：agent get_project_state（userVisibleState 消毒面）不披露 project_path/project.file_path——腿经 save_as 目标路径+--project-xml 双源。",
       "P5 补记（377）：A7/A8 判据复用 373 DG1-B（scripts/src_template_smoke.py B2/B4 同参同阈）；音源=373 模板工程旋律轨 Surge XT（place-copy 进 run 目录，源只读+manifest sha256 对账）。",
-      "D4（377 域外产品缺陷·锚点上交，非 120bpm 工程谱面面板装载崩溃）：链=①内核 get_midi_clip_data 对 80bpm 工程 8 拍 clip 披露 length_seconds=8.0（拍数恒等冒充秒，真值 6.0s；VitApp/Source/Service/MidiService.cpp:1758-1768，time_unit='beats' 标签下 pos.getLength().inSeconds() 未按工程 tempo 换算）；②webui 桥按秒义换算 clipLengthBeats=8*80/60=10.6667（agent/webui/src/scoreworkbench/kernel.ts:131-140 readClipGeometry）；③面板 applyPatch useMemo 渲染期 beatsRoundedToTicks(10.6667) 抛 ModelError(grid_misaligned) 无错误边界→整面板卸载（ScoreWorkbenchPanel.tsx:401+model.ts:96-102）。120bpm 工程下 8*120/60=16 恰整数网格不触发（374 A1-A6 因此未暴露）。最小复现=open 373 模板工程→/app/ 谱面页签→选旋律 clip→[pageerror] score model error [grid_misaligned]: beats=10.666666666666666 not on grid→data-score-root 消失（run_dg1a_20261116_1936/screens/fatal.png+活栈诊断在卷）。本腿 A7/A8 编辑缝因此走 373 B4 逐字同款 agent/kernel tool face mutate_midi_notes（STACKGATE §3.0 装置锚认可缝），不扩修域外层。"
+      "D4 处置（382 SCORE-ENTRY-REACH-1 已修+定性更正）：377 的「拍数恒等冒充秒」定性被 382 真栈取证推翻——内核命令面换算正确（forensic_zmq attempt5：insert_midi_clip beats8/6 回显 6.0s/4.5s@80bpm+读写一致+save→open 往返稳定）；真根因=373 手写模板 XML 的 MIDICLIP start/length 用拍数值（8.0=8 拍），tracktion loader 按秒直读（tracktion_Clip.cpp CachedValue<TimePosition> referTo 无换算）→80bpm 工程装载即 clip=8.0s=10.6667 拍。修复=①webui 渲染期错误边界（ScorePanelErrorBoundary，ModelError 不再整树卸载）②桥面网格化宽容（snapClipLengthToGrid 上取整+clipLengthBeatsRaw 披露，kernel.ts）。373 模板资产数值修正（length 8.0→6.0 等）=373 域越域，锚点上交主管裁量。",
+      "D4（377 域外产品缺陷·锚点上交，非 120bpm 工程谱面面板装载崩溃）：链=①内核 get_midi_clip_data 对 80bpm 工程 8 拍 clip 披露 length_seconds=8.0（拍数恒等冒充秒，真值 6.0s；VitApp/Source/Service/MidiService.cpp:1758-1768，time_unit='beats' 标签下 pos.getLength().inSeconds() 未按工程 tempo 换算）；②webui 桥按秒义换算 clipLengthBeats=8*80/60=10.6667（agent/webui/src/scoreworkbench/kernel.ts:131-140 readClipGeometry）；③面板 applyPatch useMemo 渲染期 beatsRoundedToTicks(10.6667) 抛 ModelError(grid_misaligned) 无错误边界→整面板卸载（ScoreWorkbenchPanel.tsx:401+model.ts:96-102）。120bpm 工程下 8*120/60=16 恰整数网格不触发（374 A1-A6 因此未暴露）。最小复现=open 373 模板工程→/app/ 谱面页签→选旋律 clip→[pageerror] score model error [grid_misaligned]: beats=10.666666666666666 not on grid→data-score-root 消失（run_dg1a_20261116_1936/screens/fatal.png+活栈诊断在卷）。本腿 A7/A8 编辑缝因此走 373 B4 逐字同款 agent/kernel tool face mutate_midi_notes（STACKGATE §3.0 装置锚认可缝），不扩修域外层。（382 注：段①的内核归因经取证更正见上条；编辑缝维持 373 B4 同款=卡面指定复用的判据形态，非 D4 阻断。）"
     );
 
     const failed = Object.values(summary.assertions).filter((row) => !row.pass);

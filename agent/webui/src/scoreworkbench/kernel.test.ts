@@ -4,7 +4,7 @@
 // apply=单次 confirmed replace_region 载荷、回读验证（不一致不面显已保存）。
 import { describe, expect, it } from "vitest";
 
-import { createAgentScoreBridge, type InvokeFn } from "./kernel";
+import { createAgentScoreBridge, snapClipLengthToGrid, type InvokeFn } from "./kernel";
 import type { AgentInvokeResponse, JsonRecord } from "../types";
 
 type Call = { tool: string; args: JsonRecord; confirmed: boolean };
@@ -189,5 +189,57 @@ describe("agent score bridge (M3)", () => {
     expect(result.ok).toBe(false);
     if (result.ok) throw new Error("unreachable");
     expect(result.error).toContain("authority_mode_not_active");
+  });
+
+  // SCORE-ENTRY-REACH-1 (D4) 回归：非网格 clip 拍长（373 模板 80bpm 工程 clip
+  // 8.0s → 10.6667 拍）——桥面向上取整到 16 分网格（10.75）+raw 披露，不再把
+  // 非网格值交给下游（377 实证：面板 buildApplyPatch 渲染期 grid_misaligned
+  // 抛错无边界整树卸载）。
+  it("snapClipLengthToGrid rounds non-grid beat lengths up to the 16th grid", () => {
+    expect(snapClipLengthToGrid(10.666666666666666)).toBe(10.75);
+    expect(snapClipLengthToGrid(6)).toBe(6); // 整数不动
+    expect(snapClipLengthToGrid(8.0000000001)).toBe(8); // 1e-10 尾差被 eps 吸收，不抖到下一格
+    expect(snapClipLengthToGrid(8.00000001)).toBe(8.25); // 超 eps 的正偏差上取整
+    expect(snapClipLengthToGrid(8 - 1e-12)).toBe(8); // 网格下微量负偏差容忍
+    expect(() => snapClipLengthToGrid(Number.NaN)).toThrow();
+    expect(() => snapClipLengthToGrid(0)).toThrow();
+  });
+
+  it("reload grids a non-grid clip length (80bpm template clip 8.0s -> 10.75 beats, raw kept)", async () => {
+    const invoke: InvokeFn = async (payload) => {
+      switch (payload.tool ?? "") {
+        case "analyze_midi_transformations":
+          return okReply({
+            status: "ok",
+            music_context_echo: {
+              tempo_bpm: 80,
+              time_signature: "2/4",
+              time_signature_numerator: 2,
+              time_signature_denominator: 4,
+              tempo_setting_count: 1,
+              time_sig_setting_count: 1
+            },
+            limitations: []
+          });
+        case "get_midi_clip_data":
+          // 382 取证实证形态：373 模板旋律 clip（拍数值 8.0 被 loader 当秒读）
+          return okReply({ status: "ok", clip_id: "1111", time_unit: "beats", start_seconds: 0, length_seconds: 8 });
+        case "get_midi_clip_notes":
+          return okReply({
+            status: "ok",
+            notes: [{ id: "n-1", pitch: 60, start: 0, length: 1 }]
+          });
+        case "apply_midi_note_patch":
+          return okReply({ status: "ok", applied: {} });
+        default:
+          return { status: "error", error: `unexpected tool ${payload.tool}` };
+      }
+    };
+    const result = await createAgentScoreBridge({ invoke }).reload();
+    expect(result.ok).toBe(true);
+    if (!result.ok || !result.value) throw new Error("unreachable");
+    expect(result.value.clipLengthBeats).toBe(10.75); // ceil(8 * 80/60 * 4)/4
+    expect(result.value.clipLengthBeatsRaw).toBeCloseTo(10.666666666666666, 12);
+    expect(result.value.tempoBPM).toBe(80);
   });
 });

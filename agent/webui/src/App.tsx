@@ -505,15 +505,28 @@ function App() {
   if (surface === "project") {
     return (
       <ProjectLoadingGate>
-        <ProjectSurface fill />
+        {/* SCORE-ENTRY-REACH-1（382）：工程面显式「打开工作台」入口——谱面/媒体/
+            历史/宏工作台此前只在 full/main surface 可达（VitShell 工程态=project
+            surface 无入口，374 M4「没看到」的结构性断点）。React 内部切 surface
+            （零导航零重载，343 不变量）。 */}
+        <ProjectSurface fill onOpenWorkbench={() => setSurface("workbench")} />
       </ProjectLoadingGate>
     );
   }
-  return <MainApp />;
+  return (
+    <MainApp
+      surface={surface}
+      onExitWorkbench={surface === "workbench" ? () => setSurface("project") : undefined}
+    />
+  );
 }
 
-function MainApp() {
-  const surface = useMemo(() => appSurface(), []);
+function MainApp({ surface: surfaceProp, onExitWorkbench }: { surface?: AppSurface; onExitWorkbench?: () => void }) {
+  // SCORE-ENTRY-REACH-1（382）：surface 以 App() state 为准（URL 初值不变；
+  // 工程面「打开工作台」等 React 内部切换〔零导航〕不再被 URL 旧值覆盖——
+  // attempt1 实证：MainApp 自读 URL 时按钮点击后 workbench 壳层不渲染）。
+  const urlSurface = useMemo(() => appSurface(), []);
+  const surface: AppSurface = surfaceProp ?? urlSurface;
   const isWorkbenchSurface = surface === "workbench";
   const isMainSurface = surface === "main";
   const [connection, setConnection] = useState<ConnectionStatus>("loading");
@@ -2008,6 +2021,15 @@ function MainApp() {
           void handleUpload(event.dataTransfer.files);
         }}
       >
+        {/* SCORE-ENTRY-REACH-1（382）：standalone 工作台的返回工程条（从工程面
+            「打开工作台」进来的用户有回头路；宿主桥/浏览器 dev 均适用）。 */}
+        {onExitWorkbench ? (
+          <div className="workbench-return-bar" data-workbench-return-bar>
+            <button type="button" className="workbench-return-button" data-workbench-exit-project onClick={onExitWorkbench}>
+              ← 返回工程
+            </button>
+          </div>
+        ) : null}
         {workbenchPanel}
         {hiddenFileInput}
       </main>

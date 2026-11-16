@@ -1,0 +1,5 @@
+[step] ping -> {"status": "ok", "message": "pong"}
+[step] get_project_state -> {"status": "ok", "project_path": "D:\\Vit_DAW_wt_382reach\\coord\\runs\\SCORE-ENTRY-REACH-1\\forensic_zmq_20261116_2140\\forensic_roundtrip.vit", "project_uuid": "vitproj_872b7d9d3d2f405f87bec76ab6aba11c", "project_id": "vitproj_872b7d9d3d2f405f87bec76ab6aba11c", "parent_project_uuid": "vitproj_srctemplate1melodydrumv1a0000000001", "agent_history_generation": "", "scope": "track", "music_context":
+[step] list_tracks -> {"status": "ok", "message": "Track list fetched", "tracks": [{"track_id": "1002", "name": "Arranger", "track_type": "track", "is_audio": false, "is_audio_track": false, "vit_type": "", "vit_intent": "", "plugin_count": 0, "plugins": [], "parent_track_id": null, "parent_folder_track_id": null, "depth": 0, "track_depth": 0, "child_track_ids": [], "direct_child_track_ids": [], "descendant_track_ids":
+[PASS] F0-template-melody-track-found: list_tracks names=["Arranger", "Chord", "Marker", "Tempo", "Master", "参考与示范", "我的旋律", "辅助律动（鼓）", "我的八小节主题", "我的成曲版本", "Track 6"]
+[FAIL] F0-template-clip-xml-id: melody track first MIDICLIP xml id=

@@ -100,6 +100,10 @@ export interface ProjectSurfaceProps {
   fixture?: ProjectFixtureOverrides;
   /** 撑满视口（live surface 用）。 */
   fill?: boolean;
+  /** SCORE-ENTRY-REACH-1（382）：「打开工作台」入口回调——把谱面/媒体/历史/宏
+   * 工作台接进工程面可达旅程（App 级 React 内部切 surface，零导航零重载）。
+   * 未传（gallery fixture/独立渲染）=按钮不渲染，行为零变化。 */
+  onOpenWorkbench?: () => void;
 }
 
 /** 轨迹视图 → 344 StatusCard 三态映射（idle 由 surface 渲染为待机行）。 */
@@ -308,7 +312,7 @@ function MacroItem({
   );
 }
 
-export function ProjectSurface({ fixture, fill = false }: ProjectSurfaceProps) {
+export function ProjectSurface({ fixture, fill = false, onOpenWorkbench }: ProjectSurfaceProps) {
   const fixtureService = fixture?.service ?? null;
   const [state, dispatch] = useReducer(
     (s: ProjectSurfaceState, e: ProjectEvent) => reduceProject(s, e),
@@ -559,6 +563,16 @@ export function ProjectSurface({ fixture, fill = false }: ProjectSurfaceProps) {
           </span>
           {state.context?.detail ? (
             <span className="v5-project-titlebar-detail">{state.context.detail}</span>
+          ) : null}
+          {onOpenWorkbench ? (
+            <button
+              type="button"
+              className="v5-btn v5-btn--secondary v5-project-open-workbench"
+              data-project-open-workbench
+              onClick={onOpenWorkbench}
+            >
+              打开工作台
+            </button>
           ) : null}
         </header>
         <div className="v5-project-main">
