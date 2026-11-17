@@ -68,9 +68,9 @@ if ($Win32RestoreForensics -or $GodotRestoreForensics) {
         param([string[]]$Lines, [ValidateSet('403','404')][string]$ExpectedCard)
         # Inspect the first resource record only; never authorize via history.
         $nonempty=@($Lines | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
-        if (-not $nonempty.Count -or $nonempty[0].Trim() -cne '# PC 真实运行栈占用记录') { throw 'forensics resource header missing' }
+        if (-not $nonempty.Count -or $nonempty[0].Trim() -cnotmatch '^# PC \u771f\u5b9e\u8fd0\u884c\u6808\u5360\u7528\u8bb0\u5f55$') { throw 'forensics resource header missing' }
         $current=$Lines | Where-Object { $_ -match '^\s*-\s+' } | Select-Object -First 1
-        if (-not $current -or $current -notmatch '^- .+? (?<state>续预留|预留|占用)\s*/\s*\*\*(?<card>\d+)(?=\D)') { throw 'forensics current resource is not reserved or occupied' }
+        if (-not $current -or $current -notmatch '^- .+? (?<state>\u7eed\u9884\u7559|\u9884\u7559|\u5360\u7528)\s*/\s*\*\*(?<card>\d+)(?=\D)') { throw 'forensics current resource is not reserved or occupied' }
         if ($Matches.card -cne $ExpectedCard) { throw 'forensics current resource card mismatch' }
         if ($current -notmatch 'owner=Codex `(?<owner>[^`]+)`' -or $Matches.owner -cne '/root/restore403') { throw 'forensics current resource owner mismatch' }
         return $current
