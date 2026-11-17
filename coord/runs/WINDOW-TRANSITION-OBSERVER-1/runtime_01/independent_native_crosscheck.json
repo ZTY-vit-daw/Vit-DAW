@@ -1,0 +1,222 @@
+{
+  "native_records": 54,
+  "entry_after_pairs": 26,
+  "max_nested_depth": 2,
+  "unpaired_errors": [],
+  "sticky_failure_rows": 0,
+  "all_native_pid_tid_hwnd_match": true,
+  "native_first_normal": {
+    "kind": "native_message",
+    "nonce": "1b2b5230615141c884c2be9863e43799",
+    "pid": 21460,
+    "seq": 38,
+    "tick64": 112387937,
+    "qpc": 1123898693324,
+    "unix_ms": 1794911830954,
+    "phase": 1,
+    "message": 136,
+    "tid": 8356,
+    "hwnd": 1771826,
+    "generation": 1,
+    "depth": 1,
+    "failures": 0,
+    "wparam": 4,
+    "lparam": 0,
+    "windowpos": {
+      "insert_after": 0,
+      "x": 0,
+      "y": 0,
+      "cx": 0,
+      "cy": 0,
+      "flags": 0
+    },
+    "style_change": [
+      0,
+      0
+    ],
+    "dpi_suggested": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "valid": 1,
+    "native_pid": 21460,
+    "native_tid": 8356,
+    "visible": 1,
+    "iconic": 0,
+    "zoomed": 0,
+    "style": 382664704,
+    "exstyle": 134480144,
+    "dpi": 168,
+    "dpi_context": 43025,
+    "rect_ok": 1,
+    "rect": [
+      908,
+      428,
+      1652,
+      972
+    ],
+    "client_ok": 1,
+    "client": [
+      0,
+      0,
+      720,
+      480
+    ],
+    "placement_ok": 1,
+    "show_cmd": 1,
+    "normal_rect": [
+      908,
+      428,
+      1652,
+      972
+    ],
+    "foreground": 10684046,
+    "focus": 0,
+    "active": 0,
+    "previous": 788188,
+    "next": 65950
+  },
+  "parent_api": {
+    "seq": 37,
+    "tick64": 112387937,
+    "unix_ms": 1794911830955,
+    "pid": 19504,
+    "kind": "restore_api_return",
+    "return_previous_visible": 0,
+    "last_error_applicable": false,
+    "hwnd": 1771826,
+    "visible": 1,
+    "iconic": 0,
+    "zoomed": 0,
+    "style": 382664704,
+    "exstyle": 134480144,
+    "placement_ok": 1,
+    "showCmd": 1,
+    "placement_flags": 0,
+    "min_position": [
+      -18286,
+      -18286
+    ],
+    "max_position": [
+      -1,
+      -1
+    ],
+    "normal_rect": [
+      519,
+      245,
+      944,
+      556
+    ],
+    "rect_ok": 1,
+    "rect": [
+      519,
+      245,
+      944,
+      556
+    ],
+    "client_ok": 1,
+    "client": [
+      0,
+      0,
+      411,
+      274
+    ],
+    "foreground": 10684046,
+    "foreground_pid": 30472
+  },
+  "first_to_last_engine_mode0_ms": 2218,
+  "sample_count": 61,
+  "sample_normal_bad": 0,
+  "child_raw_foreground": 0,
+  "messages": [
+    {
+      "Name": "12",
+      "Count": 1
+    },
+    {
+      "Name": "15",
+      "Count": 1
+    },
+    {
+      "Name": "19",
+      "Count": 1
+    },
+    {
+      "Name": "20",
+      "Count": 1
+    },
+    {
+      "Name": "36",
+      "Count": 1
+    },
+    {
+      "Name": "70",
+      "Count": 2
+    },
+    {
+      "Name": "71",
+      "Count": 2
+    },
+    {
+      "Name": "124",
+      "Count": 1
+    },
+    {
+      "Name": "125",
+      "Count": 1
+    },
+    {
+      "Name": "127",
+      "Count": 7
+    },
+    {
+      "Name": "131",
+      "Count": 2
+    },
+    {
+      "Name": "133",
+      "Count": 1
+    },
+    {
+      "Name": "136",
+      "Count": 1
+    },
+    {
+      "Name": "174",
+      "Count": 1
+    },
+    {
+      "Name": "799",
+      "Count": 1
+    },
+    {
+      "Name": "49378",
+      "Count": 2
+    }
+  ],
+  "natural_exit": {
+    "seq": 118,
+    "tick64": 112390281,
+    "unix_ms": 1794911833294,
+    "pid": 19504,
+    "kind": "owned_child_exit",
+    "exit_code": 0,
+    "forced_teardown": 0,
+    "terminate_return": 1,
+    "wait_result": 0
+  },
+  "stop_request_body": "1b2b5230615141c884c2be9863e43799",
+  "unload_ack": {
+    "hwnd": 1771826,
+    "kind": "observer_unloaded",
+    "nonce": "1b2b5230615141c884c2be9863e43799",
+    "nonce_matches": true,
+    "pid": 21460,
+    "removed_verified": true,
+    "shutdown": true,
+    "still_loaded": false,
+    "unload_result": 0
+  }
+}

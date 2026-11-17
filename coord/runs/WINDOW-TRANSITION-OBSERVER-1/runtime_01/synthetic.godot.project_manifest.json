@@ -1,0 +1,14 @@
+﻿{
+    "nonce":  "cc452536b0984d1289f8617f09d39cc4",
+    "project":  "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WINDOW-TRANSITION-OBSERVER-1\\runtime_01\\synthetic.godot.project",
+    "command":  "\"D:/Godot/Godot_v4.6.1-stable_win64.exe\" --path \"C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WINDOW-TRANSITION-OBSERVER-1\\runtime_01\\synthetic.godot.project\" --log-file \"C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WINDOW-TRANSITION-OBSERVER-1\\runtime_01\\synthetic.godot.project/godot_engine.log\"",
+    "startup_flags":  1,
+    "startup_show":  0,
+    "creation_flags":  "CREATE_SUSPENDED|CREATE_NO_WINDOW|CREATE_UNICODE_ENVIRONMENT",
+    "user_environment":  "Child-only APPDATA/LOCALAPPDATA/USERPROFILE/TEMP/TMP redirected to run project isolated_user; VIT_* removed",
+    "no_autoload":  true,
+    "no_plugins":  true,
+    "no_extensions":  false,
+    "no_production_extensions":  true,
+    "test_transition_observer":  true
+}

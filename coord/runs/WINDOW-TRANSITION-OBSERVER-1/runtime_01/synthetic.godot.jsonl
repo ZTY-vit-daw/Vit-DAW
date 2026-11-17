@@ -1,0 +1,17 @@
+{"seq":1,"tick64":112380078,"unix_ms":1794911823094,"pid":25808,"kind":"godot_boundary","child_wndproc_available":false,"test_observer_requested":1,"parent_has_child_wndproc":false,"nonce":"cc452536b0984d1289f8617f09d39cc4"}
+{"seq":2,"tick64":112380078,"unix_ms":1794911823097,"pid":25808,"kind":"message","hwnd":1771088,"message":1,"wparam":0,"lparam":26198664192,"observing":0}
+{"seq":3,"tick64":112380078,"unix_ms":1794911823097,"pid":25808,"kind":"message","hwnd":1771088,"message":24,"wparam":1,"lparam":0,"observing":0}
+{"seq":4,"tick64":112380078,"unix_ms":1794911823097,"pid":25808,"kind":"message","hwnd":1771088,"message":70,"wparam":0,"lparam":26198665776,"observing":0,"windowpos":{"insert_after":1969616,"x":0,"y":0,"cx":0,"cy":0,"flags":67}}
+{"seq":5,"tick64":112380078,"unix_ms":1794911823099,"pid":25808,"kind":"message","hwnd":1771088,"message":70,"wparam":0,"lparam":26198665776,"observing":0,"windowpos":{"insert_after":1969616,"x":0,"y":0,"cx":0,"cy":0,"flags":3}}
+{"seq":6,"tick64":112380078,"unix_ms":1794911823099,"pid":25808,"kind":"message","hwnd":1771088,"message":28,"wparam":1,"lparam":0,"observing":0}
+{"seq":7,"tick64":112380078,"unix_ms":1794911823099,"pid":25808,"kind":"message","hwnd":1771088,"message":134,"wparam":0,"lparam":0,"observing":0}
+{"seq":8,"tick64":112380078,"unix_ms":1794911823100,"pid":25808,"kind":"message","hwnd":1771088,"message":6,"wparam":1,"lparam":0,"observing":0}
+{"seq":9,"tick64":112380093,"unix_ms":1794911823107,"pid":25808,"kind":"message","hwnd":1771088,"message":7,"wparam":0,"lparam":0,"observing":0}
+{"seq":10,"tick64":112380093,"unix_ms":1794911823107,"pid":25808,"kind":"message","hwnd":1771088,"message":71,"wparam":0,"lparam":26198665776,"observing":0,"windowpos":{"insert_after":1969616,"x":40,"y":40,"cx":160,"cy":120,"flags":268441667}}
+{"seq":11,"tick64":112380093,"unix_ms":1794911823107,"pid":25808,"kind":"message","hwnd":1771088,"message":5,"wparam":0,"lparam":5308560,"observing":0}
+{"seq":12,"tick64":112380203,"unix_ms":1794911823215,"pid":25808,"kind":"hook_before_spawn","baseline_hwnd":10684046,"baseline_pid":30472}
+{"seq":13,"tick64":112380203,"unix_ms":1794911823215,"pid":25808,"kind":"result","classification":"not_exercised","exit_code":10,"child_pid":0}
+{"seq":14,"tick64":112380203,"unix_ms":1794911823215,"pid":25808,"kind":"message","hwnd":1771088,"message":70,"wparam":0,"lparam":26198664800,"observing":0,"windowpos":{"insert_after":0,"x":0,"y":0,"cx":0,"cy":0,"flags":151}}
+{"seq":15,"tick64":112380203,"unix_ms":1794911823215,"pid":25808,"kind":"message","hwnd":1771088,"message":71,"wparam":0,"lparam":26198664800,"observing":0,"windowpos":{"insert_after":0,"x":40,"y":40,"cx":160,"cy":120,"flags":536877207}}
+{"seq":16,"tick64":112380203,"unix_ms":1794911823216,"pid":25808,"kind":"message","hwnd":1771088,"message":2,"wparam":0,"lparam":0,"observing":0}
+{"seq":17,"tick64":112380312,"unix_ms":1794911823324,"pid":25808,"kind":"hook_removed"}

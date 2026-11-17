@@ -1,0 +1,25 @@
+﻿{
+    "card":  "406",
+    "run_id":  "runtime_01",
+    "started":  "2026-11-17T10:36:26.2905468Z",
+    "finished":  "2026-11-17T10:37:18.7414908Z",
+    "exit":  2,
+    "recents_unchanged":  true,
+    "scenarios":  [
+                      {
+                          "scene":  "synthetic.godot",
+                          "pid":  25808,
+                          "exit":  10,
+                          "classification":  "not_exercised",
+                          "raw":  "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WINDOW-TRANSITION-OBSERVER-1\\runtime_01\\synthetic.godot.jsonl"
+                      },
+                      {
+                          "scene":  "external.godot",
+                          "pid":  19504,
+                          "exit":  0,
+                          "classification":  "candidate_pass",
+                          "raw":  "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WINDOW-TRANSITION-OBSERVER-1\\runtime_01\\external.godot.jsonl"
+                      }
+                  ],
+    "boundary":  "Isolated test-only target-thread observer; native child transitions plus graceful unload; no product acceptance"
+}
