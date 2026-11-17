@@ -14,7 +14,9 @@ param(
     [int]$WaitSeconds = 60,
     [int]$SceneSettleSeconds = 40,
     [switch]$SkipBuild,
-    [switch]$SkipLegacyLeg
+    [switch]$SkipLegacyLeg,
+    [switch]$EntryManagementChecks,
+    [string]$EntryCardId = 'CONVERGE-ENTRY-1'
 )
 
 # UI-ENTRY-1 端侧烟测（ui_host_smoke 同模式新脚本；单窗入口编排三腿）。
@@ -224,6 +226,13 @@ $agentProcId = 0
 $godotAutoloadPid = 0
 $godotLegacyPid = 0
 
+# Optional shared acceptance guard only; original UI-ENTRY assertions remain.
+function Assert-UiEntryOwnedStack {
+    if ($EntryManagementChecks) {
+        & (Join-Path $PSScriptRoot 'run_entry_management_acceptance.ps1') -Leg Guard -RunRoot $RunRoot -CardId $EntryCardId -AllowedRootPid $agentProcId -AllowedKernelPid $kernelProcId
+    }
+}
+
 function Stop-Stack {
     Write-Step0 "Finally: stop stack and confirm port release"
     Stop-GuiProcess $godotAutoloadPid
@@ -250,6 +259,7 @@ $godotLegacyLog = Join-Path $LogsDir "godot_legacy.log"
 
 function Start-GodotLeg {
     param([string]$LogPath, [switch]$WithAutoOpen, [switch]$IsLegacy)
+    Assert-UiEntryOwnedStack
     if (-not $IsLegacy) { $env:VIT_AGENT_WINDOW_MODE = "autoload" }
     if ($WithAutoOpen) { $env:VIT_SMOKE_AUTO_OPEN_PROJECT = $ProjectCopy }
     $env:VIT_SKIP_DEV_AUTOSTART = "1"
@@ -272,6 +282,7 @@ try {
     $env:VIT_PROJECT_XML = (Join-Path $KernelWorkspace "default_project.xml")
     $env:VIT_DAW_DEV_ROOT = $RepoRoot
     try {
+        Assert-UiEntryOwnedStack
         $kernelProc = Start-Process -FilePath $KernelExe -WorkingDirectory $KernelWorkspace -WindowStyle Hidden -PassThru
     }
     finally {
@@ -287,6 +298,7 @@ try {
 
     # ------------------------------------------------- import pass (fresh worktree cache)
     Write-Step0 "Import pass (rebuild .godot cache: extension_list + global class cache)"
+    Assert-UiEntryOwnedStack
     $importProc = Start-Process -FilePath $GodotExe -ArgumentList @("--headless", "--path", $GodotProjectRoot, "--import") -WorkingDirectory $GodotProjectRoot -PassThru -Wait -WindowStyle Hidden
     if (-not (Test-Path -LiteralPath (Join-Path $GodotProjectRoot ".godot\extension_list.cfg"))) {
         throw ("Godot import pass did not produce .godot/extension_list.cfg")
@@ -299,6 +311,7 @@ try {
     $env:VIT_SKIP_DEV_AUTOSTART = "1"
     $env:VIT_DAW_DEV_ROOT = $RepoRoot
     try {
+        Assert-UiEntryOwnedStack
         $godotFailInjectProc = Start-Process -FilePath $GodotExe -ArgumentList @("--path", $GodotProjectRoot, "--log-file", $godotFailInjectLog) -WorkingDirectory $GodotProjectRoot -WindowStyle Hidden -PassThru
     }
     finally {
@@ -353,6 +366,7 @@ try {
     New-Item -ItemType Directory -Force -Path $env:VIT_HISTORY_DRAFT_ROOT | Out-Null
     $env:VIT_DAW_DEV_ROOT = $RepoRoot
     try {
+        Assert-UiEntryOwnedStack
         $agentProc = Start-Process -FilePath $AgentBinary -ArgumentList @("-http", ($AgentHttp -replace '^http://',''), "-last-log-path", $agentLog, "-keep-last-log-lines", "8000") -WorkingDirectory $AgentDir -WindowStyle Hidden -PassThru
     }
     finally {

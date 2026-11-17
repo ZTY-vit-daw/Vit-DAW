@@ -377,6 +377,25 @@ function Start-VitShell {
 
 function Stop-TreeBestEffort {
     param([int]$ShellPid)
+    if ($EntryManagementChecks -or $WindowBehaviorChecks) {
+        # A failed pre-start guard grants no cleanup right over a foreign tree.
+        if ($ShellPid -le 0) { return }
+        $ownedRoot = Get-CimInstance Win32_Process -Filter "ProcessId = $ShellPid" -ErrorAction SilentlyContinue
+        if ($null -eq $ownedRoot) { return }
+        if ("$($ownedRoot.ExecutablePath)" -ne [IO.Path]::GetFullPath($VitShellExe)) { throw 'teardown root executable no longer matches this run; refusing foreign kill' }
+        $ownedPids = @{ $ShellPid = $true }
+        $liveProcesses = @(Get-CimInstance Win32_Process)
+        do {
+            $newChild = $false
+            foreach ($process in $liveProcesses) {
+                if ($ownedPids.ContainsKey([int]$process.ParentProcessId) -and -not $ownedPids.ContainsKey([int]$process.ProcessId)) { $ownedPids[[int]$process.ProcessId] = $true; $newChild = $true }
+            }
+        } while ($newChild)
+        if ((Get-TcpListenerPid -Port $StatusPort) -eq $ShellPid) { try { $null = Get-HttpPost -Url "http://127.0.0.1:$StatusPort/close" -TimeoutSec 3 } catch {} }
+        Start-Sleep -Seconds 2
+        foreach ($ownedPid in $ownedPids.Keys) { Stop-Process -Id $ownedPid -Force -ErrorAction SilentlyContinue }
+        return
+    }
     try { $null = Get-HttpPost -Url "http://127.0.0.1:$StatusPort/close" -TimeoutSec 3 } catch {}
     Start-Sleep -Seconds 2
     foreach ($n in @("VitShell", "VitAgent", "VitApp", "VspHub", "Godot*")) {

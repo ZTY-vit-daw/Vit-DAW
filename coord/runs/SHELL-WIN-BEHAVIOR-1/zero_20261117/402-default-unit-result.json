@@ -1,0 +1,10 @@
+﻿{
+    "real_stack_started":  false,
+    "command":  "D:/Godot/Godot_v4.6.1-stable_win64_console.exe --headless --path C:\\Users\\timoz\\.codex\\worktrees\\godot-entry-396\\vit-daw-frontend\\VitShell\\build\\readiness-402B-zero-20261117\\project --script res://tools/probe_vitshell_launch_readiness.gd --quit-after 600",
+    "inputs_sha256":  {
+                          "app/shell/vitshell_launch_readiness.gd":  "D67F65EA0AE0A4347799994AD4DE825BBD41DCBDD205B98DD5827834143A092D",
+                          "tools/probe_vitshell_launch_readiness.gd":  "B5792AE3D03D2365912025714140D24E54EDEBC2857AC04304E975A93F1511FA",
+                          "tools/fixtures/vitshell_readiness_workspace.tscn":  "18EFF0B85C8CDFC43D144E2A100CDCEDCDDE71061C5AD172768DD8C0B8F95B38"
+                      },
+    "exit_code":  0
+}

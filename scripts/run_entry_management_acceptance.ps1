@@ -1,11 +1,12 @@
 # 388 hygiene wrapper over the existing A/B smoke mechanisms. No product probes here.
 [CmdletBinding()]
 param(
-    [ValidateSet('A','B','Guard')][string]$Leg,
+    [ValidateSet('A','B','C','Guard')][string]$Leg,
     [Parameter(Mandatory=$true)][string]$RunRoot,
     [string]$FrontendWorktree = 'C:/Users/timoz/.codex/worktrees/godot-runtime-388/vit-daw-frontend',
     [string]$FixtureSource = 'D:/Vit_DAW/temp/f3_empty_project.vit',
     [int]$AllowedRootPid = 0,
+    [int]$AllowedKernelPid = 0,
     [int]$InjectedBoundAgentPort = 0,
     [int]$InjectionOwnerPid = 0,
     [ValidateSet('CONVERGE-ENTRY-1','SHELL-WIN-BEHAVIOR-1')][string]$CardId = 'CONVERGE-ENTRY-1',
@@ -43,6 +44,12 @@ function Assert-EntryLeaseAndStack {
             }
         } while ($changed)
     }
+    if ($AllowedKernelPid -gt 0) {
+        $kernelProcess = $processes | Where-Object ProcessId -eq $AllowedKernelPid
+        $expectedKernel = [IO.Path]::GetFullPath((Join-Path $repo 'VitApp/build/VitApp_artefacts/Release/VitApp.exe'))
+        if ($null -eq $kernelProcess -or "$($kernelProcess.ExecutablePath)" -ne $expectedKernel) { throw 'ENV-INTERRUPT: allowed kernel PID does not match this worktree binary' }
+        $allowed[$AllowedKernelPid] = $true
+    }
     $foreign = @($processes | Where-Object { $_.Name -match '^(VitShell|VitAgent|VitApp|VspHub|Godot.*)\.exe$' -and -not $allowed.ContainsKey([int]$_.ProcessId) })
     if ($foreign.Count) { throw ('ENV-INTERRUPT: foreign Vit stack found, refusing reuse/kill: ' + (($foreign | ForEach-Object { "$($_.Name):$($_.ProcessId)" }) -join ',')) }
     $listeners = @(Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue | Where-Object { $_.LocalPort -in @(7878,7879,8787,5555,5556,9333) })
@@ -63,6 +70,7 @@ if ($Leg -eq 'Guard') {
 }
 if (Test-Path -LiteralPath $RunRoot) { throw 'RunRoot already exists; use a new run directory' }
 New-Item -ItemType Directory -Path $RunRoot | Out-Null
+Assert-EntryLeaseAndStack # Refuse foreign ownership before taking restorable runtime snapshots.
 $snapshots = @()
 $paths = @((Join-Path $env:APPDATA 'Vit-DAW/global_project_config.json'))
 if ($WindowBehaviorChecks) { $paths += Join-Path $env:APPDATA 'Godot/app_userdata/Vit_DAW_Frontend/logs/godot.log' }
@@ -92,8 +100,10 @@ try {
             if ($PreviousLaunchId) { $deviceArgs += @('-PreviousLaunchId',$PreviousLaunchId) }
         }
         & powershell @deviceArgs *> (Join-Path $RunRoot 'stdout.log')
-    } else {
+    } elseif ($Leg -eq 'B') {
         & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'ui_entry2_smoke.ps1') -RepoRoot $repo -GodotProjectRoot $FrontendWorktree -ProjectSource $FixtureSource -KernelExe (Join-Path $repo 'VitApp/build/VitApp_artefacts/Release/VitApp.exe') -EntryManagementChecks -RunRoot $device *> (Join-Path $RunRoot 'stdout.log')
+    } else {
+        & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'ui_entry_smoke.ps1') -RepoRoot $repo -GodotProjectRoot $FrontendWorktree -ProjectSource $FixtureSource -KernelExe (Join-Path $repo 'VitApp/build/VitApp_artefacts/Release/VitApp.exe') -AgentBinary (Join-Path $repo 'agent/bin/VitAgent.exe') -EntryManagementChecks -EntryCardId $CardId -RunRoot $device *> (Join-Path $RunRoot 'stdout.log')
     }
     $innerExit = $LASTEXITCODE
     $ErrorActionPreference = 'Stop'
