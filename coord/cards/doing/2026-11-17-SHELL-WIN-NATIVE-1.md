@@ -52,3 +52,9 @@
 - 独立前端分支codex/shell-first-focus-394已推：c5d391deaf684317813a8c4179dd29a09447f17d（E安全6生产文件）、f81477b8cde121a29fde3012569a07fef6814ecd（OBS≤3原生）、1b3c1d566632f6a49273f009473fde2807b256b5（区间seq小补）。主管亲读实现与报告、ls-remote核远端同HEAD，并独立复跑ctest5/5 exit0；执行侧build0/GD隔离21/21 0。
 - raw schema window_state.win_event_log.v1：有界128、last_seq/dropped/truncated、guard_started/released seq+ticks，原event HWND/PID/thread/DWORDtime和receive64tick先记再策略；丢失/晚开始不能当零事件。event时间回绕由collector按received重构epoch，不把dedup当前态当原事件。
 - 交接：原owner/root/window391源码停写；/root/entry388仅接管该树构建/运行验证，唯一已知M为主管按LFS SHA70736DAF…水合纹理，不纳代码。主仓collector改动仍现有4scripts；E真实首显未证，最多2候选诊断后同断点停，不先合前端main。
+
+## E第一候选真实结果与E2修订授权（2026-11-17）
+
+- E_diagnostic_20261117_133141原生bootstrapfailed/正常旅程未通过，inner/wrapper1；GDfeature/effective初mode/currentmode1真实，rawguardseq34-40连续CREATE/SHOW未见DAW FG，可见最小化/nonTOPMOST/foregroundother。hidden-only前提与实证不符，原bridge统一覆盖cause，不能称已证1500ms超时。完整证据e35ad852，CDP精确停止等待另记，40ms数组未落盘不能冒称完整sample，原raw消息已保存。
+- 批准原Sol owner在同E独立树已提交a4a6ec5上做E2（manager.h/.cpp+bridge.cpp≤3），先保ticket首cause/排队/UI进入tick，onlypending真WAIT_TIMEOUT才标timeout；严格只hidden或samePID/noDAWFG且raw区间完整/nonTOPMOST的安全iconic可受控hide→原geometry/show，ordinary visible仍拒。pre/post事实记录，rawFG禁止不豁免。
+- 无窗policy反例/build/ctest后独立commit/push，当前不启真实栈；唯一剩E候选normal诊断需主管另放行，同确定断点第二次后停，不继续无限方案；不调整原用户“不抢焦点”标准。
