@@ -76,3 +76,6 @@
 
 ## 真实验证排栈（2026-11-17）
 388已释放且主管亲核空闲；本卡登记/root/closure271独占，跑前guard修订就绪后主管消息放行唯一正式场景。kernel/Settings已独立部署并记录hash；Settings改动为主管复制的运行库，不纳代码commit。自然路由未命中=未覆盖，禁止改话术凑通过。
+
+## 2026-11-17 正式场景止损（待完整归档裁定）
+run122448自然diagnostic+8turn预算亲证，但目标工具未调/golden未达，9calls超8账面上限，最终budget_exceeded非PASS；旧1turn解除只记链路进度。禁止再chat/continue/换话术追通过；原run finally解码错误离线补report如实标注。栈释放，352依赖不因局部预算证据自动解锁。
