@@ -30,9 +30,10 @@ param(
     [switch]$Win32RestoreForensics,
     [switch]$GodotRestoreForensics,
     [string]$ForensicsGodotExe = 'D:/Godot/Godot_v4.6.1-stable_win64.exe',
-    [ValidateSet('403','404','405','406')][string]$ForensicsCard = '403',
+    [ValidateSet('403','404','405','406','407')][string]$ForensicsCard = '403',
     [switch]$TestTransitionObserver,
-    [switch]$TestNoActivateGeometry
+    [switch]$TestNoActivateGeometry,
+    [switch]$TestOrdinaryLargeWindow
 )
 
 $ErrorActionPreference = "Stop"
@@ -41,10 +42,12 @@ $MainRoot = Split-Path -Parent $PSScriptRoot   # main-repo worktree root (script
 # Card 403: explicitly selected, independent owned-window experiment. Return
 # before any product build/start/HTTP/project code below. No product code links
 # to this probe, and the normal smoke path is unchanged when this switch is off.
-if ($TestTransitionObserver -and (-not $GodotRestoreForensics -or $ForensicsCard -notin @('405','406'))) { throw 'TestTransitionObserver requires GodotRestoreForensics and explicit ForensicsCard 405/406' }
+if ($TestTransitionObserver -and (-not $GodotRestoreForensics -or $ForensicsCard -notin @('405','406','407'))) { throw 'TestTransitionObserver requires GodotRestoreForensics and explicit ForensicsCard 405/406/407' }
 if ($ForensicsCard -eq '406' -and -not $TestTransitionObserver) { throw 'ForensicsCard 406 requires TestTransitionObserver' }
-if ($TestNoActivateGeometry -and (-not $GodotRestoreForensics -or -not $TestTransitionObserver -or $ForensicsCard -ne '405')) { throw 'TestNoActivateGeometry requires GodotRestoreForensics, TestTransitionObserver and explicit ForensicsCard 405' }
+if ($TestNoActivateGeometry -and (-not $GodotRestoreForensics -or -not $TestTransitionObserver -or $ForensicsCard -notin @('405','407'))) { throw 'TestNoActivateGeometry requires GodotRestoreForensics, TestTransitionObserver and explicit ForensicsCard 405/407' }
 if ($ForensicsCard -eq '405' -and -not $TestNoActivateGeometry) { throw 'ForensicsCard 405 requires TestNoActivateGeometry' }
+if ($TestOrdinaryLargeWindow -and (-not $TestNoActivateGeometry -or -not $TestTransitionObserver -or -not $GodotRestoreForensics -or $ForensicsCard -ne '407')) { throw 'TestOrdinaryLargeWindow requires GodotRestoreForensics, TestTransitionObserver, TestNoActivateGeometry and explicit ForensicsCard 407' }
+if ($ForensicsCard -eq '407' -and -not $TestOrdinaryLargeWindow) { throw 'ForensicsCard 407 requires TestOrdinaryLargeWindow' }
 if ($Win32RestoreForensics -or $GodotRestoreForensics) {
     if ($Win32RestoreForensics -and $GodotRestoreForensics) { throw 'Select only one 403 phase' }
     if ($SkipBuild) { throw "403 requires a fresh isolated probe build" }
@@ -71,7 +74,7 @@ if ($Win32RestoreForensics -or $GodotRestoreForensics) {
         return $LASTEXITCODE
     }
     function Get-ForensicsResourceReservation {
-        param([string[]]$Lines, [ValidateSet('403','404','405','406')][string]$ExpectedCard)
+        param([string[]]$Lines, [ValidateSet('403','404','405','406','407')][string]$ExpectedCard)
         # Inspect the first resource record only; never authorize via history.
         $nonempty=@($Lines | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
         if (-not $nonempty.Count -or $nonempty[0].Trim() -cnotmatch '^# PC \u771f\u5b9e\u8fd0\u884c\u6808\u5360\u7528\u8bb0\u5f55$') { throw 'forensics resource header missing' }
@@ -278,7 +281,7 @@ $testObserverProcess
 		emit_observation("sample")
 "@
                     [System.IO.File]::WriteAllText((Join-Path $project observer.gd),$observerText,(New-Object System.Text.UTF8Encoding($false)))
-                    [ordered]@{nonce=$nonce; project=$project; command=('"'+$ForensicsGodotExe+'" --path "'+$project+'" --log-file "'+$project+'/godot_engine.log"'); startup_flags=1; startup_show=0; creation_flags='CREATE_SUSPENDED|CREATE_NO_WINDOW|CREATE_UNICODE_ENVIRONMENT'; user_environment='Child-only APPDATA/LOCALAPPDATA/USERPROFILE/TEMP/TMP redirected to run project isolated_user; VIT_* removed'; no_autoload=$true; no_plugins=$true; no_extensions=(-not $TestTransitionObserver); no_production_extensions=$true; test_transition_observer=[bool]$TestTransitionObserver; test_noactivate_geometry=[bool]$TestNoActivateGeometry} | ConvertTo-Json | Out-File (Join-Path $RunRoot "$scene.project_manifest.json") -Encoding utf8
+                    [ordered]@{nonce=$nonce; project=$project; command=('"'+$ForensicsGodotExe+'" --path "'+$project+'" --log-file "'+$project+'/godot_engine.log"'); startup_flags=1; startup_show=0; creation_flags='CREATE_SUSPENDED|CREATE_NO_WINDOW|CREATE_UNICODE_ENVIRONMENT'; user_environment='Child-only APPDATA/LOCALAPPDATA/USERPROFILE/TEMP/TMP redirected to run project isolated_user; VIT_* removed; geometry probe adds only bound reference HWND/parent PID/nonce for child observer'; no_autoload=$true; no_plugins=$true; no_extensions=(-not $TestTransitionObserver); no_production_extensions=$true; test_transition_observer=[bool]$TestTransitionObserver; test_noactivate_geometry=[bool]$TestNoActivateGeometry; test_ordinary_large_window=[bool]$TestOrdinaryLargeWindow; ordinary_inset_DIP=16; native_z_chain_capacity_per_direction=64} | ConvertTo-Json | Out-File (Join-Path $RunRoot "$scene.project_manifest.json") -Encoding utf8
                 }
                 Assert-403Idle "before_$scene"
                 $raw=Join-Path $RunRoot "$scene.jsonl"
@@ -327,6 +330,7 @@ $testObserverProcess
         if ($GodotRestoreForensics) { $boundary='Isolated minimal Godot only; raw child WinEvent plus engine observations, no child WndProc or product acceptance' }
         if ($TestTransitionObserver) { $boundary='Isolated test-only target-thread observer; native child transitions plus graceful unload; no product acceptance' }
         if ($TestNoActivateGeometry) { $boundary='405 isolated User32 first ordinary geometry/z trace with explicit P/T DPI contract; no DWM pixel-frame or product acceptance' }
+        if ($TestOrdinaryLargeWindow) { $boundary='407 ordinary window inset 16 DIP, engine mode0 and bound reference above via native predecessor chain; no DWM pixel-frame or product acceptance' }
         [ordered]@{ card=$ForensicsCard; run_id=(Split-Path -Leaf $RunRoot); started=$probeStarted.ToUniversalTime().ToString('o'); finished=(Get-Date).ToUniversalTime().ToString('o'); exit=$probeExit; recents_unchanged=($recentsBefore -eq $recentsAfter); scenarios=$probeResults; boundary=$boundary } |
             ConvertTo-Json -Depth 8 | Out-File (Join-Path $RunRoot 'report.json') -Encoding utf8
     }
