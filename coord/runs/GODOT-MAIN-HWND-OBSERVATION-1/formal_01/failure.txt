@@ -1,0 +1,8 @@
+﻿403 resource owner changed
+At C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\scripts\vitshell_smoke.ps1:74 char:77
++ ... ner=Codex `/root/restore403`') { throw '403 resource owner changed' }
++                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (403 resource owner changed:String) [], RuntimeException
+    + FullyQualifiedErrorId : 403 resource owner changed
+ 
+

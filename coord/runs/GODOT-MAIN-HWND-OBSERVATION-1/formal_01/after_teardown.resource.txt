@@ -1,0 +1,5 @@
+﻿# PC 真实运行栈占用记录
+本记录是共享卡池协作的资源登记面，操作协议见 [PROTOCOL.md](../PROTOCOL.md) §2.2。
+初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
+- 2026-11-17 15:17 +0800 预留 / **404精确Godot主HWND取证**：owner=Codex `/root/restore403`（Sol/high，PC），原两tree/branch。主管亲审前端cdf1924单文件与23反例并亲跑无窗selftest23/23 exit0；主runner f979内容不变。放行新404 RUNBOOK/formal_01≤2新child/15min，无补跑，任何异常停剩余，原403 B预算关闭。只隔离最小项目/SW_SHOWNOACTIVATE、exact native HWND/nonce/PID与逐窗inventory；不启kernel/agent/完整工程/产品，不复跑E/E2。主管亲核全部进程/端口0，启动前fetch owner/≤60秒复核，recents快照/finally hash/全零，其他流禁启栈。
+- 2026-11-17 15:08 +0800 释放 / **403 B2覆盖不足，预算关闭**：child10448/host28544，runner1/probe20，Godot正常ready但观察器误选隐藏helper，候选API0。主管亲核原raw seq31/34/35及forced teardown区别，实际Vit/Godot/probe/TCP六口/UDP全零，recents807226F4…13E353一致；证据main cdc06f16/c623b68b。403 blocked；404仅观察器无窗修订，不授任何启动权。当前真实栈空闲。
