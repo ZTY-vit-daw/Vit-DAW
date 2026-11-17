@@ -73,3 +73,6 @@
 - 跑前必须RUNBOOK写次数/LLM计费调用上限/成功与非命中/失败分类/止损；本次只准备，不授启栈权。原始日志、prompt/telemetry不泄漏密钥，fixture独立复制与recents强制哈希还原。
 
 - 验证worktree=C:/Users/timoz/.codex/worktrees/closure-validation-271/Vit_DAW；branch=codex/closure-validation-271；创建后HEAD=e2745369、status/diff空；owner=/root/closure271。本领取提交push并重读owner后可做零栈脚本准备。
+
+## 真实验证排栈（2026-11-17）
+388已释放且主管亲核空闲；本卡登记/root/closure271独占，跑前guard修订就绪后主管消息放行唯一正式场景。kernel/Settings已独立部署并记录hash；Settings改动为主管复制的运行库，不纳代码commit。自然路由未命中=未覆盖，禁止改话术凑通过。
