@@ -42,7 +42,7 @@
  *     维持；--assistant/--vit 无框负断言（无边框+无阴影，防回归）；
  *  b) 两面汇总报告 + 两面截图落 coord/runs/UI-MSG-SHADOWBOX-1/
  *     {render-smoke-shadowbox-report.json, screens/}（345/346/361 原路径不变）。
- * UI-REC-TAPE-1（365）扩展：启动台磁带 cassette 头像 + 进工程收起回归守卫
+ * UI-REC-TAPE-1（365）扩展：启动台磁带盒整卡 + 进工程收起回归守卫
  * （用户裁定 2026-11-15 第 1/4 条）——
  *  a) launcher fixture 面新增断言：磁带头像在 recents 每行在场（壳+窗+双带轮拓扑）、
  *     建议卡工程位同款；氛围色=工程名 FNV-1a 哈希（烟测内移植 6 色对逐行核对）；
@@ -52,7 +52,7 @@
  *     chrome.webview mock 捕获取证回执，dispatch 真实 vit_surface MessageEvent）——
  *     ?surface=launcher 直开语义保留；vit_surface=project 分发后 React ack 回执在场 +
  *     data-launcher-*（root/drawer/recents/new/greeting/thread）零残留 +
- *     data-tape-badge 零残留 + data-loading-gate 接管；负对照=无桥页不分发不切换；
+ *     data-tape-card 零残留 + data-loading-gate 接管；负对照=无桥页不分发不切换；
  *  c) 本卡工件：coord/runs/UI-REC-TAPE-1/{render-smoke-rec-tape-report.json, screens/}
  *     （345/346/361/362 原路径不变）。
  * UI-SMOKE-AUTOASSERT-1（376）扩展：LAUNCHER 面 directive 断言对齐 SHELL-5 自动执行
@@ -105,7 +105,7 @@ const spriteMountScreensDir = resolve(spriteMountOutDir, "screens");
 // UI-MSG-SHADOWBOX-1（362）：用户消息阴影框渲染烟测工件目录（两面 computed 断言报告 + 两面截图）。
 const shadowboxOutDir = runArtifactDir("UI-MSG-SHADOWBOX-1");
 const shadowboxScreensDir = resolve(shadowboxOutDir, "screens");
-// UI-REC-TAPE-1（365）：磁带 cassette 头像 + 收起回归守卫工件目录（launcher tape 断言 +
+// UI-REC-TAPE-1（365）：磁带盒整卡 + 收起回归守卫工件目录（launcher tape 断言 +
 // 真实入口守卫报告 + 磁带特写/整面/守卫前后截图）。
 const recTapeOutDir = runArtifactDir("UI-REC-TAPE-1");
 const recTapeScreensDir = resolve(recTapeOutDir, "screens");
@@ -624,7 +624,7 @@ async function main() {
     out.rootState = rootEl?.getAttribute("data-launcher-state") ?? "(missing)";
     out.fixtureNotices = {
       page: !!$('[data-fixture="notice"]'),
-      surface: !!$('[data-fixture="launcher-surface"]'),
+      surface: !!$('[data-fixture="converged-launcher"]'),
     };
     out.titlebarPresent = !!titlebar;
     out.titlebarBrandText =
@@ -647,7 +647,7 @@ async function main() {
     // data-launcher-directive-execute「让 Vit 打开/新建」，回归=非 0 计数）。
     out.directiveExecuteButtons = $$("[data-launcher-directive-execute]").length;
     out.suggestions = suggestions.length;
-    out.inputPresent = !!$("[data-launcher-input] input");
+    out.inputPresent = !!$("[data-launcher-input] textarea");
     out.loadingSample = !!$('[data-launcher-sample="loading"] [data-drawer-state="loading"]');
     out.loadingText = $("[data-launcher-drawer-loading]")?.textContent ?? "";
     out.errorSample = !!$('[data-launcher-sample="error"] [data-launcher-agent-error]');
@@ -655,8 +655,8 @@ async function main() {
     out.drawerErrorRetryButtons = $$("[data-launcher-drawer-retry]").length;
     out.emptySample = !!$('[data-launcher-sample="empty"] [data-drawer-state="empty"]');
     out.emptyText = $("[data-launcher-drawer-empty]")?.textContent ?? "";
-    // UI-SPRITE-MOUNT-1（361）：sprite 图标实件计数（recents/结果卡经 ProjectBadge→Icon）
-    out.iconElements = $$("svg.v5-icon[data-graphic='icon']").length;
+    // 389：收敛壳 recents 整卡实件计数（CSS 磁带拓扑，非旧 SVG badge）。
+    out.tapeCardElements = within("[data-tape-card]").length;
     // UI-MSG-SHADOWBOX-1（362）：用户消息阴影框标识 computed 断言数据（1px 灰边+柔影
     // 非空、右对齐维持；--assistant 无框负断言数据）。
     const msgFrameOf = (el) => {
@@ -673,12 +673,16 @@ async function main() {
         maxWidth: cs.maxWidth,
       };
     };
-    const launcherUserMsgs = within(".v5-launcher-msg--user");
-    const launcherAsstMsgs = within(".v5-launcher-msg--assistant");
+    const launcherUserRows = within(".message-row.user");
+    const launcherUserMsgs = within(".message-row.user .message-body > p");
+    const launcherAsstMsgs = within(".message-row.assistant .message-body > p");
     out.userMsgCount = launcherUserMsgs.length;
     out.userMsgFrame = msgFrameOf(launcherUserMsgs[0] ?? null);
+    out.userMsgRightAligned = launcherUserRows.length > 0 &&
+      getComputedStyle(launcherUserRows[0].querySelector(".message-body")).textAlign === "right" &&
+      getComputedStyle(launcherUserRows[0].querySelector(".message-avatar")).order === "2";
     out.assistantMsgFrame = msgFrameOf(launcherAsstMsgs[0] ?? null);
-    // UI-REC-TAPE-1（365）：磁带 cassette 头像——recents 每行在场 + 拓扑要素 +
+    // UI-REC-TAPE-1（365）：磁带盒整卡——recents 每行在场 + 拓扑要素 +
     // 氛围壳色（fill 属性逐字核对）+ 带轮盘/窗底对比度实测（computed fill）。
     const lum = (c) => {
       const lin = (v) => {
@@ -693,31 +697,31 @@ async function main() {
     };
     const opaqueFill = (el) => {
       if (!el) return null;
-      const m = /rgba?\(([^)]+)\)/.exec(getComputedStyle(el).fill);
+      const m = /rgba?\(([^)]+)\)/.exec(getComputedStyle(el).backgroundColor);
       if (!m) return null;
       const parts = m[1].split(",").map((x) => parseFloat(x.trim()));
       return parts.length >= 3 ? parts.slice(0, 3) : null;
     };
-    const tapeBadges = within("[data-tape-badge]");
+    const tapeBadges = within("[data-tape-shell]");
     out.tapeBadgeCount = tapeBadges.length;
     out.tapeBadges = tapeBadges.map((b) => {
       const win = b.querySelector("[data-tape-window]");
-      const reelFill = opaqueFill(b.querySelector("[data-tape-reel]"));
+      const reelFill = opaqueFill(b.querySelector(".v5-tape-card-reel-disc"));
       const winFill = opaqueFill(win);
       return {
         reels: b.querySelectorAll("[data-tape-reel]").length,
         window: !!win,
         label: !!b.querySelector("[data-tape-label]"),
-        shell: b.querySelector("[data-tape-shell]")?.getAttribute("fill") ?? "",
+        shell: getComputedStyle(b).backgroundColor.replace(/\s/g, ""),
         reelWindowContrast:
           reelFill && winFill ? Number(contrast(reelFill, winFill).toFixed(3)) : null,
       };
     });
     out.tapeRecentRows = within("[data-launcher-recent]").filter((row) =>
-      row.querySelector("[data-tape-badge]")
+      row.matches("[data-tape-card]") && row.querySelector("[data-tape-shell]")
     ).length;
     out.tapeResultCards = within("[data-launcher-card]").filter((card) =>
-      card.querySelector("[data-tape-badge]")
+      card.querySelector("[data-tape-shell]")
     ).length;
     return out;
   });
@@ -782,17 +786,16 @@ async function main() {
     `agent=${ldom.errorSample} retry=${ldom.errorRetryButtons} drawerRetry=${ldom.drawerErrorRetryButtons}`
   );
   launcherAssert("空态样例", ldom.emptySample && ldom.emptyText.includes("还没有"), ldom.emptyText);
-  // UI-SPRITE-MOUNT-1（361）：图标实件 ≥1 + 图形检查集合非空（去空转）
+  // 389：launcher 工程位现为 CSS 磁带整卡；继续要求实件与图形检查集合非空，
+  // sprite 真实挂载/引用解析仍由基础页与真实入口独立守卫。
   launcherAssert(
-    "sprite 图标实件 ≥1",
-    (ldom.iconElements ?? 0) >= 1,
-    `iconElements=${ldom.iconElements}`
+    "收敛壳磁带整卡实件=3",
+    ldom.tapeCardElements === 3,
+    `tapeCardElements=${ldom.tapeCardElements}`
   );
   // UI-MSG-SHADOWBOX-1（362）：用户消息阴影框标识（computed 边框+柔影非空，防回归）
   const msgBoxShadowPresent = (v) => typeof v === "string" && v !== "" && v !== "none";
-  // 注：本 Chromium 对 align-self:flex-end 的 computed/used 值报告为 flow-end（对齐
-  // 规范 used value 序列化），故接受 flex/flow/self-end 词尾（语义同为「贴交叉轴末端」）。
-  const msgAlignEnd = (v) => typeof v === "string" && /^(flex|flow|self)-end$/.test(v);
+  // 共享 MessageStream 的右对齐由 body text-align=right + 头像换至第二列实现。
   launcherAssert(
     "用户消息阴影框标识（边框 solid ≥1px + 柔影非空 + 右对齐维持）",
     ldom.userMsgCount >= 1 &&
@@ -800,8 +803,7 @@ async function main() {
       ldom.userMsgFrame.borderStyle === "solid" &&
       parseFloat(ldom.userMsgFrame.borderWidth) >= 1 &&
       msgBoxShadowPresent(ldom.userMsgFrame.boxShadow) &&
-      msgAlignEnd(ldom.userMsgFrame.alignSelf) &&
-      ldom.userMsgFrame.textAlign === "right",
+      ldom.userMsgRightAligned,
     `count=${ldom.userMsgCount} frame=${JSON.stringify(ldom.userMsgFrame)}`
   );
   launcherAssert(
@@ -813,15 +815,15 @@ async function main() {
     `frame=${JSON.stringify(ldom.assistantMsgFrame)}`
   );
 
-  // UI-REC-TAPE-1（365）：磁带 cassette 头像断言（用户裁定第 1 条）。
+  // UI-REC-TAPE-1（365）：磁带盒整卡断言（用户裁定第 1 条）。
   // recents 3 行 + 建议卡 3 枚 = 6 枚 tape badge（ready 全尺寸样例内）。
   launcherAssert(
-    "磁带 cassette 头像在 recents 每行在场（3/3 行）",
+    "磁带盒整卡在 recents 每行在场（3/3 行）",
     ldom.recentsInDom === 3 && ldom.tapeRecentRows === 3,
     `recents=${ldom.recentsInDom} tapeRows=${ldom.tapeRecentRows}`
   );
   launcherAssert(
-    "建议卡工程位磁带头像（3/3 卡）",
+    "建议卡工程位磁带整卡（3/3 卡）",
     ldom.resultCards === 3 && ldom.tapeResultCards === 3,
     `cards=${ldom.resultCards} tapeCards=${ldom.tapeResultCards}`
   );
@@ -911,7 +913,7 @@ async function main() {
   const recTapeRecentsShot = resolve(recTapeScreensDir, "launcher-recents-tape-closeup.png");
   await page.locator("[data-launcher-recents]").first().screenshot({ path: recTapeRecentsShot });
   const recTapeBadgeShot = resolve(recTapeScreensDir, "launcher-tape-badge-closeup.png");
-  await page.locator("[data-tape-badge]").first().screenshot({ path: recTapeBadgeShot });
+  await page.locator("[data-tape-card]").first().screenshot({ path: recTapeBadgeShot });
   const recTapeLauncherViewport = resolve(recTapeScreensDir, "launcher-fixture-viewport-1440x900.png");
   const recTapeLauncherFull = resolve(recTapeScreensDir, "launcher-fixture-full.png");
   await page.screenshot({ path: recTapeLauncherViewport, type: "png" });
@@ -1408,8 +1410,8 @@ async function main() {
       key: "launcher-live",
       url: `${galleryUrl}?surface=launcher-live`,
       waitSelector: "[data-launcher-root]",
-      fixtureAttr: '[data-fixture="launcher-surface"]',
-      visibilitySelectors: ["[data-launcher-input] input", "[data-launcher-suggestion]"],
+      fixtureAttr: '[data-fixture="converged-launcher"]',
+      visibilitySelectors: ["[data-launcher-input] textarea", "[data-launcher-suggestion]"],
     },
     {
       key: "project-live",
@@ -1460,8 +1462,11 @@ async function main() {
       const fIcons = await vpPage.evaluate(
         () => document.querySelectorAll("svg.v5-icon[data-graphic='icon']").length
       );
-      if (fIcons < 1) {
-        surfFailures.push(`iconElements=${fIcons} < 1`);
+      const fTapeCards = await vpPage.locator(".v5-converged-launcher [data-tape-card]").count();
+      if (surf.key === "launcher-live" ? fTapeCards !== 3 : fIcons < 1) {
+        surfFailures.push(surf.key === "launcher-live"
+          ? `tapeCardElements=${fTapeCards} != 3（收敛壳实件）`
+          : `iconElements=${fIcons} < 1`);
       }
       if (fscan.graphics.length < 1) {
         surfFailures.push(`graphics=${fscan.graphics.length}（图形对比度检查集合为空）`);
@@ -1519,6 +1524,7 @@ async function main() {
         textContrastMin: fscan.textMin,
         tooSmall: fscan.tooSmall,
         iconElements: fIcons,
+        tapeCardElements: fTapeCards,
         graphicChecks: fscan.graphics.length,
         externalRequests: vpExternal,
         visibilityRects: vis.rects,
@@ -1680,7 +1686,7 @@ async function main() {
   // ---- 12. UI-REC-TAPE-1（365）：进工程收起回归守卫（真实入口 surface 分发） ----
   // 用户裁定第 4 条前半（2026-11-15）：进工程后启动台面（含工程列表）整体卸载。
   // 机制已在（App.tsx surface 分发 subscribeEntrySurface → setSurface → 卸载
-  // LauncherSurface），本段守卫防退化。驱动=生产路径：entrySurfaceBridge 订阅
+  // ConvergedLauncher），本段守卫防退化。驱动=生产路径：entrySurfaceBridge 订阅
   // chrome.webview "message"（宿主 vit_surface）；浏览器无宿主 webview →
   // addInitScript 注入桥 mock（只补宿主事件面，不改任何应用代码），再以真实
   // MessageEvent 分发 vit_surface——消费生产订阅/回执路径，非测试开关。
@@ -1689,7 +1695,7 @@ async function main() {
   //  ② vit_surface=project 分发后 React 取证回执 ack=project（ack 在场=React 真收
   //    在场证明，参照 entrySurfaceBridge 纪律）
   //  ③ 启动台标记零残留：root/drawer/recents/new/greeting/thread 全部卸载
-  //  ④ 磁带头像零残留：data-tape-badge=0（随启动台卸载）
+  //  ④ 磁带整卡零残留：data-tape-card=0（随启动台卸载）
   //  ⑤ 工程面形态接管：data-loading-gate 在场（离线真实入口装载门渲染）
   //  ⑥ 负对照：桥不可用（无 webview mock）分发 vit_surface 不切换（诚实降级，
   //    343 不变量：surface 切换只走桥，禁止整页导航）
@@ -1722,25 +1728,42 @@ async function main() {
     window.__vitSurfaceAcks = acks;
     window.__vitSurfaceListeners = listeners;
   });
+  // 389：只替换 HTTP 数据，仍装配真实 App/ConvergedLauncher 与生产桥订阅。
+  // 先证明磁带整卡实件在场，再分发切换，防止空列表令卸载负断言空过。
+  const guardRecents = TAPE_FIXTURE_NAMES.map((name, i) => ({
+    kind: "launcher_project", type: "project_open_candidate", id: `guard_fixture_${i}`,
+    name, file_path: `D:/design-fixtures/guard-${i}.vit`, exists: true,
+    launcher_directive: { action: "open_project", file_path: `D:/design-fixtures/guard-${i}.vit`, requires_governance: true },
+  }));
+  await guardContext.route("**/agent/launcher/greeting", (route) => route.fulfill({
+    contentType: "application/json", body: JSON.stringify({ status: "ok", reply: "fixture greeting", recent_count: 3 }),
+  }));
+  await guardContext.route("**/agent/launcher/recent-projects", (route) => route.fulfill({
+    contentType: "application/json", body: JSON.stringify({ status: "ok", project_result_cards: guardRecents }),
+  }));
   const guardPage = await guardContext.newPage();
   const guardUrl = `${base.replace(/\/$/, "").replace("localhost", "127.0.0.1")}/?surface=launcher`;
   recTapeNotes.push(`guardUrl=${guardUrl}`);
+  let guardBefore = null;
   let guardAfter = null;
   try {
     await guardPage.goto(guardUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
     await guardPage.waitForSelector("[data-launcher-root]", { timeout: 30000 });
-    await guardPage.waitForTimeout(300);
+    await guardPage.waitForSelector(".v5-converged-launcher [data-tape-card]", { timeout: 15000 });
     const before = await guardPage.evaluate(() => ({
       launcherRoot: !!document.querySelector("[data-launcher-root]"),
+      convergedRoot: !!document.querySelector(".v5-converged-launcher[data-launcher-root]"),
+      tapeCards: document.querySelectorAll("[data-tape-card]").length,
       drawer: !!document.querySelector("[data-launcher-drawer]"),
       listenerCount: (window.__vitSurfaceListeners ?? []).length,
     }));
+    guardBefore = before;
     guardAssert(
-      "?surface=launcher 直开语义保留（真实入口 launcher root 在场）",
-      before.launcherRoot,
+      "?surface=launcher 直开语义保留（真实入口收敛壳 root 在场）",
+      before.launcherRoot && before.convergedRoot,
       JSON.stringify(before)
     );
-    guardAssert("启动台 drawer 在场（守卫前置）", before.drawer, `drawer=${before.drawer}`);
+    guardAssert("启动台 drawer+3枚磁带整卡在场（卸载守卫前置）", before.drawer && before.tapeCards === 3, JSON.stringify(before));
     guardAssert(
       "桥 mock 订阅在场（entrySurfaceBridge 已挂 listener）",
       before.listenerCount >= 1,
@@ -1762,7 +1785,7 @@ async function main() {
       launcherMarkers: ["root", "drawer", "recents", "new", "greeting", "thread"]
         .map((k) => `${k}:${document.querySelectorAll(`[data-launcher-${k}]`).length}`)
         .join(" "),
-      tapeBadges: document.querySelectorAll("[data-tape-badge]").length,
+      tapeCards: document.querySelectorAll("[data-tape-card]").length,
       loadingGate: !!document.querySelector("[data-loading-gate]"),
     }));
     const ackOk = guardAfter.acks.some(
@@ -1775,9 +1798,9 @@ async function main() {
       `markers=${guardAfter.launcherMarkers}`
     );
     guardAssert(
-      "磁带头像零残留（data-tape-badge=0，随启动台卸载）",
-      guardAfter.tapeBadges === 0,
-      `tape=${guardAfter.tapeBadges}`
+      "磁带整卡零残留（data-tape-card=0，随启动台卸载）",
+      guardAfter.tapeCards === 0,
+      `tape=${guardAfter.tapeCards}`
     );
     guardAssert("工程面形态接管（data-loading-gate 在场）", guardAfter.loadingGate, `gate=${guardAfter.loadingGate}`);
     const afterShot = resolve(recTapeScreensDir, "realentry-collapse-guard-after.png");
@@ -1816,7 +1839,7 @@ async function main() {
 
   const tapeGraphicChecks = lscan.graphics.filter((g) => g.kind === "tape");
   const recTapeReport = {
-    run: "UI-REC-TAPE-1 tape badge + collapse guard render smoke",
+    run: "CONVERGE-CLEANUP-1 tape card + collapse guard render smoke",
     date: new Date().toISOString(),
     launcherTape: {
       recentsRows: ldom.tapeRecentRows,
@@ -1831,7 +1854,7 @@ async function main() {
     },
     collapseGuard: {
       url: guardUrl,
-      before: null,
+      before: guardBefore,
       after: guardAfter,
       notes: recTapeNotes,
     },

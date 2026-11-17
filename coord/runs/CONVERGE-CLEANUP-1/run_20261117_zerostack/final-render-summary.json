@@ -1,0 +1,57 @@
+[
+  {
+    "file": "render_attempt3/CONVERGE-ENTRY-1/render-smoke-entry-report.json",
+    "result": "PASS",
+    "failures": []
+  },
+  {
+    "file": "render_attempt3/CONVERGE-SHELL-1/render-smoke-converged-report.json",
+    "result": "PASS",
+    "failures": []
+  },
+  {
+    "file": "render_attempt3/UI-FOUNDATION-1/render-smoke-report.json",
+    "result": "PASS",
+    "failures": []
+  },
+  {
+    "file": "render_attempt3/UI-LAUNCHER-1/render-smoke-launcher-report.json",
+    "result": "PASS",
+    "failures": []
+  },
+  {
+    "file": "render_attempt3/UI-LOADING-1/render-smoke-loading-report.json",
+    "result": "PASS",
+    "failures": []
+  },
+  {
+    "file": "render_attempt3/UI-MSG-SHADOWBOX-1/render-smoke-shadowbox-report.json",
+    "result": "PASS",
+    "failures": []
+  },
+  {
+    "file": "render_attempt3/UI-PROJECT-1/render-smoke-project-report.json",
+    "result": "PASS",
+    "failures": []
+  },
+  {
+    "file": "render_attempt3/UI-REC-TAPE-1/render-smoke-rec-tape-report.json",
+    "result": "PASS",
+    "failures": []
+  },
+  {
+    "file": "render_attempt3/UI-SPRITE-MOUNT-1/render-smoke-appentry-report.json",
+    "result": "PASS",
+    "failures": []
+  },
+  {
+    "file": "render_attempt3/UI-VISUAL-FIDELITY-1/render-smoke-fidelity-report.json",
+    "result": "PASS",
+    "failures": []
+  },
+  {
+    "file": "render_attempt3/WIDGET-KIT-1/render-smoke-widget-report.json",
+    "result": "PASS",
+    "failures": []
+  }
+]

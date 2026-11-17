@@ -7,8 +7,8 @@ param(
     [string]$KernelExe = "",
     [string]$AgentBinary = "",
     [string]$GodotExe = "D:\Godot\Godot_v4.6.1-stable_win64.exe",
-    # 被测前端 = UI-ENTRY-1 的前端 worktree（改动在 port/ui-entry-1 分支；extension cpp 零改动）。
-    [string]$GodotProjectRoot = "D:\Godot\vit-daw-frontend_wt_uientry1",
+    # 被测前端使用现行 UI-ENTRY-2 去回退语义；可显式传入待测前端 worktree。
+    [string]$GodotProjectRoot = "D:\Godot\project\vit-daw-frontend",
     [string]$ProjectSource = "D:\Godot\project\vit-daw-frontend\912.vit",
     [string]$RunRoot = "",
     [int]$WaitSeconds = 60,
@@ -18,10 +18,10 @@ param(
 )
 
 # UI-ENTRY-1 端侧烟测（ui_host_smoke 同模式新脚本；单窗入口编排三腿）。
-# 断言面（RUNBOOK coord/runs/UI-ENTRY-1/RUNBOOK.md 冻结）：
-#   腿 1 回退腿（VIT_AGENT_WINDOW_MODE=autoload + 无 agent 进程 = 真链失败注入）：
-#     health.failed + unavailable 行 → main_window.restore(reason=unavailable) →
-#     EnumWindows：Godot 主窗可见（启动页兜底），VitWebViewHostChildWindow 不可见。
+# 断言面（389 对齐现行 UI-ENTRY-2；原 UI-ENTRY-1 回退判据退役）：
+#   腿 1 失败注入腿（VIT_AGENT_WINDOW_MODE=autoload + 无 agent 进程）：
+#     health.failed + unavailable + navigate 行，零 main_window.restore；
+#     EnumWindows：Godot 主窗隐藏，恰一个 React 窗保持可见并呈报窗内错误。
 #   腿 2 autoload 腿（agent 在 + VIT_SMOKE_AUTO_OPEN_PROJECT 驱动真实 open 链）：
 #     main_window.hidden 行 → page_loaded(url=?surface=launcher) → EnumWindows：
 #     可见顶层窗恰 1 个 React 启动台（chat 可见）且 Godot 主窗不可见 →
@@ -32,7 +32,7 @@ param(
 # 通过标准：退出码 0（AGENTS §5 烟测门槛）。
 
 $ErrorActionPreference = "Stop"
-if ([string]::IsNullOrWhiteSpace($RepoRoot)) { $RepoRoot = "D:\Vit_DAW_wt_uientry1" }
+if ([string]::IsNullOrWhiteSpace($RepoRoot)) { $RepoRoot = (Split-Path -Parent $PSScriptRoot) }
 
 function Write-Step0 { param([string]$Msg) Write-Host ("--- " + $Msg) }
 if (-not (Test-Path -LiteralPath $RepoRoot)) { throw ("RepoRoot not found: " + $RepoRoot) }
@@ -142,7 +142,7 @@ $report = [ordered]@{
     godot_project_root = $GodotProjectRoot
     project_source = $ProjectSource
     assertions = [ordered]@{}
-    fallback_leg = [ordered]@{}
+    failinject_leg = [ordered]@{}
     legacy_leg = [ordered]@{}
     exit_code = 1
 }
@@ -245,7 +245,7 @@ function Stop-Stack {
 
 $agentLog = Join-Path $LogsDir "agent_last.log"
 $godotAutoloadLog = Join-Path $LogsDir "godot_autoload.log"
-$godotFallbackLog = Join-Path $LogsDir "godot_fallback.log"
+$godotFailInjectLog = Join-Path $LogsDir "godot_failinject.log"
 $godotLegacyLog = Join-Path $LogsDir "godot_legacy.log"
 
 function Start-GodotLeg {
@@ -293,52 +293,55 @@ try {
     }
     $assert["godot_import_pass"] = $true
 
-    # =============================================== leg 1: fallback (no agent)
-    Write-Step0 "Leg 1 (fallback): autoload mode with NO agent -> health fails -> Godot start page restored"
+    # =============================================== leg 1: fail-inject (no agent, UI-ENTRY-2)
+    Write-Step0 "Leg 1 (fail-inject): NO agent -> health fails -> React error window remains, ZERO Godot start page"
     $env:VIT_AGENT_WINDOW_MODE = "autoload"
     $env:VIT_SKIP_DEV_AUTOSTART = "1"
     $env:VIT_DAW_DEV_ROOT = $RepoRoot
     try {
-        $godotFallbackProc = Start-Process -FilePath $GodotExe -ArgumentList @("--path", $GodotProjectRoot, "--log-file", $godotFallbackLog) -WorkingDirectory $GodotProjectRoot -PassThru
+        $godotFailInjectProc = Start-Process -FilePath $GodotExe -ArgumentList @("--path", $GodotProjectRoot, "--log-file", $godotFailInjectLog) -WorkingDirectory $GodotProjectRoot -PassThru
     }
     finally {
         Remove-Item Env:VIT_AGENT_WINDOW_MODE -ErrorAction SilentlyContinue
         Remove-Item Env:VIT_SKIP_DEV_AUTOSTART -ErrorAction SilentlyContinue
         Remove-Item Env:VIT_DAW_DEV_ROOT -ErrorAction SilentlyContinue
     }
-    $godotAutoloadPid = $godotFallbackProc.Id
-    $report.fallback_leg["godot_pid"] = $godotAutoloadPid
+    $godotAutoloadPid = $godotFailInjectProc.Id
+    $report.failinject_leg["godot_pid"] = $godotAutoloadPid
 
-    # boot 行（React 窗建成——fallback 腿的失败点是 agent health，不是建窗）。
-    $fbBoot = Test-LogLine -LogPath $godotFallbackLog -Pattern '\[AgentChatWindow\] boot ' -TimeoutSeconds $WaitSeconds
-    if ($null -eq $fbBoot) { throw ("fallback leg: boot line not seen (window create unexpectedly failed)") }
-    $report.fallback_leg["boot_line"] = "present"
+    # boot 行（React 窗建成——fail-inject 腿的失败点是 agent health，不是建窗）。
+    $fbBoot = Test-LogLine -LogPath $godotFailInjectLog -Pattern '\[AgentChatWindow\] boot ' -TimeoutSeconds $WaitSeconds
+    if ($null -eq $fbBoot) { throw ("fail-inject leg: boot line not seen (window create unexpectedly failed)") }
+    $report.failinject_leg["boot_line"] = "present"
 
     # health.failed + unavailable（真链失败注入：24×0.45s 上限 + 余量）。
-    $fbHealthFail = Test-LogLine -LogPath $godotFallbackLog -Pattern '\[AgentChatWindow\] health\.failed ' -TimeoutSeconds 30
-    if ($null -eq $fbHealthFail) { throw ("fallback leg: health.failed not seen (agent reachable when it must not be)") }
-    $fbUnavailable = Test-LogLine -LogPath $godotFallbackLog -Pattern '\[AgentChatWindow\] unavailable ' -TimeoutSeconds 10
-    if ($null -eq $fbUnavailable) { throw ("fallback leg: unavailable line not seen") }
-    $report.fallback_leg["unavailable_line"] = ($fbUnavailable.Line -replace '^.*\[AgentChatWindow\] unavailable ', '').Trim()
+    $fbHealthFail = Test-LogLine -LogPath $godotFailInjectLog -Pattern '\[AgentChatWindow\] health\.failed ' -TimeoutSeconds 30
+    if ($null -eq $fbHealthFail) { throw ("fail-inject leg: health.failed not seen (agent reachable when it must not be)") }
+    $fbUnavailable = Test-LogLine -LogPath $godotFailInjectLog -Pattern '\[AgentChatWindow\] unavailable ' -TimeoutSeconds 10
+    if ($null -eq $fbUnavailable) { throw ("fail-inject leg: unavailable line not seen") }
+    $report.failinject_leg["unavailable_line"] = ($fbUnavailable.Line -replace '^.*\[AgentChatWindow\] unavailable ', '').Trim()
 
-    # main_window.restore（reason=unavailable，主窗回补）。
-    $fbRestore = Test-LogLine -LogPath $godotFallbackLog -Pattern '\[AgentChatWindow\] main_window\.restore .*"reason":\s*"unavailable"' -TimeoutSeconds 10
-    if ($null -eq $fbRestore) { throw ("fallback leg: main_window.restore(reason=unavailable) not seen") }
-    $report.fallback_leg["restore_line"] = "present"
-
+    # UI-ENTRY-2：失败留在 React 窗内，禁止 unavailable → Godot 启动页回退。
+    $fbHidden = Test-LogLine -LogPath $godotFailInjectLog -Pattern '\[AgentChatWindow\] main_window\.hidden ' -TimeoutSeconds 15
+    if ($null -eq $fbHidden) { throw ("fail-inject leg: main_window.hidden not seen") }
+    $report.failinject_leg["hidden_line"] = "present"
+    $fbNav = Test-LogLine -LogPath $godotFailInjectLog -Pattern '\[AgentChatWindow\] navigate ' -TimeoutSeconds 10
+    $report.failinject_leg["navigate_line"] = ($null -ne $fbNav)
+    if ($null -eq $fbNav) { throw ("fail-inject leg: navigate line not seen (error-state navigation not attempted)") }
     Start-Sleep -Seconds 2
+    $restoreLines = @(Select-String -LiteralPath $godotFailInjectLog -Pattern '\[AgentChatWindow\] main_window\.restore ' -ErrorAction Stop)
+    $report.failinject_leg["zero_main_window_restore"] = ($restoreLines.Count -eq 0)
+    if ($restoreLines.Count -ne 0) { throw ("fail-inject leg: main_window.restore seen — Godot start page fallback must be retired") }
+
     $dawWin = Get-DawMainWindow -GodotPid $godotAutoloadPid
-    $report.fallback_leg["daw_window_found"] = ($null -ne $dawWin)
-    if ($null -eq $dawWin) { throw ("fallback leg: Godot main window not found via EnumWindows") }
-    $report.fallback_leg["daw_window_visible"] = $dawWin.Visible
-    if (-not $dawWin.Visible) { throw ("fallback leg: Godot main window not visible after unavailable restore") }
-    $chatWins = @((Get-AllWindows) | Where-Object { $_.Class -eq "VitWebViewHostChildWindow" })
-    $report.fallback_leg["chat_window_count"] = $chatWins.Count
-    $chatAllHidden = $true
-    foreach ($cw in $chatWins) { if ($cw.Visible) { $chatAllHidden = $false } }
-    $report.fallback_leg["chat_windows_hidden"] = $chatAllHidden
-    if (-not $chatAllHidden) { throw ("fallback leg: chat window still visible after unavailable restore") }
-    $assert["fallback_leg_pass"] = $true
+    $report.failinject_leg["daw_window_found"] = ($null -ne $dawWin)
+    if ($null -eq $dawWin) { throw ("fail-inject leg: Godot main window not found via EnumWindows") }
+    $report.failinject_leg["daw_window_visible"] = $dawWin.Visible
+    if ($dawWin.Visible) { throw ("fail-inject leg: Godot main window visible — start page fallback must never appear") }
+    $chatWins = @((Get-AllWindows) | Where-Object { $_.Class -eq "VitWebViewHostChildWindow" -and $_.Visible })
+    $report.failinject_leg["visible_chat_count"] = $chatWins.Count
+    if ($chatWins.Count -ne 1) { throw ("fail-inject leg: expected exactly 1 visible React window, got $($chatWins.Count)") }
+    $assert["failinject_leg_pass"] = $true
 
     Stop-GuiProcess $godotAutoloadPid
     $godotAutoloadPid = 0
@@ -532,7 +535,7 @@ finally {
     $reportPath = Join-Path $ArtDir "ui_entry_smoke_report.json"
     $report | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $reportPath -Encoding UTF8
     Write-Host ("report: " + $reportPath)
-    foreach ($log in @($godotAutoloadLog, $godotFallbackLog, $godotLegacyLog, $agentLog)) {
+    foreach ($log in @($godotAutoloadLog, $godotFailInjectLog, $godotLegacyLog, $agentLog)) {
         Copy-Item -LiteralPath $log -Destination $ArtDir -Force -ErrorAction SilentlyContinue
     }
 }
