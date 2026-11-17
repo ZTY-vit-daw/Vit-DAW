@@ -202,3 +202,4 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 398 | SCORE-GUI-FOLLOW-1 | todo（依397，GUI真实选择装配/反向回读） |
 | 399 | SCORE-CLIP-STRIP-1 | todo（依397/398，clip时间小条） |
 | 400 | SCORE-DRAFT-CONTRACT-1 | todo（只读契约，工程包草稿库前提未成立） |
+| 401 | LAUNCHER-RECENTS-READ-1 | doing（388必要只读接缝，同owner独立提交；GET不经LLM/不物化工作区） |

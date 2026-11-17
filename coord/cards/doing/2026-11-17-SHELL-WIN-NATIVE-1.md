@@ -13,3 +13,6 @@
 
 ### 终态边界裁定（2026-11-17）
 现launch-result ok来自start_page change_scene_to_packed受理，未证项目仓库加载完成；本卡原生阶段明确命名scene_accepted，以现有终态有限释放临时noactivate，不宣称workspace_ready。允许修复spawn后ResetEvent清掉快速回执的同域竞态。395只呈现实证步骤，不捏造ready；完整workspace_ready若需Godot装配+首次project_repository.apply应独立小卡。main只沿既有set_chain/detail暴露真实状态，不扩status_server生产文件。
+
+### 观测面扩域（394-B，主管2026-11-17）
+为保留旧chain_detail纯文本契约，B独立提交授权status_server.h/.cpp新增可选window_state schema vitshell.window_state.v1+main.cpp一处reader接线（3文件）；A原4文件独立可构建。reader在HTTP服务锁外调用，mutex快照元数据并即时只读查询foreground/z/style；不在HTTP线程改窗口。旧detail不改、无窗null/unknown、schema不声称ready。原生焦点临时位在scene_accepted/failed/timeout/exit/shutdown释放；runtime验证候主管放行。
