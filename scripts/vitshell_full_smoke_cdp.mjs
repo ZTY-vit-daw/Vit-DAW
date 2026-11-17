@@ -242,7 +242,7 @@ try {
       if (!greetingText) fail("greeting text empty (live /agent/launcher/greeting data missing)");
       const threadEl = page.locator("[data-launcher-thread]");
       await threadEl.waitFor({ state: "visible", timeout: 15000 });
-      const assistantMsgs = await page.locator('[data-launcher-msg="assistant"]').count();
+      const assistantMsgs = await page.locator('[data-launcher-thread] [data-launcher-msg="assistant"], [data-launcher-thread] .message-row.assistant').count();
       if (assistantMsgs < 1) fail("no assistant thread frame under launcher thread (greeting not seeded)");
       const recentsCount = await page.locator("[data-launcher-recents-count]").getAttribute("data-launcher-recents-count");
       const sentinel = await withSentinel(page);
@@ -306,11 +306,11 @@ try {
       // is active), answer 直接切换.
       const root = page.locator("[data-launcher-root]");
       await root.waitFor({ state: "visible", timeout: 30000 });
-      const composer = page.locator('[data-launcher-input] input.v5-composer-input');
+      const composer = page.locator('[data-launcher-input] input.v5-composer-input, [data-launcher-input] textarea');
       await composer.waitFor({ state: "visible", timeout: 15000 });
       const message = newProjectName ? ("新建工程 " + newProjectName) : "新建工程";
       await composer.fill(message, { timeout: 10000 });
-      const sendBtn = page.locator('[data-launcher-input] .v5-composer-send');
+      const sendBtn = page.locator('[data-launcher-input] .v5-composer-send, [data-launcher-input] .send-button');
       await sendBtn.waitFor({ state: "visible", timeout: 10000 });
       await sendBtn.click({ timeout: 10000 });
       // Deterministic launcher route: directive placeholder (auto-executing).
@@ -321,10 +321,10 @@ try {
           // input value, thread item count, busy/disabled state at failure time.
           const evidence = {};
           try {
-            evidence.assistantMessages = (await page.locator('[data-launcher-msg="assistant"]').allTextContents()).map((s) => s.trim());
-            evidence.userMessages = (await page.locator('[data-launcher-msg="user"]').allTextContents()).map((s) => s.trim());
-            evidence.inputValue = await page.locator('[data-launcher-input] input.v5-composer-input').inputValue().catch(() => "?");
-            evidence.inputDisabled = await page.locator('[data-launcher-input] input.v5-composer-input').isDisabled().catch(() => "?");
+            evidence.assistantMessages = (await page.locator('[data-launcher-thread] [data-launcher-msg="assistant"], [data-launcher-thread] .message-row.assistant').allTextContents()).map((s) => s.trim());
+            evidence.userMessages = (await page.locator('[data-launcher-thread] [data-launcher-msg="user"], [data-launcher-thread] .message-row.user').allTextContents()).map((s) => s.trim());
+            evidence.inputValue = await page.locator('[data-launcher-input] input.v5-composer-input, [data-launcher-input] textarea').inputValue().catch(() => "?");
+            evidence.inputDisabled = await page.locator('[data-launcher-input] input.v5-composer-input, [data-launcher-input] textarea').isDisabled().catch(() => "?");
             evidence.inputState = await page.locator("[data-launcher-input]").getAttribute("data-input-state").catch(() => "?");
             evidence.bridgeExecState = await page.locator("[data-launcher-bridge-exec]").getAttribute("data-launcher-bridge-exec-state").catch(() => "absent");
             evidence.governanceCount = await page.locator("[data-launcher-governance]").count();
@@ -340,7 +340,7 @@ try {
       if (!newProjectName && !headline.includes("新工程_")) {
         fail("name-less new intent must carry the default draft name (headline=" + headline + ")");
       }
-      const replyText = ((await page.locator('[data-launcher-msg="assistant"]').last().textContent()) ?? "").trim();
+      const replyText = ((await page.locator('[data-launcher-thread] [data-launcher-msg="assistant"], [data-launcher-thread] .message-row.assistant').last().textContent()) ?? "").trim();
       if (replyText.includes("连不上内核")) {
         fail("new-project reply is the kernel-unavailable template: " + replyText);
       }
@@ -410,7 +410,7 @@ try {
       }
       // No chat question loop: the button must not send a chat message (no new
       // assistant preset reply asking for a name).
-      const assistantMsgs = (await page.locator('[data-launcher-msg="assistant"]').allTextContents()).map((s) => s.trim());
+      const assistantMsgs = (await page.locator('[data-launcher-thread] [data-launcher-msg="assistant"], [data-launcher-thread] .message-row.assistant').allTextContents()).map((s) => s.trim());
       const lastAssistant = assistantMsgs[assistantMsgs.length - 1] ?? "";
       if (lastAssistant.includes("想叫什么名字")) {
         fail("＋新建 button went through the chat question loop (SHELL-5 direct semantics broken)");
