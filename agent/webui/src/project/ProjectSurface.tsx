@@ -724,7 +724,7 @@ export function ProjectSurface({ fixture, fill = false, onOpenWorkbench, onViewL
                       {launcherGovernanceHeadline(item.view)}
                     </span>
                     <span className="v5-project-governance-note">
-                      治理确认跟随发起方：本次切换由对话发起，确认在此页内完成——选择后 Vit 才执行切换（保存由 Vit 完成）。
+                      请选择保存后切换、直接切换，或留在当前工程。
                     </span>
                     {item.answered ? (
                       <span className="v5-project-governance-answered" data-project-governance-answered-text>

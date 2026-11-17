@@ -71,7 +71,7 @@ export interface DirectivePlaceholderView {
   headline: string;
   /** 数据行：文件路径 / 工程名（原样呈报）。 */
   detail: string;
-  /** 固定说明：已自动经 Vit 桥执行，终态以宿主回执为准。 */
+  /** 请求提交后的说明；不把占位说明当作成功回执。 */
   note: string;
 }
 
@@ -85,7 +85,7 @@ export interface DirectivePlaceholderView {
  */
 export function directivePlaceholder(directive: LauncherDirective | null | undefined): DirectivePlaceholderView | null {
   if (!directive || !directive.action) return null;
-  const note = "Vit 正在执行——已自动经 Vit 桥（UI-BRIDGE-1）发出，治理确认（如需）与原生对话框归属宿主，执行回执见下方状态。";
+  const note = "工程操作请求已提交，进度见下方；切换工程前会请你确认。";
   if (directive.action === "open_project") {
     const name = directive.project_name?.trim() || launcherDisplayFileName(directive.file_path ?? "");
     return {
@@ -115,7 +115,7 @@ export function cardPendingPlaceholder(card: LauncherProjectCard): DirectivePlac
     action: "open",
     headline: card.name ? `正在打开《${card.name}》…` : "正在打开工程…",
     detail: card.filePath,
-    note: "Vit 正在执行——已自动经 Vit 桥（UI-BRIDGE-1）发出，治理确认（如需）与原生对话框归属宿主，执行回执见下方状态。"
+    note: "工程操作请求已提交，进度见下方；切换工程前会请你确认。"
   };
 }
 

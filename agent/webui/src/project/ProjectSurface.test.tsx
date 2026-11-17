@@ -267,6 +267,8 @@ describe("ProjectSurface：SHELL-6 交互卡", () => {
     expect(markup).toContain('data-project-governance-cancel');
     expect(markup).toContain("取消");
     expect(markup).toContain("测试工程甲（fixture）");
+    expect(markup).toContain("请选择保存后切换、直接切换，或留在当前工程。");
+    expect(markup).not.toContain("治理确认跟随发起方");
   });
 
   it("已作答治理卡固定呈报，不再出三键", () => {
