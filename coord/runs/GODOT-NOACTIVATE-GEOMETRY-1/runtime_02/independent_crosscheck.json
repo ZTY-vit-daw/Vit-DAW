@@ -1,0 +1,363 @@
+{
+  "native_records": 84,
+  "pairs": 41,
+  "max_depth": 2,
+  "pair_errors": [],
+  "fail_rows": 0,
+  "child_mutations": [
+    {
+      "mutation": 1,
+      "api": "SetWindowLongPtrW",
+      "qpc_begin": 1156811192965,
+      "qpc_end": 1156811245715,
+      "return": 262416,
+      "ok": 1,
+      "rect": [
+        -32000,
+        -32000,
+        -31724,
+        -31955
+      ],
+      "normal_rect": [
+        908,
+        428,
+        1652,
+        972
+      ]
+    },
+    {
+      "mutation": 2,
+      "api": "SetWindowPos",
+      "qpc_begin": 1156811246073,
+      "qpc_end": 1156811322313,
+      "return": 1,
+      "ok": 1,
+      "rect": [
+        -32000,
+        -32000,
+        -31724,
+        -31955
+      ],
+      "normal_rect": [
+        908,
+        428,
+        1652,
+        972
+      ]
+    },
+    {
+      "mutation": 3,
+      "api": "SetWindowPlacement",
+      "qpc_begin": 1156812459888,
+      "qpc_end": 1156812459931,
+      "return": 1,
+      "ok": 1,
+      "rect": [
+        -32000,
+        -32000,
+        -31724,
+        -31955
+      ],
+      "normal_rect": [
+        0,
+        0,
+        2560,
+        1440
+      ]
+    },
+    {
+      "mutation": 4,
+      "api": "SetWindowPos",
+      "qpc_begin": 1156812460235,
+      "qpc_end": 1156812490427,
+      "return": 1,
+      "ok": 1,
+      "rect": [
+        -32000,
+        -32000,
+        -31724,
+        -31955
+      ],
+      "normal_rect": [
+        0,
+        0,
+        2560,
+        1440
+      ]
+    },
+    {
+      "mutation": 5,
+      "api": "ShowWindow",
+      "qpc_begin": 1156813617299,
+      "qpc_end": 1156813803877,
+      "return": 0,
+      "ok": 1,
+      "rect": [
+        0,
+        0,
+        2560,
+        1440
+      ],
+      "normal_rect": [
+        0,
+        0,
+        2560,
+        1440
+      ]
+    }
+  ],
+  "diagnostic_corner_calls": [
+    {
+      "label": "work_forward",
+      "corner": 0,
+      "input": [
+        0,
+        0
+      ],
+      "output": [
+        0,
+        0
+      ],
+      "return": 0,
+      "raw_last_error": 0,
+      "output_valid": 0
+    },
+    {
+      "label": "work_forward",
+      "corner": 1,
+      "input": [
+        2560,
+        1440
+      ],
+      "output": [
+        2560,
+        1440
+      ],
+      "return": 0,
+      "raw_last_error": 0,
+      "output_valid": 0
+    },
+    {
+      "label": "monitor_forward",
+      "corner": 0,
+      "input": [
+        0,
+        0
+      ],
+      "output": [
+        0,
+        0
+      ],
+      "return": 0,
+      "raw_last_error": 0,
+      "output_valid": 0
+    },
+    {
+      "label": "monitor_forward",
+      "corner": 1,
+      "input": [
+        2560,
+        1440
+      ],
+      "output": [
+        2560,
+        1440
+      ],
+      "return": 0,
+      "raw_last_error": 0,
+      "output_valid": 0
+    },
+    {
+      "label": "work_inverse_from_independent_T",
+      "corner": 0,
+      "input": [
+        0,
+        0
+      ],
+      "output": [
+        0,
+        0
+      ],
+      "return": 0,
+      "raw_last_error": 0,
+      "output_valid": 0
+    },
+    {
+      "label": "work_inverse_from_independent_T",
+      "corner": 1,
+      "input": [
+        2560,
+        1440
+      ],
+      "output": [
+        2560,
+        1440
+      ],
+      "return": 0,
+      "raw_last_error": 0,
+      "output_valid": 0
+    },
+    {
+      "label": "monitor_inverse_from_independent_T",
+      "corner": 0,
+      "input": [
+        0,
+        0
+      ],
+      "output": [
+        0,
+        0
+      ],
+      "return": 0,
+      "raw_last_error": 0,
+      "output_valid": 0
+    },
+    {
+      "label": "monitor_inverse_from_independent_T",
+      "corner": 1,
+      "input": [
+        2560,
+        1440
+      ],
+      "output": [
+        2560,
+        1440
+      ],
+      "return": 0,
+      "raw_last_error": 0,
+      "output_valid": 0
+    }
+  ],
+  "first_ordinary": {
+    "kind": "native_message",
+    "nonce": "901adc49d5cd4b55a464a4f76a12edd9",
+    "pid": 13400,
+    "seq": 44,
+    "tick64": 115679453,
+    "qpc": 1156813746435,
+    "unix_ms": 1794915122459,
+    "phase": 1,
+    "message": 136,
+    "tid": 29584,
+    "hwnd": 919086,
+    "generation": 1,
+    "depth": 1,
+    "failures": 0,
+    "wparam": 4,
+    "lparam": 0,
+    "windowpos": {
+      "insert_after": 0,
+      "x": 0,
+      "y": 0,
+      "cx": 0,
+      "cy": 0,
+      "flags": 0
+    },
+    "style_change": [
+      0,
+      0
+    ],
+    "dpi_suggested": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "valid": 1,
+    "native_pid": 13400,
+    "native_tid": 29584,
+    "visible": 1,
+    "iconic": 0,
+    "zoomed": 0,
+    "style": 382664704,
+    "exstyle": 134480144,
+    "dpi": 168,
+    "dpi_context": 43025,
+    "thread_dpi_context": 43025,
+    "window_awareness": 1,
+    "thread_awareness": 1,
+    "thread_window_context_equal": 1,
+    "rect_ok": 1,
+    "rect": [
+      0,
+      0,
+      2560,
+      1440
+    ],
+    "client_ok": 1,
+    "client": [
+      0,
+      0,
+      2536,
+      1376
+    ],
+    "placement_ok": 1,
+    "show_cmd": 1,
+    "normal_rect": [
+      0,
+      0,
+      2560,
+      1440
+    ],
+    "foreground": 2491438,
+    "focus": 0,
+    "active": 0,
+    "previous": 788060,
+    "next": 1573494
+  },
+  "first_in_show_interval": true,
+  "all_ordinary_target_rect": true,
+  "first_previous": 788060,
+  "guard": 2491438,
+  "raw_child_foreground": 0,
+  "engine_mode_aftershow": [
+    {
+      "seq": 23,
+      "kind": "size_changed",
+      "window_mode": 4,
+      "display_mode": 4,
+      "width": 2536,
+      "height": 1376,
+      "focused": 0
+    },
+    {
+      "seq": 24,
+      "kind": "sample",
+      "window_mode": 4,
+      "display_mode": 4,
+      "width": 2536,
+      "height": 1376,
+      "focused": 0
+    },
+    {
+      "seq": 25,
+      "kind": "sample",
+      "window_mode": 4,
+      "display_mode": 4,
+      "width": 2536,
+      "height": 1376,
+      "focused": 0
+    },
+    {
+      "seq": 26,
+      "kind": "observer_unloaded",
+      "window_mode": 4,
+      "display_mode": 4,
+      "width": 2536,
+      "height": 1376,
+      "focused": 0
+    }
+  ],
+  "natural_exit": {
+    "seq": 96,
+    "tick64": 115679609,
+    "unix_ms": 1794915122625,
+    "pid": 21488,
+    "kind": "owned_child_exit",
+    "exit_code": 0,
+    "forced_teardown": 0,
+    "terminate_return": 1,
+    "wait_result": 0
+  },
+  "stopped_before_2s": true
+}

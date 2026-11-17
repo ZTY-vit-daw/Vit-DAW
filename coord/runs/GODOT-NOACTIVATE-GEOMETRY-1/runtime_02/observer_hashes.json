@@ -1,0 +1,22 @@
+﻿[
+    {
+        "Algorithm":  "SHA256",
+        "Hash":  "21F5369CDFB1560A690ED34FF91E9EB9D7BBD321F78DA7A750425B881C7C96C4",
+        "Path":  "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_02\\build\\Release\\window_transition_observer.dll"
+    },
+    {
+        "Algorithm":  "SHA256",
+        "Hash":  "70192D851CA0DBF099A54D35BAD41B5664000B9E5E5087012A99B657BC47045B",
+        "Path":  "C:\\Users\\timoz\\.codex\\worktrees\\shell-window-transition-406\\vit-daw-frontend\\VitShell\\tests\\window_transition_observer.cpp"
+    },
+    {
+        "Algorithm":  "SHA256",
+        "Hash":  "64A43D2F7A166664E6809B5EFE7B9E0EF12A5424E84D344FB2FFB96B5CBFBC01",
+        "Path":  "C:\\Users\\timoz\\.codex\\worktrees\\shell-window-transition-406\\vit-daw-frontend\\VitShell\\tests\\window_transition_observer.h"
+    },
+    {
+        "Algorithm":  "SHA256",
+        "Hash":  "D21AD8AB1362BE6C10E656E19A5DD8A5EC742154991F713D16BCA325F460C660",
+        "Path":  "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WINDOW-TRANSITION-OBSERVER-1\\dependencies\\gdextension_interface.h"
+    }
+]
