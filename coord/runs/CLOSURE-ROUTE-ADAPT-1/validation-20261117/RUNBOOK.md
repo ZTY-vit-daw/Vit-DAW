@@ -71,3 +71,12 @@ $code271 = $LASTEXITCODE
 - 本地数据适配的完整Python评估器6案exit0：现有历史direct-invoke golden+diagnostic/budget5→py0；无路由→5；foreign task→4；旧single-turn/max_turns→4；budget1但无stop→4；9调用→6。历史rerun1 telemetry核对2 calls、input14731/output254/cache4096；同时修正既有Python漏识别Go usage input_tokens/output_tokens/cache_read_tokens的计费统计。**以上仅评估器回归，历史数据不当现状成功。**
 - PowerShell AST抽取真实outer finally，仅将child入口换成本地“写坏recents然后抛错”的失败适配器，进程/端口提供器均空mock。原始二进制bytes与原absence两案均恢复亲证；测试命令 `powershell -NoProfile -ExecutionPolicy Bypass -File C:/Users/timoz/AppData/Local/Temp/vit271-hygiene-3ad5264c428f414aa7c2fcb94bbc40f4.ps1` exit0；临时工件 `C:/Users/timoz/AppData/Local/Temp/vit271-hygiene-67bf8c05a1384b8e89158eaa975d725b`。最初离线测试命令因嵌套here-string被PowerShell解析拒绝，未执行测试体；修正本地测试包装后上述两案通过，非产品失败/真栈运行。
 - Go未改，不跑Go或编译真栈；不把上述QA视为271终验。装置提交后由主管复核，再决定是否放行唯一正式场景。
+
+## 启栈前守卫修订与部署披露（仍未放行）
+
+- 主管复核 `fb424394` 后要求补长构建窗口：271现在在 `go build` 返回后、`Stop-AgentForPaths`之前fetch origin/main，UTF8读取共享资源最新首条事件，要求占用marker和owner `/root/closure271`；中文marker以Unicode codepoint构成，避免PS5.1无BOM源码ANSI误解。随后净空检查；`StartKernel`紧前再次净空，owner证明超过60秒则重新fetch重读。别owner、释放事件、已有进程/监听均停止，不静默复用或终止外来进程。
+- VspHub无需启动的依据：`agent/cmd/vitagent/main.go:114–127` 仅 `runtimehost.EnabledFromEnv()` 为真才启runtimehost；`runtimehost/runtimehost.go:102` 仅 `VIT_AGENT_SPAWN_RUNTIME=1/true/on/yes` 为真；`main.go:160` 的 `startVSPHubRegistration` 只是HTTP注册重试，无spawn。271 wrapper拒绝继承该变量真值；Godot仍设置子进程专属 `VIT_SKIP_DEV_AUTOSTART=1`，所以本次内核/Godot/agent三件套不缺hub依赖。最终净空依然要求hub=0。
+- finally清理进一步限定为本run `owned_processes.jsonl` 登记的PID+绝对路径+启动时间三项一致，且路径在明确允许列表中；官方Godot console包装器的同目录GUI兄弟仅在父PID匹配时登记。未登记外来进程不杀，残留使报告非零。无泛化全机进程树kill。
+- 主管部署已确认：内核到本worktree `VitApp/build/VitApp_artefacts/Release/VitApp.exe`，来源主仓A5947361同款二进制（本卡零C++改动）；Settings独立复制到本worktree `VitApp/Workspace/Settings/Settings.xml`，SHA256前缀 `72F0F511`、尾 `EDFBB8`。该Settings是已知运行库修改，保留不纳代码commit，不还原为仓库旧值。A5947361未含378 D3，披露为边界，不触本卡轮预算/音符分析。运行时仍必须记录完整SHA256。
+- 未来独立前端参数确定为 `C:/Users/timoz/.codex/worktrees/godot-runtime-388/vit-daw-frontend` @`d05043e1`；资源/扩展/缓存由主管确认已水合。未含394/402，不借本卡结论判焦点卡。当前仅记录路径，无Godot解析/运行。
+- 修订QA：PS5.1抽取真实guard函数，git/进程/端口全为本地空/模拟提供器；owner271+占用+净空通过、owner388拒绝、最新释放marker拒绝、外来agent拒绝，exit0。语法和diff检查exit0。无真实fetch/端口探测/进程操作；正式场景仍待主管登记放行。

@@ -1254,6 +1254,44 @@ function Copy-AgentBinary {
     Write-Ok ("installed " + $Label + ": " + $Destination)
 }
 
+function Assert-Closure271StartOwnership {
+    param([string]$Root, [string]$RunDir)
+    & git -C $Root fetch --quiet origin main
+    if ($LASTEXITCODE -ne 0) { throw "271 immediate ownership fetch failed" }
+    $priorConsoleEncoding = [Console]::OutputEncoding
+    try {
+        [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)
+        $resourceLines = @(& git -C $Root show origin/main:coord/resources/PC-RUNTIME-STACK.md)
+        if ($LASTEXITCODE -ne 0) { throw "271 immediate resource read failed" }
+    }
+    finally { [Console]::OutputEncoding = $priorConsoleEncoding }
+    $latest = @($resourceLines | Where-Object { $_ -match '^- \d{4}-\d{2}-\d{2} ' } | Select-Object -First 1)
+    # Unicode codepoints avoid PS5.1's ANSI interpretation of no-BOM source.
+    $occupiedMarker = [string][char]0x5360 + [char]0x7528
+    if ($latest.Count -ne 1 -or $latest[0] -notmatch (' / ' + $occupiedMarker + ' / ') -or
+        $latest[0] -notmatch 'owner=[^;\r\n]*?/root/closure271(?=[^A-Za-z0-9_]|$)') {
+        throw "271 latest shared runtime record does not grant occupied owner /root/closure271"
+    }
+    $proof = @{ fetched_at = (Get-Date).ToString("o"); origin_main = (& git -C $Root rev-parse origin/main); latest = $latest[0] }
+    $proof | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $RunDir "immediate_owner.json") -Encoding UTF8
+    return (Get-Date)
+}
+
+function Assert-Closure271StackEmpty {
+    $runtimeNames = "^(VitApp|VitAgent|vitagent.*|VspHub|VitShell|Godot.*)$"
+    if (@(Get-Process | Where-Object { $_.ProcessName -match $runtimeNames }).Count -or
+        @(Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue | Where-Object { $_.LocalPort -in @(5555,5556,5557,7878,7879,8787,9333,18787,8087) }).Count -or
+        @(Get-NetUDPEndpoint -LocalPort 4445 -ErrorAction SilentlyContinue).Count) {
+        throw "271 immediate runtime preflight found foreign process/port; refuse reuse or termination"
+    }
+}
+
+function Register-Closure271Process {
+    param([object]$Process, [string]$RunDir)
+    @{ pid = $Process.Id; path = $Process.Path; started_utc = $Process.StartTime.ToUniversalTime().ToString("o") } |
+        ConvertTo-Json -Compress | Add-Content -LiteralPath (Join-Path $RunDir "owned_processes.jsonl") -Encoding UTF8
+}
+
 # 271 outer lifetime: snapshot BEFORE any kernel/Godot/agent starts, and
 # restore only AFTER terminating this run's exact executable paths. Recursing
 # through the same ps1 preserves the existing build/isolation/smoke mechanism.
@@ -1281,6 +1319,9 @@ if ($ClosureDiagnosticValidation -and -not $ClosureDiagnosticChild) {
         if (-not [string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($closureEnv))) {
             throw "271 requires clean isolation environment; inherited $closureEnv must be unset"
         }
+    }
+    if ([Environment]::GetEnvironmentVariable("VIT_AGENT_SPAWN_RUNTIME") -match '^(1|true|on|yes)$') {
+        throw "271 direct-ZMQ stack requires VIT_AGENT_SPAWN_RUNTIME disabled; no implicit kernel/hub spawn"
     }
     $closureGodot = Resolve-GodotExecutable -RequestedGodotExe $GodotExe
     $closureFrontend = Resolve-GodotProjectRoot -RequestedProjectRoot $GodotProjectRoot
@@ -1342,9 +1383,19 @@ if ($ClosureDiagnosticValidation -and -not $ClosureDiagnosticChild) {
         if ($null -eq $closurePriorParentRun) { Remove-Item Env:VIT_CLOSURE_271_PARENT_RUN -ErrorAction SilentlyContinue }
         else { $env:VIT_CLOSURE_271_PARENT_RUN = $closurePriorParentRun }
         $closureCleanupErrors = @()
-        foreach ($closureProc in @(Get-Process | Where-Object { $_.ProcessName -match $closureProcessPattern })) {
-            if ($closureProc.Path -in $closureOwnedPaths) {
-                try { Stop-Process -Id $closureProc.Id -Force -ErrorAction Stop; Wait-Process -Id $closureProc.Id -Timeout 15 -ErrorAction SilentlyContinue }
+        $closureOwnedFile = Join-Path $closureRun "owned_processes.jsonl"
+        if (Test-Path -LiteralPath $closureOwnedFile) {
+            foreach ($closureOwnedLine in (Get-Content -LiteralPath $closureOwnedFile)) {
+                try {
+                    $closureOwned = $closureOwnedLine | ConvertFrom-Json
+                    $closureProc = Get-Process -Id $closureOwned.pid -ErrorAction SilentlyContinue
+                    if ($null -ne $closureProc -and $closureProc.Path -eq $closureOwned.path -and
+                        $closureProc.Path -in $closureOwnedPaths -and
+                        $closureProc.StartTime.ToUniversalTime().ToString("o") -eq $closureOwned.started_utc) {
+                        Stop-Process -Id $closureProc.Id -Force -ErrorAction Stop
+                        Wait-Process -Id $closureProc.Id -Timeout 15 -ErrorAction SilentlyContinue
+                    }
+                }
                 catch { $closureCleanupErrors += $_.Exception.Message }
             }
         }
@@ -2014,6 +2065,11 @@ if (-not $SkipBuild) {
         Pop-Location
     }
 
+    if ($ClosureDiagnosticChild) {
+        $closureOwnershipChecked = Assert-Closure271StartOwnership -Root $RepoRoot -RunDir $RunArtifactsDir
+        Assert-Closure271StackEmpty
+    }
+
     if ($RestartAgent) {
         Stop-AgentForPaths -AgentPaths $AgentPaths -TimeoutSeconds $WaitSeconds
         $listener = Get-TcpListener -Port $httpPort
@@ -2043,6 +2099,15 @@ elseif ($SkipBuild -and $RestartAgent) {
 }
 
 if ($StartKernel) {
+    if ($ClosureDiagnosticChild) {
+        if (((Get-Date) - $closureOwnershipChecked).TotalSeconds -gt 60) {
+            $closureOwnershipChecked = Assert-Closure271StartOwnership -Root $RepoRoot -RunDir $RunArtifactsDir
+        }
+        Assert-Closure271StackEmpty
+        @{ checked_at = (Get-Date).ToString("o"); owner_checked_at = $closureOwnershipChecked.ToString("o"); empty = $true;
+            runtimehost_spawn_enabled = $false } | ConvertTo-Json |
+            Set-Content -LiteralPath (Join-Path $RunArtifactsDir "immediate_stack_empty.json") -Encoding UTF8
+    }
     Write-Step "Start kernel"
     if (-not (Test-Path -LiteralPath $KernelExe)) {
         Fail-Or-Warn ("kernel exe not found: " + $KernelExe)
@@ -2078,6 +2143,7 @@ if ($StartKernel) {
         }
         if ($null -ne $startedKernelProc) {
             $ScenarioKernelProcId = $startedKernelProc.Id
+            if ($ClosureDiagnosticChild) { Register-Closure271Process -Process $startedKernelProc -RunDir $RunArtifactsDir }
         }
         Write-Ok ("started kernel: " + $KernelExe + " pid=" + $ScenarioKernelProcId + " workdir=" + $kernelWorkingDir)
         Start-Sleep -Seconds 2
@@ -2155,6 +2221,7 @@ if ($ClosureDiagnosticChild) {
     try {
         $env:VIT_SKIP_DEV_AUTOSTART = "1"
         $closureGodotProc = Start-Process -FilePath $ResolvedGodotExe -ArgumentList @("--path", ('"' + $ResolvedGodotProjectRoot + '"'), "--log-file", ('"' + $closureGodotLog + '"')) -WorkingDirectory $ResolvedGodotProjectRoot -WindowStyle Hidden -PassThru
+        Register-Closure271Process -Process $closureGodotProc -RunDir $RunArtifactsDir
     }
     finally {
         if ($null -eq $closurePriorAutostart) { Remove-Item Env:VIT_SKIP_DEV_AUTOSTART -ErrorAction SilentlyContinue }
@@ -2170,6 +2237,11 @@ if ($ClosureDiagnosticChild) {
         Start-Sleep -Milliseconds 500
     }
     if (-not $closureBooted) { throw "271 real Godot boot anchor missing (environment_interrupt)" }
+    $closureGodotGuiPath = $ResolvedGodotExe -replace '_console\.exe$', '.exe'
+    foreach ($closureGodotChild in @(Get-CimInstance Win32_Process -Filter ("ParentProcessId=" + $closureGodotProc.Id) |
+        Where-Object { $_.ExecutablePath -eq $closureGodotGuiPath })) {
+        Register-Closure271Process -Process (Get-Process -Id $closureGodotChild.ProcessId) -RunDir $RunArtifactsDir
+    }
     @{ pid = $closureGodotProc.Id; executable = $ResolvedGodotExe; project = $ResolvedGodotProjectRoot;
         frontend_head = (& git -C $ResolvedGodotProjectRoot rev-parse HEAD);
         frontend_status = @(& git -C $ResolvedGodotProjectRoot status --short); boot_log = $closureGodotLog } |
@@ -2270,7 +2342,11 @@ elseif ($null -eq $listener) {
         "-last-log-path", $AgentLog,
         "-keep-last-log-lines", "800"
     )
-    Start-Process -FilePath $AgentExe -ArgumentList $args -WorkingDirectory $AgentDir -WindowStyle Hidden | Out-Null
+    if ($ClosureDiagnosticChild) {
+        $closureAgentProc = Start-Process -FilePath $AgentExe -ArgumentList $args -WorkingDirectory $AgentDir -WindowStyle Hidden -PassThru
+        Register-Closure271Process -Process $closureAgentProc -RunDir $RunArtifactsDir
+    }
+    else { Start-Process -FilePath $AgentExe -ArgumentList $args -WorkingDirectory $AgentDir -WindowStyle Hidden | Out-Null }
     if (-not (Wait-HttpReady -BaseUrl $AgentHttp -TimeoutSeconds $WaitSeconds)) {
         throw "VitAgent HTTP did not become ready at $AgentHttp"
     }
