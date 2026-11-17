@@ -26,3 +26,10 @@
 ### 394-C 回执关联修订（2026-11-17）
 
 402证据指出root进程内幂等不能阻止旧Godot迟到HTTP回执终结新launch。394同卡C段（不另领重叠域卡）：LauncherBridge在spawn前设置VIT_SHELL_LAUNCH_ID为本次request_id nonce；OnLaunchResult锁内核对chain_in_flight+echo launch_id，缺/错/上轮id不唤醒并记录；必要GodotLaunch字段最多bridge.cpp+manager.h/cpp三文件。新native与402成对部署，旧无echo只能显式legacy模式接受，不能默认兼容绕验证。先402形成独立gd commit，再394-C独立native commit；均待组合真栈，不在此记录最终PASS。
+
+### 394-D 真实阶段发布与只读重放（2026-11-17）
+
+- 395只读取证确认WebUI无vit_window_state消费者，现saving/closing_daw/spawning/waiting_launch_result只存status，terminal stage也未传UI；父391需真实步骤反馈，批准同卡D段（0c712d94干净组合基线）仅bridge.h/cpp两个生产文件，独立commit。
+- SetChainUi追加可选stage；发布schema=vitshell.launch_progress.v1的vit_launch_progress（request_id、单调seq、phase/detail、真实可选stage），仅既有实际阶段。opened stage来自nonce已校验result_body；未知stage不升ready。保持旧五type与chain_detail语义。
+- ask_vit_shell/window_presentation_ready非空subscription_id握手：消费者先挂listener，native只读fresh WindowStateJson+最后progress replay，同seq不自增、不启动/切工程/操作窗口，无初态则unknown。
+- 锁内只快照，dispatch/user hook锁外；无栈配对测试验证seq/转义/stage/晚订阅/错channel/缺ID/重放不变，真栈仍候388释放。
