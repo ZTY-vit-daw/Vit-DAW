@@ -1,0 +1,281 @@
+﻿适用于 .NET Framework MSBuild 版本 18.4.0+6e61e96ac
+
+  1>Checking Build System
+  Building Custom Rule C:/Users/timoz/.codex/worktrees/shell-window-transition-406/vit-daw-frontend/VitShell/tests/CMakeLists.txt
+  hidden_bootstrap_test.cpp
+  launcher_bridge.cpp
+C:\Users\timoz\.codex\worktrees\shell-window-transition-406\vit-daw-frontend\VitShell\launcher_bridge.cpp(56,30): warning C4996: 'sscanf': This function or variable may be unsafe. Consider using sscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\ORDINARY-LARGE-WINDOW-1\runtime_02\build\hidden_bootstrap_test.vcxproj]
+  godot_manager.cpp
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.50.35717\include\xutility(4924,18): warning C4244: “=”: 从“const wchar_t”转换到“char”，可能丢失数据 [C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\ORDINARY-LARGE-WINDOW-1\runtime_02\build\hidden_bootstrap_test.vcxproj]
+  (编译源文件“../../../../../../../shell-window-transition-406/vit-daw-frontend/VitShell/godot_manager.cpp”)
+      C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.50.35717\include\xutility(4924,18):
+      模板实例化上下文(最早的实例化上下文)为
+          C:\Users\timoz\.codex\worktrees\shell-window-transition-406\vit-daw-frontend\VitShell\godot_manager.cpp(609,59):
+          查看对正在编译的函数 模板 实例化“std::basic_string<char,std::char_traits<char>,std::allocator<char>>::basic_string<std::_String_const_iterator<std::_String_val<std::_Simple_types<_Elem>>>,0>(_Iter,_Iter,const _Alloc &)”的引用
+          with
+          [
+              _Elem=wchar_t,
+              _Iter=std::_String_const_iterator<std::_String_val<std::_Simple_types<wchar_t>>>,
+              _Alloc=std::allocator<char>
+          ]
+              C:\Users\timoz\.codex\worktrees\shell-window-transition-406\vit-daw-frontend\VitShell\godot_manager.cpp(609,20):
+              请参阅 "vitshell::GodotManager::Start" 中对 "std::basic_string<char,std::char_traits<char>,std::allocator<char>>::basic_string" 的第一个引用
+          C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.50.35717\include\xstring(862,17):
+          查看对正在编译的函数 模板 实例化“void std::basic_string<char,std::char_traits<char>,std::allocator<char>>::_Construct_from_iter<const wchar_t*,const wchar_t*,_Size_type>(_Iter,const _Sent,_Size)”的引用
+          with
+          [
+              _Size_type=std::+::_Size_type,
+              _Iter=const wchar_t *,
+              _Sent=const wchar_t *,
+              _Size=std::+::_Size_type
+          ]
+          C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.50.35717\include\xstring(1018,18):
+          查看对正在编译的函数 模板 实例化“_OutIt *std::_Copy_n_unchecked4<const wchar_t*,_Size,char*>(_InIt,_SizeTy,_OutIt)”的引用
+          with
+          [
+              _OutIt=char *,
+              _Size=std::+::_Size_type,
+              _InIt=const wchar_t *,
+              _SizeTy=std::+::_Size_type
+          ]
+  
+  agent_manager.cpp
+  file_dialog.cpp
+  正在生成代码...
+  hidden_bootstrap_test.vcxproj -> C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\ORDINARY-LARGE-WINDOW-1\runtime_02\build\Release\hidden_bootstrap_test.exe
+  Building Custom Rule C:/Users/timoz/.codex/worktrees/shell-window-transition-406/vit-daw-frontend/VitShell/tests/CMakeLists.txt
+  launch_result_correlation_test.cpp
+  launcher_bridge.cpp
+C:\Users\timoz\.codex\worktrees\shell-window-transition-406\vit-daw-frontend\VitShell\launcher_bridge.cpp(56,30): warning C4996: 'sscanf': This function or variable may be unsafe. Consider using sscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\ORDINARY-LARGE-WINDOW-1\runtime_02\build\launch_result_correlation_test.vcxproj]
+  godot_manager.cpp
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.50.35717\include\xutility(4924,18): warning C4244: “=”: 从“const wchar_t”转换到“char”，可能丢失数据 [C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\ORDINARY-LARGE-WINDOW-1\runtime_02\build\launch_result_correlation_test.vcxproj]
+  (编译源文件“../../../../../../../shell-window-transition-406/vit-daw-frontend/VitShell/godot_manager.cpp”)
+      C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.50.35717\include\xutility(4924,18):
+      模板实例化上下文(最早的实例化上下文)为
+          C:\Users\timoz\.codex\worktrees\shell-window-transition-406\vit-daw-frontend\VitShell\godot_manager.cpp(609,59):
+          查看对正在编译的函数 模板 实例化“std::basic_string<char,std::char_traits<char>,std::allocator<char>>::basic_string<std::_String_const_iterator<std::_String_val<std::_Simple_types<_Elem>>>,0>(_Iter,_Iter,const _Alloc &)”的引用
+          with
+          [
+              _Elem=wchar_t,
+              _Iter=std::_String_const_iterator<std::_String_val<std::_Simple_types<wchar_t>>>,
+              _Alloc=std::allocator<char>
+          ]
+              C:\Users\timoz\.codex\worktrees\shell-window-transition-406\vit-daw-frontend\VitShell\godot_manager.cpp(609,20):
+              请参阅 "vitshell::GodotManager::Start" 中对 "std::basic_string<char,std::char_traits<char>,std::allocator<char>>::basic_string" 的第一个引用
+          C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.50.35717\include\xstring(862,17):
+          查看对正在编译的函数 模板 实例化“void std::basic_string<char,std::char_traits<char>,std::allocator<char>>::_Construct_from_iter<const wchar_t*,const wchar_t*,_Size_type>(_Iter,const _Sent,_Size)”的引用
+          with
+          [
+              _Size_type=std::+::_Size_type,
+              _Iter=const wchar_t *,
+              _Sent=const wchar_t *,
+              _Size=std::+::_Size_type
+          ]
+          C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.50.35717\include\xstring(1018,18):
+          查看对正在编译的函数 模板 实例化“_OutIt *std::_Copy_n_unchecked4<const wchar_t*,_Size,char*>(_InIt,_SizeTy,_OutIt)”的引用
+          with
+          [
+              _OutIt=char *,
+              _Size=std::+::_Size_type,
+              _InIt=const wchar_t *,
+              _SizeTy=std::+::_Size_type
+          ]
+  
+  agent_manager.cpp
+  file_dialog.cpp
+  正在生成代码...
+  launch_result_correlation_test.vcxproj -> C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\ORDINARY-LARGE-WINDOW-1\runtime_02\build\Release\launch_result_correlation_test.exe
+  Building Custom Rule C:/Users/timoz/.codex/worktrees/shell-window-transition-406/vit-daw-frontend/VitShell/tests/CMakeLists.txt
+  launcher_presentation_test.cpp
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.50.35717\include\xutility(4924,18): warning C4244: “=”: 从“const wchar_t”转换到“char”，可能丢失数据 [C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\ORDINARY-LARGE-WINDOW-1\runtime_02\build\launcher_presentation_test.vcxproj]
+  (编译源文件“../../../../../../../shell-window-transition-406/vit-daw-frontend/VitShell/tests/launcher_presentation_test.cpp”)
+      C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.50.35717\include\xutility(4924,18):
+      模板实例化上下文(最早的实例化上下文)为
+          C:\Users\timoz\.codex\worktrees\shell-window-transition-406\vit-daw-frontend\VitShell\tests\launcher_presentation_test.cpp(116,34):
+          查看对正在编译的函数 模板 实例化“std::basic_string<char,std::char_traits<char>,std::allocator<char>>::basic_string<std::_String_const_iterator<std::_String_val<std::_Simple_types<_Elem>>>,0>(_Iter,_Iter,const _Alloc &)”的引用
+          with
+          [
+              _Elem=wchar_t,
+              _Iter=std::_String_const_iterator<std::_String_val<std::_Simple_types<wchar_t>>>,
+              _Alloc=std::allocator<char>
+          ]
+              C:\Users\timoz\.codex\worktrees\shell-window-transition-406\vit-daw-frontend\VitShell\tests\launcher_presentation_test.cpp(116,22):
+              请参阅 "vitshell::LauncherBridgePresentationTest::Run" 中对 "std::basic_string<char,std::char_traits<char>,std::allocator<char>>::basic_string" 的第一个引用
+          C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.50.35717\include\xstring(862,17):
+          查看对正在编译的函数 模板 实例化“void std::basic_string<char,std::char_traits<char>,std::allocator<char>>::_Construct_from_iter<const wchar_t*,const wchar_t*,_Size_type>(_Iter,const _Sent,_Size)”的引用
+          with
+          [
+              _Size_type=std::+::_Size_type,
+              _Iter=const wchar_t *,
+              _Sent=const wchar_t *,
+              _Size=std::+::_Size_type
+          ]
+          C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.50.35717\include\xstring(1018,18):
+          查看对正在编译的函数 模板 实例化“_OutIt *std::_Copy_n_unchecked4<const wchar_t*,_Size,char*>(_InIt,_SizeTy,_OutIt)”的引用
+          with
+          [
+              _OutIt=char *,
+              _Size=std::+::_Size_type,
+              _InIt=const wchar_t *,
+              _SizeTy=std::+::_Size_type
+          ]
+  
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.50.35717\include\xutility(4924,18): warning C4244: “=”: 从“wchar_t”转换到“char”，可能丢失数据 [C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\ORDINARY-LARGE-WINDOW-1\runtime_02\build\launcher_presentation_test.vcxproj]
+  (编译源文件“../../../../../../../shell-window-transition-406/vit-daw-frontend/VitShell/tests/launcher_presentation_test.cpp”)
+      C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.50.35717\include\xutility(4924,18):
+      模板实例化上下文(最早的实例化上下文)为
+          C:\Users\timoz\.codex\worktrees\shell-window-transition-406\vit-daw-frontend\VitShell\tests\launcher_presentation_test.cpp(127,30):
+          查看对正在编译的函数 模板 实例化“std::basic_string<char,std::char_traits<char>,std::allocator<char>>::basic_string<std::_String_iterator<std::_String_val<std::_Simple_types<_Elem>>>,0>(_Iter,_Iter,const _Alloc &)”的引用
+          with
+          [
+              _Elem=wchar_t,
+              _Iter=std::_String_iterator<std::_String_val<std::_Simple_types<wchar_t>>>,
+              _Alloc=std::allocator<char>
+          ]
+              C:\Users\timoz\.codex\worktrees\shell-window-transition-406\vit-daw-frontend\VitShell\tests\launcher_presentation_test.cpp(127,18):
+              请参阅 "vitshell::LauncherBridgePresentationTest::Run" 中对 "std::basic_string<char,std::char_traits<char>,std::allocator<char>>::basic_string" 的第一个引用
+          C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.50.35717\include\xstring(862,17):
+          查看对正在编译的函数 模板 实例化“void std::basic_string<char,std::char_traits<char>,std::allocator<char>>::_Construct_from_iter<wchar_t*,wchar_t*,_Size_type>(_Iter,const _Sent,_Size)”的引用
+          with
+          [
+              _Size_type=std::+::_Size_type,
+              _Iter=wchar_t *,
+              _Sent=wchar_t *,
+              _Size=std::+::_Size_type
+          ]
+          C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.50.35717\include\xstring(1018,18):
+          查看对正在编译的函数 模板 实例化“_OutIt *std::_Copy_n_unchecked4<wchar_t*,_Size,char*>(_InIt,_SizeTy,_OutIt)”的引用
+          with
+          [
+              _OutIt=char *,
+              _Size=std::+::_Size_type,
+              _InIt=wchar_t *,
+              _SizeTy=std::+::_Size_type
+          ]
+  
+  launcher_bridge.cpp
+C:\Users\timoz\.codex\worktrees\shell-window-transition-406\vit-daw-frontend\VitShell\launcher_bridge.cpp(56,30): warning C4996: 'sscanf': This function or variable may be unsafe. Consider using sscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\ORDINARY-LARGE-WINDOW-1\runtime_02\build\launcher_presentation_test.vcxproj]
+  godot_manager.cpp
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.50.35717\include\xutility(4924,18): warning C4244: “=”: 从“const wchar_t”转换到“char”，可能丢失数据 [C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\ORDINARY-LARGE-WINDOW-1\runtime_02\build\launcher_presentation_test.vcxproj]
+  (编译源文件“../../../../../../../shell-window-transition-406/vit-daw-frontend/VitShell/godot_manager.cpp”)
+      C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.50.35717\include\xutility(4924,18):
+      模板实例化上下文(最早的实例化上下文)为
+          C:\Users\timoz\.codex\worktrees\shell-window-transition-406\vit-daw-frontend\VitShell\godot_manager.cpp(609,59):
+          查看对正在编译的函数 模板 实例化“std::basic_string<char,std::char_traits<char>,std::allocator<char>>::basic_string<std::_String_const_iterator<std::_String_val<std::_Simple_types<_Elem>>>,0>(_Iter,_Iter,const _Alloc &)”的引用
+          with
+          [
+              _Elem=wchar_t,
+              _Iter=std::_String_const_iterator<std::_String_val<std::_Simple_types<wchar_t>>>,
+              _Alloc=std::allocator<char>
+          ]
+              C:\Users\timoz\.codex\worktrees\shell-window-transition-406\vit-daw-frontend\VitShell\godot_manager.cpp(609,20):
+              请参阅 "vitshell::GodotManager::Start" 中对 "std::basic_string<char,std::char_traits<char>,std::allocator<char>>::basic_string" 的第一个引用
+          C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.50.35717\include\xstring(862,17):
+          查看对正在编译的函数 模板 实例化“void std::basic_string<char,std::char_traits<char>,std::allocator<char>>::_Construct_from_iter<const wchar_t*,const wchar_t*,_Size_type>(_Iter,const _Sent,_Size)”的引用
+          with
+          [
+              _Size_type=std::+::_Size_type,
+              _Iter=const wchar_t *,
+              _Sent=const wchar_t *,
+              _Size=std::+::_Size_type
+          ]
+          C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.50.35717\include\xstring(1018,18):
+          查看对正在编译的函数 模板 实例化“_OutIt *std::_Copy_n_unchecked4<const wchar_t*,_Size,char*>(_InIt,_SizeTy,_OutIt)”的引用
+          with
+          [
+              _OutIt=char *,
+              _Size=std::+::_Size_type,
+              _InIt=const wchar_t *,
+              _SizeTy=std::+::_Size_type
+          ]
+  
+  agent_manager.cpp
+  file_dialog.cpp
+  正在生成代码...
+  launcher_presentation_test.vcxproj -> C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\ORDINARY-LARGE-WINDOW-1\runtime_02\build\Release\launcher_presentation_test.exe
+  Building Custom Rule C:/Users/timoz/.codex/worktrees/shell-window-transition-406/vit-daw-frontend/VitShell/tests/CMakeLists.txt
+  loading_window_policy_test.cpp
+  loading_window_policy_test.vcxproj -> C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\ORDINARY-LARGE-WINDOW-1\runtime_02\build\Release\loading_window_policy_test.exe
+  Building Custom Rule C:/Users/timoz/.codex/worktrees/shell-window-transition-406/vit-daw-frontend/VitShell/tests/CMakeLists.txt
+  win32_noactivate_restore_probe.cpp
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.50.35717\include\xutility(4924,18): warning C4244: “=”: 从“const wchar_t”转换到“char”，可能丢失数据 [C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\ORDINARY-LARGE-WINDOW-1\runtime_02\build\win32_noactivate_restore_probe.vcxproj]
+  (编译源文件“../../../../../../../shell-window-transition-406/vit-daw-frontend/VitShell/tests/win32_noactivate_restore_probe.cpp”)
+      C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.50.35717\include\xutility(4924,18):
+      模板实例化上下文(最早的实例化上下文)为
+          C:\Users\timoz\.codex\worktrees\shell-window-transition-406\vit-daw-frontend\VitShell\tests\win32_noactivate_restore_probe.cpp(704,36):
+          查看对正在编译的函数 模板 实例化“std::basic_string<char,std::char_traits<char>,std::allocator<char>>::basic_string<std::_String_const_iterator<std::_String_val<std::_Simple_types<_Elem>>>,0>(_Iter,_Iter,const _Alloc &)”的引用
+          with
+          [
+              _Elem=wchar_t,
+              _Iter=std::_String_const_iterator<std::_String_val<std::_Simple_types<wchar_t>>>,
+              _Alloc=std::allocator<char>
+          ]
+              C:\Users\timoz\.codex\worktrees\shell-window-transition-406\vit-daw-frontend\VitShell\tests\win32_noactivate_restore_probe.cpp(704,36):
+              请参阅 "godotProbe" 中对 "std::basic_string<char,std::char_traits<char>,std::allocator<char>>::basic_string" 的第一个引用
+          C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.50.35717\include\xstring(862,17):
+          查看对正在编译的函数 模板 实例化“void std::basic_string<char,std::char_traits<char>,std::allocator<char>>::_Construct_from_iter<const wchar_t*,const wchar_t*,_Size_type>(_Iter,const _Sent,_Size)”的引用
+          with
+          [
+              _Size_type=unsigned __int64,
+              _Iter=const wchar_t *,
+              _Sent=const wchar_t *,
+              _Size=unsigned __int64
+          ]
+          C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.50.35717\include\xstring(1018,18):
+          查看对正在编译的函数 模板 实例化“_OutIt *std::_Copy_n_unchecked4<const wchar_t*,_Size,char*>(_InIt,_SizeTy,_OutIt)”的引用
+          with
+          [
+              _OutIt=char *,
+              _Size=unsigned __int64,
+              _InIt=const wchar_t *,
+              _SizeTy=unsigned __int64
+          ]
+  
+  win32_noactivate_restore_probe.vcxproj -> C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\ORDINARY-LARGE-WINDOW-1\runtime_02\build\Release\win32_noactivate_restore_probe.exe
+  Building Custom Rule C:/Users/timoz/.codex/worktrees/shell-window-transition-406/vit-daw-frontend/VitShell/tests/CMakeLists.txt
+  window_status_serialization_test.cpp
+  status_server.cpp
+  godot_manager.cpp
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.50.35717\include\xutility(4924,18): warning C4244: “=”: 从“const wchar_t”转换到“char”，可能丢失数据 [C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\ORDINARY-LARGE-WINDOW-1\runtime_02\build\window_status_serialization_test.vcxproj]
+  (编译源文件“../../../../../../../shell-window-transition-406/vit-daw-frontend/VitShell/godot_manager.cpp”)
+      C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.50.35717\include\xutility(4924,18):
+      模板实例化上下文(最早的实例化上下文)为
+          C:\Users\timoz\.codex\worktrees\shell-window-transition-406\vit-daw-frontend\VitShell\godot_manager.cpp(609,59):
+          查看对正在编译的函数 模板 实例化“std::basic_string<char,std::char_traits<char>,std::allocator<char>>::basic_string<std::_String_const_iterator<std::_String_val<std::_Simple_types<_Elem>>>,0>(_Iter,_Iter,const _Alloc &)”的引用
+          with
+          [
+              _Elem=wchar_t,
+              _Iter=std::_String_const_iterator<std::_String_val<std::_Simple_types<wchar_t>>>,
+              _Alloc=std::allocator<char>
+          ]
+              C:\Users\timoz\.codex\worktrees\shell-window-transition-406\vit-daw-frontend\VitShell\godot_manager.cpp(609,20):
+              请参阅 "vitshell::GodotManager::Start" 中对 "std::basic_string<char,std::char_traits<char>,std::allocator<char>>::basic_string" 的第一个引用
+          C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.50.35717\include\xstring(862,17):
+          查看对正在编译的函数 模板 实例化“void std::basic_string<char,std::char_traits<char>,std::allocator<char>>::_Construct_from_iter<const wchar_t*,const wchar_t*,_Size_type>(_Iter,const _Sent,_Size)”的引用
+          with
+          [
+              _Size_type=std::+::_Size_type,
+              _Iter=const wchar_t *,
+              _Sent=const wchar_t *,
+              _Size=std::+::_Size_type
+          ]
+          C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.50.35717\include\xstring(1018,18):
+          查看对正在编译的函数 模板 实例化“_OutIt *std::_Copy_n_unchecked4<const wchar_t*,_Size,char*>(_InIt,_SizeTy,_OutIt)”的引用
+          with
+          [
+              _OutIt=char *,
+              _Size=std::+::_Size_type,
+              _InIt=const wchar_t *,
+              _SizeTy=std::+::_Size_type
+          ]
+  
+  正在生成代码...
+  window_status_serialization_test.vcxproj -> C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\ORDINARY-LARGE-WINDOW-1\runtime_02\build\Release\window_status_serialization_test.exe
+  Building Custom Rule C:/Users/timoz/.codex/worktrees/shell-window-transition-406/vit-daw-frontend/VitShell/tests/CMakeLists.txt
+  window_transition_observer.cpp
+    正在创建库 C:/Users/timoz/.codex/worktrees/win32-restore-403/Vit_DAW/coord/runs/ORDINARY-LARGE-WINDOW-1/runtime_02/build/Release/window_transition_observer.lib 和对象 C:/Users/timoz/.codex/worktrees/win32-restore-403/Vit_DAW/coord/runs/ORDINARY-LARGE-WINDOW-1/runtime_02/build/Release/window_transition_observer.exp
+  window_transition_observer.vcxproj -> C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\ORDINARY-LARGE-WINDOW-1\runtime_02\build\Release\window_transition_observer.dll
+  Building Custom Rule C:/Users/timoz/.codex/worktrees/shell-window-transition-406/vit-daw-frontend/VitShell/tests/CMakeLists.txt
+  window_transition_observer_policy_test.cpp
+  window_transition_observer_policy_test.vcxproj -> C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\ORDINARY-LARGE-WINDOW-1\runtime_02\build\Release\window_transition_observer_policy_test.exe
+  Building Custom Rule C:/Users/timoz/.codex/worktrees/shell-window-transition-406/vit-daw-frontend/VitShell/tests/CMakeLists.txt

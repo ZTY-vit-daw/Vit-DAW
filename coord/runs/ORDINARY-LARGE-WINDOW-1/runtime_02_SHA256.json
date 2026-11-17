@@ -1,0 +1,202 @@
+[
+  {
+    "Hash": "CADE6177EC141E4D7766CDED2E1E68D1F82A692EF516D0E268A0B38FC329B8AA",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\ORDINARY-LARGE-WINDOW-1\\runtime_02\\after_teardown.fetch.log"
+  },
+  {
+    "Hash": "B5C04750263FE31315B8FF90A332FFB857044E743474271D5771B9FA007E1281",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\ORDINARY-LARGE-WINDOW-1\\runtime_02\\after_teardown.idle.json"
+  },
+  {
+    "Hash": "DCEA8520142E88AE3028982713BE8D2FC238DD9913FFD2D906D64122C5D492F0",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\ORDINARY-LARGE-WINDOW-1\\runtime_02\\after_teardown.matched_resource.txt"
+  },
+  {
+    "Hash": "9004579EDE9DDCAACE492A437C1269517D0B9E77CFABB1AD55215B65E8C2D9DB",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\ORDINARY-LARGE-WINDOW-1\\runtime_02\\after_teardown.resource.txt"
+  },
+  {
+    "Hash": "CADE6177EC141E4D7766CDED2E1E68D1F82A692EF516D0E268A0B38FC329B8AA",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\ORDINARY-LARGE-WINDOW-1\\runtime_02\\before_build.fetch.log"
+  },
+  {
+    "Hash": "D4AC39A2EABB4CBDF8E63A9B266B7FF2AF877214781198A429D81D4057DCF901",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\ORDINARY-LARGE-WINDOW-1\\runtime_02\\before_build.idle.json"
+  },
+  {
+    "Hash": "DCEA8520142E88AE3028982713BE8D2FC238DD9913FFD2D906D64122C5D492F0",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\ORDINARY-LARGE-WINDOW-1\\runtime_02\\before_build.matched_resource.txt"
+  },
+  {
+    "Hash": "9004579EDE9DDCAACE492A437C1269517D0B9E77CFABB1AD55215B65E8C2D9DB",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\ORDINARY-LARGE-WINDOW-1\\runtime_02\\before_build.resource.txt"
+  },
+  {
+    "Hash": "CADE6177EC141E4D7766CDED2E1E68D1F82A692EF516D0E268A0B38FC329B8AA",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\ORDINARY-LARGE-WINDOW-1\\runtime_02\\before_synthetic.godot.fetch.log"
+  },
+  {
+    "Hash": "CF2E43DBC73FE7E3C2EC48E3FAA5B169C543034411C9C42F9A3B464DB8A383D6",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\ORDINARY-LARGE-WINDOW-1\\runtime_02\\before_synthetic.godot.idle.json"
+  },
+  {
+    "Hash": "DCEA8520142E88AE3028982713BE8D2FC238DD9913FFD2D906D64122C5D492F0",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\ORDINARY-LARGE-WINDOW-1\\runtime_02\\before_synthetic.godot.matched_resource.txt"
+  },
+  {
+    "Hash": "9004579EDE9DDCAACE492A437C1269517D0B9E77CFABB1AD55215B65E8C2D9DB",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\ORDINARY-LARGE-WINDOW-1\\runtime_02\\before_synthetic.godot.resource.txt"
+  },
+  {
+    "Hash": "28E1E1D6FF82BE5E87C8E19CAC66D1FC28031B9C930ECD52454A14CA18D197B5",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\ORDINARY-LARGE-WINDOW-1\\runtime_02\\binary_hash.json"
+  },
+  {
+    "Hash": "5CD83E7903CF32A4F27182DD34F809D907E425C6466D94D5E807DB422E8C5915",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\ORDINARY-LARGE-WINDOW-1\\runtime_02\\build.log"
+  },
+  {
+    "Hash": "4DD48F4F28604219BD1A4275C436C88F6E0E4ACE489D04F78EA7AE29F1F628A4",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\ORDINARY-LARGE-WINDOW-1\\runtime_02\\commands.txt"
+  },
+  {
+    "Hash": "388549C412DA44896C0ADBC97529FA08ABAE3D336E6BC90F0DBAA15B67F07716",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\ORDINARY-LARGE-WINDOW-1\\runtime_02\\configure.log"
+  },
+  {
+    "Hash": "97411E08882953793F9EC33763A6C3C8B79C369E94EB9512BE3AAAF150557FB3",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\ORDINARY-LARGE-WINDOW-1\\runtime_02\\failure.txt"
+  },
+  {
+    "Hash": "210407B4F1DD0E003C52D9DDD135A739C3F03A8FB0922398F8A262C073970BD4",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\ORDINARY-LARGE-WINDOW-1\\runtime_02\\final_git_evidence_runtime.txt"
+  },
+  {
+    "Hash": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\ORDINARY-LARGE-WINDOW-1\\runtime_02\\frontend.diff.txt"
+  },
+  {
+    "Hash": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\ORDINARY-LARGE-WINDOW-1\\runtime_02\\frontend.diffstat.txt"
+  },
+  {
+    "Hash": "071959EBE3CE78CB1DACADBA869F7DD3DB653EC9E0821323B78269664A18AD09",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\ORDINARY-LARGE-WINDOW-1\\runtime_02\\frontend.head.txt"
+  },
+  {
+    "Hash": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\ORDINARY-LARGE-WINDOW-1\\runtime_02\\frontend.status.txt"
+  },
+  {
+    "Hash": "0454D56DCEB174880BAD7DE5C12845CDF8A1626D90FBA7197B1B4344F08BDCB9",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\ORDINARY-LARGE-WINDOW-1\\runtime_02\\godot_binary_hash.json"
+  },
+  {
+    "Hash": "1D4BC9F302A1D02E11B9C23A04F0122E905B5A515D385369DBAD76A145B9C830",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\ORDINARY-LARGE-WINDOW-1\\runtime_02\\godot_version_resource.json"
+  },
+  {
+    "Hash": "9DCF056157C3A1DC6DD37A8C61FAA7390BB7FCE8A42C1C25ABEAE532560B4C93",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\ORDINARY-LARGE-WINDOW-1\\runtime_02\\independent_crosscheck.json"
+  },
+  {
+    "Hash": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\ORDINARY-LARGE-WINDOW-1\\runtime_02\\main.diff.txt"
+  },
+  {
+    "Hash": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\ORDINARY-LARGE-WINDOW-1\\runtime_02\\main.diffstat.txt"
+  },
+  {
+    "Hash": "8DF6F48AF1AEE105063C85FB8B2F1176DDB11B3F2FF2C406A6E212E9D383C9A5",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\ORDINARY-LARGE-WINDOW-1\\runtime_02\\main.head.txt"
+  },
+  {
+    "Hash": "892AD68743E82D7A93029EFEB4B9EE402F50DB7B49D53F25221769B83E6BED49",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\ORDINARY-LARGE-WINDOW-1\\runtime_02\\main.status.txt"
+  },
+  {
+    "Hash": "9236EAC021AAF0AD03068367588390587DD4F8764E30F106DC268C98ACC1C537",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\ORDINARY-LARGE-WINDOW-1\\runtime_02\\observer_hashes.json"
+  },
+  {
+    "Hash": "3FC83DF140E1A0785D32B08EFB40841F8690EE547DC779F9401391197047D23E",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\ORDINARY-LARGE-WINDOW-1\\runtime_02\\recents.after.sha256"
+  },
+  {
+    "Hash": "807226F4AF3FC85C2B99BFD2FB827C1583E7C991826BDE5F0B4344A6DC13E353",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\ORDINARY-LARGE-WINDOW-1\\runtime_02\\recents.before.json"
+  },
+  {
+    "Hash": "3FC83DF140E1A0785D32B08EFB40841F8690EE547DC779F9401391197047D23E",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\ORDINARY-LARGE-WINDOW-1\\runtime_02\\recents.before.sha256"
+  },
+  {
+    "Hash": "76F25A380145300A18591AD15C88A99DACC8F2FAFECBA88F82878404A145170A",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\ORDINARY-LARGE-WINDOW-1\\runtime_02\\report.json"
+  },
+  {
+    "Hash": "1159897E298CBFC9F2BA217EF1C50878250C9F79FE94E87E50B5A79411E95033",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\ORDINARY-LARGE-WINDOW-1\\runtime_02\\source_hashes.json"
+  },
+  {
+    "Hash": "4E11C4AFAC9F5970C65795C45B0EFF2E45FEDC907C0F7802BA35D0175080A4C1",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\ORDINARY-LARGE-WINDOW-1\\runtime_02\\synthetic.godot.jsonl"
+  },
+  {
+    "Hash": "F86C822396B8EC91188F252BC3E579AAE5562F35DF9CDE042658CBB02DB107B8",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\ORDINARY-LARGE-WINDOW-1\\runtime_02\\synthetic.godot.process.json"
+  },
+  {
+    "Hash": "D5EA368768EBB97C35B1CB190317CB5EEA92EE68CBFB280BAAD93EB2801278BD",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\ORDINARY-LARGE-WINDOW-1\\runtime_02\\synthetic.godot.project_manifest.json"
+  },
+  {
+    "Hash": "FFF9C1899F481B4E5840DB025141DF76165060A4E37530FBF7A843718C778135",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\ORDINARY-LARGE-WINDOW-1\\runtime_02\\synthetic.godot.project\\godot_engine.log"
+  },
+  {
+    "Hash": "570673E58632A7DD962AE1A6CA25AA0A53FF4F1867B981CCFD1B4DE5DD1464C7",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\ORDINARY-LARGE-WINDOW-1\\runtime_02\\synthetic.godot.project\\main.tscn"
+  },
+  {
+    "Hash": "1CF780A71D4FB3131A403B4529897624CDF9D8F0590036DCD3B1E965370EE0D7",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\ORDINARY-LARGE-WINDOW-1\\runtime_02\\synthetic.godot.project\\observation.jsonl"
+  },
+  {
+    "Hash": "C0892A360286D798FD40127D7DD024E5D8791CFC619A5331DF2A8C0E5EE62BD8",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\ORDINARY-LARGE-WINDOW-1\\runtime_02\\synthetic.godot.project\\observer.gd"
+  },
+  {
+    "Hash": "81A929835FF788CE15D9808758C8141C09AD1221D109248BD1B2DF2B81F3422F",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\ORDINARY-LARGE-WINDOW-1\\runtime_02\\synthetic.godot.project\\project.godot"
+  },
+  {
+    "Hash": "4E82B3AE2CA40F4ABB53DE55A8EFC08A7F589E4BB4FBCC0DBF25AC5FF9B12B17",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\ORDINARY-LARGE-WINDOW-1\\runtime_02\\synthetic.godot.project\\stop.request"
+  },
+  {
+    "Hash": "EB133F83ACABEE9770C63DCBE2E9EBD70BFDFE1AE299617B715E122CD66E26DF",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\ORDINARY-LARGE-WINDOW-1\\runtime_02\\synthetic.godot.project\\test.gdextension"
+  },
+  {
+    "Hash": "DE9B2DC99CBE8F822062B15988535422BD08D01D1F8B144B6223BC989D5AD594",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\ORDINARY-LARGE-WINDOW-1\\runtime_02\\synthetic.godot.project\\transition_observer.jsonl"
+  },
+  {
+    "Hash": "77DBD987FE499064CF3D95E6C657731387EA00CA7EDE49770EF6A6DE59C6544F",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\ORDINARY-LARGE-WINDOW-1\\runtime_02\\synthetic.godot.project\\unload_ack.json"
+  },
+  {
+    "Hash": "F6ED6E4FC67D5E099699BFB9B7B7DFDA68CD6151EFDF62BBC17413D67108BB66",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\ORDINARY-LARGE-WINDOW-1\\RUNBOOK-R2.md"
+  },
+  {
+    "Hash": "A3A4CB06C9FA83F2DFDD6408840009308C531941CCB884EF2565CBEBA49A52F7",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\ORDINARY-LARGE-WINDOW-1\\REPORT-R2.md"
+  },
+  {
+    "Hash": "9505EDB63E24A96A3F432A960E736E95D2D1B832F671F834E3624D1BF7D10569",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\ORDINARY-LARGE-WINDOW-1\\runtime_02.wrapper_exit.txt"
+  }
+]

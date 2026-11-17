@@ -1,0 +1,18 @@
+﻿{
+    "card":  "407",
+    "run_id":  "runtime_02",
+    "started":  "2026-11-17T12:07:11.3642392Z",
+    "finished":  "2026-11-17T12:07:54.1150071Z",
+    "exit":  1,
+    "recents_unchanged":  true,
+    "scenarios":  [
+                      {
+                          "scene":  "synthetic.godot",
+                          "pid":  24164,
+                          "exit":  40,
+                          "classification":  "candidate_fail",
+                          "raw":  "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\ORDINARY-LARGE-WINDOW-1\\runtime_02\\synthetic.godot.jsonl"
+                      }
+                  ],
+    "boundary":  "407 ordinary window inset 16 DIP, engine mode0 and bound reference above via native predecessor chain; no DWM pixel-frame or product acceptance"
+}
