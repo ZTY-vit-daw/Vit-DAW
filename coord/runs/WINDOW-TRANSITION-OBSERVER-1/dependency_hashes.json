@@ -1,0 +1,30 @@
+[
+  {
+    "Hash": "D21AD8AB1362BE6C10E656E19A5DD8A5EC742154991F713D16BCA325F460C660",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WINDOW-TRANSITION-OBSERVER-1\\dependencies\\gdextension_interface.h"
+  },
+  {
+    "Hash": "34D7058F31AF186D36B84567E70A9F9543DA0D74F25CFE5266D4FE2D27E090F0",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WINDOW-TRANSITION-OBSERVER-1\\dependencies\\gdextension_interface.json"
+  },
+  {
+    "Hash": "F7BFE6A8AB00C450C4E0ED0CB19704A888EC60C73FFE90A78A691A1BF82F25B8",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WINDOW-TRANSITION-OBSERVER-1\\dependencies\\header_sha256.json"
+  },
+  {
+    "Hash": "A4ED7DE907BD4E692FAA76AC4232A8461B44256D961C734BB378D0566236FAE2",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WINDOW-TRANSITION-OBSERVER-1\\dependencies\\make_interface_header.py"
+  },
+  {
+    "Hash": "85271D977D931737959065955DD5365D522880C171B07A323954BB4EDB40188A",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WINDOW-TRANSITION-OBSERVER-1\\dependencies\\methods.py"
+  },
+  {
+    "Hash": "2C3D1BDAEDF7C814207DEC7B8C3CC3975939002204D13CE180AB07DB3F470738",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WINDOW-TRANSITION-OBSERVER-1\\dependencies\\platform_methods.py"
+  },
+  {
+    "Hash": "09B4E0A20F676EF47CA83D4A8623B3E1726F62244EC1E13ECF60CBCE0BDC2036",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WINDOW-TRANSITION-OBSERVER-1\\dependencies\\misc\\utility\\color.py"
+  }
+]

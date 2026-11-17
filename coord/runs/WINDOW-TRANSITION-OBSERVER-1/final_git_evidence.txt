@@ -1,0 +1,12 @@
+Main
+9e8fe2dd3e4edd6e58383041c83f44d11efdff89
+?? coord/runs/GODOT-MAIN-HWND-OBSERVATION-1/formal_02/external.godot.project/isolated_user/
+?? coord/runs/GODOT-MAIN-HWND-OBSERVATION-1/formal_02/synthetic.godot.project/isolated_user/
+?? coord/runs/WIN32-NOACTIVATE-RESTORE-FORENSICS-1/phase_b_01/formal_B/synthetic.godot.project/isolated_user/
+?? coord/runs/WIN32-NOACTIVATE-RESTORE-FORENSICS-1/phase_b_02/formal_B2/synthetic.godot.project/isolated_user/
+?? coord/runs/WINDOW-TRANSITION-OBSERVER-1/
+Frontend
+5ec88a9ef126a847ad2bdb0efe6d23cfdb90295d
+5ec88a9 406: retain installed callback ownership on failed verification
+ VitShell/tests/window_transition_observer.cpp | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)

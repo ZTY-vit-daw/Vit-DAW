@@ -1,0 +1,9 @@
+适用于 .NET Framework MSBuild 版本 18.4.0+6e61e96ac
+
+  window_transition_observer.cpp
+    正在创建库 C:/Users/timoz/.codex/worktrees/win32-restore-403/Vit_DAW/coord/runs/WINDOW-TRANSITION-OBSERVER-1/build/Release/window_transition_observer.lib 和对象 C:/Users/timoz/.codex/worktrees/win32-restore-403/Vit_DAW/coord/runs/WINDOW-TRANSITION-OBSERVER-1/build/Release/window_transition_observer.exp
+  window_transition_observer.vcxproj -> C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\WINDOW-TRANSITION-OBSERVER-1\build\Release\window_transition_observer.dll
+适用于 .NET Framework MSBuild 版本 18.4.0+6e61e96ac
+
+  window_transition_observer_policy_test.cpp
+  window_transition_observer_policy_test.vcxproj -> C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\WINDOW-TRANSITION-OBSERVER-1\build\Release\window_transition_observer_policy_test.exe

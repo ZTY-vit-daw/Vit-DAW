@@ -1,0 +1,14 @@
+cmake -S "C:/Users/timoz/.codex/worktrees/shell-window-transition-406/vit-daw-frontend/VitShell/tests" -B "C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\WINDOW-TRANSITION-OBSERVER-1\build" -G "Visual Studio 18 2026" -A x64 -DVIT_TEST_GDEXTENSION_INCLUDE="C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\WINDOW-TRANSITION-OBSERVER-1\dependencies"
+configure_exit=0
+cmake --build "C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\WINDOW-TRANSITION-OBSERVER-1\build" --config Release --target window_transition_observer window_transition_observer_policy_test
+build_01_exit=0
+ctest --test-dir "C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\WINDOW-TRANSITION-OBSERVER-1\build" -C Release -R '^window_transition_observer_policy$' --verbose
+policy_test_01_exit=0
+cmake --build "C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\WINDOW-TRANSITION-OBSERVER-1\build" --config Release --target window_transition_observer window_transition_observer_policy_test (final lifecycle/timestamp additions)
+build_final_exit=0
+ctest --test-dir "C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\WINDOW-TRANSITION-OBSERVER-1\build" -C Release -R '^window_transition_observer_policy$' --verbose
+policy_test_final_exit=0
+Final DLL rebuild after duplicate-init lifecycle guard
+build_dll_lifecycle_final_exit=0
+build_dll_verify_final_exit=0
+python official-generator generation exit=0; header/dependency hashes retained

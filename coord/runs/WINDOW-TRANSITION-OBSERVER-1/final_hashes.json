@@ -1,0 +1,32 @@
+[
+  {
+    "Algorithm": "SHA256",
+    "Hash": "C3E58225208E869B27311A7881378497EEDA5C532159E28279BDE52D8EDFBAED",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WINDOW-TRANSITION-OBSERVER-1\\build\\Release\\window_transition_observer.dll"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "C59B9D6C7A8085599AFD32F1C3525C3153896190F31DC602ECCF8457F131047A",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WINDOW-TRANSITION-OBSERVER-1\\build\\Release\\window_transition_observer_policy_test.exe"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "C2FB89B18EDE7E085993BB1CE6DE2F24531B259949BCE3557FD753738877EFD0",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\shell-window-transition-406\\vit-daw-frontend\\VitShell\\tests\\window_transition_observer.h"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "7775509EC278140977F8172F00005FC0BFACFD823E9FF83493DFD134D3E48097",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\shell-window-transition-406\\vit-daw-frontend\\VitShell\\tests\\window_transition_observer.cpp"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "B6CAF45159FAF4ED71D472C7D6F0AC088594CE4AE357515FE258C7CFFA850A96",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\shell-window-transition-406\\vit-daw-frontend\\VitShell\\tests\\window_transition_observer_policy_test.cpp"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "4997A49F58A039D6B37D91CFE73ACCD86606DDBFC010CAD82FAAA156F733219C",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\shell-window-transition-406\\vit-daw-frontend\\VitShell\\tests\\CMakeLists.txt"
+  }
+]
