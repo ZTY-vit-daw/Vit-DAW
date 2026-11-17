@@ -1,0 +1,108 @@
+﻿{
+    "powershell_version":  "5.1.26100.9818",
+    "edition":  "Desktop",
+    "acp":  936,
+    "parser_errors":  0,
+    "cases":  [
+                  {
+                      "case":  "403_reserved",
+                      "expected_accepted":  true,
+                      "accepted":  true,
+                      "pass":  true,
+                      "reason":  ""
+                  },
+                  {
+                      "case":  "404_reserved",
+                      "expected_accepted":  true,
+                      "accepted":  true,
+                      "pass":  true,
+                      "reason":  ""
+                  },
+                  {
+                      "case":  "404_occupied",
+                      "expected_accepted":  true,
+                      "accepted":  true,
+                      "pass":  true,
+                      "reason":  ""
+                  },
+                  {
+                      "case":  "404_continued",
+                      "expected_accepted":  true,
+                      "accepted":  true,
+                      "pass":  true,
+                      "reason":  ""
+                  },
+                  {
+                      "case":  "wrong_owner",
+                      "expected_accepted":  false,
+                      "accepted":  false,
+                      "pass":  true,
+                      "reason":  "forensics current resource owner mismatch"
+                  },
+                  {
+                      "case":  "owner_prefix",
+                      "expected_accepted":  false,
+                      "accepted":  false,
+                      "pass":  true,
+                      "reason":  "forensics current resource owner mismatch"
+                  },
+                  {
+                      "case":  "wrong_card",
+                      "expected_accepted":  false,
+                      "accepted":  false,
+                      "pass":  true,
+                      "reason":  "forensics current resource card mismatch"
+                  },
+                  {
+                      "case":  "released",
+                      "expected_accepted":  false,
+                      "accepted":  false,
+                      "pass":  true,
+                      "reason":  "forensics current resource is not reserved or occupied"
+                  },
+                  {
+                      "case":  "idle",
+                      "expected_accepted":  false,
+                      "accepted":  false,
+                      "pass":  true,
+                      "reason":  "forensics current resource is not reserved or occupied"
+                  },
+                  {
+                      "case":  "history_match",
+                      "expected_accepted":  false,
+                      "accepted":  false,
+                      "pass":  true,
+                      "reason":  "forensics current resource is not reserved or occupied"
+                  },
+                  {
+                      "case":  "missing_header",
+                      "expected_accepted":  false,
+                      "accepted":  false,
+                      "pass":  true,
+                      "reason":  "forensics resource header missing"
+                  },
+                  {
+                      "case":  "empty_records",
+                      "expected_accepted":  false,
+                      "accepted":  false,
+                      "pass":  true,
+                      "reason":  "forensics current resource is not reserved or occupied"
+                  },
+                  {
+                      "case":  "empty_input",
+                      "expected_accepted":  false,
+                      "accepted":  false,
+                      "pass":  true,
+                      "reason":  "forensics resource header missing"
+                  },
+                  {
+                      "case":  "unsupported_card",
+                      "expected_accepted":  false,
+                      "accepted":  false,
+                      "pass":  true,
+                      "reason":  "Cannot validate argument on parameter \u0027ExpectedCard\u0027. The argument \"405\" does not belong to the set \"403,404\" specified by the ValidateSet attribute. Supply an argument that is in the set and then try the command again."
+                  }
+              ],
+    "failures":  0,
+    "script_top_level_invoked":  false
+}

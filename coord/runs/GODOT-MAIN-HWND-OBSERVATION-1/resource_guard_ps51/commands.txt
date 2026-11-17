@@ -1,0 +1,3 @@
+powershell51_before_actual_exit=1
+powershell51_after_actual_exit=0
+powershell51_14cases_exit=0
