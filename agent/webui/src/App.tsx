@@ -122,6 +122,7 @@ import { postEntrySurfaceAck, subscribeEntrySurface } from "./launcher/entrySurf
 import { ProjectSurface } from "./project/ProjectSurface";
 // UI-LOADING-1（347）：P2 装载门（消费既有 ui_state 探针；不新增 agent 语义，不改打开链）。
 import { ProjectLoadingGate } from "./project/loading/ProjectLoadingGate";
+import { WindowPresentationProvider } from "./project/loading/windowPresentation";
 import { authorityContext, checkoutBlockedByState, continuationChainLive, isAgentTurnRunning } from "./turnControl";
 import { observeOutputLayout, shouldLayerObserveOutput } from "./observeOutputLayering";
 import { hasLayeredPresentation, ObservePresentationView } from "./observePresentationLayered";
@@ -486,6 +487,10 @@ const appSurfaces: ReadonlySet<AppSurface> = new Set<AppSurface>([
 ]);
 
 function App() {
+  return <WindowPresentationProvider><EntrySurfaceApp /></WindowPresentationProvider>;
+}
+
+function EntrySurfaceApp() {
   const [surface, setSurface] = useState<AppSurface>(() => appSurface());
   const [managedProject, setManagedProject] = useState<string | null>(() =>
     appSurface() === "project" ? "当前工程" : null

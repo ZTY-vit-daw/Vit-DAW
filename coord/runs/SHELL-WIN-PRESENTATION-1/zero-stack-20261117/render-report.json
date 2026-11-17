@@ -1,0 +1,242 @@
+{
+  "scope": "real App + mocked HTTP/host; no real stack",
+  "checks": [
+    {
+      "name": "production App mounts presentation in launcher",
+      "pass": true
+    },
+    {
+      "name": "no initial host observation means no focus claim",
+      "pass": true
+    },
+    {
+      "name": "wrong subscription replay ignored",
+      "pass": true
+    },
+    {
+      "name": "keyboard collapse hides and inerts only existing recents slot",
+      "pass": true
+    },
+    {
+      "name": "collapse button remains keyboard accessible",
+      "pass": true
+    },
+    {
+      "name": "request immediately shows unknown progress and gates input",
+      "pass": true
+    },
+    {
+      "name": "governance cancel is not completed",
+      "pass": true
+    },
+    {
+      "name": "duplicate and stale request cannot advance UI",
+      "pass": true
+    },
+    {
+      "name": "only real observed phases, at most three; no fake file/audio steps",
+      "pass": true
+    },
+    {
+      "name": "current step remains inside actual thread viewport",
+      "pass": true
+    },
+    {
+      "name": "snapshot failure is visible and retry uses actual directive",
+      "pass": true
+    },
+    {
+      "name": "legacy opened alone cannot claim workspace ready",
+      "pass": true
+    },
+    {
+      "name": "explicit scene accepted remains limited",
+      "pass": true
+    },
+    {
+      "name": "ready feedback survives actual launcher unmount/project mount",
+      "pass": true
+    },
+    {
+      "name": "observed DAW foreground changes only header feedback",
+      "pass": true
+    },
+    {
+      "name": "new header and ready feedback text stays readable",
+      "pass": true
+    },
+    {
+      "name": "other is neutral",
+      "pass": true
+    },
+    {
+      "name": "none is neutral",
+      "pass": true
+    },
+    {
+      "name": "shell is neutral",
+      "pass": true
+    },
+    {
+      "name": "absent native state returns unknown",
+      "pass": true
+    },
+    {
+      "name": "management sidebar preference survives remount and contains no invented chat list",
+      "pass": true
+    },
+    {
+      "name": "file-dialog failure never retries an unrelated previous directive",
+      "pass": true
+    },
+    {
+      "name": "management/settings roundtrip preserves mounted project input",
+      "pass": true
+    },
+    {
+      "name": "in-project directive uses same production feedback and gates input",
+      "pass": true
+    },
+    {
+      "name": "project timeout never completes",
+      "pass": true
+    },
+    {
+      "name": "reduced motion disables receipt and busy step motion",
+      "pass": true
+    },
+    {
+      "name": "native minimum viewport has no horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "no external or live-stack network and no page exceptions",
+      "pass": true
+    },
+    {
+      "name": "browser without host stays unknown and starts no launch feedback",
+      "pass": true
+    },
+    {
+      "name": "listener-before-handshake restores late subscriber without inventing earlier steps",
+      "pass": true
+    },
+    {
+      "name": "unknown terminal stage remains unconfirmed in actual App",
+      "pass": true
+    }
+  ],
+  "requests": [
+    {
+      "path": "/agent/launcher/greeting",
+      "method": "GET"
+    },
+    {
+      "path": "/agent/launcher/recent-projects",
+      "method": "GET"
+    },
+    {
+      "path": "/agent/launcher/greeting",
+      "method": "GET"
+    },
+    {
+      "path": "/agent/launcher/recent-projects",
+      "method": "GET"
+    },
+    {
+      "path": "/agent/ui/state",
+      "method": "GET"
+    },
+    {
+      "path": "/agent/ui/state",
+      "method": "GET"
+    },
+    {
+      "path": "/agent/ui/state",
+      "method": "GET"
+    },
+    {
+      "path": "/agent/ui/state",
+      "method": "GET"
+    },
+    {
+      "path": "/agent/ui/state",
+      "method": "GET"
+    },
+    {
+      "path": "/agent/launcher/greeting",
+      "method": "GET"
+    },
+    {
+      "path": "/agent/launcher/recent-projects",
+      "method": "GET"
+    },
+    {
+      "path": "/agent/launcher/greeting",
+      "method": "GET"
+    },
+    {
+      "path": "/agent/launcher/recent-projects",
+      "method": "GET"
+    },
+    {
+      "path": "/agent/config",
+      "method": "GET"
+    },
+    {
+      "path": "/agent/runtime/status",
+      "method": "GET"
+    },
+    {
+      "path": "/agent/ui/state",
+      "method": "GET"
+    },
+    {
+      "path": "/agent/config",
+      "method": "GET"
+    },
+    {
+      "path": "/agent/ui/state",
+      "method": "GET"
+    },
+    {
+      "path": "/agent/chat",
+      "method": "POST"
+    },
+    {
+      "path": "/agent/launcher/greeting",
+      "method": "GET"
+    },
+    {
+      "path": "/agent/launcher/recent-projects",
+      "method": "GET"
+    },
+    {
+      "path": "/agent/launcher/greeting",
+      "method": "GET"
+    },
+    {
+      "path": "/agent/launcher/recent-projects",
+      "method": "GET"
+    }
+  ],
+  "consoleErrors": [],
+  "failure": null,
+  "newTextContrast": [
+    {
+      "text": "工程已在前台",
+      "ratio": 7.455177810447525,
+      "fontPx": 13
+    },
+    {
+      "text": "已打开《alpha》",
+      "ratio": 13.583066422527637,
+      "fontPx": 18
+    },
+    {
+      "text": "工作台已打开，工程内容已载入",
+      "ratio": 5.496755441608395,
+      "fontPx": 13
+    }
+  ]
+}
