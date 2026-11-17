@@ -58,3 +58,5 @@
 - E_diagnostic_20261117_133141原生bootstrapfailed/正常旅程未通过，inner/wrapper1；GDfeature/effective初mode/currentmode1真实，rawguardseq34-40连续CREATE/SHOW未见DAW FG，可见最小化/nonTOPMOST/foregroundother。hidden-only前提与实证不符，原bridge统一覆盖cause，不能称已证1500ms超时。完整证据e35ad852，CDP精确停止等待另记，40ms数组未落盘不能冒称完整sample，原raw消息已保存。
 - 批准原Sol owner在同E独立树已提交a4a6ec5上做E2（manager.h/.cpp+bridge.cpp≤3），先保ticket首cause/排队/UI进入tick，onlypending真WAIT_TIMEOUT才标timeout；严格只hidden或samePID/noDAWFG且raw区间完整/nonTOPMOST的安全iconic可受控hide→原geometry/show，ordinary visible仍拒。pre/post事实记录，rawFG禁止不豁免。
 - 无窗policy反例/build/ctest后独立commit/push，当前不启真实栈；唯一剩E候选normal诊断需主管另放行，同确定断点第二次后停，不继续无限方案；不调整原用户“不抢焦点”标准。
+
+- E2源码575dd713已remote亲核/主管ctest5/5exit0；首cause/strictsafeiconic报告VitShell/tests/394-E2-REPORT.md，原owner停写。验证ownerentry388仅collector适配合法最小化阶段，大窗门与rawFG禁止仍不降。最后normal候选1轮跑前FG分支按实际shell/other分别记录；other尊重用户，不伪称shellbranch被测。
