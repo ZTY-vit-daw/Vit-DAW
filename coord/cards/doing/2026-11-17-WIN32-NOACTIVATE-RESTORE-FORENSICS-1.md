@@ -43,3 +43,10 @@
 - 候选通过须恢复可见normal/non-iconic/nonTOPMOST/正几何，零child FG，守卫或外部FG保持，Godot mode跟随normal且至少连续2秒不改回minimized；原生与引擎读数冲突/时序缺口如实失败或coverage不足。只可证最小Godot路径，不证完整产品的工程打开/大窗z/ready/395UI。根据结果再发生产修订，不能直接修manager。
 - 同一资源独占；启动前fetch重读owner及≤60秒即时净空，长build后再查；启动/清理仅本次exact child handle，结束全部Godot/probe/Vit进程和端口全零；用户recents启动前快照保全、finally核哈希（不启动kernel、原则不产生写入），fixture零使用。
 - 回执仍短；提交两repo代码与原始工件，完整日志留盘。补阶段A原始字节ZIP/哈希（排除build/二进制，不删展开件），避免Git换行规范化丢原字节。若实现不能在原3文件域安全完成，先回只读方案与阻塞，不扩域。
+
+### B1装置失败复核与B2独立预算（15:00 +0800）
+
+- B1正式child1/2，runner1、raw child_crash50/child自然exit1；主23814e9b/前端bb2a401。主管亲读Godot原log、main.tscn首字节EFBBBF5B与完整两文件diff：generated-scene解析失败，未ready/hide/恢复API（调用0），归probe_defect，不归API失败。原raw分类保留但不得表述OS崩溃。未补跑第二条件。
+- 唯一修正f9792767只将三文件写入换成UTF8Encoding(false)，主管核静态首字节63/5B/65无BOM；并未实证只剩该问题。原B1项目/log/证据831fe811和原字节ZIP保留。完整配置log可用，未独立重定向stdout/stderr为明确边界；本轮以该log+原生WinEvent+engine observer为依据，不声称标准流全覆盖。
+- 现在单独放行B2，主f9792767/前端bb2a401保持已审代码，不再改probe/runner；新RUNBOOK-B2和新phase_b_02目录，≤2新Godot child/15分钟，条件与阶段B完全相同，任何异常立即停，零补跑。只有安全startup/ready前提成立后恢复才可证API语义。若再失败，应收口403可证/不可证并另拆取证缺口，不进行第三B候选。
+- 主管本次核全部进程/端口0、recents一致；每次启动前仍按远端owner/≤60秒净空。执行提交原始工件/原字节ZIP与报告，禁止把新生成修正文件覆盖B1。B2成功也只支持独立Godot最小项目，仍不授权生产修订或用户手测。
