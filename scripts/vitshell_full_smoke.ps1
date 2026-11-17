@@ -100,11 +100,19 @@ param(
     [switch]$SkipFailureLegs,
     [switch]$SkipLegacyLegs,
     # 388/401 opt-in: management/settings/real GET + local zero-LLM interval.
-    [switch]$EntryManagementChecks
+    [switch]$EntryManagementChecks,
+    [switch]$WindowBehaviorChecks,
+    [ValidateSet('normal','delayed_success','scene_failed','snapshot_failed','workspace_timeout','exit_before_ready')][string]$PresentationScenario = 'normal',
+    [string]$PreviousLaunchId = ''
 )
 
 $ErrorActionPreference = "Stop"
 $MainRoot = Split-Path -Parent $PSScriptRoot
+if ($WindowBehaviorChecks -and $PresentationScenario -ne 'normal') {
+    if ($Rounds -ne 1) { throw 'Presentation scenario must use exactly one round' }
+    $SkipFailureLegs = $true
+    $SkipLegacyLegs = $true
+}
 
 # ---------- helpers (SHELL-2 device, same semantics) ----------
 
@@ -300,6 +308,10 @@ function Invoke-CdpPhase {
     $out = Join-Path $RunRoot $OutFile
     pushd $webuiDir
     $nodeArgs = @("$MainRoot/scripts/vitshell_full_smoke_cdp.mjs", "--cdp-port", "$CdpPort", "--phase", $Phase, "--out", $out, "--webui-dir", "$WebuiDir", "--status-url", "$StatusUrl")
+    if ($WindowBehaviorChecks -and $Phase -in @('launcher-chat-new','presentation-launch')) {
+        $nodeArgs += @('--window-behavior-checks', '--presentation-scenario', $PresentationScenario, '--bridge-log', (Join-Path $RunRoot "r${round}_bridge.log"))
+        if ($PreviousLaunchId) { $nodeArgs += @('--previous-launch-id', $PreviousLaunchId) }
+    }
     if ($Phase -eq "chat-roundtrip") {
         $nodeArgs += @("--chat-text", $ChatText, "--chat-timeout-ms", "$ChatTimeoutMs")
     }
@@ -329,8 +341,8 @@ function Assert-ZeroGodot {
 
 function Start-VitShell {
     param([string]$OutLog, [string[]]$ExtraArgs = @(), [hashtable]$ExtraEnv = @{}, [string]$AgentExePath = "")
-    if ($EntryManagementChecks) {
-        $guardArgs = @{ Leg='Guard'; RunRoot=$RunRoot }
+    if ($EntryManagementChecks -or $WindowBehaviorChecks) {
+        $guardArgs = @{ Leg='Guard'; RunRoot=$RunRoot; CardId=$CardId }
         if ($OutLog -eq 'f2_bridge.log') { $guardArgs.InjectedBoundAgentPort=$AgentPort; $guardArgs.InjectionOwnerPid=$PID }
         & (Join-Path $PSScriptRoot 'run_entry_management_acceptance.ps1') @guardArgs
     }
@@ -388,7 +400,7 @@ foreach ($port in @($AgentPort, $StatusPort, 8787, 5555)) {
     if (-not (Test-PortBindable -Port $port)) { throw "preflight: port $port not bindable (lingering bound socket) - no silent reuse" }
 }
 if (-not (Test-UdpBindable -Port 4445)) { throw "preflight: UDP 4445 not bindable - no silent reuse" }
-$occupancyHead = if ($EntryManagementChecks) { (& git -C $MainRoot show origin/main:coord/resources/PC-RUNTIME-STACK.md | Select-Object -First 4) -join "`n" } else { (Get-Content (Join-Path $MainRoot "coord/resources/PC-RUNTIME-STACK.md") -TotalCount 6) -join "`n" }
+$occupancyHead = if ($EntryManagementChecks -or $WindowBehaviorChecks) { (& git -C $MainRoot show origin/main:coord/resources/PC-RUNTIME-STACK.md | Select-Object -First 4) -join "`n" } else { (Get-Content (Join-Path $MainRoot "coord/resources/PC-RUNTIME-STACK.md") -TotalCount 6) -join "`n" }
 if ($occupancyHead -notmatch $CardId) { throw "occupancy record head does not name $CardId - register before running" }
 Write-Ok "stack clean (processes=0, TCP 7878/7879/8787/5555 + UDP 4445 free), occupancy names $CardId"
 
@@ -420,6 +432,8 @@ $runMeta = [ordered]@{
     skip_failure_legs = [bool]$SkipFailureLegs
     skip_legacy_legs = [bool]$SkipLegacyLegs
     entry_management_checks = [bool]$EntryManagementChecks
+    window_behavior_checks = [bool]$WindowBehaviorChecks
+    presentation_scenario = $PresentationScenario
 }
 
 $recentsFile = Join-Path $env:APPDATA "Vit-DAW/global_project_config.json"
@@ -590,7 +604,7 @@ $runMeta.hub_exe_sha256 = (Get-FileHash $mainHub -Algorithm SHA256).Hash
 Write-Ok ("kernel/hub staged (sha256 " + $runMeta.kernel_exe_sha256.Substring(0, 12) + ".../" + $runMeta.hub_exe_sha256.Substring(0, 12) + "...)")
 
 Write-Step "Godot --import pre-run (worktree project caches)"
-if ($EntryManagementChecks) { & (Join-Path $PSScriptRoot 'run_entry_management_acceptance.ps1') -Leg Guard -RunRoot $RunRoot }
+if ($EntryManagementChecks -or $WindowBehaviorChecks) { & (Join-Path $PSScriptRoot 'run_entry_management_acceptance.ps1') -Leg Guard -RunRoot $RunRoot -CardId $CardId }
 if (-not $SkipBuild -or -not (Test-Path (Join-Path $FrontendWorktree ".godot"))) {
     pushd $FrontendWorktree
     $code = Invoke-NativeLogged -Command { & $GodotExe --headless --import --path . } -LogPath (Join-Path $RunRoot "godot_import.log")
@@ -795,10 +809,25 @@ for ($round = 1; $round -le $Rounds; $round++) {
         Write-Step "R$round L0: cold start (zero Godot assert pre+post ready)"
         $roundMeta.recents_seeded_sha256 = Seed-S4Recents -FixturePath $fixtureA
         $roundEnv = @{ VIT_AGENT_LLM_BASE_URL = "http://127.0.0.1:1" }
-        if ($EntryManagementChecks) {
+        if ($EntryManagementChecks -or $WindowBehaviorChecks) {
             # Dedicated telemetry, never inherit off/disabled or pollute a shared file.
             $roundTelemetry = Join-Path $RunRoot "r${round}_agent_llm_telemetry.jsonl"
             $roundEnv.VIT_AGENT_LLM_TELEMETRY_PATH = $roundTelemetry
+        }
+        if ($WindowBehaviorChecks) {
+            $roundEnv.VIT_SMOKE_SHELL_READINESS = '0'
+            $roundEnv.VIT_SMOKE_SHELL_READINESS_SCENARIO = ''
+            $roundEnv.VIT_SMOKE_SHELL_READINESS_DELAY_MS = ''
+            $roundEnv.VIT_SHELL_WORKSPACE_READY_TIMEOUT_SEC = '210'
+            if ($PresentationScenario -ne 'normal') {
+                $roundEnv.VIT_SMOKE_SHELL_READINESS = '1'
+                $roundEnv.VIT_SMOKE_SHELL_READINESS_SCENARIO = $PresentationScenario
+                if ($PresentationScenario -in @('delayed_success','workspace_timeout')) {
+                    $roundEnv.VIT_SMOKE_SHELL_READINESS_SCENARIO = 'delay_snapshot'
+                    $roundEnv.VIT_SMOKE_SHELL_READINESS_DELAY_MS = $(if ($PresentationScenario -eq 'delayed_success') { '6000' } else { '15000' })
+                    $roundEnv.VIT_SHELL_WORKSPACE_READY_TIMEOUT_SEC = $(if ($PresentationScenario -eq 'delayed_success') { '30' } else { '8' })
+                }
+            }
         }
         $p = Start-VitShell -OutLog "r${round}_bridge.log" -ExtraArgs @("--smoke-file-dialog", $fixtureA, "--smoke-file-dialog-b", $fixtureB) -ExtraEnv $roundEnv
         Assert-ZeroGodot -When "immediately after VitShell spawn"
@@ -889,6 +918,30 @@ for ($round = 1; $round -le $Rounds; $round++) {
             gate_marker_lines    = $gateMarker.Count
         }
         Write-Ok ("R$round L1e: launcher stage zero-binding (path empty, uuid disclosed unbound, activated-lines=0, gate-marker=" + $gateMarker.Count + ")")
+
+        if ($WindowBehaviorChecks -and $PresentationScenario -ne 'normal') {
+            # Same device and lifecycle as the main journey, one isolated
+            # readiness scenario. Never replay unrelated legacy/failure legs.
+            $presentation = Invoke-CdpPhase -Phase 'presentation-launch' -OutFile "r${round}_cdp_presentation.json"
+            if ((Test-Path -LiteralPath $roundTelemetry) -and (Get-Item -LiteralPath $roundTelemetry).Length -gt 0) { throw 'presentation-only scenario produced LLM telemetry' }
+            Copy-Item -LiteralPath $agentLog -Destination (Join-Path $RunRoot "r${round}_presentation_agent_raw.log") -Force
+            $roundMeta.presentation = $presentation.presentation
+            $null = Get-HttpPost -Url "$StatusBase/vitshell/close-daw" -TimeoutSec 5
+            $null = Wait-StatusField -StatusUrl $StatusUrl -Field 'godot_running' -Expect 'False' -TimeoutSec 30 -ArtifactPath (Join-Path $RunRoot "r${round}_presentation_daw_exit.json")
+            $null = Get-HttpPost -Url "$StatusBase/close" -TimeoutSec 5
+            Wait-Process -Id $p.Id -Timeout 20 -ErrorAction SilentlyContinue
+            foreach ($name in $VitProcessNames) { Get-Process -Name $name -ErrorAction SilentlyContinue | Wait-Process -Timeout 10 -ErrorAction SilentlyContinue }
+            if ((Get-VitProcessCount -Names $VitProcessNames) -ne 0) { throw 'presentation teardown residue' }
+            if (-not (Wait-PortsBindable -Ports @($AgentPort,$StatusPort,5555,5556,8787,$CdpPort) -TimeoutSec 20) -or -not (Test-UdpBindable -Port 4445)) { throw 'presentation teardown ports not bindable' }
+            Restore-S10State
+            if ($script:s10RestoreErrors.Count) { throw ('S10 presentation restore: ' + ($script:s10RestoreErrors -join ';')) }
+            $roundMeta.result = 'PASS'
+            $roundMeta.finished_at_utc = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
+            $roundResults += $roundMeta
+            $roundsPassed++
+            $roundMeta | ConvertTo-Json -Depth 6 | Out-File (Join-Path $RunRoot "meta_round_$round.json") -Encoding utf8
+            continue
+        }
 
         # ---- R-L1c: SHELL-5 name-less intent auto-execute -> kernel new -> project (launch 1) ----
         # The exact user retest criterion: chat "新建工程" (NO name) must

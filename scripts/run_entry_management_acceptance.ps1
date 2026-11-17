@@ -7,7 +7,11 @@ param(
     [string]$FixtureSource = 'D:/Vit_DAW/temp/f3_empty_project.vit',
     [int]$AllowedRootPid = 0,
     [int]$InjectedBoundAgentPort = 0,
-    [int]$InjectionOwnerPid = 0
+    [int]$InjectionOwnerPid = 0,
+    [ValidateSet('CONVERGE-ENTRY-1','SHELL-WIN-BEHAVIOR-1')][string]$CardId = 'CONVERGE-ENTRY-1',
+    [switch]$WindowBehaviorChecks,
+    [ValidateSet('normal','delayed_success','scene_failed','snapshot_failed','workspace_timeout','exit_before_ready')][string]$PresentationScenario = 'normal',
+    [string]$PreviousLaunchId = ''
 )
 $ErrorActionPreference = 'Stop'
 $repo = Split-Path -Parent $PSScriptRoot
@@ -24,7 +28,7 @@ function Assert-EntryLeaseAndStack {
     $leaseHead = ($lease | Select-Object -First 4) -join "`n"
     $leaseHead | Out-File (Join-Path $RunRoot 'lease_head.log') -Append -Encoding utf8
     $occupiedMarker = [string][char]0x5360 + [char]0x7528
-    if ($leaseHead -notmatch ($occupiedMarker + '.*CONVERGE-ENTRY-1\(388\)') -or $leaseHead -notmatch 'owner=Codex /root/entry388') { throw 'ENV-INTERRUPT: current remote stack owner is not entry388' }
+    if ($leaseHead -notmatch ($occupiedMarker + '.*' + [regex]::Escape($CardId)) -or $leaseHead -notmatch 'owner=Codex /root/entry388') { throw 'ENV-INTERRUPT: current remote stack owner/card is not this execution' }
     $processes = @(Get-CimInstance Win32_Process)
     $allowed = @{}
     if ($AllowedRootPid -gt 0) {
@@ -61,6 +65,7 @@ if (Test-Path -LiteralPath $RunRoot) { throw 'RunRoot already exists; use a new 
 New-Item -ItemType Directory -Path $RunRoot | Out-Null
 $snapshots = @()
 $paths = @((Join-Path $env:APPDATA 'Vit-DAW/global_project_config.json'))
+if ($WindowBehaviorChecks) { $paths += Join-Path $env:APPDATA 'Godot/app_userdata/Vit_DAW_Frontend/logs/godot.log' }
 foreach ($base in @($repo, 'D:/Vit_DAW')) { foreach ($relative in @('VitApp/Workspace/Settings/Settings.xml', 'VitApp/Workspace/default_project.xml')) { $paths += Join-Path $base $relative } }
 foreach ($path in $paths) {
     $exists = Test-Path -LiteralPath $path
@@ -81,7 +86,12 @@ try {
     # Native stderr is evidence, not a PowerShell terminating NativeCommandError.
     $ErrorActionPreference = 'Continue'
     if ($Leg -eq 'A') {
-        & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'vitshell_full_smoke.ps1') -FrontendWorktree $FrontendWorktree -FixtureSource $FixtureSource -CardId CONVERGE-ENTRY-1 -Rounds 1 -EntryManagementChecks -RunRoot $device *> (Join-Path $RunRoot 'stdout.log')
+        $deviceArgs = @('-NoProfile','-ExecutionPolicy','Bypass','-File',(Join-Path $PSScriptRoot 'vitshell_full_smoke.ps1'),'-FrontendWorktree',$FrontendWorktree,'-FixtureSource',$FixtureSource,'-CardId',$CardId,'-Rounds','1','-EntryManagementChecks','-RunRoot',$device)
+        if ($WindowBehaviorChecks) {
+            $deviceArgs += @('-WindowBehaviorChecks','-PresentationScenario',$PresentationScenario)
+            if ($PreviousLaunchId) { $deviceArgs += @('-PreviousLaunchId',$PreviousLaunchId) }
+        }
+        & powershell @deviceArgs *> (Join-Path $RunRoot 'stdout.log')
     } else {
         & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'ui_entry2_smoke.ps1') -RepoRoot $repo -GodotProjectRoot $FrontendWorktree -ProjectSource $FixtureSource -KernelExe (Join-Path $repo 'VitApp/build/VitApp_artefacts/Release/VitApp.exe') -EntryManagementChecks -RunRoot $device *> (Join-Path $RunRoot 'stdout.log')
     }
