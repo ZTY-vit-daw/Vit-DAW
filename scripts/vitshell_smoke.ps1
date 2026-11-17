@@ -125,7 +125,7 @@ if ($Win32RestoreForensics -or $GodotRestoreForensics) {
                     $null=New-Item -ItemType Directory -Path (Join-Path $project isolated_user) -Force
                     $nonce=[guid]::NewGuid().ToString('N')
                     $engineObservation=Join-Path $project 'observation.jsonl'
-                    @'
+                    $projectText=@'
 config_version=5
 [application]
 config/name="403 isolated Godot observation"
@@ -139,15 +139,17 @@ window/size/no_focus=false
 [rendering]
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
-'@ | Set-Content -LiteralPath (Join-Path $project project.godot) -Encoding utf8
-                    @'
+'@
+                    [System.IO.File]::WriteAllText((Join-Path $project project.godot),$projectText,(New-Object System.Text.UTF8Encoding($false)))
+                    $sceneText=@'
 [gd_scene load_steps=2 format=3]
 [ext_resource type="Script" path="res://observer.gd" id="1"]
 [node name="Observer403" type="Node"]
 script = ExtResource("1")
-'@ | Set-Content -LiteralPath (Join-Path $project main.tscn) -Encoding utf8
+'@
+                    [System.IO.File]::WriteAllText((Join-Path $project main.tscn),$sceneText,(New-Object System.Text.UTF8Encoding($false)))
                     $observationPath=$engineObservation.Replace('\','/')
-                    @"
+                    $observerText=@"
 extends Node
 var output: FileAccess
 var sequence: int = 0
@@ -174,7 +176,8 @@ func _process(delta: float) -> void:
 	if elapsed >= 0.02:
 		elapsed = 0.0
 		emit_observation("sample")
-"@ | Set-Content -LiteralPath (Join-Path $project observer.gd) -Encoding utf8
+"@
+                    [System.IO.File]::WriteAllText((Join-Path $project observer.gd),$observerText,(New-Object System.Text.UTF8Encoding($false)))
                     [ordered]@{nonce=$nonce; project=$project; command=('"'+$ForensicsGodotExe+'" --path "'+$project+'" --log-file "'+$project+'/godot_engine.log"'); startup_flags=1; startup_show=0; creation_flags='CREATE_SUSPENDED|CREATE_NO_WINDOW|CREATE_UNICODE_ENVIRONMENT'; user_environment='Child-only APPDATA/LOCALAPPDATA/USERPROFILE/TEMP/TMP redirected to run project isolated_user; VIT_* removed'; no_autoload=$true; no_plugins=$true; no_extensions=$true} | ConvertTo-Json | Out-File (Join-Path $RunRoot "$scene.project_manifest.json") -Encoding utf8
                 }
                 Assert-403Idle "before_$scene"
