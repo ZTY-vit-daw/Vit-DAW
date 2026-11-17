@@ -31,3 +31,6 @@
 
 - A/B稳定前端真实验证由原owner /root/entry388执行；主仓候验hash1d114d07、前端d05043e，明确不验证394/402焦点。
 - 跑前协议见RUNBOOK；外层recents/运行时XML与Settings兜底防脚本早期build/import失败逃过其finally。真实端侧结果、recents哈希/fixture哈希与TEARDOWN未返回前不记通过；本次资源登记push成功且owner核对后主管消息放行。
+
+## 主管终验（2026-11-17）
+PASS；裁定coord/rulings/2026-11-17-CONVERGE-ENTRY-1-pass.md；实现/工件合入be43a2a2；A1153/B1155 inner与outer均exit0，主管独立核证，边界按裁定。

@@ -15,3 +15,6 @@
 
 - b91a8ad9 @codex/converge-entry-388；3生产文件+2测试+原始日志，Go build/chat全包、API7项/前端713项执行侧exit0。
 - 主管亲读handler/API与反例，亲复跑go test ./internal/chat -run '^TestLauncherRecentProjects' -count=1 exit0（0.096s）；未将单测当端测，388真实栈GET/往返证明仍欠。
+
+## 主管终验（2026-11-17）
+PASS；裁定coord/rulings/2026-11-17-CONVERGE-ENTRY-1-pass.md；实现/工件合入be43a2a2；A1153/B1155 inner与outer均exit0，主管独立核证，边界按裁定。

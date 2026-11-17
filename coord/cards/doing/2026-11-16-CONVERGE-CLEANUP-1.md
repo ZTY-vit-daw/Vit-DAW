@@ -17,3 +17,9 @@
 - styles.css无旧壳专属selector证据，共享reset/标题/focus/reduced-motion与MainApp仍在用；本轮不清这些段。launcher专属共享css仍由新壳使用，不按猜测删。此范围缩减依据证据，不是降低验收。
 - 切换guard须先亲证新壳和data-tape-card在场，再断project时根/卡消失与ack/loading gate，不能只断旧data-tape-badge=0空过。所有现行渲染段（包括388管理段）必须过；不沿用过时“8段”计数、不删除旅程。
 - 仍依388真实栈验收合入后领取；当前只准备独立worktree，不授实现权或栈权。
+
+## 2026-11-17 正式领取
+- 主管/验收=/root；388/401已主管PASS并合入be43a2a2。
+- owner=/root/cleanup389（Sol/high，PC）；branch=codex/converge-cleanup-389；worktree=C:/Users/timoz/.codex/worktrees/converge-cleanup-389/Vit_DAW。
+- 本领取提交同步main并重读owner后开始；先将干净checkout ff到本协调main，记录HEAD/status/diff。真栈未放行，271验证先排；只零栈实现/测试，不启动Godot/agent/kernel/VitShell。
+
