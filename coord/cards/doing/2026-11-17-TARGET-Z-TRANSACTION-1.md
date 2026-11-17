@@ -13,3 +13,10 @@
 - 用户三项裁定（本会话，落档 [decisions/2026-11-17-window-z-path-and-seam-ruling.md](../../decisions/2026-11-17-window-z-path-and-seam-ruling.md)）：①按本卡原计划继续；②产品路径允许显示后立即一次z纠正；③Godot进程内显式加载原生缝可进产品。本卡取证契约不变（三阶段原始记录/不以后纠正抵销首显反例/fail-closed 门冻结），②③只作用于后续产品修订卡。
 - 主管自 Codex `/root` 移交 GLM 主管决策流；执行=L2 子代理（GLM 派发）。worktree/branch/文件域不变：主 `C:/Users/timoz/.codex/worktrees/win32-restore-403/Vit_DAW`（branch codex/win32-restore-forensics-403，HEAD 1aec3670，另有未提交 vitshell_smoke.ps1 +12/-7）；前端 `C:/Users/timoz/.codex/worktrees/shell-window-transition-406/vit-daw-frontend`（branch codex/window-transition-406，HEAD ae86c7d4，另有未提交三文件 diff：probe.cpp +75 / observer.cpp +44 / observer.h +22）——均为前任中断时在飞改动，按 §12 权威输入保留，不得丢弃/回退/stash；回执须区分前任在飞 diff 与本轮新增。
 - 首段（无窗：完成实现+双仓 build+纯测试+PS5 静态）随本交接放行；短回执后主管审，再单独授权 ≤2 runtime。栈占用/释放登记照旧。
+
+## 首段验收 PASS（2026-11-17 21:40 +0800，GLM 主管亲证）
+
+- 提交核对一致：前端 `codex/window-transition-406` e3e6374（三文件 +127/-14，前任在飞 diff 逐字节保留、本轮源码零改）；主仓 `codex/win32-restore-forensics-403` 24a84b7d（vitshell_smoke.ps1 +12/-7 + 27 个验证工件）。按先例（405/406/407 同型）段级实现留执行分支，卡级收口时再议合入 main；主管 cherry-pick 尝试因 main 无前置段实现已中止，工作树无损。
+- 主管亲跑复核（全部无窗、亲证退出码）：geometry selftest exit0（126 例 0 失败，windows_created=0，96 原语义全数保留+30 新增）；identity selftest exit0（23/0，window_operations=0）；observer policy exit0（34/0，windows_created=0）；PS5 静态门 exit0（ParseFile 0 错误、lease helper 10/10、选项门 10/10、origin/main 实际 lease 对 408 正确拒绝=未发明运行时权限）。
+- 契约冲突=无。执行侧发现并补齐的唯一缺口（前任 schema 审计跑在 formatter 定稿前）已入 REPORT；前任 pending 2 失败→修复的中间证据按诚实留痕保留。
+- 未证明边界（维持）：真实 Godot 首 ordinary 转换下 guard 激活时序/嵌套深度/reference 存活、真栈 arm 门、408 开关下 engine0/2s/自然卸载。runtime（≤2 次）待主管单独授权后执行，栈登记照旧。
