@@ -1,0 +1,17 @@
+﻿[
+    {
+        "Algorithm":  "SHA256",
+        "Hash":  "4629D87DE7FDD72A3AF4E27ADA011F2BE6F15A26743ACE90471A23AD85D10811",
+        "Path":  "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\scripts\\vitshell_smoke.ps1"
+    },
+    {
+        "Algorithm":  "SHA256",
+        "Hash":  "91EC190AD9036994F3B0514127CF4C0BC60EE579C78B59F42E0112548AD44A68",
+        "Path":  "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403-fe\\vit-daw-frontend\\VitShell\\tests\\CMakeLists.txt"
+    },
+    {
+        "Algorithm":  "SHA256",
+        "Hash":  "E44B224A99B11B3B6E28D17269FAC7C230B7142A02A7BC8F4536AB6EB0BFE4DB",
+        "Path":  "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403-fe\\vit-daw-frontend\\VitShell\\tests\\win32_noactivate_restore_probe.cpp"
+    }
+]

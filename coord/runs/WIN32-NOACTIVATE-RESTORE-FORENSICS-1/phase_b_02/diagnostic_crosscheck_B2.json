@@ -1,0 +1,162 @@
+{
+  "raw_rows": 45,
+  "raw_seq_contiguous": true,
+  "raw_last_kind": "hook_removed",
+  "child_pid": 10448,
+  "engine_rows": 3,
+  "engine_first": {
+    "display_mode": 1,
+    "focused": 0,
+    "height": 480,
+    "hwnd": 2034330,
+    "kind": "scene_ready",
+    "nonce": "8d7bbffa50164b65ace552d587618d3f",
+    "pid": 10448,
+    "ready": 0,
+    "seq": 1,
+    "ticks_msec": 640,
+    "unix_ms": 1794898948705,
+    "version": {
+      "build": "official",
+      "hash": "14d19694e0c88a3f9e82d899a0400f27a24c176e",
+      "hex": 263681,
+      "major": 4,
+      "minor": 6,
+      "patch": 1,
+      "status": "stable",
+      "string": "4.6.1-stable (official)",
+      "timestamp": 0
+    },
+    "width": 720,
+    "window_mode": 1
+  },
+  "engine_ready": {
+    "display_mode": 1,
+    "focused": 0,
+    "height": 480,
+    "hwnd": 2034330,
+    "kind": "first_process_ready",
+    "nonce": "8d7bbffa50164b65ace552d587618d3f",
+    "pid": 10448,
+    "ready": 1,
+    "seq": 2,
+    "ticks_msec": 641,
+    "unix_ms": 1794898948707,
+    "version": {
+      "build": "official",
+      "hash": "14d19694e0c88a3f9e82d899a0400f27a24c176e",
+      "hex": 263681,
+      "major": 4,
+      "minor": 6,
+      "patch": 1,
+      "status": "stable",
+      "string": "4.6.1-stable (official)",
+      "timestamp": 0
+    },
+    "width": 720,
+    "window_mode": 1
+  },
+  "native_ready": {
+    "seq": 34,
+    "tick64": 99505718,
+    "unix_ms": 1794898948731,
+    "pid": 28544,
+    "kind": "engine_ready_observed",
+    "engine": {
+      "display_mode": 1,
+      "focused": 0,
+      "height": 480,
+      "hwnd": 2034330,
+      "kind": "sample",
+      "nonce": "8d7bbffa50164b65ace552d587618d3f",
+      "pid": 10448,
+      "ready": 1,
+      "seq": 3,
+      "ticks_msec": 641,
+      "unix_ms": 1794898948707,
+      "version": {
+        "build": "official",
+        "hash": "14d19694e0c88a3f9e82d899a0400f27a24c176e",
+        "hex": 263681,
+        "major": 4,
+        "minor": 6,
+        "patch": 1,
+        "status": "stable",
+        "string": "4.6.1-stable (official)",
+        "timestamp": 0
+      },
+      "width": 720,
+      "window_mode": 1
+    },
+    "hwnd": 4656690,
+    "visible": 0,
+    "iconic": 0,
+    "zoomed": 0,
+    "style": 79691776,
+    "exstyle": 256,
+    "placement_ok": 1,
+    "showCmd": 1,
+    "placement_flags": 0,
+    "min_position": [
+      -1,
+      -1
+    ],
+    "max_position": [
+      -1,
+      -1
+    ],
+    "normal_rect": [
+      126,
+      126,
+      1223,
+      724
+    ],
+    "rect_ok": 1,
+    "rect": [
+      126,
+      126,
+      1223,
+      724
+    ],
+    "client_ok": 1,
+    "client": [
+      0,
+      0,
+      1093,
+      571
+    ],
+    "foreground": 721802,
+    "foreground_pid": 28544
+  },
+  "child_show_events": [
+    {
+      "seq": 31,
+      "tick64": 99505343,
+      "unix_ms": 1794898948352,
+      "pid": 28544,
+      "kind": "winevent",
+      "event": 32770,
+      "event_tick32": 99505343,
+      "hwnd": 2034330,
+      "object": 0,
+      "child": 0,
+      "event_thread": 17836,
+      "observing": 1,
+      "event_pid": 10448
+    }
+  ],
+  "child_foreground_events": [],
+  "before_restore_count": 0,
+  "restore_api_count": 0,
+  "owned_exit": {
+    "seq": 36,
+    "tick64": 99505734,
+    "unix_ms": 1794898948756,
+    "pid": 28544,
+    "kind": "owned_child_exit",
+    "exit_code": 0,
+    "forced_teardown": 1,
+    "terminate_return": 1,
+    "wait_result": 0
+  }
+}

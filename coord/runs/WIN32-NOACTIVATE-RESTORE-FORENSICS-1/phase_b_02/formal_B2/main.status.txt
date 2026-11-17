@@ -1,0 +1,2 @@
+﻿?? coord/runs/WIN32-NOACTIVATE-RESTORE-FORENSICS-1/phase_b_01/formal_B/synthetic.godot.project/isolated_user/
+?? coord/runs/WIN32-NOACTIVATE-RESTORE-FORENSICS-1/phase_b_02/

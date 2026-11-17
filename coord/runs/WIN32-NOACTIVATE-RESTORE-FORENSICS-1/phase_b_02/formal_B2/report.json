@@ -1,0 +1,18 @@
+﻿{
+    "card":  "403",
+    "run_id":  "formal_B2",
+    "started":  "2026-11-17T07:02:12.8822299Z",
+    "finished":  "2026-11-17T07:02:34.6835024Z",
+    "exit":  1,
+    "recents_unchanged":  true,
+    "scenarios":  [
+                      {
+                          "scene":  "synthetic.godot",
+                          "pid":  28544,
+                          "exit":  20,
+                          "classification":  "coverage_insufficient",
+                          "raw":  "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\phase_b_02\\formal_B2\\synthetic.godot.jsonl"
+                      }
+                  ],
+    "boundary":  "Isolated minimal Godot only; raw child WinEvent plus engine observations, no child WndProc or product acceptance"
+}
