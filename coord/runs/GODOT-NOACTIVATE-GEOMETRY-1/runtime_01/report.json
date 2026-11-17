@@ -1,0 +1,25 @@
+﻿{
+    "card":  "405",
+    "run_id":  "runtime_01",
+    "started":  "2026-11-17T11:18:07.8722477Z",
+    "finished":  "2026-11-17T11:18:57.7050872Z",
+    "exit":  1,
+    "recents_unchanged":  true,
+    "scenarios":  [
+                      {
+                          "scene":  "synthetic.godot",
+                          "pid":  2712,
+                          "exit":  10,
+                          "classification":  "not_exercised",
+                          "raw":  "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\synthetic.godot.jsonl"
+                      },
+                      {
+                          "scene":  "external.godot",
+                          "pid":  19360,
+                          "exit":  20,
+                          "classification":  "dpi_coordinate_contract_rejected",
+                          "raw":  "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\external.godot.jsonl"
+                      }
+                  ],
+    "boundary":  "405 isolated User32 first ordinary geometry/z trace with explicit P/T DPI contract; no DWM pixel-frame or product acceptance"
+}

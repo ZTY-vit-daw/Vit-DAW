@@ -1,0 +1,246 @@
+[
+  {
+    "Hash": "EAC3C0C5EC7354E960A9021415853BAAFD58BE386A391325A2B7917678969977",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\after_teardown.fetch.log"
+  },
+  {
+    "Hash": "5286CFB0C309303949EC97AF313C5CB651D2A99D5A1B1779923F567E23F76134",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\after_teardown.idle.json"
+  },
+  {
+    "Hash": "B96AC7270186FA6190A22973003FD414152DF37911D70419A6E9BC31A45B1CF6",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\after_teardown.matched_resource.txt"
+  },
+  {
+    "Hash": "A1B51FB74027DB3FD5E6634217A5778EB08298D072DCBCAE43AF605D437FF4C3",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\after_teardown.resource.txt"
+  },
+  {
+    "Hash": "EAC3C0C5EC7354E960A9021415853BAAFD58BE386A391325A2B7917678969977",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\before_build.fetch.log"
+  },
+  {
+    "Hash": "27DF7DD112BE53204B8CF2B10E806FF7EC2CEF9AFC5925B550905C2DB9EF58F6",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\before_build.idle.json"
+  },
+  {
+    "Hash": "B96AC7270186FA6190A22973003FD414152DF37911D70419A6E9BC31A45B1CF6",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\before_build.matched_resource.txt"
+  },
+  {
+    "Hash": "A1B51FB74027DB3FD5E6634217A5778EB08298D072DCBCAE43AF605D437FF4C3",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\before_build.resource.txt"
+  },
+  {
+    "Hash": "EAC3C0C5EC7354E960A9021415853BAAFD58BE386A391325A2B7917678969977",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\before_external.godot.fetch.log"
+  },
+  {
+    "Hash": "B000868D1E06AE07081E6A4B267FEADC4DC290E6127EABA9B9BA2F3E21F9908F",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\before_external.godot.idle.json"
+  },
+  {
+    "Hash": "B96AC7270186FA6190A22973003FD414152DF37911D70419A6E9BC31A45B1CF6",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\before_external.godot.matched_resource.txt"
+  },
+  {
+    "Hash": "A1B51FB74027DB3FD5E6634217A5778EB08298D072DCBCAE43AF605D437FF4C3",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\before_external.godot.resource.txt"
+  },
+  {
+    "Hash": "EAC3C0C5EC7354E960A9021415853BAAFD58BE386A391325A2B7917678969977",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\before_synthetic.godot.fetch.log"
+  },
+  {
+    "Hash": "5FD08259C836A2B34DC730112A0BB059F84D07E4D57093E73BADF34C4EB3FF8F",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\before_synthetic.godot.idle.json"
+  },
+  {
+    "Hash": "B96AC7270186FA6190A22973003FD414152DF37911D70419A6E9BC31A45B1CF6",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\before_synthetic.godot.matched_resource.txt"
+  },
+  {
+    "Hash": "A1B51FB74027DB3FD5E6634217A5778EB08298D072DCBCAE43AF605D437FF4C3",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\before_synthetic.godot.resource.txt"
+  },
+  {
+    "Hash": "959E71A9AA51C43A6D4B56CDD08F3B5A2C8D733BDF3CA57BCAEA4ED235D0F5BD",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\binary_hash.json"
+  },
+  {
+    "Hash": "BF70EC328AB188F23840A852194E4A06D598B78292C624783B74283AE5200901",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\build.log"
+  },
+  {
+    "Hash": "D89F4CAE7109C953AA6A2D5C47C481B4BFDD2A4B9BE1CAAB022D3107D8FBCE88",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\commands.txt"
+  },
+  {
+    "Hash": "1117FA98D608D555C6CB59418787138C25A04BAE705DAC1C3CE97E4339CF2214",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\configure.log"
+  },
+  {
+    "Hash": "3A33D5AD49C9853969560E44200E235B9B59BA102B1451B228AD82A6C469BB78",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\external.godot.jsonl"
+  },
+  {
+    "Hash": "74C92F4DA480D0361E49CAEF284F2FB0CFFC3A23BAA7217E2A0B7C4F3DD3C554",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\external.godot.process.json"
+  },
+  {
+    "Hash": "ACCD27783982D10D86C4115F2265D1C47BD024DB39ED0ABF0422DEEC5F18DEB2",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\external.godot.project_manifest.json"
+  },
+  {
+    "Hash": "712A91FB3C8748EF113C1F0EE17F5145649F54AECDD32ACD35AF1739A22480B2",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\failure.txt"
+  },
+  {
+    "Hash": "D66B29776127FC1770DD1C008AC0CFE261CB4300C3E4468E0BA927A9F147A357",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\final_git_evidence_runtime.txt"
+  },
+  {
+    "Hash": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\frontend.diff.txt"
+  },
+  {
+    "Hash": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\frontend.diffstat.txt"
+  },
+  {
+    "Hash": "4AB10B183354076A17BDDD0165A7487352A7C98F5FAABDF69B7F80F85DC8C176",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\frontend.head.txt"
+  },
+  {
+    "Hash": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\frontend.status.txt"
+  },
+  {
+    "Hash": "0454D56DCEB174880BAD7DE5C12845CDF8A1626D90FBA7197B1B4344F08BDCB9",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\godot_binary_hash.json"
+  },
+  {
+    "Hash": "1D4BC9F302A1D02E11B9C23A04F0122E905B5A515D385369DBAD76A145B9C830",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\godot_version_resource.json"
+  },
+  {
+    "Hash": "993E0900B4EB6848B13835A21AE86F2D7618820D7139AC6A97B46D648E800458",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\independent_crosscheck.json"
+  },
+  {
+    "Hash": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\main.diff.txt"
+  },
+  {
+    "Hash": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\main.diffstat.txt"
+  },
+  {
+    "Hash": "50AED7E6556435B25E6BDF1B6F5048D257D228B7F4DAB1096809D8D92DDCD4E1",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\main.head.txt"
+  },
+  {
+    "Hash": "3FAA961A90A1A842FF62468187362F4278D1E40681DB0DAB66604DDBF0BB2824",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\main.status.txt"
+  },
+  {
+    "Hash": "D682E6A11A3C9161B85C127DFFCFC87AEC61FA45AB044B9E4DDDF9ADF1F69964",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\observer_hashes.json"
+  },
+  {
+    "Hash": "3FC83DF140E1A0785D32B08EFB40841F8690EE547DC779F9401391197047D23E",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\recents.after.sha256"
+  },
+  {
+    "Hash": "807226F4AF3FC85C2B99BFD2FB827C1583E7C991826BDE5F0B4344A6DC13E353",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\recents.before.json"
+  },
+  {
+    "Hash": "3FC83DF140E1A0785D32B08EFB40841F8690EE547DC779F9401391197047D23E",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\recents.before.sha256"
+  },
+  {
+    "Hash": "89648885EB98EDDCCEF953C29FBBD68485312D9E7A87307379E1EB6C0F83046B",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\report.json"
+  },
+  {
+    "Hash": "A852708201F929052826D89CBDB8E12644AACA5021EC6BD58BFE31396279C0F3",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\source_hashes.json"
+  },
+  {
+    "Hash": "D761D8915A44310D296866B82880BAEA3CC93838633BF054E2DE39E12A9FA4C3",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\synthetic.godot.jsonl"
+  },
+  {
+    "Hash": "9CFCA2959EB7B096F024EBAE96328479A31C32F27FCCE110D04182B0A195D86D",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\synthetic.godot.process.json"
+  },
+  {
+    "Hash": "F40E608C271C65A86B55EAC5C7204777A63327AA5ABED94A27A31AEDB1B331EF",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\synthetic.godot.project_manifest.json"
+  },
+  {
+    "Hash": "FFF9C1899F481B4E5840DB025141DF76165060A4E37530FBF7A843718C778135",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\external.godot.project\\godot_engine.log"
+  },
+  {
+    "Hash": "570673E58632A7DD962AE1A6CA25AA0A53FF4F1867B981CCFD1B4DE5DD1464C7",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\external.godot.project\\main.tscn"
+  },
+  {
+    "Hash": "6DB7278BBE697E90CB5332B0CBFA31F370F46B5DB1D0C180BCA717144A0AC456",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\external.godot.project\\observation.jsonl"
+  },
+  {
+    "Hash": "9E60B500C680723F0808002FCEE97C0AF9D612A82972BD56ECB27B8ACA2384A1",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\external.godot.project\\observer.gd"
+  },
+  {
+    "Hash": "81A929835FF788CE15D9808758C8141C09AD1221D109248BD1B2DF2B81F3422F",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\external.godot.project\\project.godot"
+  },
+  {
+    "Hash": "01AC3027F247CAF36DA050B0A16320ADCE66A176B2FAE9EBA741F92F5861BCEB",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\external.godot.project\\stop.request"
+  },
+  {
+    "Hash": "EB133F83ACABEE9770C63DCBE2E9EBD70BFDFE1AE299617B715E122CD66E26DF",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\external.godot.project\\test.gdextension"
+  },
+  {
+    "Hash": "214F58AA3C3BE0491CBA49AB970DF2FEA8D6CC74B5E9A8788EA3836D81923EE1",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\external.godot.project\\transition_observer.jsonl"
+  },
+  {
+    "Hash": "36A4FF96A94088253D9EEF7246AE03ADE86DFDB31785EC8B4BB9B93BD3261259",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\external.godot.project\\unload_ack.json"
+  },
+  {
+    "Hash": "570673E58632A7DD962AE1A6CA25AA0A53FF4F1867B981CCFD1B4DE5DD1464C7",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\synthetic.godot.project\\main.tscn"
+  },
+  {
+    "Hash": "2D1309C8D7EF1438110BFD34EE8C07B636B1B660E09526A2328EC5D40D029DD4",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\synthetic.godot.project\\observer.gd"
+  },
+  {
+    "Hash": "81A929835FF788CE15D9808758C8141C09AD1221D109248BD1B2DF2B81F3422F",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\synthetic.godot.project\\project.godot"
+  },
+  {
+    "Hash": "EB133F83ACABEE9770C63DCBE2E9EBD70BFDFE1AE299617B715E122CD66E26DF",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01\\synthetic.godot.project\\test.gdextension"
+  },
+  {
+    "Hash": "8A7249690D2E6830022456BB11C00AA490AD127069666AAD7FFBCA2B433ABF30",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\RUNBOOK-runtime.md"
+  },
+  {
+    "Hash": "5D93EFBE5D1FC759686707AB26AF4A8C31E191167791D45FDE27B39DF33D52B9",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\REPORT-runtime.md"
+  },
+  {
+    "Hash": "06650930C2E311679D02DB8508CC45808BDB4A9B488919C45879A4561D84A80D",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\runtime_01.wrapper_exit.txt"
+  }
+]

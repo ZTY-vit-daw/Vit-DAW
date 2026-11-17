@@ -1,0 +1,8 @@
+﻿403B first anomaly in external.godot; remaining scene stopped, no rerun
+At C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\scripts\vitshell_smoke.ps1:308 char:73
++ ...  @(0,10)) { throw "403B first anomaly in $scene; remaining scene stop ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (403B first anom...opped, no rerun:String) [], RuntimeException
+    + FullyQualifiedErrorId : 403B first anomaly in external.godot; remaining scene stopped, no rerun
+ 
+

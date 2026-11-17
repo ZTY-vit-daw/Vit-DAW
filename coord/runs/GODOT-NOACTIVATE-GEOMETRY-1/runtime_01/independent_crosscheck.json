@@ -1,0 +1,207 @@
+{
+  "native_records": 18,
+  "entry_after_pairs": 8,
+  "max_nested_depth": 2,
+  "pairing_errors": [],
+  "native_failure_rows": 0,
+  "target_geometry_mutations": 0,
+  "before_restore": 0,
+  "restore_api_return": 0,
+  "exact_child": {
+    "seq": 21,
+    "tick64": 114888734,
+    "unix_ms": 1794914331747,
+    "pid": 19360,
+    "kind": "child_created_suspended",
+    "child_pid": 18636,
+    "thread_pid": 9712
+  },
+  "dpi_preflight": {
+    "seq": 48,
+    "tick64": 114889562,
+    "unix_ms": 1794914332583,
+    "pid": 19360,
+    "kind": "geometry_dpi_preflight",
+    "ok": 1,
+    "monitor_ok": 1,
+    "selected_monitor": 65608,
+    "child_monitor": 65608,
+    "guard_dpi": 168,
+    "physical_work_current": [
+      0,
+      0,
+      2560,
+      1440
+    ],
+    "physical_work_frozen": [
+      0,
+      0,
+      2560,
+      1440
+    ],
+    "hwnd": 1838492,
+    "visible": 1,
+    "iconic": 1,
+    "zoomed": 0,
+    "style": 919535616,
+    "exstyle": 262416,
+    "placement_ok": 1,
+    "showCmd": 2,
+    "placement_flags": 0,
+    "min_position": [
+      -32000,
+      -32000
+    ],
+    "max_position": [
+      -1,
+      -1
+    ],
+    "normal_rect": [
+      908,
+      428,
+      1652,
+      972
+    ],
+    "rect_ok": 1,
+    "rect": [
+      -32000,
+      -32000,
+      -31724,
+      -31955
+    ],
+    "client_ok": 1,
+    "client": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "foreground": 10684046,
+    "foreground_pid": 30472,
+    "thread_context": 34,
+    "window_context": 43025,
+    "thread_awareness": 2,
+    "window_awareness": 1,
+    "thread_window_context_equal": 0,
+    "window_dpi": 168
+  },
+  "coordinate_rejection": {
+    "seq": 49,
+    "tick64": 114889562,
+    "unix_ms": 1794914332583,
+    "pid": 19360,
+    "kind": "geometry_coordinate_contract",
+    "ok": 0,
+    "monitor": 65608,
+    "dpi": 168,
+    "physical_work": [
+      0,
+      0,
+      2560,
+      1440
+    ],
+    "physical_monitor": [
+      0,
+      0,
+      2560,
+      1440
+    ],
+    "target_work": [
+      0,
+      0,
+      2560,
+      1440
+    ],
+    "target_monitor": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "workspace": [
+      0,
+      0,
+      2560,
+      1440
+    ],
+    "work_roundtrip": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "monitor_roundtrip": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "hwnd": 1838492,
+    "visible": 1,
+    "iconic": 1,
+    "zoomed": 0,
+    "style": 919535616,
+    "exstyle": 262416,
+    "placement_ok": 1,
+    "showCmd": 2,
+    "placement_flags": 0,
+    "min_position": [
+      -32000,
+      -32000
+    ],
+    "max_position": [
+      -1,
+      -1
+    ],
+    "normal_rect": [
+      908,
+      428,
+      1652,
+      972
+    ],
+    "rect_ok": 1,
+    "rect": [
+      -32000,
+      -32000,
+      -31724,
+      -31955
+    ],
+    "client_ok": 1,
+    "client": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "foreground": 10684046,
+    "foreground_pid": 30472,
+    "thread_context": 43025,
+    "window_context": 43025,
+    "thread_awareness": 1,
+    "window_awareness": 1,
+    "thread_window_context_equal": 1,
+    "window_dpi": 168
+  },
+  "natural_exit": {
+    "seq": 63,
+    "tick64": 114889703,
+    "unix_ms": 1794914332717,
+    "pid": 19360,
+    "kind": "owned_child_exit",
+    "exit_code": 0,
+    "forced_teardown": 0,
+    "terminate_return": 1,
+    "wait_result": 0
+  },
+  "engine_ack": {
+    "hwnd": 1838492,
+    "kind": "observer_unloaded",
+    "nonce": "fb34b37034db48f4b9fe3f0bd0ca61fe",
+    "nonce_matches": true,
+    "pid": 18636,
+    "removed_verified": true,
+    "shutdown": true,
+    "still_loaded": false,
+    "unload_result": 0
+  }
+}
