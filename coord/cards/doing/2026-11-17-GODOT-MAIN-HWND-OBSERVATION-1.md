@@ -16,3 +16,9 @@
 - 仅最小隔离Godot与单SW_SHOWNOACTIVATE路径；所有403阶段B成功标准原样维持，加exact engineHWND/PID/nonce/逐窗inventory/generation关联证据。safeiconic后hide+NOACTIVATE再restore，Win32 normal与engine mode0两秒一致、无childFG、保baseline。自然external缺失not_exercised，尊重他人前台。跨进程无WndProc/stdout独立capture缺口如实，不伪造完整性。
 - 停止后精确区分：关联成立但candidate恢复/模式失败是新功能反例；身份不成立仍coverage不足，均保全原证据，不能继续改实验追跑。无生产产品/工程启动或修改，结果不直接放行391/395/用户手测。
 - 资源登记成功重读后，每child前fetch owner和≤60秒净空；recents快照hash、子进程exact handle拆净、末态全零，原字节ZIP排cache/build，全部commit/push后短报。主管保留最终验收和资源释放。
+
+## R1门禁装置失败与必要接缝扩域（15:23 +0800）
+
+- R1在runner硬编码resource第4行403卡号时拒绝404，actual owner未变；runner1/窗口0。报告与原字节证据1c3df5fe保留，不归HWND或API失败。主管承认在换卡时未核此接缝。
+- 现仅扩域原`scripts/vitshell_smoke.ps1`资源断言（本卡总2文件），修为显式预期卡号参数与exact owner验证、只允许403/404，记录实际匹配行；旧默认403兼容，404运行必须显式指定。必须同时要求首个当前资源记录=占用/预留、卡号与owner一致，不能历史任一行搜到owner就放行；空闲/其他owner/错卡/空记录均拒绝。
+- 只无窗静态helper正反例/PS解析/代码diff，至少403预留、404预留通过，错owner/错card/释放/空闲/历史匹配/缺header拒绝；不调用top-level、fetch、进程或窗口。提交代码/精简报告后主管复核，再决定运行预算。现不授新窗口/Godot运行。
