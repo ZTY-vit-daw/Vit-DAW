@@ -55,3 +55,8 @@
 - 前端87a5359/主工件2dbb76a6，主管读单文件全diff、官方契约/61pure例及未变判据逐段比对；支持严格同systemDPI/同monitor/T与P独立exact读回子域。旧角点失败原因保持unknown，8逐角点诊断不作为fallback或放行输入。
 - 新RUNBOOK-R2/runtime_02，已审前端87a5359、主scriptc43d66ad不变，参数同R1显式405/observer/geometry。最多2child/15min、每条件1次，any anomaly停剩余、无补跑，不允许再同版本原样retry；若到五步候选失败需保全target消息/proposal/geometry首cause再裁定，不循环试API。
 - 所有geometry/原生trace/首ordinary/z/FG/自然卸载/recents门原样，首domain准入exact0px，最终rect仍1px。synthetic前提缺失不追跑，overallcoverage如实。本轮不是完整产品验收。
+
+## R2候选反例与新407（19:39 +0800）
+
+- 工件377ca68b，synthetic child13400到全部5步，native首ordinary目标2560×1440、无FG/focus；immediate predecessor非guard，engine4而非0，candidate40/runner1。主管审原证据/源码mode4锚点，失败保持，external停止，无同版本重跑。
+- work==monitor触发fullscreen与紧邻过强假设由407新契约承接，见decisions/2026-11-17-ordinary-large-window-contract.md。405 blocked待407；不将首次原尺寸正确改写完整PASS。406机制跨其external与本synthetic健康/自然退出证据可独立验，仍不证新geometry。
