@@ -112,6 +112,25 @@ export async function fetchLauncherGreeting(): Promise<LauncherGreeting> {
   }
 }
 
+/** Full recent-project list, read-only in startup and project management states.
+ * Kernel/transport/malformed response failures throw; only a valid empty array
+ * represents an empty list. This endpoint never starts a chat/LLM turn. */
+export async function fetchLauncherRecentProjects(): Promise<LauncherProjectCard[]> {
+  const response = await fetch(apiPath("/agent/launcher/recent-projects"), { method: "GET" });
+  if (!response.ok) throw new Error(await readError(response, "最近工程列表请求失败"));
+  const text = await response.text();
+  let result: Record<string, unknown>;
+  try {
+    result = JSON.parse(text) as Record<string, unknown>;
+  } catch {
+    throw new Error("最近工程列表返回了非 JSON 响应");
+  }
+  if (!result || result.status !== "ok" || result.kernel_unavailable || !Array.isArray(result.project_result_cards)) {
+    throw new Error(typeof result?.error === "string" ? result.error : "最近工程列表返回了无效响应");
+  }
+  return cardsToEntries(result.project_result_cards as Array<Record<string, unknown>>);
+}
+
 /**
  * launcher 聊天轮次。主门自报 context.launcher=true；agent 端确定性意图路由
  * （零 LLM）在 launcher 卷生效。网络/HTTP 错误抛出，业务错误字段随回执返回。
