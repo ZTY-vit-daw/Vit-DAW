@@ -1,0 +1,1066 @@
+[
+  {
+    "scene": "external.godot",
+    "rows": 118,
+    "contiguous_seq": true,
+    "last_kind": "hook_removed",
+    "child_pid": 8904,
+    "inventory": [
+      {
+        "seq": 25,
+        "tick64": 101009406,
+        "unix_ms": 1794900452419,
+        "pid": 13972,
+        "kind": "child_window_inventory",
+        "enumeration_index": 0,
+        "native_pid": 8904,
+        "valid": 1,
+        "owner": 0,
+        "class": "NVOpenGLPbuffer",
+        "engine_main_match": 0,
+        "show_match": 0,
+        "generation": 1,
+        "create_tick32": 101008781,
+        "show_tick32": 0,
+        "destroy_tick32": 0,
+        "hwnd": 984714,
+        "visible": 0,
+        "iconic": 0,
+        "zoomed": 0,
+        "style": 79691776,
+        "exstyle": 256,
+        "placement_ok": 1,
+        "showCmd": 1,
+        "placement_flags": 0,
+        "min_position": [
+          -1,
+          -1
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          25,
+          25,
+          1122,
+          623
+        ],
+        "rect_ok": 1,
+        "rect": [
+          25,
+          25,
+          1122,
+          623
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          1093,
+          571
+        ],
+        "foreground": 394908,
+        "foreground_pid": 25292
+      },
+      {
+        "seq": 26,
+        "tick64": 101009406,
+        "unix_ms": 1794900452419,
+        "pid": 13972,
+        "kind": "child_window_inventory",
+        "enumeration_index": 1,
+        "native_pid": 8904,
+        "valid": 1,
+        "owner": 0,
+        "class": "Engine",
+        "engine_main_match": 1,
+        "show_match": 1,
+        "generation": 1,
+        "create_tick32": 101008906,
+        "show_tick32": 101008937,
+        "destroy_tick32": 0,
+        "hwnd": 1380044,
+        "visible": 1,
+        "iconic": 1,
+        "zoomed": 0,
+        "style": 919535616,
+        "exstyle": 262416,
+        "placement_ok": 1,
+        "showCmd": 2,
+        "placement_flags": 0,
+        "min_position": [
+          -18286,
+          -18286
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          519,
+          245,
+          944,
+          556
+        ],
+        "rect_ok": 1,
+        "rect": [
+          -18286,
+          -18286,
+          -18128,
+          -18260
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "foreground": 394908,
+        "foreground_pid": 25292
+      },
+      {
+        "seq": 27,
+        "tick64": 101009406,
+        "unix_ms": 1794900452419,
+        "pid": 13972,
+        "kind": "child_window_inventory",
+        "enumeration_index": 2,
+        "native_pid": 8904,
+        "valid": 1,
+        "owner": 984714,
+        "class": "IME",
+        "engine_main_match": 0,
+        "show_match": 0,
+        "generation": 1,
+        "create_tick32": 101008781,
+        "show_tick32": 0,
+        "destroy_tick32": 0,
+        "hwnd": 5245272,
+        "visible": 0,
+        "iconic": 0,
+        "zoomed": 0,
+        "style": 2348810240,
+        "exstyle": 0,
+        "placement_ok": 1,
+        "showCmd": 1,
+        "placement_flags": 0,
+        "min_position": [
+          -1,
+          -1
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "rect_ok": 1,
+        "rect": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "foreground": 394908,
+        "foreground_pid": 25292
+      },
+      {
+        "seq": 28,
+        "tick64": 101009406,
+        "unix_ms": 1794900452419,
+        "pid": 13972,
+        "kind": "child_window_inventory",
+        "enumeration_index": 3,
+        "native_pid": 8904,
+        "valid": 1,
+        "owner": 1380044,
+        "class": "IME",
+        "engine_main_match": 0,
+        "show_match": 0,
+        "generation": 1,
+        "create_tick32": 101008906,
+        "show_tick32": 0,
+        "destroy_tick32": 0,
+        "hwnd": 1378348,
+        "visible": 0,
+        "iconic": 0,
+        "zoomed": 0,
+        "style": 2348810240,
+        "exstyle": 0,
+        "placement_ok": 1,
+        "showCmd": 1,
+        "placement_flags": 0,
+        "min_position": [
+          -1,
+          -1
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "rect_ok": 1,
+        "rect": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "foreground": 394908,
+        "foreground_pid": 25292
+      }
+    ],
+    "association": {
+      "seq": 29,
+      "tick64": 101009406,
+      "unix_ms": 1794900452419,
+      "pid": 13972,
+      "kind": "main_identity_association",
+      "engine": {
+        "display_mode": 1,
+        "focused": 0,
+        "height": 480,
+        "hwnd": 1380044,
+        "kind": "sample",
+        "nonce": "551c51aa45834f1fb32ccdfba06a3ee7",
+        "pid": 8904,
+        "ready": 1,
+        "seq": 7,
+        "ticks_msec": 746,
+        "unix_ms": 1794900452418,
+        "version": {
+          "build": "official",
+          "hash": "14d19694e0c88a3f9e82d899a0400f27a24c176e",
+          "hex": 263681,
+          "major": 4,
+          "minor": 6,
+          "patch": 1,
+          "status": "stable",
+          "string": "4.6.1-stable (official)",
+          "timestamp": 0
+        },
+        "width": 720,
+        "window_mode": 1
+      },
+      "reason": "accepted",
+      "native_pid": 8904,
+      "owner": 0,
+      "generation": 1
+    },
+    "ready": {
+      "seq": 30,
+      "tick64": 101009406,
+      "unix_ms": 1794900452419,
+      "pid": 13972,
+      "kind": "engine_ready_observed",
+      "engine": {
+        "display_mode": 1,
+        "focused": 0,
+        "height": 480,
+        "hwnd": 1380044,
+        "kind": "sample",
+        "nonce": "551c51aa45834f1fb32ccdfba06a3ee7",
+        "pid": 8904,
+        "ready": 1,
+        "seq": 7,
+        "ticks_msec": 746,
+        "unix_ms": 1794900452418,
+        "version": {
+          "build": "official",
+          "hash": "14d19694e0c88a3f9e82d899a0400f27a24c176e",
+          "hex": 263681,
+          "major": 4,
+          "minor": 6,
+          "patch": 1,
+          "status": "stable",
+          "string": "4.6.1-stable (official)",
+          "timestamp": 0
+        },
+        "width": 720,
+        "window_mode": 1
+      },
+      "hwnd": 1380044,
+      "visible": 1,
+      "iconic": 1,
+      "zoomed": 0,
+      "style": 919535616,
+      "exstyle": 262416,
+      "placement_ok": 1,
+      "showCmd": 2,
+      "placement_flags": 0,
+      "min_position": [
+        -18286,
+        -18286
+      ],
+      "max_position": [
+        -1,
+        -1
+      ],
+      "normal_rect": [
+        519,
+        245,
+        944,
+        556
+      ],
+      "rect_ok": 1,
+      "rect": [
+        -18286,
+        -18286,
+        -18128,
+        -18260
+      ],
+      "client_ok": 1,
+      "client": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "foreground": 394908,
+      "foreground_pid": 25292
+    },
+    "hidden": {
+      "seq": 33,
+      "tick64": 101009546,
+      "unix_ms": 1794900452553,
+      "pid": 13972,
+      "kind": "safe_hidden_minimized",
+      "hwnd": 1380044,
+      "visible": 0,
+      "iconic": 1,
+      "zoomed": 0,
+      "style": 651100160,
+      "exstyle": 134480144,
+      "placement_ok": 1,
+      "showCmd": 2,
+      "placement_flags": 0,
+      "min_position": [
+        -18286,
+        -18286
+      ],
+      "max_position": [
+        -1,
+        -1
+      ],
+      "normal_rect": [
+        519,
+        245,
+        944,
+        556
+      ],
+      "rect_ok": 1,
+      "rect": [
+        -18286,
+        -18286,
+        -18128,
+        -18260
+      ],
+      "client_ok": 1,
+      "client": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "foreground": 394908,
+      "foreground_pid": 25292
+    },
+    "api": {
+      "seq": 35,
+      "tick64": 101009578,
+      "unix_ms": 1794900452592,
+      "pid": 13972,
+      "kind": "restore_api_return",
+      "return_previous_visible": 0,
+      "last_error_applicable": false,
+      "hwnd": 1380044,
+      "visible": 1,
+      "iconic": 0,
+      "zoomed": 0,
+      "style": 382664704,
+      "exstyle": 134480144,
+      "placement_ok": 1,
+      "showCmd": 1,
+      "placement_flags": 0,
+      "min_position": [
+        -18286,
+        -18286
+      ],
+      "max_position": [
+        -1,
+        -1
+      ],
+      "normal_rect": [
+        519,
+        245,
+        944,
+        556
+      ],
+      "rect_ok": 1,
+      "rect": [
+        519,
+        245,
+        944,
+        556
+      ],
+      "client_ok": 1,
+      "client": [
+        0,
+        0,
+        411,
+        274
+      ],
+      "foreground": 394908,
+      "foreground_pid": 25292
+    },
+    "interval": {
+      "seq": 105,
+      "tick64": 101011781,
+      "unix_ms": 1794900454799,
+      "pid": 13972,
+      "kind": "godot_interval",
+      "restore_tick32": 101009546,
+      "stable_begin_tick32": 101009609,
+      "end_tick32": 101011781,
+      "samples": 64,
+      "markers": 2,
+      "max_pump_gap_ms": 32
+    },
+    "sample_count": 64,
+    "sample_normal_and_modes0": true,
+    "raw_child_foreground": [],
+    "raw_engine_rows": 110,
+    "engine_kinds": [
+      {
+        "Name": "first_process_ready",
+        "Count": 1
+      },
+      {
+        "Name": "sample",
+        "Count": 108
+      },
+      {
+        "Name": "scene_ready",
+        "Count": 1
+      }
+    ],
+    "identity_rejections": [],
+    "result": {
+      "seq": 106,
+      "tick64": 101011781,
+      "unix_ms": 1794900454799,
+      "pid": 13972,
+      "kind": "result",
+      "classification": "candidate_pass",
+      "exit_code": 0,
+      "child_pid": 8904,
+      "hwnd": 1380044,
+      "visible": 1,
+      "iconic": 0,
+      "zoomed": 0,
+      "style": 382664704,
+      "exstyle": 134480144,
+      "placement_ok": 1,
+      "showCmd": 1,
+      "placement_flags": 0,
+      "min_position": [
+        -18286,
+        -18286
+      ],
+      "max_position": [
+        -1,
+        -1
+      ],
+      "normal_rect": [
+        519,
+        245,
+        944,
+        556
+      ],
+      "rect_ok": 1,
+      "rect": [
+        519,
+        245,
+        944,
+        556
+      ],
+      "client_ok": 1,
+      "client": [
+        0,
+        0,
+        411,
+        274
+      ],
+      "foreground": 394908,
+      "foreground_pid": 25292
+    },
+    "owned_exit": {
+      "seq": 107,
+      "tick64": 101011812,
+      "unix_ms": 1794900454826,
+      "pid": 13972,
+      "kind": "owned_child_exit",
+      "exit_code": 0,
+      "forced_teardown": 1,
+      "terminate_return": 1,
+      "wait_result": 0
+    }
+  },
+  {
+    "scene": "synthetic.godot",
+    "rows": 133,
+    "contiguous_seq": true,
+    "last_kind": "hook_removed",
+    "child_pid": 4020,
+    "inventory": [
+      {
+        "seq": 34,
+        "tick64": 100999968,
+        "unix_ms": 1794900442984,
+        "pid": 29976,
+        "kind": "child_window_inventory",
+        "enumeration_index": 0,
+        "native_pid": 4020,
+        "valid": 1,
+        "owner": 0,
+        "class": "NVOpenGLPbuffer",
+        "engine_main_match": 0,
+        "show_match": 0,
+        "generation": 1,
+        "create_tick32": 100999343,
+        "show_tick32": 0,
+        "destroy_tick32": 0,
+        "hwnd": 462504,
+        "visible": 0,
+        "iconic": 0,
+        "zoomed": 0,
+        "style": 79691776,
+        "exstyle": 256,
+        "placement_ok": 1,
+        "showCmd": 1,
+        "placement_flags": 0,
+        "min_position": [
+          -1,
+          -1
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          101,
+          101,
+          1198,
+          699
+        ],
+        "rect_ok": 1,
+        "rect": [
+          101,
+          101,
+          1198,
+          699
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          1093,
+          571
+        ],
+        "foreground": 2951252,
+        "foreground_pid": 29976
+      },
+      {
+        "seq": 35,
+        "tick64": 100999968,
+        "unix_ms": 1794900442984,
+        "pid": 29976,
+        "kind": "child_window_inventory",
+        "enumeration_index": 1,
+        "native_pid": 4020,
+        "valid": 1,
+        "owner": 0,
+        "class": "Engine",
+        "engine_main_match": 1,
+        "show_match": 1,
+        "generation": 1,
+        "create_tick32": 100999468,
+        "show_tick32": 100999500,
+        "destroy_tick32": 0,
+        "hwnd": 528046,
+        "visible": 1,
+        "iconic": 1,
+        "zoomed": 0,
+        "style": 919535616,
+        "exstyle": 262416,
+        "placement_ok": 1,
+        "showCmd": 2,
+        "placement_flags": 0,
+        "min_position": [
+          -18286,
+          -18286
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          519,
+          245,
+          944,
+          556
+        ],
+        "rect_ok": 1,
+        "rect": [
+          -18286,
+          -18286,
+          -18128,
+          -18260
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "foreground": 2951252,
+        "foreground_pid": 29976
+      },
+      {
+        "seq": 36,
+        "tick64": 100999968,
+        "unix_ms": 1794900442990,
+        "pid": 29976,
+        "kind": "child_window_inventory",
+        "enumeration_index": 2,
+        "native_pid": 4020,
+        "valid": 1,
+        "owner": 462504,
+        "class": "IME",
+        "engine_main_match": 0,
+        "show_match": 0,
+        "generation": 1,
+        "create_tick32": 100999343,
+        "show_tick32": 0,
+        "destroy_tick32": 0,
+        "hwnd": 265904,
+        "visible": 0,
+        "iconic": 0,
+        "zoomed": 0,
+        "style": 2348810240,
+        "exstyle": 0,
+        "placement_ok": 1,
+        "showCmd": 1,
+        "placement_flags": 0,
+        "min_position": [
+          -1,
+          -1
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "rect_ok": 1,
+        "rect": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "foreground": 2951252,
+        "foreground_pid": 29976
+      },
+      {
+        "seq": 37,
+        "tick64": 100999984,
+        "unix_ms": 1794900442991,
+        "pid": 29976,
+        "kind": "child_window_inventory",
+        "enumeration_index": 3,
+        "native_pid": 4020,
+        "valid": 1,
+        "owner": 528046,
+        "class": "IME",
+        "engine_main_match": 0,
+        "show_match": 0,
+        "generation": 1,
+        "create_tick32": 100999468,
+        "show_tick32": 0,
+        "destroy_tick32": 0,
+        "hwnd": 1248804,
+        "visible": 0,
+        "iconic": 0,
+        "zoomed": 0,
+        "style": 2348810240,
+        "exstyle": 0,
+        "placement_ok": 1,
+        "showCmd": 1,
+        "placement_flags": 0,
+        "min_position": [
+          -1,
+          -1
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "rect_ok": 1,
+        "rect": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "foreground": 2951252,
+        "foreground_pid": 29976
+      }
+    ],
+    "association": {
+      "seq": 38,
+      "tick64": 100999984,
+      "unix_ms": 1794900442991,
+      "pid": 29976,
+      "kind": "main_identity_association",
+      "engine": {
+        "display_mode": 1,
+        "focused": 0,
+        "height": 480,
+        "hwnd": 528046,
+        "kind": "sample",
+        "nonce": "61a9d267c302457e82fd57dde33149d8",
+        "pid": 4020,
+        "ready": 1,
+        "seq": 7,
+        "ticks_msec": 737,
+        "unix_ms": 1794900442973,
+        "version": {
+          "build": "official",
+          "hash": "14d19694e0c88a3f9e82d899a0400f27a24c176e",
+          "hex": 263681,
+          "major": 4,
+          "minor": 6,
+          "patch": 1,
+          "status": "stable",
+          "string": "4.6.1-stable (official)",
+          "timestamp": 0
+        },
+        "width": 720,
+        "window_mode": 1
+      },
+      "reason": "accepted",
+      "native_pid": 4020,
+      "owner": 0,
+      "generation": 1
+    },
+    "ready": {
+      "seq": 39,
+      "tick64": 100999984,
+      "unix_ms": 1794900442991,
+      "pid": 29976,
+      "kind": "engine_ready_observed",
+      "engine": {
+        "display_mode": 1,
+        "focused": 0,
+        "height": 480,
+        "hwnd": 528046,
+        "kind": "sample",
+        "nonce": "61a9d267c302457e82fd57dde33149d8",
+        "pid": 4020,
+        "ready": 1,
+        "seq": 7,
+        "ticks_msec": 737,
+        "unix_ms": 1794900442973,
+        "version": {
+          "build": "official",
+          "hash": "14d19694e0c88a3f9e82d899a0400f27a24c176e",
+          "hex": 263681,
+          "major": 4,
+          "minor": 6,
+          "patch": 1,
+          "status": "stable",
+          "string": "4.6.1-stable (official)",
+          "timestamp": 0
+        },
+        "width": 720,
+        "window_mode": 1
+      },
+      "hwnd": 528046,
+      "visible": 1,
+      "iconic": 1,
+      "zoomed": 0,
+      "style": 919535616,
+      "exstyle": 262416,
+      "placement_ok": 1,
+      "showCmd": 2,
+      "placement_flags": 0,
+      "min_position": [
+        -18286,
+        -18286
+      ],
+      "max_position": [
+        -1,
+        -1
+      ],
+      "normal_rect": [
+        519,
+        245,
+        944,
+        556
+      ],
+      "rect_ok": 1,
+      "rect": [
+        -18286,
+        -18286,
+        -18128,
+        -18260
+      ],
+      "client_ok": 1,
+      "client": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "foreground": 2951252,
+      "foreground_pid": 29976
+    },
+    "hidden": {
+      "seq": 42,
+      "tick64": 101000109,
+      "unix_ms": 1794900443124,
+      "pid": 29976,
+      "kind": "safe_hidden_minimized",
+      "hwnd": 528046,
+      "visible": 0,
+      "iconic": 1,
+      "zoomed": 0,
+      "style": 651100160,
+      "exstyle": 134480144,
+      "placement_ok": 1,
+      "showCmd": 2,
+      "placement_flags": 0,
+      "min_position": [
+        -18286,
+        -18286
+      ],
+      "max_position": [
+        -1,
+        -1
+      ],
+      "normal_rect": [
+        519,
+        245,
+        944,
+        556
+      ],
+      "rect_ok": 1,
+      "rect": [
+        -18286,
+        -18286,
+        -18128,
+        -18260
+      ],
+      "client_ok": 1,
+      "client": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "foreground": 2951252,
+      "foreground_pid": 29976
+    },
+    "api": {
+      "seq": 44,
+      "tick64": 101000140,
+      "unix_ms": 1794900443161,
+      "pid": 29976,
+      "kind": "restore_api_return",
+      "return_previous_visible": 0,
+      "last_error_applicable": false,
+      "hwnd": 528046,
+      "visible": 1,
+      "iconic": 0,
+      "zoomed": 0,
+      "style": 382664704,
+      "exstyle": 134480144,
+      "placement_ok": 1,
+      "showCmd": 1,
+      "placement_flags": 0,
+      "min_position": [
+        -18286,
+        -18286
+      ],
+      "max_position": [
+        -1,
+        -1
+      ],
+      "normal_rect": [
+        519,
+        245,
+        944,
+        556
+      ],
+      "rect_ok": 1,
+      "rect": [
+        519,
+        245,
+        944,
+        556
+      ],
+      "client_ok": 1,
+      "client": [
+        0,
+        0,
+        411,
+        274
+      ],
+      "foreground": 2951252,
+      "foreground_pid": 29976
+    },
+    "interval": {
+      "seq": 113,
+      "tick64": 101002328,
+      "unix_ms": 1794900445346,
+      "pid": 29976,
+      "kind": "godot_interval",
+      "restore_tick32": 101000109,
+      "stable_begin_tick32": 101000171,
+      "end_tick32": 101002328,
+      "samples": 63,
+      "markers": 2,
+      "max_pump_gap_ms": 47
+    },
+    "sample_count": 63,
+    "sample_normal_and_modes0": true,
+    "raw_child_foreground": [],
+    "raw_engine_rows": 109,
+    "engine_kinds": [
+      {
+        "Name": "first_process_ready",
+        "Count": 1
+      },
+      {
+        "Name": "sample",
+        "Count": 107
+      },
+      {
+        "Name": "scene_ready",
+        "Count": 1
+      }
+    ],
+    "identity_rejections": [],
+    "result": {
+      "seq": 114,
+      "tick64": 101002328,
+      "unix_ms": 1794900445346,
+      "pid": 29976,
+      "kind": "result",
+      "classification": "candidate_pass",
+      "exit_code": 0,
+      "child_pid": 4020,
+      "hwnd": 528046,
+      "visible": 1,
+      "iconic": 0,
+      "zoomed": 0,
+      "style": 382664704,
+      "exstyle": 134480144,
+      "placement_ok": 1,
+      "showCmd": 1,
+      "placement_flags": 0,
+      "min_position": [
+        -18286,
+        -18286
+      ],
+      "max_position": [
+        -1,
+        -1
+      ],
+      "normal_rect": [
+        519,
+        245,
+        944,
+        556
+      ],
+      "rect_ok": 1,
+      "rect": [
+        519,
+        245,
+        944,
+        556
+      ],
+      "client_ok": 1,
+      "client": [
+        0,
+        0,
+        411,
+        274
+      ],
+      "foreground": 2951252,
+      "foreground_pid": 29976
+    },
+    "owned_exit": {
+      "seq": 115,
+      "tick64": 101002359,
+      "unix_ms": 1794900445375,
+      "pid": 29976,
+      "kind": "owned_child_exit",
+      "exit_code": 0,
+      "forced_teardown": 1,
+      "terminate_return": 1,
+      "wait_result": 0
+    }
+  }
+]
