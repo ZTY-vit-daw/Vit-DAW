@@ -487,30 +487,89 @@ const appSurfaces: ReadonlySet<AppSurface> = new Set<AppSurface>([
 
 function App() {
   const [surface, setSurface] = useState<AppSurface>(() => appSurface());
+  const [managedProject, setManagedProject] = useState<string | null>(() =>
+    appSurface() === "project" ? "当前工程" : null
+  );
+  const [entrySettingsOpen, setEntrySettingsOpen] = useState(false);
+  const [entryRuntime, setEntryRuntime] = useState<RuntimeStatusResponse | null>(null);
+  const [entryUIState, setEntryUIState] = useState<AgentUIState | null>(null);
+  const entrySettingsRef = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    const dialog = entrySettingsRef.current;
+    if (entrySettingsOpen && dialog && !dialog.open) dialog.showModal();
+    if (!entrySettingsOpen && dialog?.open) dialog.close();
+  }, [entrySettingsOpen]);
+  useEffect(() => {
+    if (!entrySettingsOpen) return;
+    let current = true;
+    void Promise.allSettled([fetchRuntimeStatus(), fetchUIState()]).then(([runtime, ui]) => {
+      if (!current) return;
+      setEntryRuntime(runtime.status === "fulfilled" ? runtime.value : null);
+      setEntryUIState(ui.status === "fulfilled" ? ui.value : null);
+    });
+    return () => { current = false; };
+  }, [entrySettingsOpen]);
   useEffect(() => {
     return subscribeEntrySurface((next) => {
       const target = next.toLowerCase() as AppSurface;
       if (!appSurfaces.has(target)) {
         return;
       }
+      // 宿主消息仍是生命周期权威：DAW 退出发 launcher 时清除管理视图的工程标记。
+      if (target === "launcher") setManagedProject(null);
+      if (target === "project") setManagedProject((current) => current ?? "当前工程");
+      setEntrySettingsOpen(false);
       setSurface(target);
       postEntrySurfaceAck(target);
     });
   }, []);
-  if (surface === "launcher") {
-    // CONVERGE-SHELL-1（387）替换点（施工图 §4.2 锚 1）：App() 分发逻辑装修不动，
-    // 仅换挂新壳；vit_surface=project 切 ProjectSurface 的既有行为保留。
-    return <ConvergedLauncher fill />;
-  }
-  if (surface === "project") {
+  if (surface === "launcher" || surface === "project") {
     return (
-      <ProjectLoadingGate>
-        {/* SCORE-ENTRY-REACH-1（382）：工程面显式「打开工作台」入口——谱面/媒体/
-            历史/宏工作台此前只在 full/main surface 可达（VitShell 工程态=project
-            surface 无入口，374 M4「没看到」的结构性断点）。React 内部切 surface
-            （零导航零重载，343 不变量）。 */}
-        <ProjectSurface fill onOpenWorkbench={() => setSurface("workbench")} />
-      </ProjectLoadingGate>
+      <>
+        <div hidden={surface !== "launcher"} style={{ height: "100%" }}>
+          {surface === "launcher" ? (
+            <ConvergedLauncher
+              fill
+              activeProjectName={managedProject ?? undefined}
+              onReturnProject={managedProject ? () => {
+                setSurface("project");
+                postEntrySurfaceAck("project");
+              } : undefined}
+              onOpenSettings={() => setEntrySettingsOpen(true)}
+            />
+          ) : null}
+        </div>
+        {/* 管理视图只隐藏工程页，保留当前对话/输入；不关闭 DAW、不解绑工程。 */}
+        <div hidden={surface !== "project"} style={{ height: "100%" }}>
+          {managedProject || surface === "project" ? (
+            <ProjectLoadingGate>
+              <ProjectSurface
+                fill
+                active={surface === "project"}
+                onOpenWorkbench={() => setSurface("workbench")}
+                onViewLauncher={(name) => {
+                  setManagedProject(name || "当前工程");
+                  setSurface("launcher");
+                  postEntrySurfaceAck("launcher");
+                }}
+                onOpenSettings={() => setEntrySettingsOpen(true)}
+              />
+            </ProjectLoadingGate>
+          ) : null}
+        </div>
+        <dialog
+          ref={entrySettingsRef}
+          className="v5-design v5-entry-settings"
+          aria-label="设置"
+          data-entry-settings
+          onCancel={() => setEntrySettingsOpen(false)}
+          onClose={() => setEntrySettingsOpen(false)}
+        >
+          {entrySettingsOpen ? (
+            <SettingsPage runtimeStatus={entryRuntime} uiState={entryUIState} onClose={() => setEntrySettingsOpen(false)} />
+          ) : null}
+        </dialog>
+      </>
     );
   }
   return (

@@ -742,6 +742,7 @@ func (s *Server) Routes() http.Handler {
 	mux.HandleFunc("/agent/ui/context", s.handleUIContext)
 	mux.HandleFunc("/agent/chat", s.handleChat)
 	mux.HandleFunc("/agent/launcher/greeting", s.handleLauncherGreeting)
+	mux.HandleFunc("/agent/launcher/recent-projects", s.handleLauncherRecentProjects)
 	mux.HandleFunc("/agent/note/archive", s.handleNoteArchive)
 	mux.HandleFunc("/agent/confirm", s.handleConfirm)
 	mux.HandleFunc("/agent/interaction/respond", s.handleInteractionRespond)

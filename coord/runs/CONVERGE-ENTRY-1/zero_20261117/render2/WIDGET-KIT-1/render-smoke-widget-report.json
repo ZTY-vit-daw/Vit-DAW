@@ -1,0 +1,76 @@
+{
+  "run": "WIDGET-KIT-1 widgets render smoke",
+  "date": "2026-11-17T03:17:30.700Z",
+  "url": "http://127.0.0.1:5391/app/gallery.html?surface=widgets",
+  "viewport": "1440x900@1",
+  "reducedMotion": "reduce",
+  "externalRequestCount": 0,
+  "dom": {
+    "rootPresent": true,
+    "fixtureNotice": true,
+    "audioPlayers": 9,
+    "audioExpandedTrue": 7,
+    "audioExpandedFalse": 2,
+    "expandToggles": 2,
+    "playToggles": 7,
+    "progressBars": 7,
+    "unavailablePlayers": 3,
+    "disabledPlayToggles": 1,
+    "audioElements": 7,
+    "previewURLPlayers": 0,
+    "comparePairs": 2,
+    "compareSideA": 2,
+    "compareSideB": 2,
+    "preferenceValues": [
+      "a",
+      "b",
+      "neither",
+      "unsure",
+      "a",
+      "b",
+      "neither",
+      "unsure"
+    ],
+    "reasonInputs": 2,
+    "positionRulePerSide": 2,
+    "syncedAxisMarkers": 0,
+    "durationHints": [
+      "12",
+      "30",
+      "12",
+      "30"
+    ],
+    "auditionSessionMarkers": 0,
+    "cardSchemas": 1,
+    "cardLayoutCollapse": 1,
+    "layoutGroups": [
+      "fold-compare",
+      "group-rest"
+    ],
+    "collapseDetails": 2,
+    "fieldAudioPlayers": 1,
+    "fieldComparePairs": 1,
+    "actionIDs": [
+      "submit",
+      "cancel"
+    ]
+  },
+  "textContrastMin": {
+    "text": "点开播放与对比",
+    "ratio": 4.515,
+    "fg": "rgb(53,99,233)",
+    "bg": "rgb(240,241,242)"
+  },
+  "clipIssues": [],
+  "docScrollWidth": 1440,
+  "fontTooSmall": [],
+  "failures": [],
+  "notes": [
+    "widgetsUrl=http://127.0.0.1:5391/app/gallery.html?surface=widgets"
+  ],
+  "screenshots": [
+    "C:\\Users\\timoz\\.codex\\worktrees\\converge-entry-388\\Vit_DAW\\coord\\runs\\CONVERGE-ENTRY-1\\zero_20261117\\render2\\WIDGET-KIT-1\\screens\\widgets-viewport-1440x900.png",
+    "C:\\Users\\timoz\\.codex\\worktrees\\converge-entry-388\\Vit_DAW\\coord\\runs\\CONVERGE-ENTRY-1\\zero_20261117\\render2\\WIDGET-KIT-1\\screens\\widgets-full.png"
+  ],
+  "result": "PASS"
+}

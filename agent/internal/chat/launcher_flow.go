@@ -621,6 +621,33 @@ const (
 // 监督器已放弃时等待立即返回，真故障降级不被拖慢。
 const launcherGreetingBootWaitBudget = 20 * time.Second
 
+// handleLauncherRecentProjects is a read-only management view in both entry
+// states. It never enters chat, activates a workspace, or changes launch facts.
+// Kernel failure is a non-2xx error, distinct from a successful empty list.
+func (s *Server) handleLauncherRecentProjects(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		w.Header().Set("Allow", http.MethodGet)
+		writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"status": "error", "error": "GET required"})
+		return
+	}
+	paths, err := s.launcherRecentProjectPaths(r.Context())
+	if err != nil {
+		writeJSON(w, http.StatusServiceUnavailable, map[string]any{
+			"status": "error", "kernel_unavailable": true, "error": launcherKernelUnavailableReply,
+		})
+		return
+	}
+	entries := launcherRecentEntries(paths)
+	cards := launcherProjectCards(entries, launcherMaxRecents)
+	if cards == nil {
+		cards = []map[string]any{}
+	}
+	writeJSON(w, http.StatusOK, map[string]any{
+		"status": "ok", "recent_count": len(entries),
+		"project_result_cards": cards,
+	})
+}
+
 // handleLauncherGreeting 服务门厅简版开场白（确定性模板，零 LLM）三态：
 //  1. 内核在线+有 recents → 真数据问候（最近一条+计数）；
 //  2. 内核在线+无 recents → 诚实空态（launcherGreetingNoRecents）；

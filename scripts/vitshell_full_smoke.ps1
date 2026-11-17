@@ -98,7 +98,9 @@ param(
     [string]$RunRoot = "",
     [switch]$SkipBuild,
     [switch]$SkipFailureLegs,
-    [switch]$SkipLegacyLegs
+    [switch]$SkipLegacyLegs,
+    # 388/401 opt-in: management/settings/real GET + local zero-LLM interval.
+    [switch]$EntryManagementChecks
 )
 
 $ErrorActionPreference = "Stop"
@@ -297,7 +299,7 @@ function Invoke-CdpPhase {
     $WebuiDir = $webuiDir
     $out = Join-Path $RunRoot $OutFile
     pushd $webuiDir
-    $nodeArgs = @("$MainRoot/scripts/vitshell_full_smoke_cdp.mjs", "--cdp-port", "$CdpPort", "--phase", $Phase, "--out", $out, "--webui-dir", "$WebuiDir")
+    $nodeArgs = @("$MainRoot/scripts/vitshell_full_smoke_cdp.mjs", "--cdp-port", "$CdpPort", "--phase", $Phase, "--out", $out, "--webui-dir", "$WebuiDir", "--status-url", "$StatusUrl")
     if ($Phase -eq "chat-roundtrip") {
         $nodeArgs += @("--chat-text", $ChatText, "--chat-timeout-ms", "$ChatTimeoutMs")
     }
@@ -327,6 +329,11 @@ function Assert-ZeroGodot {
 
 function Start-VitShell {
     param([string]$OutLog, [string[]]$ExtraArgs = @(), [hashtable]$ExtraEnv = @{}, [string]$AgentExePath = "")
+    if ($EntryManagementChecks) {
+        $guardArgs = @{ Leg='Guard'; RunRoot=$RunRoot }
+        if ($OutLog -eq 'f2_bridge.log') { $guardArgs.InjectedBoundAgentPort=$AgentPort; $guardArgs.InjectionOwnerPid=$PID }
+        & (Join-Path $PSScriptRoot 'run_entry_management_acceptance.ps1') @guardArgs
+    }
     $LauncherUrl = "http://127.0.0.1:$AgentPort/app/?surface=launcher"
     $env:WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS = "--remote-debugging-port=$CdpPort"
     $env:VIT_WEBVIEW_DEBUG = "1"
@@ -381,7 +388,7 @@ foreach ($port in @($AgentPort, $StatusPort, 8787, 5555)) {
     if (-not (Test-PortBindable -Port $port)) { throw "preflight: port $port not bindable (lingering bound socket) - no silent reuse" }
 }
 if (-not (Test-UdpBindable -Port 4445)) { throw "preflight: UDP 4445 not bindable - no silent reuse" }
-$occupancyHead = (Get-Content (Join-Path $MainRoot "coord/resources/PC-RUNTIME-STACK.md") -TotalCount 6) -join "`n"
+$occupancyHead = if ($EntryManagementChecks) { (& git -C $MainRoot show origin/main:coord/resources/PC-RUNTIME-STACK.md | Select-Object -First 4) -join "`n" } else { (Get-Content (Join-Path $MainRoot "coord/resources/PC-RUNTIME-STACK.md") -TotalCount 6) -join "`n" }
 if ($occupancyHead -notmatch $CardId) { throw "occupancy record head does not name $CardId - register before running" }
 Write-Ok "stack clean (processes=0, TCP 7878/7879/8787/5555 + UDP 4445 free), occupancy names $CardId"
 
@@ -412,6 +419,7 @@ $runMeta = [ordered]@{
     skip_build = [bool]$SkipBuild
     skip_failure_legs = [bool]$SkipFailureLegs
     skip_legacy_legs = [bool]$SkipLegacyLegs
+    entry_management_checks = [bool]$EntryManagementChecks
 }
 
 $recentsFile = Join-Path $env:APPDATA "Vit-DAW/global_project_config.json"
@@ -582,6 +590,7 @@ $runMeta.hub_exe_sha256 = (Get-FileHash $mainHub -Algorithm SHA256).Hash
 Write-Ok ("kernel/hub staged (sha256 " + $runMeta.kernel_exe_sha256.Substring(0, 12) + ".../" + $runMeta.hub_exe_sha256.Substring(0, 12) + "...)")
 
 Write-Step "Godot --import pre-run (worktree project caches)"
+if ($EntryManagementChecks) { & (Join-Path $PSScriptRoot 'run_entry_management_acceptance.ps1') -Leg Guard -RunRoot $RunRoot }
 if (-not $SkipBuild -or -not (Test-Path (Join-Path $FrontendWorktree ".godot"))) {
     pushd $FrontendWorktree
     $code = Invoke-NativeLogged -Command { & $GodotExe --headless --import --path . } -LogPath (Join-Path $RunRoot "godot_import.log")
@@ -785,7 +794,13 @@ for ($round = 1; $round -le $Rounds; $round++) {
         # ---- R-L0: cold start with process-level zero-Godot asserts ----
         Write-Step "R$round L0: cold start (zero Godot assert pre+post ready)"
         $roundMeta.recents_seeded_sha256 = Seed-S4Recents -FixturePath $fixtureA
-        $p = Start-VitShell -OutLog "r${round}_bridge.log" -ExtraArgs @("--smoke-file-dialog", $fixtureA, "--smoke-file-dialog-b", $fixtureB) -ExtraEnv @{ VIT_AGENT_LLM_BASE_URL = "http://127.0.0.1:1" }
+        $roundEnv = @{ VIT_AGENT_LLM_BASE_URL = "http://127.0.0.1:1" }
+        if ($EntryManagementChecks) {
+            # Dedicated telemetry, never inherit off/disabled or pollute a shared file.
+            $roundTelemetry = Join-Path $RunRoot "r${round}_agent_llm_telemetry.jsonl"
+            $roundEnv.VIT_AGENT_LLM_TELEMETRY_PATH = $roundTelemetry
+        }
+        $p = Start-VitShell -OutLog "r${round}_bridge.log" -ExtraArgs @("--smoke-file-dialog", $fixtureA, "--smoke-file-dialog-b", $fixtureB) -ExtraEnv $roundEnv
         Assert-ZeroGodot -When "immediately after VitShell spawn"
         $roundMeta.vitshell_pid = $p.Id
         Start-Sleep -Seconds 3
@@ -802,6 +817,13 @@ for ($round = 1; $round -le $Rounds; $round++) {
         $roundMeta.no_reload_sentinel = $ldata.sentinel
         $roundMeta.greeting_text = $ldata.greeting_text
         $roundMeta.recents_count = $ldata.recents_count
+        if ($EntryManagementChecks) {
+            $recentsRead = Get-HttpJson -Url "http://127.0.0.1:$AgentPort/agent/launcher/recent-projects" -TimeoutSec 45
+            $recentsRead.body | Out-File (Join-Path $RunRoot "r${round}_recent_projects_startup.json") -Encoding utf8
+            if (-not $recentsRead.ok) { throw "R$round startup recent-projects GET failed" }
+            $recentBody = $recentsRead.body | ConvertFrom-Json
+            if ($recentBody.status -ne "ok" -or @($recentBody.project_result_cards).Count -lt 1) { throw "R$round startup recent-projects missing seeded cards" }
+        }
         Write-Ok ("R$round launcher data: greeting=" + $ldata.greeting_text.Substring(0, [Math]::Min(40, $ldata.greeting_text.Length)) + "... recents=" + $ldata.recents_count)
 
         # ---- R-L1b: SHELL-4 kernel online at launcher stage ----
@@ -950,6 +972,61 @@ for ($round = 1; $round -le $Rounds; $round++) {
         $roundMeta.project_context_name = $projReady.context_name
         Write-Ok ("R$round project surface ready (context=" + $projReady.context_name + ", source=" + $projReady.context_source + ")")
 
+        # 388 insertion point: after real open and before any intentional L3 chat.
+        # 394/402 window-behavior sampling belongs BEFORE open, not this segment.
+        $managementChainOffset = 0
+        if ($EntryManagementChecks) {
+            Write-Step "R$round L2m: management/settings/GET, lifecycle unchanged, zero local LLM"
+            $beforeStatusHttp = Get-HttpJson -Url $StatusUrl
+            $beforeStateHttp = Get-HttpJson -Url "http://127.0.0.1:$AgentPort/agent/state"
+            if (-not $beforeStatusHttp.ok -or -not $beforeStateHttp.ok) { throw "management before snapshots unreachable" }
+            $beforeStatus = $beforeStatusHttp.body | ConvertFrom-Json
+            $beforeState = $beforeStateHttp.body | ConvertFrom-Json
+            $runtimePidsBefore = @(Get-Process -Name VitApp,VspHub -ErrorAction Stop | Select-Object -ExpandProperty Id | Sort-Object)
+            [byte[]]$telemetryBefore = @()
+            if (Test-Path -LiteralPath $roundTelemetry) { $telemetryBefore = [System.IO.File]::ReadAllBytes($roundTelemetry) }
+            [System.IO.File]::WriteAllBytes((Join-Path $RunRoot "r${round}_management_telemetry_before.jsonl"), [byte[]]$telemetryBefore)
+            $beforeStatusHttp.body | Out-File (Join-Path $RunRoot "r${round}_management_status_before.json") -Encoding utf8
+            $beforeStateHttp.body | Out-File (Join-Path $RunRoot "r${round}_management_state_before.json") -Encoding utf8
+            $managementBridgeLog = Join-Path $RunRoot "r${round}_bridge.log"
+            $bridgeLinesBefore = @(Get-Content -LiteralPath $managementBridgeLog -Encoding UTF8).Count
+            $management = Invoke-CdpPhase -Phase "management-roundtrip" -OutFile "r${round}_cdp_management.json"
+            $afterStatusHttp = Get-HttpJson -Url $StatusUrl
+            $afterStateHttp = Get-HttpJson -Url "http://127.0.0.1:$AgentPort/agent/state"
+            if (-not $afterStatusHttp.ok -or -not $afterStateHttp.ok) { throw "management after snapshots unreachable" }
+            $afterStatus = $afterStatusHttp.body | ConvertFrom-Json
+            $afterState = $afterStateHttp.body | ConvertFrom-Json
+            $afterStatusHttp.body | Out-File (Join-Path $RunRoot "r${round}_management_status_after.json") -Encoding utf8
+            $afterStateHttp.body | Out-File (Join-Path $RunRoot "r${round}_management_state_after.json") -Encoding utf8
+            $management.view_only_status | ConvertTo-Json -Depth 4 | Out-File (Join-Path $RunRoot "r${round}_management_status_view_only.json") -Encoding utf8
+            foreach ($field in @("agent_pid", "godot_pid", "launch_count", "window_hwnd", "current_url")) {
+                if ($null -eq $management.view_only_status.$field -or $beforeStatus.$field -ne $management.view_only_status.$field) { throw "pure management view changed/unavailable $field" }
+            }
+            foreach ($field in @("agent_pid", "godot_pid", "window_hwnd", "current_url")) {
+                if ($null -eq $beforeStatus.$field -or $null -eq $afterStatus.$field) { throw "management status field unavailable: $field" }
+                if ($beforeStatus.$field -ne $afterStatus.$field) { throw "management changed $field" }
+            }
+            $bridgeInterval = @(Get-Content -LiteralPath $managementBridgeLog -Encoding UTF8 | Select-Object -Skip $bridgeLinesBefore)
+            $bridgeInterval | Out-File (Join-Path $RunRoot "r${round}_management_bridge_interval.log") -Encoding utf8
+            if (@($bridgeInterval | Select-String -SimpleMatch 'godot.spawn').Count) { throw 'management cancellation spawned DAW' }
+            $canceledResults = @($bridgeInterval | Where-Object { $_ -match '\[LauncherBridge\] result ' } | ForEach-Object { $_.Substring($_.IndexOf('{')) | ConvertFrom-Json } | Where-Object status -eq 'canceled')
+            $cancelIds = @($management.canceled_request_ids)
+            if ($cancelIds.Count -ne 3 -or $canceledResults.Count -ne 3) { throw 'management must have exactly three canceled request results' }
+            foreach ($cancelId in $cancelIds) { if (@($canceledResults | Where-Object request_id -eq $cancelId).Count -ne 1) { throw "management canceled result missing/duplicated: $cancelId" } }
+            $managementChainOffset = 3
+            if ([int]$afterStatus.launch_count -ne ([int]$beforeStatus.launch_count + $managementChainOffset)) { throw 'management terminal counter delta must equal three canceled requests' }
+            if (-not $afterStatus.godot_running) { throw "management closed DAW" }
+            $runtimePidsAfter = @(Get-Process -Name VitApp,VspHub -ErrorAction Stop | Select-Object -ExpandProperty Id | Sort-Object)
+            if (($runtimePidsBefore -join ',') -ne ($runtimePidsAfter -join ',')) { throw "management restarted kernel/hub" }
+            if ([string]::IsNullOrWhiteSpace("$($beforeState.current_project.path)") -or $beforeState.current_project.path -ne $afterState.current_project.path -or $beforeState.current_project.uuid -ne $afterState.current_project.uuid) { throw "management changed project binding" }
+            [byte[]]$telemetryAfter = @()
+            if (Test-Path -LiteralPath $roundTelemetry) { $telemetryAfter = [System.IO.File]::ReadAllBytes($roundTelemetry) }
+            [System.IO.File]::WriteAllBytes((Join-Path $RunRoot "r${round}_management_telemetry_after.jsonl"), [byte[]]$telemetryAfter)
+            if ([Convert]::ToBase64String([byte[]]$telemetryBefore) -ne [Convert]::ToBase64String([byte[]]$telemetryAfter)) { throw "management produced LLM telemetry (local interval must be zero)" }
+            Copy-Item $agentLog (Join-Path $RunRoot "r${round}_management_agent_log.txt") -Force
+            $roundMeta.management = @{ ok = $true; sentinel = $management.sentinel; unchanged_pids = $runtimePidsAfter; terminal_counter_cancel_offset = $managementChainOffset; canceled_request_ids = $cancelIds; pure_view_count_unchanged = $true; telemetry_added = 0; main_frame_navigations = $management.main_frame_navigations; native_navigate_count = "unavailable in d05043e status schema; HWND/url/sentinel plus mainframe event count asserted"; error_surface = "synthetic GET503 only, real GET also passed" }
+        }
+
         # ---- R-L3: in-project REAL chat roundtrip (SHELL-3 new leg) ----
         Write-Step "R$round L3: in-project chat roundtrip (composer -> /agent/chat -> thread frames)"
         $chat = Invoke-CdpPhase -Phase "chat-roundtrip" -OutFile "r${round}_cdp_chat.json"
@@ -973,7 +1050,8 @@ for ($round = 1; $round -le $Rounds; $round++) {
         $projNew = Invoke-CdpPhase -Phase "project-chat-new" -OutFile "r${round}_cdp_project_chat_new.json"
         $roundMeta.inproject_new_directive = $projNew.directive_headline
         $roundMeta.inproject_new_governance = $projNew.governance
-        $status = Wait-StatusLaunchCount -StatusUrl $StatusUrl -MinExpect 4 -TimeoutSec $OpenChainTimeoutSec -ArtifactPath (Join-Path $RunRoot "r${round}_status_opened_project_new.json")
+        $status = Wait-StatusLaunchCount -StatusUrl $StatusUrl -MinExpect (4 + $managementChainOffset) -TimeoutSec $OpenChainTimeoutSec -ArtifactPath (Join-Path $RunRoot "r${round}_status_opened_project_new.json")
+        if ([int]$status.launch_count -ne (4 + $managementChainOffset)) { throw 'L3b terminal counter must match exact prior chains plus management cancellations' }
         if (-not $status.godot_running) { throw "R$round L3b: godot not running after in-project new switch" }
         # attempt1 lesson (run_full_20261115_233410): a kernel new-project draft is
         # materialized as an Unsaved.vit draft (same face as L1c/L1c2) until saved —
@@ -992,7 +1070,7 @@ for ($round = 1; $round -le $Rounds; $round++) {
         }
         $roundMeta.inproject_new_context_name = $projNewReady.context_name
         if ($projNewReady.sentinel -ne $roundMeta.no_reload_sentinel) { throw "R$round L3b: sentinel changed after in-page switch (reload!)" }
-        Write-Ok ("R$round L3b: in-project new chain end-to-end (directive=" + $projNew.directive_headline + " governance=" + $projNew.governance + " context=" + $projNewReady.context_name + ", launch_count=4, agent off fixture_a)")
+        Write-Ok ("R$round L3b: in-project new chain end-to-end (directive=" + $projNew.directive_headline + " governance=" + $projNew.governance + " context=" + $projNewReady.context_name + ", terminal_count=" + (4 + $managementChainOffset) + ", agent off fixture_a)")
 
         # ---- R-L4: close DAW -> back to launcher (same window) ----
         Write-Step "R$round L4: POST /vitshell/close-daw -> Godot exits -> launcher back (same window)"
@@ -1023,7 +1101,8 @@ for ($round = 1; $round -le $Rounds; $round++) {
         # SHELL-5/6: launch 1 = L1c intent new, launch 2 = L1c2 button new,
         # launch 3 = fixture_a open, launch 4 = L3b in-project new switch,
         # this governed fixture_b open = 5.
-        $status2 = Wait-StatusLaunchCount -StatusUrl $StatusUrl -MinExpect 5 -TimeoutSec $OpenChainTimeoutSec -ArtifactPath (Join-Path $RunRoot "r${round}_status_opened_2.json")
+        $status2 = Wait-StatusLaunchCount -StatusUrl $StatusUrl -MinExpect (5 + $managementChainOffset) -TimeoutSec $OpenChainTimeoutSec -ArtifactPath (Join-Path $RunRoot "r${round}_status_opened_2.json")
+        if ([int]$status2.launch_count -ne (5 + $managementChainOffset)) { throw 'L5 terminal counter must match exact prior chains plus management cancellations' }
         $null = Invoke-CdpPhase -Phase "probe-governance-done" -OutFile "r${round}_cdp_gov_done.json"
         $govDone = Get-Content (Join-Path $RunRoot "r${round}_cdp_gov_done.json") -Raw -Encoding UTF8 | ConvertFrom-Json
         if ($govDone.sentinel -ne $roundMeta.no_reload_sentinel) { throw "R$round sentinel changed after governed open (reload!)" }

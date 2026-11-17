@@ -13,7 +13,8 @@ param(
     [int]$WaitSeconds = 60,
     [int]$SceneSettleSeconds = 40,
     [switch]$SkipBuild,
-    [switch]$SkipLegacyLeg
+    [switch]$SkipLegacyLeg,
+    [switch]$EntryManagementChecks
 )
 
 # UI-ENTRY-2 端侧烟测（ui_entry_smoke 354 同模式新脚本；启动页门面退役四腿）。
@@ -297,6 +298,7 @@ $godotLegacyLog = Join-Path $LogsDir "godot_legacy.log"
 
 function Start-GodotLeg {
     param([string]$LogPath, [string]$WorkingDir, [hashtable]$EnvVars)
+    if ($EntryManagementChecks) { & (Join-Path $PSScriptRoot 'run_entry_management_acceptance.ps1') -Leg Guard -RunRoot $RunRoot -AllowedRootPid $scriptAgentPid }
     foreach ($key in $EnvVars.Keys) { Set-Item -Path ("Env:" + $key) -Value ([string]$EnvVars[$key]) }
     try {
         $proc = Start-Process -FilePath $GodotExe -ArgumentList @("--path", $GodotProjectRoot, "--log-file", $LogPath) -WorkingDirectory $WorkingDir -PassThru
@@ -593,6 +595,7 @@ try {
         $env:VIT_HISTORY_DRAFT_ROOT = (Join-Path $RunRoot "agent_drafts")
         $env:VIT_DAW_DEV_ROOT = $RepoRoot
         try {
+            if ($EntryManagementChecks) { & (Join-Path $PSScriptRoot 'run_entry_management_acceptance.ps1') -Leg Guard -RunRoot $RunRoot }
             $agentProc = Start-Process -FilePath $AgentBinary -ArgumentList @("-http", ($AgentHttp -replace '^http://',''), "-last-log-path", $agentScriptLog, "-keep-last-log-lines", "8000") -WorkingDirectory $AgentDir -WindowStyle Hidden -PassThru
         }
         finally {

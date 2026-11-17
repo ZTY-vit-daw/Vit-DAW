@@ -1,0 +1,115 @@
+﻿{
+    "run_id":  "device",
+    "started_at_utc":  "2026-11-17T03:53:06Z",
+    "card":  "CONVERGE-ENTRY-1",
+    "main_worktree":  "C:\\Users\\timoz\\.codex\\worktrees\\converge-entry-388\\Vit_DAW",
+    "frontend_worktree":  "C:/Users/timoz/.codex/worktrees/godot-runtime-388/vit-daw-frontend",
+    "godot_exe":  "D:/Godot/Godot_v4.6.1-stable_win64_console.exe",
+    "status_port":  7879,
+    "agent_port":  7878,
+    "cdp_port":  9333,
+    "rounds":  1,
+    "chat_text":  "这个工程现在叫什么名字？",
+    "zero_billing_override":  "VIT_AGENT_LLM_BASE_URL=http://127.0.0.1:1 (explicit env beats user config; LLM content out of scope)",
+    "skip_build":  false,
+    "skip_failure_legs":  false,
+    "skip_legacy_legs":  false,
+    "entry_management_checks":  true,
+    "recents_snapshot_sha256":  "807226F4AF3FC85C2B99BFD2FB827C1583E7C991826BDE5F0B4344A6DC13E353",
+    "fixture_source":  "D:/Vit_DAW/temp/f3_empty_project.vit",
+    "fixture_source_sha256":  "AC0CE2E81C12E6F10E3D691CF062CD3E568365C274F12F2B963694AE3B48B41D",
+    "fixture_a":  "C:\\Users\\timoz\\.codex\\worktrees\\converge-entry-388\\Vit_DAW\\coord\\runs\\CONVERGE-ENTRY-1\\stack_A_20261117_1153\\device\\fixtures\\fixture_a.vit",
+    "fixture_b":  "C:\\Users\\timoz\\.codex\\worktrees\\converge-entry-388\\Vit_DAW\\coord\\runs\\CONVERGE-ENTRY-1\\stack_A_20261117_1153\\device\\fixtures\\fixture_b.vit",
+    "recents_seeded_fixture":  "C:\\Users\\timoz\\.codex\\worktrees\\converge-entry-388\\Vit_DAW\\coord\\runs\\CONVERGE-ENTRY-1\\stack_A_20261117_1153\\device\\fixtures\\fixture_a.vit",
+    "vitshell_exe":  "C:\\Users\\timoz\\.codex\\worktrees\\godot-runtime-388\\vit-daw-frontend\\VitShell\\build\\Release\\VitShell.exe",
+    "vitshell_exe_sha256":  "9C66F0643BCE7F6398752B06158DA3D53F2360A474DED40FBF25025B404B06C3",
+    "agent_exe":  "C:\\Users\\timoz\\.codex\\worktrees\\converge-entry-388\\Vit_DAW\\agent\\bin\\VitAgent.exe",
+    "agent_exe_sha256":  "13A546951D52CF8955888699187EA81501A297B291A477E44EB56ADB7C42FA1C",
+    "webui_dist_index_sha256":  "A38F1DAC77C53E4514FA15B5A37ADDFF010A26EC5FB0DFA8B8A3BDA63649F6B2",
+    "kernel_exe":  "D:/Vit_DAW/VitApp/build/VitApp_artefacts/Release/VitApp.exe",
+    "kernel_exe_sha256":  "A59473614152882B21433DCEE684F8B13AE0BD5B632A97CD5E2C8765BB18348E",
+    "hub_exe":  "D:/Vit_DAW/agent/bin/VspHub.exe",
+    "hub_exe_sha256":  "B10CC41295066C48BB446B255D12D1A58D2D8D64F164D875083667B464C71F68",
+    "legacy_leg":  "pass",
+    "legacy":  {
+                   "launch_result":  "present",
+                   "import_checkonly_exit":  0,
+                   "direct_env_gate":  "present",
+                   "open_chain_ref":  "present",
+                   "governance_dialog_file":  "present"
+               },
+    "boot_drafts_baseline_count":  10304,
+    "failure_legs":  {
+                         "bad_agent_exe":  "pass",
+                         "occupied_port":  "pass",
+                         "webview2_off":  "pass"
+                     },
+    "boot_drafts_created":  4,
+    "boot_drafts_left_after_cleanup":  [
+
+                                       ],
+    "boot_draft_cleanup":  "ok",
+    "round_results":  [
+                          {
+                              "round":  1,
+                              "started_at_utc":  "2026-11-17T03:54:09Z",
+                              "recents_seeded_sha256":  "D130FCB3B1F17C2FE7232828A3F8D3F06C816DBD9A34563B67DAE8834D59C7F8",
+                              "vitshell_pid":  17672,
+                              "no_reload_sentinel":  1794887658040,
+                              "greeting_text":  "我在。最近的工程是《fixture_a》——想从哪开始？",
+                              "recents_count":  "11",
+                              "kernel_online":  {
+                                                    "vitapp_count":  1,
+                                                    "greeting_recent_count":  11,
+                                                    "agent_pid":  28016,
+                                                    "vsphub_count":  1,
+                                                    "drawer_rows":  11
+                                                },
+                              "launcher_zero_binding":  {
+                                                            "gate_marker_lines":  0,
+                                                            "current_project_path":  "",
+                                                            "current_project_uuid":  "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb"
+                                                        },
+                              "new_project_intent":  "name-less auto-exec",
+                              "new_project_context_name":  "Unsaved.vit",
+                              "kernel_survives_daw_close_after_new":  true,
+                              "button_new_context_name":  "Unsaved.vit",
+                              "first_open_governance":  "required",
+                              "godot_pid_1":  25324,
+                              "project_context_name":  "fixture_a.vit",
+                              "management":  {
+                                                 "terminal_counter_cancel_offset":  3,
+                                                 "unchanged_pids":  [
+                                                                        6992,
+                                                                        9388
+                                                                    ],
+                                                 "error_surface":  "synthetic GET503 only, real GET also passed",
+                                                 "main_frame_navigations":  0,
+                                                 "sentinel":  1794887658040,
+                                                 "ok":  true,
+                                                 "canceled_request_ids":  [
+                                                                              "webui_launcher_br_mwk5s5f0",
+                                                                              "webui_launcher_br_mwk5s5gs",
+                                                                              "webui_launcher_br_mwk5s5ir"
+                                                                          ],
+                                                 "telemetry_added":  0,
+                                                 "native_navigate_count":  "unavailable in d05043e status schema; HWND/url/sentinel plus mainframe event count asserted",
+                                                 "pure_view_count_unchanged":  true
+                                             },
+                              "chat_assistant_reply":  "当前工程还没有任何轨道。请先加入音频内容，之后我可以再做混音观察或诊断。\n\n（意图分类服务本次不可用，以上直接来自工程结构事实。）",
+                              "chat_user_frames":  1,
+                              "chat_vit_frames":  1,
+                              "inproject_new_directive":  "正在新建《新工程_1117_1154》…",
+                              "inproject_new_governance":  "switch",
+                              "agent_current_project_after_inproject_new":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261117T035444_8ae2612d\\Unsaved.vit",
+                              "inproject_new_context_name":  "Unsaved.vit",
+                              "kernel_survives_daw_close_l4":  true,
+                              "agent_current_project_after_open2":  "C:\\Users\\timoz\\.codex\\worktrees\\converge-entry-388\\Vit_DAW\\coord\\runs\\CONVERGE-ENTRY-1\\stack_A_20261117_1153\\device\\fixtures\\fixture_b.vit",
+                              "result":  "PASS",
+                              "finished_at_utc":  "2026-11-17T03:55:00Z"
+                          }
+                      ],
+    "rounds_passed":  1,
+    "success_ratio":  "1/1",
+    "finished_at_utc":  "2026-11-17T03:55:01Z"
+}

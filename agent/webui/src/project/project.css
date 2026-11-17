@@ -413,3 +413,22 @@
   margin-left: auto;
   white-space: nowrap;
 }
+
+/* 388：管理视图入口与工作台并列；窄窗允许标题栏换行，按钮保持可达。 */
+.v5-project-titlebar:has(.v5-project-view-launcher) {
+  height: auto;
+  min-height: 40px;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+.v5-project-view-launcher { margin-left: auto; white-space: nowrap; }
+.v5-project-titlebar:has(.v5-project-view-launcher) .v5-project-open-workbench { margin-left: 0; }
+.v5-project-footer {
+  flex: 0 0 auto;
+  padding: 8px 14px;
+  border-top: 1px solid var(--v5-titlebar-rule);
+  background: var(--v5-ui-rail);
+}
+.v5-project-footer button { min-height: 36px; }

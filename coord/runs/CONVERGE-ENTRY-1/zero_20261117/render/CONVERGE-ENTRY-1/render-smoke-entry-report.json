@@ -1,0 +1,11 @@
+{
+  "date": "2026-11-17T03:15:11.475Z",
+  "url": "http://127.0.0.1:5391/app/?surface=launcher",
+  "recentReads": 9,
+  "chatRequests": 0,
+  "configWrites": 0,
+  "failures": [
+    "ENTRY388: management recent list reads real GET contract "
+  ],
+  "result": "FAIL"
+}

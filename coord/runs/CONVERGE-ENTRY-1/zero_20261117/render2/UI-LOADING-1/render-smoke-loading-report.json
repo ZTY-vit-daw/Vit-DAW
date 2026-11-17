@@ -1,0 +1,85 @@
+{
+  "run": "UI-LOADING-1 loading render smoke",
+  "date": "2026-11-17T03:17:20.188Z",
+  "url": "http://127.0.0.1:5391/app/gallery.html?surface=loading",
+  "viewport": "1440x900@1",
+  "reducedMotion": "reduce",
+  "externalRequestCount": 0,
+  "dom": {
+    "fixtureNotice": true,
+    "pagePresent": true,
+    "cardPhases": [
+      "loading",
+      "loading",
+      "loading",
+      "completed",
+      "completed",
+      "failed",
+      "interrupted",
+      "failed"
+    ],
+    "cards": 8,
+    "currentSteps": 1,
+    "doneSteps": 2,
+    "tapeFrames": [
+      "1.00/0.20",
+      "1.00/0.20",
+      "0.49/0.71",
+      "0.20/1.00",
+      "0.20/1.00",
+      "1.00/0.20",
+      "1.00/0.20",
+      "1.00/0.20"
+    ],
+    "tapeSvgCount": 8,
+    "receipts": 2,
+    "receiptTexts": [
+      "已打开《示例工程甲（fixture）》",
+      "已打开《示例工程甲（fixture）》"
+    ],
+    "histories": 2,
+    "failureReasons": [
+      "音频设备被其他程序占用，装载停止。",
+      "宿主窗口被关闭，装载中断。",
+      "连不上 Vit agent——fixture 样例。确认 VitAgent 在运行后重试。"
+    ],
+    "retryButtons": [
+      "重试",
+      "重新打开",
+      "重试"
+    ],
+    "gateStates": [
+      "error",
+      "ok"
+    ],
+    "gateHiddenChildren": 0,
+    "gateComposer": 1,
+    "inputDisabledFlags": 3,
+    "countdownText": 0,
+    "inputDisabledSample": false,
+    "iconElements": 8
+  },
+  "textContrastMin": {
+    "text": "装载状态卡 · 三步轨迹（SPEC P2；当前步",
+    "ratio": 5.077,
+    "fg": "rgb(102,102,102)",
+    "bg": "rgb(240,241,242)"
+  },
+  "graphicChecks": 9,
+  "graphicMinRatio": 5.614,
+  "clipIssues": [],
+  "docScrollWidth": 1440,
+  "fontTooSmall": [],
+  "failures": [],
+  "notes": [
+    "loadingUrl=http://127.0.0.1:5391/app/gallery.html?surface=loading"
+  ],
+  "screenshots": [
+    "C:\\Users\\timoz\\.codex\\worktrees\\converge-entry-388\\Vit_DAW\\coord\\runs\\CONVERGE-ENTRY-1\\zero_20261117\\render2\\UI-LOADING-1\\screens\\loading-viewport-1440x900.png",
+    "C:\\Users\\timoz\\.codex\\worktrees\\converge-entry-388\\Vit_DAW\\coord\\runs\\CONVERGE-ENTRY-1\\zero_20261117\\render2\\UI-LOADING-1\\screens\\loading-full.png"
+  ],
+  "foundationReport": "C:\\Users\\timoz\\.codex\\worktrees\\converge-entry-388\\Vit_DAW\\coord\\runs\\CONVERGE-ENTRY-1\\zero_20261117\\render2\\UI-FOUNDATION-1\\render-smoke-report.json",
+  "launcherReport": "C:\\Users\\timoz\\.codex\\worktrees\\converge-entry-388\\Vit_DAW\\coord\\runs\\CONVERGE-ENTRY-1\\zero_20261117\\render2\\UI-LAUNCHER-1\\render-smoke-launcher-report.json",
+  "projectReport": "C:\\Users\\timoz\\.codex\\worktrees\\converge-entry-388\\Vit_DAW\\coord\\runs\\CONVERGE-ENTRY-1\\zero_20261117\\render2\\UI-PROJECT-1\\render-smoke-project-report.json",
+  "result": "PASS"
+}
