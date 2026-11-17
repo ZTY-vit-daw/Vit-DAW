@@ -1,6 +1,7 @@
 # PC 真实运行栈占用记录
 本记录是共享卡池协作的资源登记面，操作协议见 [PROTOCOL.md](../PROTOCOL.md) §2.2。
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
+- 2026-11-17 21:58 +0800 预留 / **408 runtime z事务两腿**：owner=GLM 主管决策流（ZCode 会话）+L2 执行子代理，PC；主 24a84b7d、前端 codex/window-transition-406 @e3e6374。主管已亲证首段四类无窗证据（66ea07e7）。仅隔离 Godot child+probe（显式 testloader/VIT_TEST_TARGET_Z_GUARD），≤2 child、每腿≤15min、runtime_02 仅在 runtime_01 全绿无异常后执行；禁内核/agent/产品栈/LLM/运行中改代码，任一异常停/无补跑。启动前执行侧 fetch 重读本记录+≤60 秒进程/端口净空复核；用户 recents 快照/finally 哈希；仅操作本次 exact child；全退后主管核零释放。
 - 2026-11-17 20:14 +0800 释放 / **407 R2真实z关系FAIL**：synthetic到single show、16DIP/mode0/noFG正确，rawdownprefixguard在下，runner1/probe40，external停。工件1aec3670，主管核报告/84native健康自然退出并核全部进程/TCP6口/UDP零；recents一致。408只test同线程z事务代码/无窗，无启动权；当前空闲。
 - 2026-11-17 20:08 +0800 预留 / **407有向有效prefix R2**：owner=Codex `/root/restore403`（Sol/high，PC），主d9add341/scripte61f636e、前端shell-window-transition-406 @ae86c7d。主管审方向字段/96pure/未变geometry，现只新runtime_02≤2child/15min、first anomaly停/no补跑，先RUNBOOK；reference已在验证prefix可证关系，未找到/错误/矛盾仍coverage不足，不扩大容量，不回改R1。不启产品/内核/agent；启前fetch owner/≤60秒净空、recents快照/finally/原字节/exact child全退后主管释放。
 - 2026-11-17 20:00 +0800 释放 / **407 R1 z尾链coverage不足**：synthetic child11564，16DIP/domain/前4步过，guard在up链但down64截断，show0/runner1。原工件62558375保全；全部进程/端口零recents一致。主管只授权关系prefix必要范围policy窄修+无窗，不改geometry或产品；当前空闲，无新启动权。

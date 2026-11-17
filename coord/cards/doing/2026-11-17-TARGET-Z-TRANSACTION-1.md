@@ -20,3 +20,11 @@
 - 主管亲跑复核（全部无窗、亲证退出码）：geometry selftest exit0（126 例 0 失败，windows_created=0，96 原语义全数保留+30 新增）；identity selftest exit0（23/0，window_operations=0）；observer policy exit0（34/0，windows_created=0）；PS5 静态门 exit0（ParseFile 0 错误、lease helper 10/10、选项门 10/10、origin/main 实际 lease 对 408 正确拒绝=未发明运行时权限）。
 - 契约冲突=无。执行侧发现并补齐的唯一缺口（前任 schema 审计跑在 formatter 定稿前）已入 REPORT；前任 pending 2 失败→修复的中间证据按诚实留痕保留。
 - 未证明边界（维持）：真实 Godot 首 ordinary 转换下 guard 激活时序/嵌套深度/reference 存活、真栈 arm 门、408 开关下 engine0/2s/自然卸载。runtime（≤2 次）待主管单独授权后执行，栈登记照旧。
+
+## runtime_01/02 授权（2026-11-17 21:58 +0800，GLM 主管；栈预留见 PC-RUNTIME-STACK.md 同刻条目）
+
+- 执行=GLM L2 子代理（用户裁定今晚本会话闭环）。**只跑已审代码**：前端 e3e6374（构建产物）、主仓 24a84b7d（ps1）；运行中零代码改动；任一异常即停，无补跑、无运行中调 guard。
+- 两腿各≤1 个全新 Godot child、≤15 分钟：`runtime_01`=synthetic 守卫前台；`runtime_02`=自然 external 前台（前提缺失记 not_exercised，不强造）。每腿先落 `coord/runs/TARGET-Z-TRANSACTION-1/runtime_0X/RUNBOOK.md` 再执行；ps1 显式 408 门全五开关+`-ForensicsCard 408`。
+- 通过门（每腿，全部原样核、不降判据）：①安全 startup/ready 前提（safe iconic、child 从未 FG）；②恢复候选一次执行；③首次 ordinary 转换三 phase 完整：entry/downstream_after/guard_after 同 token/depth 配对，guard_after=实际交回 USER32 的最终 proposal，z=已核 reference（guard above child）、SWP_NOZORDER 按需清除、NOACTIVATE/NOOWNERZORDER/geometry 原值；④已可见错误 proposal 保留为拦截证据，CHANGED/native 末态原样，任何已可见 guardbelow/错 geometry/activation 仍 FAIL；⑤geometry 16DIP/engine mode0 不变、零 FG/focus/TOPMOST、client/mode 一致≥2s；⑥nonce stop 请求→应用自卸载闭环（removed_verified/shutdown/engine_ack）→child 自然 exit 0；⑦收尾全进程/端口归零、recents 前后哈希一致。
+- 失败分类照 §8（probe_defect/环境/机制失败分开）；任一腿 FAIL/coverage 缺口→停止，不跑下一腿，保全原始工件。装置腿 lease 门若因 owner 字符串不匹配拒绝：按资源记录 21:58 条目的 owner 原串传参对齐，禁止改门。
+- 工件：raw JSONL+decoder 摘要+REPORT 入 run 目录，两树独立 commit（不 push）。token 经济纪律（PROTOCOL §0.3）：原始日志只走 decoder/计数摘要进上下文，不整读 raw。
