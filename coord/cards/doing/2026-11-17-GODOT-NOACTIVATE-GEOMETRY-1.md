@@ -35,3 +35,10 @@
 - 父/目标DPI记录包括GetThreadDpiAwarenessContext与GetAwarenessFromDpiAwarenessContext，不能以opaque handle数字猜枚举；几何写/读固定T，P只读审计，API转换精确记录。GetDpiForWindow/monitor冻结与roundtrip失败即拒绝。所有父mutation记录QPC begin/end与参数/return，child native QPC可关联；初始首次ordinary可见state必须目标rect/z，不能只看2s终态。
 - 准备一个无窗native-trace评估器自测（可同probe）覆盖可见小窗后修正仍FAIL、嵌套错误提交、错坐标/monitor/身份、记录缺口、postshow修正、no-send等反例；最终用原生CHANGING after/CHANGED entry-after、全部可见非iconic快照和API区间因果核对，不只parent sample。范围仅User32状态，不升级为DWM像素帧保证。
 - 仍仅代码/build/纯无窗/真实PS5静态装配检查（显式卡405/geometry/observer参数与metadata，ForensicsCard白名单及时更新），不启动窗口。完整提交+短回执后主管复核，再冻结≤2runtime、任一异常停、无补跑。不得把既有406external0归新geometry结果。
+
+## 首个runtime预算（19:18 +0800）
+
+- 前端ea643bf+24c6664、主scriptc43d66ad/工件4784b563；主管已读全部候选/DPI/native-trace解析与schema补测diff、真实PS5装配报告，并亲跑41/41纯geometry+真实JSONL解码反例exit0。测试装置允许进入限次运行，不替新geometry实证。
+- 新RUNBOOK-runtime先冻结，新GODOT-NOACTIVATE-GEOMETRY-1/runtime_01，显式`-GodotRestoreForensics -ForensicsCard 405 -TestTransitionObserver -TestNoActivateGeometry`，前端shell-window-transition-406 @24c6664。synthetic/external各最多1新Godot child、总≤20min，条件not_exercised可如实结束该条件不强造；任一异常停止余下、无环境/装置补跑、无运行中修改代码/标准。
+- 通过必须唯一五步目标T上下文顺序、physical/target/workspace往返/冻结monitor、safe hidden stagedrect/z先成立，target-native所有ordinary可见与proposal/嵌套提交已目标workarea且guard后/无FG或focus/非TOPMOST，single show内首ordinary转换因果记录、后无纠正、mode0/client一致≥2s、zero nativefail/drop/IO与自然卸载exit0全闭环。synthetic缺失仍保持overall coverage不足，不冒称2/2。
+- 只隔离装置，不开完整DAW工程/内核/agent，无LLM。source/ABI/binary/HEAD/status/命令exit/原始父+targettrace/ZIP/hash/recents before/finally/全零齐；失败归类正确且首cause留存。主管启前全零已亲核，执行启前fetch owner+≤60s再次核，长build后重查。
