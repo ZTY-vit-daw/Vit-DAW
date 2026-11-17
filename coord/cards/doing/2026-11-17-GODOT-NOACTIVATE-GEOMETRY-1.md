@@ -15,3 +15,9 @@
 - 首段只读方案：核官方Win32/Godot源码、DPI上下文与placement坐标、当前探针与失败候选的geometry准备；不运行Godot/probe窗口、不改任何代码或旧工件。允许报告工件仅`coord/runs/GODOT-NOACTIVATE-GEOMETRY-1/PLAN.md`及必要官方引用快照。
 - 回执短：单一候选API顺序、可证与待证、具体文件域、冻结≤2场景判据/分类/止损、可能需要用户裁决的产品语义（有则列，无则明确无）。先主管审方案，再决定代码与新runtime，不默认为已授启窗。
 - 当前真实栈亲核全零且空闲，本段不预留栈，不授接管其他进程；不复跑E/E2，不操控他人窗口，不CUA/输入/截图，不改manager/生产GD/UI。
+
+## 静态复核补段（17:47 +0800）
+
+- 方案ab2206d4/0ced980e/8f1b7c8a已提交；DPI坐标契约明确，但异步WinEvent不足以证首次转换geometry，当前单候选不能给严格PASS。主管与Astra最疑难只读参谋复核官方契约；参谋无实现/运行/验收。证据边界见`coord/decisions/2026-11-17-first-visible-evidence-boundary.md`。
+- 本段增加只读可行性勘察：既有目标Godot extension能否由应用自身在其窗口线程配合转换记录/geometry约束（合法自进程，不跨进程注入或subclass、不全局hook）。明确extension实际装配、主线程/生命周期、同nonce/PID/HWND协议、所有中间几何变化如何覆盖及停止/卸载边界。
+- 仅写本卡`PLAN.md`补充或`TARGET-COOPERATION.md`报告；不改生产/探针/脚本代码、不起任何窗口。若需超3实现文件域、引入维护性差的原生机制或无法保留legacy，明确方案风险并上交；当前无用户产品语义待裁定，不因取证难而放宽首显门。
