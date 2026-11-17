@@ -1,0 +1,42 @@
+diff --git a/scripts/vitshell_smoke.ps1 b/scripts/vitshell_smoke.ps1
+index 6160c1db..c7705a46 100644
+--- a/scripts/vitshell_smoke.ps1
++++ b/scripts/vitshell_smoke.ps1
+@@ -29,7 +29,8 @@ param(
+     [switch]$SkipBuild,
+     [switch]$Win32RestoreForensics,
+     [switch]$GodotRestoreForensics,
+-    [string]$ForensicsGodotExe = 'D:/Godot/Godot_v4.6.1-stable_win64.exe'
++    [string]$ForensicsGodotExe = 'D:/Godot/Godot_v4.6.1-stable_win64.exe',
++    [ValidateSet('403','404')][string]$ForensicsCard = '403'
+ )
+ 
+ $ErrorActionPreference = "Stop"
+@@ -63,6 +64,17 @@ if ($Win32RestoreForensics -or $GodotRestoreForensics) {
+         & $Exe @NativeArgs 2>&1 | Out-File -LiteralPath $LogPath -Encoding utf8
+         return $LASTEXITCODE
+     }
++    function Get-ForensicsResourceReservation {
++        param([string[]]$Lines, [ValidateSet('403','404')][string]$ExpectedCard)
++        # Inspect the first resource record only; never authorize via history.
++        $nonempty=@($Lines | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
++        if (-not $nonempty.Count -or $nonempty[0].Trim() -cne '# PC 真实运行栈占用记录') { throw 'forensics resource header missing' }
++        $current=$Lines | Where-Object { $_ -match '^\s*-\s+' } | Select-Object -First 1
++        if (-not $current -or $current -notmatch '^- .+? (?<state>续预留|预留|占用)\s*/\s*\*\*(?<card>\d+)(?=\D)') { throw 'forensics current resource is not reserved or occupied' }
++        if ($Matches.card -cne $ExpectedCard) { throw 'forensics current resource card mismatch' }
++        if ($current -notmatch 'owner=Codex `(?<owner>[^`]+)`' -or $Matches.owner -cne '/root/restore403') { throw 'forensics current resource owner mismatch' }
++        return $current
++    }
+     function Assert-403Idle {
+         param([string]$Label)
+         $fetchCode=Invoke-403Native -Exe git -NativeArgs @('-C',$MainRoot,'fetch','origin','main') -LogPath (Join-Path $RunRoot "$Label.fetch.log")
+@@ -71,7 +83,8 @@ if ($Win32RestoreForensics -or $GodotRestoreForensics) {
+         $resource = @(& git -C $MainRoot show origin/main:coord/resources/PC-RUNTIME-STACK.md)
+         if ($LASTEXITCODE -ne 0) { throw '403 resource read failed' }
+         $resource | Select-Object -First 5 | Out-File (Join-Path $RunRoot "$Label.resource.txt") -Encoding utf8
+-        if ($resource[3] -notmatch '403.*owner=Codex `/root/restore403`') { throw '403 resource owner changed' }
++        $reservation=Get-ForensicsResourceReservation -Lines $resource -ExpectedCard $ForensicsCard
++        $reservation | Out-File (Join-Path $RunRoot "$Label.matched_resource.txt") -Encoding utf8
+         $processes = @(Get-CimInstance Win32_Process | Where-Object { $_.Name -match '^(VitShell|VitAgent|VitApp|VspHub|Godot|godot|win32_noactivate_restore_probe).*\.exe$' })
+         $tcp = @(Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue | Where-Object { $_.LocalPort -in @(5555,5556,7878,7879,8787,9333) })
+         $udp = @(Get-NetUDPEndpoint -LocalPort 4445 -ErrorAction SilentlyContinue)

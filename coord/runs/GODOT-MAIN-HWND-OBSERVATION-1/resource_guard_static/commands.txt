@@ -1,0 +1,4 @@
+1. ParseFile(scripts/vitshell_smoke.ps1) -> exit0.
+2. AST extract only Get-ForensicsResourceReservation definition; invoke14 pure fixture cases -> exit0,14/14.
+3. git diff --check -> exit0.
+No script top-level, fetch, process/window or Godot invocation in validation.

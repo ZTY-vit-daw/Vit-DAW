@@ -1,0 +1,9 @@
+# 404 resource guard — narrow static repair
+
+Authorization70684f2d/card final section read before work. Only scripts/vitshell_smoke.ps1 changed. New explicit ForensicsCard ValidateSet403/404 defaults403;404 runtime must pass -ForensicsCard404. Existing frontendcdf1924 unchanged. No Godot/window/probe launch and no script top-level execution occurred.
+
+The resource helper requires the expected header and examines only the first bullet resource record. It requires current status占用/预留/续预留, exact card number from the leading bold record title, and exact owner /root/restore403. It rejects released/idle/empty/headerless records and cannot authorize using a matching historical entry. Actual matched line is separately written to each preflight's matched_resource.txt. Existing fetch and process/port checks remain after this predicate, with no behavior change to the normal nonforensics smoke path.
+
+PowerShell AST extraction loaded only Get-ForensicsResourceReservation for pure-data calls. Parser exit0;14 cases all pass:403/404 reserved, occupied and continued-reservation positive; wrong owner, owner prefix, wrongcard, release, idle, matchinghistorical record behindrelease, missingheader, emptyrecords/input, unsupportedcard reject. helper_cases.json is raw result, summary.json records0 failures and no top-level/fetch/process/window calls. git diff --check exit0. Full code diff and revised source SHA are in this directory. No build required for PowerShell-only predicate repair.
+
+This proves static gate behavior for the declared cases, not actual current runtime readiness, exact Godot HWND binding or restore/mode synchronization. No new runtime authorization is inferred. Old403/404 failures and local shader caches remain untouched; this task does not update coordination state or merge main. Supervisor review and any future runtime budget remain separate.
