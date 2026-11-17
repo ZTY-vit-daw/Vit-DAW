@@ -35,6 +35,7 @@ finally沿用脚本既有整树拆栈、端口释放、recents bytes/absence还�
 该脚本的旧finally仅copy recents、fixture变化仅WARN；禁止裸跑。以下外层卫生命令在新run目录强制亲证recents还原（含原文件不存在）及fixture源不变；外层失败也为非零环境中断。它不替代腿A管理语义。先重新登记/核净空再运行。
 
 ```powershell
+$ErrorActionPreference = 'Stop'
 $entryRepo = 'C:/Users/timoz/.codex/worktrees/converge-entry-388/Vit_DAW'
 $entryRun = Join-Path $entryRepo 'coord/runs/CONVERGE-ENTRY-1/stack_B_20261117_XXXX'
 New-Item -ItemType Directory -Path $entryRun -ErrorAction Stop | Out-Null
