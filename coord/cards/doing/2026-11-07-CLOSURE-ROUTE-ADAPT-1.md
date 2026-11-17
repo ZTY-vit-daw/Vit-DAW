@@ -79,3 +79,6 @@
 
 ## 2026-11-17 正式场景止损（待完整归档裁定）
 run122448自然diagnostic+8turn预算亲证，但目标工具未调/golden未达，9calls超8账面上限，最终budget_exceeded非PASS；旧1turn解除只记链路进度。禁止再chat/continue/换话术追通过；原run finally解码错误离线补report如实标注。栈释放，352依赖不因局部预算证据自动解锁。
+
+## 主管裁定（2026-11-17）
+验证未通过：正式run122448 outer1/py6 budget_exceeded，9调用>8冻结上限；自然diagnostic与四身份8轮预算仅证旧clamp解除，目标analyze未执行/golden无法评，不能记端到端通过。停止新增模型轮次，挂起blocked，352仍不解锁。原实现轻验效力保留，未重写为失败。完整回执与精确字节证据coord/runs/CLOSURE-ROUTE-ADAPT-1/validation-20261117/READOUT.md；原脚本/取证分支codex/closure-validation-271 @9edd247e保留，本轮不把未通过验收装置合入生产main。d1为显式离线重建，原报告缺失/console/rawexit保留，非事后PASS。资源释放a4ca71c6。

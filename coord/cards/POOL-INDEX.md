@@ -23,7 +23,7 @@
 | 268 | D1GATE-SCRIPT-HYGIENE-1 | done 已验收 pass（主管亲跑复验） |
 | 269 | EXPADMIT-EVIDENCE-RULE-1 | done 已验收 pass 收口（契约链整程真栈走通） |
 | 270 | SMOKE-ENC-HYGIENE-2 | done 已验收 pass（主管亲跑） |
-| 271 | CLOSURE-ROUTE-ADAPT-1 | doing（实现轻验 pass；验证腿候便车搭后续 run） |
+| 271 | CLOSURE-ROUTE-ADAPT-1 | blocked（11-17预算8轮实证，目标工具未达/9调用超8上限；终验未过，停止重跑，352不解锁） |
 | 272 | OBSFACE-SELECTIVE-MISS-1 | done 取证型 pass（前提改写=agent 侧接线错位非 kernel；转卡 274） |
 | 273 | ARRLOOP-AUTHBRIDGE-1 | doing（11-07 早窗重发；零栈段在派，验证腿候栈第 3 位） |
 | 274 | D1D3-DIGEST-WIRING-1 | done 已验收 pass 合入（相邻两处转卡 292/293） |
@@ -133,7 +133,7 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 349 | UI-OS-1 | done 已验收 pass 合入（[裁定](../rulings/2026-11-14-UI-OS-1-pass.md)：真栈 71 断言 exit 0——关闭≠收拢/前台门控通知/同 HWND 召回；WinRT toast 按钮与通知触发链边界登记留 348/另卡；前端 128477b 已推） |
 | 350 | R0-CHAT-WINDOW-RECON-1 | done 已验收 pass 收口（取证型：设计侧预勘察收口为交付物，[裁定](../rulings/2026-11-14-R0-CHAT-WINDOW-RECON-1-pass.md)；真栈未知项移交 343） |
 | 351 | REC-ISOLATION-CONFIGDIR-1 | todo 可领 P3（342 裁定 a 案：env VIT_DAW_USER_CONFIG_DIR 装置配置目录隔离，fail-open；真栈腿候 PC 栈空闲；**不占展演前主线**） |
-| 352 | LAUNCHER-ZEROFRICTION-1 | doing（**取证腿 pass+方案裁定采 A1**（launcher 卷门控不物化）——根因链=聊天落盘对话节点→物化 Unsaved 草稿→path hint→三键，主管亲证锚点；实施腿排 271 收口后另领） |
+| 352 | LAUNCHER-ZEROFRICTION-1 | doing（**取证腿 pass+方案裁定采 A1**（launcher 卷门控不物化）——根因链=聊天落盘对话节点→物化 Unsaved 草稿→path hint→三键，主管亲证锚点；实施腿仍候271终验（11-17未过）后另领） |
 | 353 | ENV-GODOTCPP-RESTORE-1 | done 已验收 pass 合入（双位置全空取证+根因高置信=拆除穿透 junction（归因 open，mtime 证明早于主管 force remove）+4.2.2 恢复+scons 双变体 exit 0 亲证；§3 rmdir 实测形式补遗；B 位不恢复裁定） |
 
 - 推荐起手：**343 ∥ 344**（Godot 宿主 / WebUI 基座，文件域不相交）；345 在 344 合入后；346 在 345 后；347 在 346 后；348 等 343+345；349 等 343。
