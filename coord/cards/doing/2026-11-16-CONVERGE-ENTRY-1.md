@@ -26,3 +26,8 @@
 
 ### 管理页数据接缝（2026-11-17）
 401 LAUNCHER-RECENTS-READ-1为本卡必要依赖，GET全量列表不经LLM。当前工程管理视图禁用自由composer/新问候误称独立启动卷，提供返回工程对话；recents真实读取不退化为快照空态。401同owner先独立提交（3生产文件），388后提交（原5文件），依赖序验收。401前388已有5文件骨架不丢弃。
+
+## 2026-11-17 真栈登记与放行范围
+
+- A/B稳定前端真实验证由原owner /root/entry388执行；主仓候验hash1d114d07、前端d05043e，明确不验证394/402焦点。
+- 跑前协议见RUNBOOK；外层recents/运行时XML与Settings兜底防脚本早期build/import失败逃过其finally。真实端侧结果、recents哈希/fixture哈希与TEARDOWN未返回前不记通过；本次资源登记push成功且owner核对后主管消息放行。
