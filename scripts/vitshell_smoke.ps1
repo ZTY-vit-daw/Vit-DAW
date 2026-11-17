@@ -30,7 +30,8 @@ param(
     [switch]$Win32RestoreForensics,
     [switch]$GodotRestoreForensics,
     [string]$ForensicsGodotExe = 'D:/Godot/Godot_v4.6.1-stable_win64.exe',
-    [ValidateSet('403','404')][string]$ForensicsCard = '403'
+    [ValidateSet('403','404','406')][string]$ForensicsCard = '403',
+    [switch]$TestTransitionObserver
 )
 
 $ErrorActionPreference = "Stop"
@@ -39,6 +40,8 @@ $MainRoot = Split-Path -Parent $PSScriptRoot   # main-repo worktree root (script
 # Card 403: explicitly selected, independent owned-window experiment. Return
 # before any product build/start/HTTP/project code below. No product code links
 # to this probe, and the normal smoke path is unchanged when this switch is off.
+if ($TestTransitionObserver -and (-not $GodotRestoreForensics -or $ForensicsCard -ne '406')) { throw 'TestTransitionObserver requires GodotRestoreForensics and explicit ForensicsCard 406' }
+if ($ForensicsCard -eq '406' -and -not $TestTransitionObserver) { throw 'ForensicsCard 406 requires TestTransitionObserver' }
 if ($Win32RestoreForensics -or $GodotRestoreForensics) {
     if ($Win32RestoreForensics -and $GodotRestoreForensics) { throw 'Select only one 403 phase' }
     if ($SkipBuild) { throw "403 requires a fresh isolated probe build" }
@@ -65,7 +68,7 @@ if ($Win32RestoreForensics -or $GodotRestoreForensics) {
         return $LASTEXITCODE
     }
     function Get-ForensicsResourceReservation {
-        param([string[]]$Lines, [ValidateSet('403','404')][string]$ExpectedCard)
+        param([string[]]$Lines, [ValidateSet('403','404','406')][string]$ExpectedCard)
         # Inspect the first resource record only; never authorize via history.
         $nonempty=@($Lines | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
         if (-not $nonempty.Count -or $nonempty[0].Trim() -cnotmatch '^# PC \u771f\u5b9e\u8fd0\u884c\u6808\u5360\u7528\u8bb0\u5f55$') { throw 'forensics resource header missing' }
@@ -115,7 +118,14 @@ if ($Win32RestoreForensics -or $GodotRestoreForensics) {
         $testBuild=Join-Path $RunRoot 'build'
         "cmake -S `"$testSource`" -B `"$testBuild`" -G `"Visual Studio 18 2026`" -A x64" |
             Out-File (Join-Path $RunRoot 'commands.txt') -Encoding utf8
-        $configureExit=Invoke-403Native -Exe cmake -NativeArgs @('-S',$testSource,'-B',$testBuild,'-G','Visual Studio 18 2026','-A','x64') -LogPath (Join-Path $RunRoot 'configure.log')
+        $configureArgs=@('-S',$testSource,'-B',$testBuild,'-G','Visual Studio 18 2026','-A','x64')
+        if ($TestTransitionObserver) {
+            $observerHeaders=Join-Path $MainRoot 'coord/runs/WINDOW-TRANSITION-OBSERVER-1/dependencies'
+            if (-not (Test-Path -LiteralPath (Join-Path $observerHeaders gdextension_interface.h))) { throw '406 official ABI header dependency missing' }
+            $configureArgs += "-DVIT_TEST_GDEXTENSION_INCLUDE=$observerHeaders"
+            ('cmake '+($configureArgs -join ' ')) | Add-Content (Join-Path $RunRoot commands.txt)
+        }
+        $configureExit=Invoke-403Native -Exe cmake -NativeArgs $configureArgs -LogPath (Join-Path $RunRoot 'configure.log')
         "configure_exit=$configureExit" | Add-Content (Join-Path $RunRoot 'commands.txt')
         if ($configureExit -ne 0) { throw '403 configure failed; no scenario started' }
         "cmake --build `"$testBuild`" --config Release" | Add-Content (Join-Path $RunRoot 'commands.txt')
@@ -125,6 +135,11 @@ if ($Win32RestoreForensics -or $GodotRestoreForensics) {
         $probeExe=Join-Path $testBuild 'Release/win32_noactivate_restore_probe.exe'
         Get-FileHash -Algorithm SHA256 -LiteralPath $probeExe | ConvertTo-Json |
             Out-File (Join-Path $RunRoot 'binary_hash.json') -Encoding utf8
+        if ($TestTransitionObserver) {
+            $observerDll=Join-Path $testBuild 'Release/window_transition_observer.dll'
+            Get-FileHash -Algorithm SHA256 -LiteralPath $observerDll,(Join-Path $FrontendWorktree 'VitShell/tests/window_transition_observer.cpp'),(Join-Path $FrontendWorktree 'VitShell/tests/window_transition_observer.h'),(Join-Path $observerHeaders gdextension_interface.h) |
+                ConvertTo-Json | Out-File (Join-Path $RunRoot 'observer_hashes.json') -Encoding utf8
+        }
         $failCount=0
         foreach ($condition in @('synthetic','external')) {
             $variants=@('restore','shownoactivate','placement')
@@ -138,6 +153,72 @@ if ($Win32RestoreForensics -or $GodotRestoreForensics) {
                     $null=New-Item -ItemType Directory -Path (Join-Path $project isolated_user) -Force
                     $nonce=[guid]::NewGuid().ToString('N')
                     $engineObservation=Join-Path $project 'observation.jsonl'
+                    $testObserverDeclarations=''; $testObserverReady=''; $testObserverProcess=''; $observerRecordExtras=''
+                    if ($TestTransitionObserver) {
+                        Copy-Item -LiteralPath $observerDll -Destination (Join-Path $project window_transition_observer.dll)
+                        if ((Get-FileHash -LiteralPath $observerDll).Hash -ne (Get-FileHash -LiteralPath (Join-Path $project window_transition_observer.dll)).Hash) { throw '406 copied DLL hash mismatch' }
+                        $extensionText=@'
+[configuration]
+entry_symbol="vit_window_transition_test_init"
+compatibility_minimum="4.6"
+reloadable=false
+[libraries]
+windows.debug.x86_64="res://window_transition_observer.dll"
+windows.release.x86_64="res://window_transition_observer.dll"
+'@
+                        [IO.File]::WriteAllText((Join-Path $project test.gdextension),$extensionText,(New-Object Text.UTF8Encoding($false)))
+                        $nativeObserverLog=(Join-Path $project transition_observer.jsonl).Replace('\','/')
+                        $stopRequest=(Join-Path $project stop.request).Replace('\','/')
+                        $unloadAck=(Join-Path $project unload_ack.json).Replace('\','/')
+                        $testObserverDeclarations=@"
+var transition_load_code: int = -1
+var transition_loaded: bool = false
+var transition_stopping: bool = false
+func transition_stop(nonce_matches: bool) -> void:
+	transition_stopping = true
+	var unload_code: int = int(GDExtensionManager.unload_extension("res://test.gdextension"))
+	var still_loaded: bool = GDExtensionManager.is_extension_loaded("res://test.gdextension")
+	transition_loaded = still_loaded
+	var removed: bool = false
+	var shutdown_ok: bool = false
+	var native_text: String = FileAccess.get_file_as_string("$nativeObserverLog")
+	for line in native_text.split("\n",false):
+		var item: Variant = JSON.parse_string(line)
+		if typeof(item) != TYPE_DICTIONARY:
+			continue
+		if str(item.get("nonce","")) != "$nonce" or int(item.get("pid",0)) != OS.get_process_id() or int(item.get("hwnd",0)) != DisplayServer.window_get_native_handle(DisplayServer.WINDOW_HANDLE):
+			continue
+		if str(item.get("kind","")) == "removed_verified":
+			removed = bool(item.get("ok",false)) and not bool(item.get("installed",true))
+		if str(item.get("kind","")) == "shutdown":
+			shutdown_ok = bool(item.get("ok",false)) and int(item.get("failures",-1)) == 0 and int(item.get("dropped",-1)) == 0
+	var ack = {"kind":"observer_unloaded","nonce":"$nonce","pid":OS.get_process_id(),"hwnd":DisplayServer.window_get_native_handle(DisplayServer.WINDOW_HANDLE),"nonce_matches":nonce_matches,"unload_result":unload_code,"still_loaded":still_loaded,"removed_verified":removed,"shutdown":shutdown_ok}
+	var ack_file: FileAccess = FileAccess.open("$unloadAck",FileAccess.WRITE)
+	if ack_file != null:
+		ack_file.store_line(JSON.stringify(ack))
+		ack_file.flush()
+		ack_file.close()
+	emit_observation("observer_unloaded")
+	OS.set_environment("VIT_TEST_TRANSITION_NONCE","")
+	OS.set_environment("VIT_TEST_TRANSITION_OUTPUT","")
+	var success: bool = nonce_matches and unload_code == 0 and not still_loaded and removed and shutdown_ok and ack_file != null
+	get_tree().quit(0 if success else 2)
+"@
+                        $testObserverReady=@"
+	OS.set_environment("VIT_TEST_TRANSITION_NONCE","$nonce")
+	OS.set_environment("VIT_TEST_TRANSITION_OUTPUT","$nativeObserverLog")
+	transition_load_code = int(GDExtensionManager.load_extension("res://test.gdextension"))
+	transition_loaded = GDExtensionManager.is_extension_loaded("res://test.gdextension")
+	emit_observation("observer_load_result")
+"@
+                        $testObserverProcess=@"
+	if not transition_stopping and FileAccess.file_exists("$stopRequest"):
+		var request: String = FileAccess.get_file_as_string("$stopRequest")
+		transition_stop(request == "$nonce")
+		return
+"@
+                        $observerRecordExtras=',"observer_load_result":transition_load_code,"observer_loaded":transition_loaded'
+                    }
                     $projectText=@'
 config_version=5
 [application]
@@ -168,20 +249,23 @@ var output: FileAccess
 var sequence: int = 0
 var ready_seen: bool = false
 var elapsed: float = 0.0
+$testObserverDeclarations
 func emit_observation(kind: String) -> void:
 	if output == null:
 		return
 	sequence += 1
-	var record = {"kind":kind,"seq":sequence,"nonce":"$nonce","pid":OS.get_process_id(),"unix_ms":int(Time.get_unix_time_from_system()*1000.0),"ticks_msec":Time.get_ticks_msec(),"ready":int(ready_seen),"window_mode":get_window().mode,"display_mode":DisplayServer.window_get_mode(),"focused":int(get_window().has_focus()),"hwnd":DisplayServer.window_get_native_handle(DisplayServer.WINDOW_HANDLE),"width":get_window().size.x,"height":get_window().size.y,"version":Engine.get_version_info()}
+	var record = {"kind":kind,"seq":sequence,"nonce":"$nonce","pid":OS.get_process_id(),"unix_ms":int(Time.get_unix_time_from_system()*1000.0),"ticks_msec":Time.get_ticks_msec(),"ready":int(ready_seen),"window_mode":get_window().mode,"display_mode":DisplayServer.window_get_mode(),"focused":int(get_window().has_focus()),"hwnd":DisplayServer.window_get_native_handle(DisplayServer.WINDOW_HANDLE),"width":get_window().size.x,"height":get_window().size.y,"version":Engine.get_version_info()$observerRecordExtras}
 	output.store_line(JSON.stringify(record))
 	output.flush()
 func _ready() -> void:
 	output = FileAccess.open("$observationPath",FileAccess.WRITE)
+$testObserverReady
 	get_window().focus_entered.connect(func(): emit_observation("focus_entered"))
 	get_window().focus_exited.connect(func(): emit_observation("focus_exited"))
 	get_window().size_changed.connect(func(): emit_observation("size_changed"))
 	emit_observation("scene_ready")
 func _process(delta: float) -> void:
+$testObserverProcess
 	if not ready_seen:
 		ready_seen = true
 		emit_observation("first_process_ready")
@@ -191,7 +275,7 @@ func _process(delta: float) -> void:
 		emit_observation("sample")
 "@
                     [System.IO.File]::WriteAllText((Join-Path $project observer.gd),$observerText,(New-Object System.Text.UTF8Encoding($false)))
-                    [ordered]@{nonce=$nonce; project=$project; command=('"'+$ForensicsGodotExe+'" --path "'+$project+'" --log-file "'+$project+'/godot_engine.log"'); startup_flags=1; startup_show=0; creation_flags='CREATE_SUSPENDED|CREATE_NO_WINDOW|CREATE_UNICODE_ENVIRONMENT'; user_environment='Child-only APPDATA/LOCALAPPDATA/USERPROFILE/TEMP/TMP redirected to run project isolated_user; VIT_* removed'; no_autoload=$true; no_plugins=$true; no_extensions=$true} | ConvertTo-Json | Out-File (Join-Path $RunRoot "$scene.project_manifest.json") -Encoding utf8
+                    [ordered]@{nonce=$nonce; project=$project; command=('"'+$ForensicsGodotExe+'" --path "'+$project+'" --log-file "'+$project+'/godot_engine.log"'); startup_flags=1; startup_show=0; creation_flags='CREATE_SUSPENDED|CREATE_NO_WINDOW|CREATE_UNICODE_ENVIRONMENT'; user_environment='Child-only APPDATA/LOCALAPPDATA/USERPROFILE/TEMP/TMP redirected to run project isolated_user; VIT_* removed'; no_autoload=$true; no_plugins=$true; no_extensions=(-not $TestTransitionObserver); no_production_extensions=$true; test_transition_observer=[bool]$TestTransitionObserver} | ConvertTo-Json | Out-File (Join-Path $RunRoot "$scene.project_manifest.json") -Encoding utf8
                 }
                 Assert-403Idle "before_$scene"
                 $raw=Join-Path $RunRoot "$scene.jsonl"
@@ -199,6 +283,7 @@ func _process(delta: float) -> void:
                     Add-Content (Join-Path $RunRoot 'commands.txt') }
                 $probeArgs=@($variant,$condition,('"'+$raw+'"'))
                 if ($GodotRestoreForensics) { $probeArgs=@('--godot',$condition,('"'+$raw+'"'),('"'+$ForensicsGodotExe+'"'),('"'+$project+'"'),('"'+$engineObservation+'"'),$nonce); ('"'+$probeExe+'" '+($probeArgs -join ' ')) | Add-Content (Join-Path $RunRoot commands.txt) }
+                if ($TestTransitionObserver) { $probeArgs[0]='--godot-observer'; ('"'+$probeExe+'" '+($probeArgs -join ' ')) | Add-Content (Join-Path $RunRoot commands.txt) }
                 $probeProcess=Start-Process -FilePath $probeExe -ArgumentList $probeArgs -WindowStyle Hidden -PassThru
                 $ownedPID=$probeProcess.Id
                 $null=$probeProcess.Handle # retain the exact created process handle before waiting
@@ -206,6 +291,7 @@ func _process(delta: float) -> void:
                     ConvertTo-Json | Out-File (Join-Path $RunRoot "$scene.process.json") -Encoding utf8
                 $probeTimeout=15000
                 if ($GodotRestoreForensics) { $probeTimeout=20000 }
+                if ($TestTransitionObserver) { $probeTimeout=30000 }
                 if (-not $probeProcess.WaitForExit($probeTimeout)) { throw "403 timeout in owned process $ownedPID" }
                 $code=$probeProcess.ExitCode
                 $probeProcess.Dispose()
@@ -235,7 +321,8 @@ func _process(delta: float) -> void:
         try { Assert-403Idle 'after_teardown' } catch { $probeExit=1; $_ | Out-String | Out-File (Join-Path $RunRoot 'teardown.failure.txt') }
         $boundary='Owned synthetic Win32 windows only; no VitShell/Godot/product conclusions'
         if ($GodotRestoreForensics) { $boundary='Isolated minimal Godot only; raw child WinEvent plus engine observations, no child WndProc or product acceptance' }
-        [ordered]@{ card='403'; run_id=(Split-Path -Leaf $RunRoot); started=$probeStarted.ToUniversalTime().ToString('o'); finished=(Get-Date).ToUniversalTime().ToString('o'); exit=$probeExit; recents_unchanged=($recentsBefore -eq $recentsAfter); scenarios=$probeResults; boundary=$boundary } |
+        if ($TestTransitionObserver) { $boundary='Isolated test-only target-thread observer; native child transitions plus graceful unload; no product acceptance' }
+        [ordered]@{ card=$ForensicsCard; run_id=(Split-Path -Leaf $RunRoot); started=$probeStarted.ToUniversalTime().ToString('o'); finished=(Get-Date).ToUniversalTime().ToString('o'); exit=$probeExit; recents_unchanged=($recentsBefore -eq $recentsAfter); scenarios=$probeResults; boundary=$boundary } |
             ConvertTo-Json -Depth 8 | Out-File (Join-Path $RunRoot 'report.json') -Encoding utf8
     }
     exit $probeExit
