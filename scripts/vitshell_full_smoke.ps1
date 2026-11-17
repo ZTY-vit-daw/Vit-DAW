@@ -329,6 +329,11 @@ function Assert-ZeroGodot {
 
 function Start-VitShell {
     param([string]$OutLog, [string[]]$ExtraArgs = @(), [hashtable]$ExtraEnv = @{}, [string]$AgentExePath = "")
+    if ($EntryManagementChecks) {
+        $guardArgs = @{ Leg='Guard'; RunRoot=$RunRoot }
+        if ($OutLog -eq 'f2_bridge.log') { $guardArgs.InjectedBoundAgentPort=$AgentPort; $guardArgs.InjectionOwnerPid=$PID }
+        & (Join-Path $PSScriptRoot 'run_entry_management_acceptance.ps1') @guardArgs
+    }
     $LauncherUrl = "http://127.0.0.1:$AgentPort/app/?surface=launcher"
     $env:WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS = "--remote-debugging-port=$CdpPort"
     $env:VIT_WEBVIEW_DEBUG = "1"
@@ -383,7 +388,7 @@ foreach ($port in @($AgentPort, $StatusPort, 8787, 5555)) {
     if (-not (Test-PortBindable -Port $port)) { throw "preflight: port $port not bindable (lingering bound socket) - no silent reuse" }
 }
 if (-not (Test-UdpBindable -Port 4445)) { throw "preflight: UDP 4445 not bindable - no silent reuse" }
-$occupancyHead = (Get-Content (Join-Path $MainRoot "coord/resources/PC-RUNTIME-STACK.md") -TotalCount 6) -join "`n"
+$occupancyHead = if ($EntryManagementChecks) { (& git -C $MainRoot show origin/main:coord/resources/PC-RUNTIME-STACK.md | Select-Object -First 4) -join "`n" } else { (Get-Content (Join-Path $MainRoot "coord/resources/PC-RUNTIME-STACK.md") -TotalCount 6) -join "`n" }
 if ($occupancyHead -notmatch $CardId) { throw "occupancy record head does not name $CardId - register before running" }
 Write-Ok "stack clean (processes=0, TCP 7878/7879/8787/5555 + UDP 4445 free), occupancy names $CardId"
 
@@ -585,6 +590,7 @@ $runMeta.hub_exe_sha256 = (Get-FileHash $mainHub -Algorithm SHA256).Hash
 Write-Ok ("kernel/hub staged (sha256 " + $runMeta.kernel_exe_sha256.Substring(0, 12) + ".../" + $runMeta.hub_exe_sha256.Substring(0, 12) + "...)")
 
 Write-Step "Godot --import pre-run (worktree project caches)"
+if ($EntryManagementChecks) { & (Join-Path $PSScriptRoot 'run_entry_management_acceptance.ps1') -Leg Guard -RunRoot $RunRoot }
 if (-not $SkipBuild -or -not (Test-Path (Join-Path $FrontendWorktree ".godot"))) {
     pushd $FrontendWorktree
     $code = Invoke-NativeLogged -Command { & $GodotExe --headless --import --path . } -LogPath (Join-Path $RunRoot "godot_import.log")

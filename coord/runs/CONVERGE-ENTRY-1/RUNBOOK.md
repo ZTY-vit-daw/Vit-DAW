@@ -2,6 +2,17 @@
 
 本轮只验388/401+既有旅程。稳定前端d05043e1不含394/402，不能据此判定新窗口焦点行为通过。人工手测仍由用户从Godot启动，以下仅自动化装置。
 
+## 正式卫生包装入口（2026-11-17 主管补充授权）
+
+A原脚本seed/build/import位于其主finally之前，因此A与B正式运行**统一只用**新增薄包装器。它调用下文同一套既有脚本和参数（A开启EntryManagementChecks、Rounds1；B独立ui_entry2），外层在任何seed/build前快照recents与主检出/本worktree Settings.xml/default_project.xml的bytes/absence；finally强制还原并SHA256亲证，fixture源变化非0且不回写掩盖。stdout.log保留内层原始输出，hygiene.json保留原inner_exit。下文裸A命令/内联B包装仅为参数说明，正式入口如下：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/run_entry_management_acceptance.ps1 -Leg A -FrontendWorktree 'C:/Users/timoz/.codex/worktrees/godot-runtime-388/vit-daw-frontend' -FixtureSource 'D:/Vit_DAW/temp/f3_empty_project.vit' -RunRoot 'C:/Users/timoz/.codex/worktrees/converge-entry-388/Vit_DAW/coord/runs/CONVERGE-ENTRY-1/stack_A_20261117_XXXX'
+powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/run_entry_management_acceptance.ps1 -Leg B -FrontendWorktree 'C:/Users/timoz/.codex/worktrees/godot-runtime-388/vit-daw-frontend' -FixtureSource 'D:/Vit_DAW/temp/f3_empty_project.vit' -RunRoot 'C:/Users/timoz/.codex/worktrees/converge-entry-388/Vit_DAW/coord/runs/CONVERGE-ENTRY-1/stack_B_20261117_XXXX'
+```
+
+包装器Guard模式供两装置Start函数调用：每次fetch远端资源首条确认/root/entry388，再即时核Vit进程/TCP/UDP，无他人进程复用/终止。B仅可放行本次明确scriptAgentPid、且路径等于本worktree已构建VitAgent.exe及其子树；A的F2仅放行OwnerPid匹配的Bound注入socket，不放行监听。A长构建后import前也重新守卫。正常return后仍由owner亲核最终进程/端口净空。
+
 ## 跑前冻结
 
 - owner `/root/entry388`，主仓worktree `C:/Users/timoz/.codex/worktrees/converge-entry-388/Vit_DAW`，分支codex/converge-entry-388；运行前存实际HEAD/status/diffstat。
