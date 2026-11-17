@@ -35,7 +35,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/vitshell_full_smok
 - 真GET启动/管理两态最近列表；405拒绝POST；存在性/治理directive；两态左下settings打开、Escape与焦点归还，零config写。
 - 查看启动页仍显示真实当前工程名，隐藏自由composer/建议词；new/open/磁带卡三个真实入口均可用且经原治理取消；返回工程输入保留。
 - 独立GET503仅为synthetic failure injection，证明错误呈现不冒充空态；解除route后必须真实GET恢复。不得把该注入说成真内核故障。
-- 局部before/after状态要求agent/Godot PID、VitApp/VspHub PID、绑定path/uuid、launch_count、window_hwnd/current_url不变。d05043e状态schema没有native navigate_count，替代证据为CDP主frame导航事件0+不变sentinel+HWND/current_url；null不可通过。
+- 纯查看/返回子区间status要求launch_count不变；随后3次new/open/磁带治理取消须各有匹配request_id的canceled结果、零godot.spawn、terminal计数恰+3（稳定宿主main.cpp:638-643对opened/failed/canceled都计数，并非实际spawn数）。后续L3b/L5精确计数统一加该可选offset3，flag off仍0。整个管理段agent/Godot PID、VitApp/VspHub PID、绑定path/uuid、window_hwnd/current_url保持不变。d05043e状态schema没有native navigate_count，替代证据为CDP主frame导航事件0+不变sentinel+HWND/current_url；null不可通过。
 - telemetry通过显式env写本run独立jsonl，局部前后bytes必须相同；两份快照保留。后续既有L3允许dead endpoint失败telemetry，不能混算局部零新增。
 - 394/402采样插入点需在触发open前开始，本段不验加载焦点；不触碰窗口原生实现。
 

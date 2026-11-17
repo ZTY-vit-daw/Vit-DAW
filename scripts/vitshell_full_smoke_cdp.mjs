@@ -48,6 +48,7 @@ function arg(name, fallback = "") {
 }
 
 const cdpPort = arg("cdp-port", "9333");
+const statusUrl = arg("status-url", "http://127.0.0.1:7879/status");
 const phase = arg("phase", "");
 const outPath = arg("out", "");
 const chatText = arg("chat-text", "这个工程现在是什么状态？");
@@ -161,11 +162,23 @@ try {
         if (!healthy || !healthy.launcher_directive?.requires_governance) throw new Error("fixture_a governed recent card missing");
         const method = await page.evaluate(async () => { const response = await fetch("/agent/launcher/recent-projects", { method: "POST" }); return response.status; });
         if (method !== 405) throw new Error("recent POST not rejected");
+        await page.locator("[data-launcher-return-project]").click();
+        if (await input.inputValue() !== marker) throw new Error("project input lost in pure view roundtrip");
+        const viewOnlyResponse = await page.request.get(statusUrl);
+        if (!viewOnlyResponse.ok()) throw new Error("pure view status unavailable");
+        const viewOnlyStatus = await viewOnlyResponse.json();
+        await openManagement();
+        await page.locator('[data-launcher-root][data-launcher-state="ready"]').waitFor({ state: "visible", timeout: 45000 });
+        await page.locator('[data-launcher-drawer][data-drawer-state="ready"] [data-launcher-recent-open]').first().waitFor({ state: "visible", timeout: 45000 });
+        const canceledRequests = [];
         const cancelGovernedRequest = async () => {
           const cancel = page.locator("[data-launcher-governance-cancel]").last();
           await cancel.waitFor({ state: "visible", timeout: 30000 });
+          const requestId = await page.locator("[data-launcher-governance]").last().getAttribute("data-launcher-governance-request");
+          if (!requestId || canceledRequests.includes(requestId)) throw new Error("governance request ID missing or reused");
           await cancel.click();
           await page.locator('[data-launcher-bridge-exec-state="canceled"]').waitFor({ state: "visible", timeout: 30000 });
+          canceledRequests.push(requestId);
         };
         await page.locator("[data-launcher-new]").click();
         await cancelGovernedRequest();
@@ -190,7 +203,7 @@ try {
         if (await readSentinel(page) !== sentinel || !sentinel) throw new Error("management reloaded page");
         if (mainFrameNavigations !== 0) throw new Error("management navigated main frame");
         if (requests.some((request) => request.path === "/agent/chat" || request.path === "/agent/config" && request.method !== "GET")) throw new Error("management sent chat/config mutation");
-        const verdict = { phase, ok: true, url, sentinel, main_frame_navigations: mainFrameNavigations, context_name: contextName, real_get: recent, method_rejected: method, synthetic_failure_injection: "GET503 presentation only", screenshots, requests };
+        const verdict = { phase, ok: true, url, sentinel, main_frame_navigations: mainFrameNavigations, context_name: contextName, view_only_status: viewOnlyStatus, canceled_request_ids: canceledRequests, real_get: recent, method_rejected: method, synthetic_failure_injection: "GET503 presentation only", screenshots, requests };
         if (outPath) writeFileSync(outPath, JSON.stringify(verdict, null, 2));
         console.log("CDP_OK " + JSON.stringify(verdict));
       } finally {

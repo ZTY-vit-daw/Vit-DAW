@@ -299,7 +299,7 @@ function Invoke-CdpPhase {
     $WebuiDir = $webuiDir
     $out = Join-Path $RunRoot $OutFile
     pushd $webuiDir
-    $nodeArgs = @("$MainRoot/scripts/vitshell_full_smoke_cdp.mjs", "--cdp-port", "$CdpPort", "--phase", $Phase, "--out", $out, "--webui-dir", "$WebuiDir")
+    $nodeArgs = @("$MainRoot/scripts/vitshell_full_smoke_cdp.mjs", "--cdp-port", "$CdpPort", "--phase", $Phase, "--out", $out, "--webui-dir", "$WebuiDir", "--status-url", "$StatusUrl")
     if ($Phase -eq "chat-roundtrip") {
         $nodeArgs += @("--chat-text", $ChatText, "--chat-timeout-ms", "$ChatTimeoutMs")
     }
@@ -974,6 +974,7 @@ for ($round = 1; $round -le $Rounds; $round++) {
 
         # 388 insertion point: after real open and before any intentional L3 chat.
         # 394/402 window-behavior sampling belongs BEFORE open, not this segment.
+        $managementChainOffset = 0
         if ($EntryManagementChecks) {
             Write-Step "R$round L2m: management/settings/GET, lifecycle unchanged, zero local LLM"
             $beforeStatusHttp = Get-HttpJson -Url $StatusUrl
@@ -987,6 +988,8 @@ for ($round = 1; $round -le $Rounds; $round++) {
             [System.IO.File]::WriteAllBytes((Join-Path $RunRoot "r${round}_management_telemetry_before.jsonl"), [byte[]]$telemetryBefore)
             $beforeStatusHttp.body | Out-File (Join-Path $RunRoot "r${round}_management_status_before.json") -Encoding utf8
             $beforeStateHttp.body | Out-File (Join-Path $RunRoot "r${round}_management_state_before.json") -Encoding utf8
+            $managementBridgeLog = Join-Path $RunRoot "r${round}_bridge.log"
+            $bridgeLinesBefore = @(Get-Content -LiteralPath $managementBridgeLog).Count
             $management = Invoke-CdpPhase -Phase "management-roundtrip" -OutFile "r${round}_cdp_management.json"
             $afterStatusHttp = Get-HttpJson -Url $StatusUrl
             $afterStateHttp = Get-HttpJson -Url "http://127.0.0.1:$AgentPort/agent/state"
@@ -995,10 +998,23 @@ for ($round = 1; $round -le $Rounds; $round++) {
             $afterState = $afterStateHttp.body | ConvertFrom-Json
             $afterStatusHttp.body | Out-File (Join-Path $RunRoot "r${round}_management_status_after.json") -Encoding utf8
             $afterStateHttp.body | Out-File (Join-Path $RunRoot "r${round}_management_state_after.json") -Encoding utf8
+            $management.view_only_status | ConvertTo-Json -Depth 4 | Out-File (Join-Path $RunRoot "r${round}_management_status_view_only.json") -Encoding utf8
             foreach ($field in @("agent_pid", "godot_pid", "launch_count", "window_hwnd", "current_url")) {
+                if ($null -eq $management.view_only_status.$field -or $beforeStatus.$field -ne $management.view_only_status.$field) { throw "pure management view changed/unavailable $field" }
+            }
+            foreach ($field in @("agent_pid", "godot_pid", "window_hwnd", "current_url")) {
                 if ($null -eq $beforeStatus.$field -or $null -eq $afterStatus.$field) { throw "management status field unavailable: $field" }
                 if ($beforeStatus.$field -ne $afterStatus.$field) { throw "management changed $field" }
             }
+            $bridgeInterval = @(Get-Content -LiteralPath $managementBridgeLog | Select-Object -Skip $bridgeLinesBefore)
+            $bridgeInterval | Out-File (Join-Path $RunRoot "r${round}_management_bridge_interval.log") -Encoding utf8
+            if (@($bridgeInterval | Select-String -SimpleMatch 'godot.spawn').Count) { throw 'management cancellation spawned DAW' }
+            $canceledResults = @($bridgeInterval | Where-Object { $_ -match '\[LauncherBridge\] result ' } | ForEach-Object { $_.Substring($_.IndexOf('{')) | ConvertFrom-Json } | Where-Object status -eq 'canceled')
+            $cancelIds = @($management.canceled_request_ids)
+            if ($cancelIds.Count -ne 3 -or $canceledResults.Count -ne 3) { throw 'management must have exactly three canceled request results' }
+            foreach ($cancelId in $cancelIds) { if (@($canceledResults | Where-Object request_id -eq $cancelId).Count -ne 1) { throw "management canceled result missing/duplicated: $cancelId" } }
+            $managementChainOffset = 3
+            if ([int]$afterStatus.launch_count -ne ([int]$beforeStatus.launch_count + $managementChainOffset)) { throw 'management terminal counter delta must equal three canceled requests' }
             if (-not $afterStatus.godot_running) { throw "management closed DAW" }
             $runtimePidsAfter = @(Get-Process -Name VitApp,VspHub -ErrorAction Stop | Select-Object -ExpandProperty Id | Sort-Object)
             if (($runtimePidsBefore -join ',') -ne ($runtimePidsAfter -join ',')) { throw "management restarted kernel/hub" }
@@ -1008,7 +1024,7 @@ for ($round = 1; $round -le $Rounds; $round++) {
             [System.IO.File]::WriteAllBytes((Join-Path $RunRoot "r${round}_management_telemetry_after.jsonl"), [byte[]]$telemetryAfter)
             if ([Convert]::ToBase64String([byte[]]$telemetryBefore) -ne [Convert]::ToBase64String([byte[]]$telemetryAfter)) { throw "management produced LLM telemetry (local interval must be zero)" }
             Copy-Item $agentLog (Join-Path $RunRoot "r${round}_management_agent_log.txt") -Force
-            $roundMeta.management = @{ ok = $true; sentinel = $management.sentinel; unchanged_pids = $runtimePidsAfter; telemetry_added = 0; main_frame_navigations = $management.main_frame_navigations; native_navigate_count = "unavailable in d05043e status schema; HWND/url/sentinel plus mainframe event count asserted"; error_surface = "synthetic GET503 only, real GET also passed" }
+            $roundMeta.management = @{ ok = $true; sentinel = $management.sentinel; unchanged_pids = $runtimePidsAfter; terminal_counter_cancel_offset = $managementChainOffset; canceled_request_ids = $cancelIds; pure_view_count_unchanged = $true; telemetry_added = 0; main_frame_navigations = $management.main_frame_navigations; native_navigate_count = "unavailable in d05043e status schema; HWND/url/sentinel plus mainframe event count asserted"; error_surface = "synthetic GET503 only, real GET also passed" }
         }
 
         # ---- R-L3: in-project REAL chat roundtrip (SHELL-3 new leg) ----
@@ -1034,7 +1050,8 @@ for ($round = 1; $round -le $Rounds; $round++) {
         $projNew = Invoke-CdpPhase -Phase "project-chat-new" -OutFile "r${round}_cdp_project_chat_new.json"
         $roundMeta.inproject_new_directive = $projNew.directive_headline
         $roundMeta.inproject_new_governance = $projNew.governance
-        $status = Wait-StatusLaunchCount -StatusUrl $StatusUrl -MinExpect 4 -TimeoutSec $OpenChainTimeoutSec -ArtifactPath (Join-Path $RunRoot "r${round}_status_opened_project_new.json")
+        $status = Wait-StatusLaunchCount -StatusUrl $StatusUrl -MinExpect (4 + $managementChainOffset) -TimeoutSec $OpenChainTimeoutSec -ArtifactPath (Join-Path $RunRoot "r${round}_status_opened_project_new.json")
+        if ([int]$status.launch_count -ne (4 + $managementChainOffset)) { throw 'L3b terminal counter must match exact prior chains plus management cancellations' }
         if (-not $status.godot_running) { throw "R$round L3b: godot not running after in-project new switch" }
         # attempt1 lesson (run_full_20261115_233410): a kernel new-project draft is
         # materialized as an Unsaved.vit draft (same face as L1c/L1c2) until saved —
@@ -1053,7 +1070,7 @@ for ($round = 1; $round -le $Rounds; $round++) {
         }
         $roundMeta.inproject_new_context_name = $projNewReady.context_name
         if ($projNewReady.sentinel -ne $roundMeta.no_reload_sentinel) { throw "R$round L3b: sentinel changed after in-page switch (reload!)" }
-        Write-Ok ("R$round L3b: in-project new chain end-to-end (directive=" + $projNew.directive_headline + " governance=" + $projNew.governance + " context=" + $projNewReady.context_name + ", launch_count=4, agent off fixture_a)")
+        Write-Ok ("R$round L3b: in-project new chain end-to-end (directive=" + $projNew.directive_headline + " governance=" + $projNew.governance + " context=" + $projNewReady.context_name + ", terminal_count=" + (4 + $managementChainOffset) + ", agent off fixture_a)")
 
         # ---- R-L4: close DAW -> back to launcher (same window) ----
         Write-Step "R$round L4: POST /vitshell/close-daw -> Godot exits -> launcher back (same window)"
@@ -1084,7 +1101,8 @@ for ($round = 1; $round -le $Rounds; $round++) {
         # SHELL-5/6: launch 1 = L1c intent new, launch 2 = L1c2 button new,
         # launch 3 = fixture_a open, launch 4 = L3b in-project new switch,
         # this governed fixture_b open = 5.
-        $status2 = Wait-StatusLaunchCount -StatusUrl $StatusUrl -MinExpect 5 -TimeoutSec $OpenChainTimeoutSec -ArtifactPath (Join-Path $RunRoot "r${round}_status_opened_2.json")
+        $status2 = Wait-StatusLaunchCount -StatusUrl $StatusUrl -MinExpect (5 + $managementChainOffset) -TimeoutSec $OpenChainTimeoutSec -ArtifactPath (Join-Path $RunRoot "r${round}_status_opened_2.json")
+        if ([int]$status2.launch_count -ne (5 + $managementChainOffset)) { throw 'L5 terminal counter must match exact prior chains plus management cancellations' }
         $null = Invoke-CdpPhase -Phase "probe-governance-done" -OutFile "r${round}_cdp_gov_done.json"
         $govDone = Get-Content (Join-Path $RunRoot "r${round}_cdp_gov_done.json") -Raw -Encoding UTF8 | ConvertFrom-Json
         if ($govDone.sentinel -ne $roundMeta.no_reload_sentinel) { throw "R$round sentinel changed after governed open (reload!)" }
