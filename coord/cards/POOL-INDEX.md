@@ -108,7 +108,7 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 329 | WAVESHELL-LOADING-FORENSICS-1 | doing（**取证腿验收 pass 2026-11-09**：三代归并+闭源壳 license 状态机+本机授权链物证——H1=授权环境主嫌疑上报用户；判别腿 D1-D4 候栈候用户定向） |
 | 330 | FIX-PLAN-STALE-STATUS-1 | done 已验收 pass 合入 14a105a3（plan 面两态回执+chat 投影第二伪造面一并修；红转绿在卷；334 清扫卡转出） |
 | 331 | VST3-SIGNAL-HYGIENE-1 | todo P3（309 S1 卫生：setup/per-call 信令一致化——**不占展演前窗口**） |
-| 332 | AI-LAUNCHER-DESIGN-1 | done 自验候验收（九节设计报告已产出——三态一窗/对话流两案 A 主 B 退/反向导航零内核改动/拆卡 6 卡 8.75 人日中值；候主管验收+用户终审后拆实施卡） |
+| 332 | AI-LAUNCHER-DESIGN-1 | done 终验收口（2026-11-09主管与用户终审pass，实施链已另卡落地；本行2026-11-17消除旧状态） |
 | 333 | LEGAME-GENSCOPE-1 | done 已验收 pass 合入 82f42846（手测 v2 旅程面收口：只走旅程 A，零生成前置；边界声明含 AI-first 衔接） |
 | 334 | FIX-GOALSTATUS-FORGERY-SWEEP-1 | todo 可领 P3（goal_status 伪造面全树普查+同型修——327/330 缺陷族收尾；随手清型） |
 | 340 | LAUNCHER-GATE-FIX-1 | done 已验收 pass 合入（**门修复+腿1/2 双 exit 0——手测 v2 启动面就绪**；launcher 路由首次真栈走通+338 桥接段证成） |
@@ -176,10 +176,10 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 377 | SCORE-DG1A-COMPLETE-1 | done 已验收 pass 合入（**DG1-A 全断言闭环**：A7 探针非静音+A8 差分 18334，十九断言真栈 exit 0；三门 668/668；attempt1-5 分记；**D4 域外锚点→382 承接**〔非 120bpm 谱面装载崩溃〕；栈协议全合规） |
 | 378 | KERNEL-SAVE-FORENSICS-1 | done 已验收 pass 合入（**D1/D2 五腿证伪不重现**〔374 环境窗部署漂移归因〕；**D3 归因修正+最小修复**=effective_project_path 三层投影——374 归因被证伪；真栈 29/29 exit 0+栈协议全合规；config 事故已修复主管亲核零残留） |
 | 379 | WIDGET-KIT-1 | done 已验收 pass 合入 fc85c016（AudioPlayer+ComparePair+卡挂载；三红线一正一负断言；**698/698 主管复跑**+render 9 段；App.tsx 零触碰；真实内核预览链路留真栈卡） |
-| 380 | MATERIAL-TRANSCRIBE-1 | todo 挂起（候 23:00 freeflash 恢复——用户领 3 亿免费 token 2026-11-16 晚生效） |
+| 380 | MATERIAL-TRANSCRIBE-1 | 部分完成（批1五条transcribed_unverified；批2-4十五条候续派，保留uncertain/未听核边界） |
 | 381 | YUE-VOCAL-FORENSICS-1 | done 已验收 pass 合入 1001a216+补腿 731a7d9f→main（C8 双版时长比例窗 [0.6,1.5] 干跑 0；**人声定性后被 390 查证修正**：官方有 instrumental 工作流，差距在本地封装） |
 | 390 | YUE-INSTRUMENTAL-PATH-1 | doing 零栈两腿 pass 合入（**模型件齐+接入=纯封装层**：S1/S2/S4/S6 官方语义对齐+干跑断言+go 回归 0；**真栈生成+用户听核候栈**——人声抑制效果无先例，fallback 待命） |
-| 391 | SHELL-WIN-BEHAVIOR-1 | todo 可领 P1（窗口行为包：DAW 不抢焦点+对话窗前台保持+窗口内动效包〔跨窗联动裁定不做〕；真栈腿；裁定档 2026-11-17 §一） |
+| 391 | SHELL-WIN-BEHAVIOR-1 | 父卡（执行拆394原生/395呈现，父卡不可重复领；窗口行为包：DAW 不抢焦点+对话窗前台保持+窗口内动效包〔跨窗联动裁定不做〕；真栈腿；裁定档 2026-11-17 §一） |
 | 392 | SCORE-TRACK-BIND-1 | todo 可领 P1（谱面轨道绑定+双模式：轨道选择器+GUI 跟随+clip 小条+草稿 clip 资产不落位；374 痛点承接；裁定档 §二） |
 | 393 | CHAT-STREAM-LIST-1 | todo 可领 P2（工程态对话流列表侧栏+会话切换最简档；裁定档 §三；settings 归 388 补） |
 | —— | music_score 对话流控件 | 登记阶段 2 承接（裁定档 §二：374 内核包装成卡内挂载组件；候 388/389 收口后随阶段 2 发卡） |
@@ -189,6 +189,11 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 291 | ARR-PRESET-1 | todo **提序候选**（384 勘察证成：运行时预设切换=本卡内核域（258 报告命令面草案）；用户底线的「预设级」一段需此卡——排期待主管与用户定，真栈队列 377→378→382→383 后） |
 | 385 | T9-PRE-1A-1 | done 已验收 pass 合入 8720d5ee（App.tsx 11857→9448/七模块 2861 行/172/172 逐字亲证/**668=668 主管复跑**+build+render 8 段；386 解锁候 379） |
 | 386 | T9-PRE-1B-1 | done 已验收 pass 合入 dd367207（App.tsx **9448→2335 行**/17 域模块；698=698 主管复跑+render 9 段；过程事故 2 起披露在卷无权威丢弃；**387 解锁**） |
-| 387 | CONVERGE-SHELL-1 | done 技术面 pass 合入（**366 磁带卡落地**：磁带盒整卡结构主管截图亲核+渲染断言+真栈 ui_entry2 四腿；**用户目检=366 终验候用户**；ui_entry_smoke 腿1 前提失效+data-tape-badge 断言对齐→389 承接） |
-| 388 | CONVERGE-ENTRY-1 | todo（收敛阶段1卡4：工程管理挂载+进出语义；**387 合入后解锁**；Godot 收编点 A 另微改卡） |
+| 387 | CONVERGE-SHELL-1 | done 技术面 pass 合入（**366 磁带卡落地**：磁带盒整卡结构主管截图亲核+渲染断言+真栈 ui_entry2 四腿；**366 用户目检已于2026-11-17终验PASS**；ui_entry_smoke 腿1 前提失效+data-tape-badge 断言对齐→389 承接） |
+| 388 | CONVERGE-ENTRY-1 | doing（Codex /root/entry388 / Sol-high；收敛阶段1卡4：工程管理挂载+进出语义；**387 合入后解锁**；Godot 收编点 A 另微改卡） |
 | 389 | CONVERGE-CLEANUP-1 | todo（收敛阶段1卡5：旧面退役+阶段出口=用户 Godot 拉起全旅程手测；**388 合入后解锁**） |
+| 394 | SHELL-WIN-NATIVE-1 | doing（391-A，Sol/xhigh；/root/window391；前端仓VitShell域，零栈先行） |
+| 395 | SHELL-WIN-PRESENTATION-1 | todo（391-B，候388验收与394协议，真栈串行） |
+| 396 | GODOT-RETRY-LAUNCHER-1 | todo（收编点A独立微卡，前端仓gd域） |
+
+- 2026-11-17协调说明：384重复todo快照保留至archive，doing为权威；390物理归位doing，既有owner未变。当前PC主管Codex /root，子代理自主执行授权见decisions/2026-11-17-autonomous-subagent-execution.md。

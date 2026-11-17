@@ -54,3 +54,6 @@
 - 实现 `47ccf552` @ `port/src-preset-agent-1`（builder 重写+go 换算+模板/manifest/states+run 工件）。
 
 ## 验收：待回填
+
+## 2026-11-17 状态消歧
+本件是重复todo快照，全文保留归档，不可领取。权威owner与回执在doing/2026-11-16-SRC-PRESET-AGENT-1.md；本次不接管原owner。
