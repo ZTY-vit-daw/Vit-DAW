@@ -1,0 +1,48 @@
+    SetLastError(0);
+    const LONG_PTR previous = SetWindowLongPtrW(window, GWL_EXSTYLE, style | WS_EX_NOACTIVATE);
+    if ((previous == 0 && GetLastError() != 0) || (GetWindowLongPtrW(window, GWL_EXSTYLE) & WS_EX_NOACTIVATE) == 0) {
+        capture(window, false);
+        CancelHiddenBootstrap(ticket, "noactivate_style_failed"); return;
+    }
+    if (before.visible) {
+        // Stock Godot may have consumed the startup SW_HIDE before its final
+        // minimized show. Accept only a proven nonforeground iconic window,
+        // protect it first, and hide it without activating or changing z.
+        if (!SetWindowPos(window, nullptr, 0, 0, 0, 0,
+                SWP_HIDEWINDOW | SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOMOVE | SWP_NOSIZE | SWP_NOOWNERZORDER)
+                || IsWindowVisible(window)) {
+            capture(window, false);
+            CancelHiddenBootstrap(ticket, "bootstrap_iconic_hide_failed"); return;
+        }
+    }
+    MONITORINFO monitor = {};
+    monitor.cbSize = sizeof(monitor);
+    if (!GetMonitorInfoW(MonitorFromWindow(shell, MONITOR_DEFAULTTONEAREST), &monitor)
+            || !ticket->CanPresent(Pid(), generation, true, GetTickCount64(), GetForegroundWindow() != nullptr)) {
+        capture(window, false);
+        CancelHiddenBootstrap(ticket, "monitor_or_bootstrap_deadline_failed"); return;
+    }
+    // The child's first ShowWindow has ALREADY returned before its script ACK.
+    // Configure the still-hidden ordinary large window before its first visible
+    // frame. Godot observes native WM_WINDOWPOSCHANGED; no internal flags are
+    // patched and no activating ShowWindow/maximize fallback is used.
+    SetWindowLongPtrW(window, GWL_STYLE, GetWindowLongPtrW(window, GWL_STYLE) & ~(static_cast<LONG_PTR>(WS_MINIMIZE) | WS_MAXIMIZE));
+    const RECT work = monitor.rcWork;
+    const bool positioned = SetWindowPos(window, shell, work.left, work.top, work.right - work.left, work.bottom - work.top,
+            SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_FRAMECHANGED) != FALSE;
+    if (!positioned || IsWindowVisible(window) || IsIconic(window)
+            || !ticket->CanPresent(Pid(), generation, true, GetTickCount64(), GetForegroundWindow() != nullptr)) {
+        capture(window, false);
+        CancelHiddenBootstrap(ticket, "hidden_geometry_preparation_failed"); return;
+    }
+    // SHOWWINDOW + explicit insertion position + NOACTIVATE is one native
+    // operation. Never first show in front and move behind afterward.
+    const bool shown = SetWindowPos(window, shell, 0, 0, 0, 0,
+            SWP_SHOWWINDOW | SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE | SWP_NOOWNERZORDER) != FALSE;
+    if (!shown || !IsWindowVisible(window) || IsIconic(window) || WindowBelongsToTree(GetForegroundWindow(), ticket->pid)
+            || (GetWindowLongPtrW(window, GWL_EXSTYLE) & WS_EX_TOPMOST)
+            || (GetWindowLongPtrW(window, GWL_EXSTYLE) & WS_EX_NOACTIVATE) == 0) {
+        capture(window, false);
+        CancelHiddenBootstrap(ticket, "native_noactivate_presentation_failed"); return;
+    }
+    {

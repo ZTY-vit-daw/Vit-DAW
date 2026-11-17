@@ -1,0 +1,16 @@
+
+      (void)show_cmd;
+  
+      // W1: per-monitor V2 DPI awareness before any window exists (fallbacks for
+      // pre-1607 systems keep the legacy virtualization rather than failing).
+>     if (!SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2)) {
+>         if (!SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE)) {
+              SetProcessDPIAware();
+          }
+      }
+  
+      AppState app;
+      g_app = &app;
+  
+      // ---- config from args ----
+
