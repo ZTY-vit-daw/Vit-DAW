@@ -438,6 +438,10 @@ param(
     # 缺陷（取证上交）。腿需 agent HTTP 面在栈（-StartKernel
     # -RestartAgent；不启 UI）。
     [switch]$EduTransformSmoke,
+    # 271 independent validation of cf22db7f, not a third 276 rerun. The
+    # wrapper requires fresh build + explicit independent frontend + full stack.
+    [switch]$ClosureDiagnosticValidation,
+    [switch]$ClosureDiagnosticChild,
     # EDU-LEVEL-RUNTIME-B（281）真栈烟测腿：全确定性零 LLM（乐局拦截面在
     # 语义入口分类之前应答，本腿同时断言 telemetry 零行）。断言体在
     # scripts/edu_jam_smoke.py：内核 ZMQ 面 fixture（new_project +
@@ -1250,11 +1254,177 @@ function Copy-AgentBinary {
     Write-Ok ("installed " + $Label + ": " + $Destination)
 }
 
+# 271 outer lifetime: snapshot BEFORE any kernel/Godot/agent starts, and
+# restore only AFTER terminating this run's exact executable paths. Recursing
+# through the same ps1 preserves the existing build/isolation/smoke mechanism.
+if ($ClosureDiagnosticValidation -and -not $ClosureDiagnosticChild) {
+    $closureAllowed = @("ClosureDiagnosticValidation", "EduTransformSmoke", "RepoRoot", "AgentHttp", "AgentHttpAddr",
+        "ZmqReqPort", "ZmqSubPort", "RestartAgent", "StartKernel", "KernelExe", "StartUI", "GodotProjectRoot",
+        "GodotExe", "NoChatSmoke", "NoStripSilenceSmoke", "RunArtifactsDir", "WaitSeconds", "LlmTimeoutSec", "Strict")
+    foreach ($closureParam in $PSBoundParameters.Keys) {
+        if ($closureParam -notin $closureAllowed) { throw "271 dedicated mode refuses unrelated parameter: $closureParam" }
+    }
+    if (-not $StartKernel -or -not $RestartAgent -or -not $StartUI -or $SkipBuild -or
+        -not $NoChatSmoke -or -not $NoStripSilenceSmoke -or $UseExportedUI -or
+        -not [string]::IsNullOrWhiteSpace($Scenario)) {
+        throw "271 requires -StartKernel -RestartAgent -StartUI -NoChatSmoke -NoStripSilenceSmoke, fresh build, no Scenario/exported UI"
+    }
+    if (-not $PSBoundParameters.ContainsKey("GodotProjectRoot") -or
+        -not $PSBoundParameters.ContainsKey("GodotExe") -or
+        [string]::IsNullOrWhiteSpace($KernelExe) -or [string]::IsNullOrWhiteSpace($RunArtifactsDir)) {
+        throw "271 requires explicit -GodotProjectRoot (independent checkout), -GodotExe, -KernelExe and fresh -RunArtifactsDir"
+    }
+    $closureRoot = Resolve-RepoRoot -Explicit $RepoRoot
+    $closureRun = [IO.Path]::GetFullPath($RunArtifactsDir)
+    if (Test-Path -LiteralPath $closureRun) { throw "271 run directory must not exist: $closureRun" }
+    foreach ($closureEnv in @("VIT_PROJECT_XML", "VIT_HISTORY_DRAFT_ROOT", "VIT_DAW_USER_CONFIG_DIR")) {
+        if (-not [string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($closureEnv))) {
+            throw "271 requires clean isolation environment; inherited $closureEnv must be unset"
+        }
+    }
+    $closureGodot = Resolve-GodotExecutable -RequestedGodotExe $GodotExe
+    $closureFrontend = Resolve-GodotProjectRoot -RequestedProjectRoot $GodotProjectRoot
+    if (-not $closureGodot -or -not $closureFrontend -or $closureFrontend -eq "D:\Godot\project\vit-daw-frontend") {
+        throw "271 requires existing Godot executable and explicit independent frontend checkout"
+    }
+    $closureProcessPattern = "^(VitApp|VitAgent|vitagent.*|VspHub|VitShell|Godot.*)$"
+    $closurePorts = @(5555, 5556, 5557, 7878, 7879, 8787, 9333, 18787, 8087)
+    if (@(Get-Process | Where-Object { $_.ProcessName -match $closureProcessPattern }).Count -gt 0) {
+        throw "271 foreign runtime process present; no silent reuse or termination"
+    }
+    if (@(Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue | Where-Object { $_.LocalPort -in $closurePorts }).Count -gt 0 -or
+        @(Get-NetUDPEndpoint -LocalPort 4445 -ErrorAction SilentlyContinue).Count -gt 0) {
+        throw "271 runtime port occupied; stop and verify stack owner"
+    }
+    New-Item -ItemType Directory -Path $closureRun | Out-Null
+    $closureRecents = Join-Path $env:APPDATA "Vit-DAW\global_project_config.json"
+    $closureBeforeExists = Test-Path -LiteralPath $closureRecents
+    $closureBeforeHash = "absent"
+    $closureBackup = Join-Path $closureRun "recents.before.json"
+    if ($closureBeforeExists) {
+        Copy-Item -LiteralPath $closureRecents -Destination $closureBackup
+        $closureBeforeHash = (Get-FileHash -LiteralPath $closureRecents -Algorithm SHA256).Hash
+    }
+    @{ exists = $closureBeforeExists; sha256 = $closureBeforeHash; path = $closureRecents } |
+        ConvertTo-Json | Set-Content -LiteralPath (Join-Path $closureRun "recents.before.meta.json") -Encoding UTF8
+    $closureSource = Join-Path $closureRoot "VitApp\Workspace\default_project.xml"
+    $closureSourceHash = (Get-FileHash -LiteralPath $closureSource -Algorithm SHA256).Hash
+    $closureDriver = Join-Path $closureRoot "scripts\edu_transform_smoke.py"
+    $closureDriverHash = (Get-FileHash -LiteralPath $closureDriver -Algorithm SHA256).Hash
+    $closureReport = @{ card = "271"; run_id = (Split-Path -Leaf $closureRun); result = "unclassified_failure";
+        started_at = (Get-Date).ToString("o"); source_fixture_before = $closureSourceHash;
+        head = (& git -C $closureRoot rev-parse HEAD); status_before = @(& git -C $closureRoot status --short);
+        diff_stat_before = @(& git -C $closureRoot diff --stat); parameters = $PSBoundParameters; fixture_generator_before = $closureDriverHash }
+    $closureOwnedPaths = @((Resolve-Path -LiteralPath $KernelExe).Path, $closureGodot,
+        (Join-Path $closureRoot "agent\bin\VitAgent.exe"), (Join-Path $closureRoot "agent\vitagent.exe"))
+    # Official Windows console Godot may wrap the sibling GUI executable.
+    # Both exact paths were absent at preflight; no broad Godot kill occurs.
+    $closureGodotSibling = $closureGodot -replace '_console\.exe$', '.exe'
+    if (Test-Path -LiteralPath $closureGodotSibling) { $closureOwnedPaths += $closureGodotSibling }
+    $closureExit = 1
+    $closurePriorParentRun = [Environment]::GetEnvironmentVariable("VIT_CLOSURE_271_PARENT_RUN", "Process")
+    Start-Transcript -Path (Join-Path $closureRun "console_ps1.txt") | Out-Null
+    try {
+        $env:VIT_CLOSURE_271_PARENT_RUN = $closureRun
+        $closureParams = @{} + $PSBoundParameters
+        $closureParams["ClosureDiagnosticChild"] = $true
+        $closureParams["EduTransformSmoke"] = $true
+        $closureParams["RunArtifactsDir"] = $closureRun
+        & $PSCommandPath @closureParams
+        $closureExit = 0
+        $closureReport.result = "pass"
+    }
+    catch {
+        $closureReport.error = $_.Exception.Message
+        Write-WarnLine ("271 stopped: " + $_.Exception.Message)
+    }
+    finally {
+        if ($null -eq $closurePriorParentRun) { Remove-Item Env:VIT_CLOSURE_271_PARENT_RUN -ErrorAction SilentlyContinue }
+        else { $env:VIT_CLOSURE_271_PARENT_RUN = $closurePriorParentRun }
+        $closureCleanupErrors = @()
+        foreach ($closureProc in @(Get-Process | Where-Object { $_.ProcessName -match $closureProcessPattern })) {
+            if ($closureProc.Path -in $closureOwnedPaths) {
+                try { Stop-Process -Id $closureProc.Id -Force -ErrorAction Stop; Wait-Process -Id $closureProc.Id -Timeout 15 -ErrorAction SilentlyContinue }
+                catch { $closureCleanupErrors += $_.Exception.Message }
+            }
+        }
+        $closureRemaining = @(Get-Process | Where-Object { $_.ProcessName -match $closureProcessPattern })
+        $closureListeners = @(Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue | Where-Object { $_.LocalPort -in $closurePorts })
+        $closureUdp = @(Get-NetUDPEndpoint -LocalPort 4445 -ErrorAction SilentlyContinue)
+        $closureReport.teardown = @{ processes = @($closureRemaining | Select-Object Id, ProcessName);
+            tcp = @($closureListeners | Select-Object LocalPort, OwningProcess); udp = @($closureUdp | Select-Object LocalPort, OwningProcess) }
+        if ($closureRemaining.Count -or $closureListeners.Count -or $closureUdp.Count) { $closureCleanupErrors += "TEARDOWN_ALL_ZERO failed" }
+        try {
+            if ($closureBeforeExists) { [IO.File]::WriteAllBytes($closureRecents, [IO.File]::ReadAllBytes($closureBackup)) }
+            elseif (Test-Path -LiteralPath $closureRecents) { Remove-Item -LiteralPath $closureRecents -Force }
+            $closureAfterHash = "absent"
+            if (Test-Path -LiteralPath $closureRecents) { $closureAfterHash = (Get-FileHash -LiteralPath $closureRecents -Algorithm SHA256).Hash }
+            $closureReport.recents = @{ before = $closureBeforeHash; after = $closureAfterHash; verified = ($closureBeforeHash -eq $closureAfterHash) }
+            if ($closureBeforeHash -ne $closureAfterHash) { throw "recents byte/absence hash restore failed" }
+        }
+        catch { $closureCleanupErrors += $_.Exception.Message }
+        $closureReport.source_fixture_after = (Get-FileHash -LiteralPath $closureSource -Algorithm SHA256).Hash
+        if ($closureReport.source_fixture_after -ne $closureSourceHash) { $closureCleanupErrors += "source fixture changed" }
+        $closureReport.fixture_generator_after = (Get-FileHash -LiteralPath $closureDriver -Algorithm SHA256).Hash
+        if ($closureReport.fixture_generator_after -ne $closureDriverHash) { $closureCleanupErrors += "fixture generator changed" }
+        $closureSummary = Join-Path $closureRun "edu_transform_summary.json"
+        if (Test-Path -LiteralPath $closureSummary) {
+            $closureReport.scenario = Get-Content -LiteralPath $closureSummary -Raw | ConvertFrom-Json
+            $closureScenarioClass = Get-OptionalProperty -Object $closureReport.scenario -Name "exit_class"
+            if ($closureScenarioClass -and ($closureScenarioClass -ne "pass" -or $closureExit -eq 0)) { $closureReport.result = $closureScenarioClass }
+        }
+        $closureKernelLogDir = Join-Path (Split-Path -Parent $KernelExe) "Workspace\Logs"
+        $closureKernelLogs = @(Get-ChildItem -LiteralPath $closureKernelLogDir -Filter "VitHeadlessServer*.log" -ErrorAction SilentlyContinue |
+            Sort-Object LastWriteTime -Descending | Select-Object -First 1)
+        if ($closureKernelLogs.Count) {
+            Copy-Item -LiteralPath $closureKernelLogs[0].FullName -Destination (Join-Path $closureRun "kernel_last.log") -Force
+        }
+        # Run-wide final accounting includes semantic/capacity/scheduler calls,
+        # even when they lack this chat's conversation id. Checked after teardown:
+        # an accounting ceiling, NOT an automatic provider/currency hard fuse.
+        $closureTelemetry = Join-Path $closureRun "logs\agent_llm_telemetry.jsonl"
+        $closureCalls = 0; $closureInput = 0L; $closureOutput = 0L
+        if (Test-Path -LiteralPath $closureTelemetry) {
+            foreach ($closureLine in (Get-Content -LiteralPath $closureTelemetry)) {
+                if (-not $closureLine.Trim()) { continue }
+                try {
+                    $closureRow = $closureLine | ConvertFrom-Json
+                    $closureCalls++
+                    $closureUsage = Get-OptionalProperty -Object $closureRow -Name "usage"
+                    $closureInput += [long](Get-OptionalProperty -Object $closureUsage -Name "input_tokens")
+                    $closureOutput += [long](Get-OptionalProperty -Object $closureUsage -Name "output_tokens")
+                }
+                catch { $closureCleanupErrors += "malformed final telemetry row" }
+            }
+        }
+        $closureReport.final_billing = @{ completed_calls = $closureCalls; input_tokens = $closureInput; output_tokens = $closureOutput;
+            accounting_only = $true; max_calls = 8; max_input_tokens = 250000; max_output_tokens = 16000 }
+        if ($closureCalls -gt 8 -or $closureInput -gt 250000 -or $closureOutput -gt 16000) {
+            $closureExit = 1; $closureReport.result = "budget_exceeded"
+        }
+        $closureReport.cleanup_errors = $closureCleanupErrors
+        if ($closureCleanupErrors.Count) { $closureExit = 1; $closureReport.result = "environment_interrupt" }
+        $closureReport.exit_code = $closureExit
+        $closureReport.finished_at = (Get-Date).ToString("o")
+        $closureReport | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $closureRun "d1_smoke_report.json") -Encoding UTF8
+        Stop-Transcript | Out-Null
+    }
+    exit $closureExit
+}
+if ($ClosureDiagnosticChild -and (-not $ClosureDiagnosticValidation -or
+    [Environment]::GetEnvironmentVariable("VIT_CLOSURE_271_PARENT_RUN", "Process") -ne [IO.Path]::GetFullPath($RunArtifactsDir))) {
+    throw "271 internal child requires the outer lifetime/snapshot wrapper"
+}
+
 $RepoRoot = Resolve-RepoRoot -Explicit $RepoRoot
 $AgentDir = Join-Path $RepoRoot "agent"
 $ScriptsDir = Join-Path $RepoRoot "scripts"
 $WorkspaceDir = Join-Path $RepoRoot "VitApp\Workspace"
 $LogsDir = Join-Path $WorkspaceDir "Logs"
+if ($ClosureDiagnosticChild) {
+    $LogsDir = Join-Path $RunArtifactsDir "logs"
+    New-Item -ItemType Directory -Path $LogsDir -Force | Out-Null
+}
 $AgentExe = Join-Path $AgentDir "bin\VitAgent.exe"
 $RootAgentExe = Join-Path $AgentDir "vitagent.exe"
 $SmokeBuildExe = Join-Path $AgentDir "bin\VitAgent.dev-smoke.exe"
@@ -1971,6 +2141,39 @@ if ($StartUI) {
             Fail-Or-Warn ("UI did not expose kernel command port within " + [string]$UiPortWaitSeconds + "s")
         }
     }
+}
+
+if ($ClosureDiagnosticChild) {
+    # -StartUI above is a no-op when -StartKernel already owns the port.
+    # Explicitly start the real frontend just like the launcher leg, never
+    # reuse a pre-existing Godot, and keep the dev-autostart guard child-only.
+    if (@(Get-Process | Where-Object { $_.ProcessName -like "Godot*" }).Count) {
+        throw "271 unexpected Godot already running; refuse reuse"
+    }
+    $closureGodotLog = Join-Path $LogsDir "godot_closure_271.log"
+    $closurePriorAutostart = [Environment]::GetEnvironmentVariable("VIT_SKIP_DEV_AUTOSTART", "Process")
+    try {
+        $env:VIT_SKIP_DEV_AUTOSTART = "1"
+        $closureGodotProc = Start-Process -FilePath $ResolvedGodotExe -ArgumentList @("--path", ('"' + $ResolvedGodotProjectRoot + '"'), "--log-file", ('"' + $closureGodotLog + '"')) -WorkingDirectory $ResolvedGodotProjectRoot -WindowStyle Hidden -PassThru
+    }
+    finally {
+        if ($null -eq $closurePriorAutostart) { Remove-Item Env:VIT_SKIP_DEV_AUTOSTART -ErrorAction SilentlyContinue }
+        else { $env:VIT_SKIP_DEV_AUTOSTART = $closurePriorAutostart }
+    }
+    $closureBootDeadline = (Get-Date).AddSeconds(40)
+    $closureBooted = $false
+    while ((Get-Date) -lt $closureBootDeadline) {
+        if ($closureGodotProc.HasExited) { throw "271 Godot exited before boot (environment_interrupt)" }
+        if ((Test-Path -LiteralPath $closureGodotLog) -and (Select-String -LiteralPath $closureGodotLog -Pattern "Godot Engine" -Quiet)) {
+            $closureBooted = $true; break
+        }
+        Start-Sleep -Milliseconds 500
+    }
+    if (-not $closureBooted) { throw "271 real Godot boot anchor missing (environment_interrupt)" }
+    @{ pid = $closureGodotProc.Id; executable = $ResolvedGodotExe; project = $ResolvedGodotProjectRoot;
+        frontend_head = (& git -C $ResolvedGodotProjectRoot rev-parse HEAD);
+        frontend_status = @(& git -C $ResolvedGodotProjectRoot status --short); boot_log = $closureGodotLog } |
+        ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $RunArtifactsDir "godot_boot.json") -Encoding UTF8
 }
 
 Write-Step "Start or reuse agent"
@@ -9431,8 +9634,21 @@ if ($EduTransformSmoke) {
     $eduTransformConsolePath = Join-Path $eduTransformArtifactsDir "edu_transform_console.txt"
     $eduTransformProjectPath = Join-Path $eduTransformArtifactsDir "edu_transform_fixture_project.vit"
     $eduTransformPythonArgs = @($eduTransformScript, "--agent-http", $AgentHttp, "--kernel-zmq", ("tcp://127.0.0.1:" + $ZmqReqPort), "--project-path", $eduTransformProjectPath, "--output", $eduTransformSummaryPath, "--telemetry-path", $env:VIT_AGENT_LLM_TELEMETRY_PATH, "--agent-log", $AgentLog)
+    if ($ClosureDiagnosticChild) {
+        if ($closureGodotProc.HasExited -or $null -eq (Get-Process -Id $ScenarioKernelProcId -ErrorAction SilentlyContinue)) {
+            throw "271 real stack process missing before chat (environment_interrupt)"
+        }
+        $eduTransformPythonArgs += "--require-diagnostic-closure"
+        @{ kernel = @{ path = $KernelExe; pid = $ScenarioKernelProcId; sha256 = (Get-FileHash -LiteralPath $KernelExe -Algorithm SHA256).Hash };
+            agent = @{ path = $AgentExe; pid = (Get-TcpListener -Port $httpPort).OwningProcess; sha256 = (Get-FileHash -LiteralPath $AgentExe -Algorithm SHA256).Hash };
+            godot_pid = $closureGodotProc.Id; checked_at = (Get-Date).ToString("o") } |
+            ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $RunArtifactsDir "stack_before_chat.json") -Encoding UTF8
+    }
     & python @eduTransformPythonArgs > $eduTransformConsolePath 2>&1
     $eduTransformExit = $LASTEXITCODE
+    if ($ClosureDiagnosticChild -and $closureGodotProc.HasExited) {
+        throw "271 Godot died during chat (environment_interrupt)"
+    }
     Get-Content -LiteralPath $eduTransformConsolePath | ForEach-Object { Write-Host $_ }
     if (-not (Test-Path -LiteralPath $eduTransformSummaryPath)) {
         throw ("edu transform smoke produced no summary artifact (exit code " + $eduTransformExit + "; console: " + $eduTransformConsolePath + ")")
@@ -9445,6 +9661,12 @@ if ($EduTransformSmoke) {
     }
     elseif ($eduTransformExit -eq 3) {
         throw ("edu transform smoke LLM behavior miss (model did not drive the tool / omitted the instructed key; honest record, no rerun) - see " + $eduTransformSummaryPath)
+    }
+    elseif ($eduTransformExit -eq 5) {
+        throw ("271 not_exercised: natural route did not enter diagnostic closure; no rerun - see " + $eduTransformSummaryPath)
+    }
+    elseif ($eduTransformExit -eq 6) {
+        throw ("271 accounting budget exceeded after one request; no further chat - see " + $eduTransformSummaryPath)
     }
     else {
         throw ("edu transform smoke failed with exit code $eduTransformExit (console: " + $eduTransformConsolePath + ")")

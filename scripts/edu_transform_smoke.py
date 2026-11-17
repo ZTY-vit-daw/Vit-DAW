@@ -50,6 +50,13 @@ Exit codes (card section 8, fixed before execution; single run, no rerun):
 LLM budget: one chat turn (plus any bounded in-turn tool roundtrips) on the
 user's default engine (deepseek-flash at run time); telemetry rows for the
 conversation are summarized into the run summary for billing evidence.
+
+Card 271 mode (--require-diagnostic-closure) retains this exact fixture,
+message and golden. It additionally requires natural closure.mode=diagnostic
+and an identity-matched production runtime slice with max_turns >1, without
+a max_turns stop. Exit 5=not_exercised, 6=post-request accounting ceiling.
+The ps1 wrapper supplies real Godot + kernel + fresh agent, lifetime hygiene
+and run-wide billing. This mode neither injects closure state nor continues.
 """
 
 from __future__ import annotations
@@ -106,6 +113,8 @@ EXIT_PASS = 0
 EXIT_ENV = 2
 EXIT_LLM_MISS = 3
 EXIT_CMD_DEFECT = 4
+EXIT_NOT_EXERCISED = 5
+EXIT_BUDGET = 6
 
 KEY_MISSING_LIMITATION = "未提供 key 参数"
 
@@ -230,6 +239,7 @@ def telemetry_for_conversation(telemetry_path: Optional[Path], conversation: str
     input_tokens = 0
     output_tokens = 0
     cached_tokens = 0
+    sources: Dict[str, int] = {}
     try:
         for line in telemetry_path.read_text(encoding="utf-8", errors="replace").splitlines():
             line = line.strip()
@@ -241,14 +251,15 @@ def telemetry_for_conversation(telemetry_path: Optional[Path], conversation: str
                 continue
             if not isinstance(row, dict):
                 continue
-            blob = json.dumps(row, ensure_ascii=False)
-            if f'"conversation_id": "{conversation}"' not in blob and f'"conversation_id":"{conversation}"' not in blob:
+            if conversation and row.get("conversation_id") != conversation:
                 continue
             calls += 1
+            source = str(row.get("source") or "unknown")
+            sources[source] = sources.get(source, 0) + 1
             usage = row.get("usage") if isinstance(row.get("usage"), dict) else {}
-            input_tokens += int(usage.get("prompt_tokens") or row.get("prompt_tokens") or 0)
-            output_tokens += int(usage.get("completion_tokens") or row.get("completion_tokens") or 0)
-            cached = usage.get("prompt_cache_hit_tokens") or usage.get("prompt_tokens_details")
+            input_tokens += int(usage.get("input_tokens") or usage.get("prompt_tokens") or row.get("prompt_tokens") or 0)
+            output_tokens += int(usage.get("output_tokens") or usage.get("completion_tokens") or row.get("completion_tokens") or 0)
+            cached = usage.get("cache_read_tokens") or usage.get("prompt_cache_hit_tokens") or usage.get("prompt_tokens_details")
             if isinstance(cached, dict):
                 cached = cached.get("cached_tokens")
             if isinstance(cached, (int, float)):
@@ -259,10 +270,43 @@ def telemetry_for_conversation(telemetry_path: Optional[Path], conversation: str
             "input_tokens": input_tokens,
             "output_tokens": output_tokens,
             "cached_input_tokens": cached_tokens,
+            "calls_by_source": sources,
         })
     except OSError as exc:
         result["error"] = str(exc)
     return result
+
+
+def diagnostic_evidence(response: Dict[str, Any], runtime: Dict[str, Any]) -> Dict[str, Any]:
+    """Only accept the production closure and identity-matched runtime slice.
+
+    Runtime status is a current-goal projection, not a conversation query;
+    identity matching prevents a later scheduler/launcher goal being credited.
+    """
+    workflow = response.get("workflow_data") or {}
+    closure = workflow.get("minimal_audio_closure") or {}
+    task = runtime.get("task") or {}
+    matched = bool(response.get("task_id")) and task.get("task_id") == response.get("task_id") \
+        and task.get("goal_id") == response.get("goal_id") \
+        and (task.get("run") or {}).get("run_id") == response.get("run_id")
+    slices = rows_of((task.get("run") or {}).get("slices")) if matched else []
+    primary = next((row for row in slices if row.get("slice_id") == response.get("slice_id")), {})
+    return {
+        "closure_mode": closure.get("mode"),
+        "diagnostic_exercised": closure.get("mode") == "diagnostic",
+        "closure_id": closure.get("closure_id"),
+        "phase": closure.get("phase"),
+        "settlement_reason": (closure.get("settlement") or {}).get("reason"),
+        "task_state": closure.get("task_state"),
+        "runtime_identity_matched": matched,
+        "response_slice": primary,
+        "all_run_slices": slices,
+        "base_budget_observed": as_number(primary.get("max_turns")) is not None
+            and float(primary["max_turns"]) > 1,
+        "max_turns_stop": response.get("stop_reason") == "limit_reached"
+            and response.get("limit_type") == "max_turns",
+        "budget_evidence_boundary": "GET /agent/runtime/status task.run.slices; absent or mismatched identity is unverified",
+    }
 
 
 def main() -> int:
@@ -274,11 +318,13 @@ def main() -> int:
     parser.add_argument("--agent-log", default="", help="agent log path for harness.invoke route cross-check")
     parser.add_argument("--telemetry-path", default="", help="agent LLM telemetry jsonl (billing evidence)")
     parser.add_argument("--chat-timeout", type=float, default=CHAT_TIMEOUT_SEC)
+    parser.add_argument("--require-diagnostic-closure", action="store_true",
+                        help="card 271: natural diagnostic route + observed >1 slice budget required")
     args = parser.parse_args()
 
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     summary: Dict[str, Any] = {
-        "card": "EDU-SYMBOL-CORE-1",
+        "card": "CLOSURE-ROUTE-ADAPT-1" if args.require_diagnostic_closure else "EDU-SYMBOL-CORE-1",
         "leg": "smokerun1 chat-driven analyze_midi_transformations",
         "stamp": stamp,
         "phases": {},
@@ -295,9 +341,12 @@ def main() -> int:
             EXIT_ENV: "environment",
             EXIT_LLM_MISS: "llm_behavior_miss",
             EXIT_CMD_DEFECT: "command_defect",
+            EXIT_NOT_EXERCISED: "not_exercised",
+            EXIT_BUDGET: "budget_exceeded",
         }.get(exit_code, "unknown")
         summary["fail_phase"] = phase
         summary["fail_reason"] = reason
+        summary["failure_kind"] = reason if reason in {"no_candidate_found", "capability_blocked"} else summary["exit_class"]
         if extra:
             summary["phases"].setdefault(phase, {}).update(extra)
         save_summary()
@@ -377,6 +426,8 @@ def main() -> int:
         "music_context": music,
         "verified": True,
     }
+    Path(args.output).with_name("fixture_notes.json").write_text(
+        json.dumps(twinkle_rows(), ensure_ascii=False, indent=2), encoding="utf-8")
     save_summary()
     print(f"[edu-transform] fixture verified: track={track_id} clip={clip_id} notes=42", flush=True)
 
@@ -392,17 +443,46 @@ def main() -> int:
         "range_beats / min_match_notes / transformations 都不用传（用默认值，分析全曲）。"
         "分析完成后把检出的每种关系（repeat / sequence 等）简要列给我。"
     )
+    chat_request = {
+        "conversation_id": conversation,
+        "message": message,
+        "context": {"agent_mode": "chat"},
+    }
+    Path(args.output).with_name("chat_request.json").write_text(
+        json.dumps(chat_request, ensure_ascii=False, indent=2), encoding="utf-8")
     try:
-        response = post_json(args.agent_http, "/agent/chat", {
-            "conversation_id": conversation,
-            "message": message,
-            "context": {"agent_mode": "chat"},
-        }, args.chat_timeout)
+        response = post_json(args.agent_http, "/agent/chat", chat_request, args.chat_timeout)
     except Exception as exc:  # noqa: BLE001 - env vs timeout classified below.
+        summary["phases"]["billing"] = telemetry_for_conversation(
+            Path(args.telemetry_path) if args.telemetry_path else None, conversation)
+        summary["phases"]["run_billing"] = telemetry_for_conversation(
+            Path(args.telemetry_path) if args.telemetry_path else None, "")
         return fail(EXIT_ENV, "chat", f"chat request exception: {exc}")
 
     Path(args.output).with_name("chat_response.json").write_text(
         json.dumps(response, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    # Read-only production telemetry; no private closure injection or continue.
+    runtime: Dict[str, Any] = {}
+    if args.require_diagnostic_closure:
+        try:
+            with urllib.request.urlopen(args.agent_http.rstrip("/") + "/agent/runtime/status", timeout=15) as handle:
+                runtime = json.loads(handle.read().decode("utf-8"))
+        except Exception as exc:  # preserve the chat even if evidence GET fails
+            runtime = {"evidence_error": str(exc)}
+        Path(args.output).with_name("runtime_status_after_chat.json").write_text(
+            json.dumps(runtime, ensure_ascii=False, indent=2), encoding="utf-8")
+        evidence = diagnostic_evidence(response, runtime)
+        summary["phases"]["diagnostic"] = evidence
+        Path(args.output).with_name("closure_evidence.json").write_text(
+            json.dumps({"evidence": evidence, "closure": (response.get("workflow_data") or {}).get("minimal_audio_closure")},
+                       ensure_ascii=False, indent=2), encoding="utf-8")
+
+    # Capture billing on every outcome, including no-tool and route misses.
+    billing = telemetry_for_conversation(Path(args.telemetry_path) if args.telemetry_path else None, conversation)
+    summary["phases"]["billing"] = billing
+    run_billing = telemetry_for_conversation(Path(args.telemetry_path) if args.telemetry_path else None, "")
+    summary["phases"]["run_billing"] = run_billing
 
     executed_rows = rows_of(response.get("executed_kernel_reply"))
     executed_tools = [tool_name_of(row) for row in executed_rows]
@@ -413,18 +493,38 @@ def main() -> int:
     if agent_log_path and agent_log_path.exists():
         with agent_log_path.open("r", encoding="utf-8", errors="replace") as handle:
             handle.seek(log_size_before)
-            log_delta_tools = parse_tool_calls(handle.read())
+            log_delta = handle.read()
+            log_delta_tools = parse_tool_calls(log_delta)
+            Path(args.output).with_name("agent_chat_delta.log").write_text(log_delta, encoding="utf-8")
 
     chat_phase = {
         "conversation_id": conversation,
         "stop_reason": response.get("stop_reason"),
         "goal_status": response.get("goal_status"),
+        "limit_type": response.get("limit_type"),
         "reply_excerpt": str(response.get("reply") or "")[:400],
         "executed_tools": executed_tools,
         "log_delta_tools": log_delta_tools,
     }
     summary["phases"]["chat"] = chat_phase
     save_summary()
+
+    if args.require_diagnostic_closure:
+        # These are accounting ceilings, checked after the single chat request;
+        # they are not a provider-side hard fuse or a currency-price estimate.
+        if not billing.get("available") or not billing.get("calls"):
+            return fail(EXIT_ENV, "billing", "conversation billing evidence unavailable")
+        if run_billing["calls"] > 8 or run_billing["input_tokens"] > 250000 or run_billing["output_tokens"] > 16000:
+            return fail(EXIT_BUDGET, "billing", "post-request accounting ceiling exceeded; no rerun")
+        if not evidence["diagnostic_exercised"]:
+            return fail(EXIT_NOT_EXERCISED, "diagnostic", "natural production route did not exercise closure.mode=diagnostic")
+        if evidence["max_turns_stop"]:
+            return fail(EXIT_CMD_DEFECT, "diagnostic", "max_turns stop remains; inspect actual slice budget before attributing old clamp")
+        for terminal in (response.get("stop_reason"), evidence["settlement_reason"], evidence["task_state"]):
+            if terminal in {"no_candidate_found", "capability_blocked"}:
+                return fail(EXIT_LLM_MISS, "chat", str(terminal))
+        if not evidence["base_budget_observed"]:
+            return fail(EXIT_CMD_DEFECT, "diagnostic", "identity-matched production slice max_turns >1 not proven")
 
     if not analyze_rows:
         # Distinguish: model never called the tool (llm miss) vs turn-level
