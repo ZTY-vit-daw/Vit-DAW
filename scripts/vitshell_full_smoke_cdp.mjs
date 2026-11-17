@@ -294,8 +294,16 @@ async function finishPresentationCapture(page, capture) {
   await page.waitForFunction((terminal) => {
     const messages = window.__shellPresentationCapture.messages;
     const requestId = messages.find(({ payload: p, synthetic }) => !synthetic && p.type === "vit_launch_progress" && !p.replay && p.phase === "spawning")?.payload.request_id;
-    return requestId && messages.some(({ payload: p, synthetic }) => !synthetic && p.type === "vit_launch_progress" && !p.replay && p.request_id === requestId && p.phase === terminal);
+    return requestId && messages.some(({ payload: p, synthetic }) => !synthetic && p.type === "vit_launch_progress" && !p.replay && p.request_id === requestId && [terminal, "failed", "canceled"].includes(p.phase));
   }, expectedTerminal, { timeout: 250000 });
+  if (success) {
+    const earlyFailure = await page.evaluate(() => {
+      const capture = window.__shellPresentationCapture;
+      const requestId = capture.messages.find(({ payload: p, synthetic }) => !synthetic && p.phase === "spawning")?.payload.request_id;
+      return capture.messages.find(({ payload: p, synthetic }) => !synthetic && p.type === "vit_launch_progress" && p.request_id === requestId && ["failed", "canceled"].includes(p.phase));
+    });
+    if (earlyFailure) { await capture.sample(); await capture.stop(); throw new Error(`real launch terminated ${earlyFailure.payload.phase}: ${earlyFailure.payload.detail}`); }
+  }
   await page.waitForFunction(() => window.__shellPresentationCapture.messages.some(({ payload: p }) => p.type === "vit_window_state" && p.window_state?.loading_guard_active === false && p.window_state?.release_reason), null, { timeout: 10000 });
   await page.waitForFunction(() => document.querySelector('[data-window-launch-terminal="ready"], [data-window-launch-terminal="failed"]'), null, { timeout: 10000 });
   await new Promise(resolve => setTimeout(resolve, 500)); // bounded late-hook drain, no input/focus writes
