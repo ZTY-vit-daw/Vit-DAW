@@ -1,0 +1,25 @@
+﻿{
+    "card":  "403",
+    "run_id":  "formal_02",
+    "started":  "2026-11-17T07:27:05.3902867Z",
+    "finished":  "2026-11-17T07:27:40.3040285Z",
+    "exit":  0,
+    "recents_unchanged":  true,
+    "scenarios":  [
+                      {
+                          "scene":  "synthetic.godot",
+                          "pid":  29976,
+                          "exit":  0,
+                          "classification":  "candidate_pass",
+                          "raw":  "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-MAIN-HWND-OBSERVATION-1\\formal_02\\synthetic.godot.jsonl"
+                      },
+                      {
+                          "scene":  "external.godot",
+                          "pid":  13972,
+                          "exit":  0,
+                          "classification":  "candidate_pass",
+                          "raw":  "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-MAIN-HWND-OBSERVATION-1\\formal_02\\external.godot.jsonl"
+                      }
+                  ],
+    "boundary":  "Isolated minimal Godot only; raw child WinEvent plus engine observations, no child WndProc or product acceptance"
+}
