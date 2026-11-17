@@ -113,6 +113,9 @@ finally {
     Remove-Item Env:VIT_AGENT_LLM_BASE_URL -ErrorAction SilentlyContinue
     foreach ($snapshot in $snapshots) {
         try {
+            if ($WindowBehaviorChecks -and $snapshot.path -like '*Godot*logs*godot.log' -and (Test-Path -LiteralPath $snapshot.path)) {
+                Copy-Item -LiteralPath $snapshot.path -Destination (Join-Path $RunRoot 'godot_before_restore.log') -Force
+            }
             if ($snapshot.existed) { Copy-Item -LiteralPath $snapshot.backup -Destination $snapshot.path -Force }
             elseif (Test-Path -LiteralPath $snapshot.path) { Remove-Item -LiteralPath $snapshot.path -Force }
             $after = if (Test-Path -LiteralPath $snapshot.path) { (Get-FileHash -LiteralPath $snapshot.path -Algorithm SHA256).Hash } else { 'ABSENT' }

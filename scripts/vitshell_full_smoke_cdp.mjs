@@ -68,6 +68,7 @@ let activePresentationCapture = null;
 function fail(message, evidence) {
   if (activePresentationCapture && outPath) {
     writeFileSync(outPath + ".presentation-partial.json", JSON.stringify({ scenario: presentationScenario, samples: activePresentationCapture.samples, sample_errors: activePresentationCapture.errors, last_native: activePresentationCapture.lastNative, failed: message }, null, 2));
+    try { writeFileSync(outPath + ".godot-on-failure.log", readFileSync(godotLogPath)); } catch { /* No current Godot log can exist before spawn. */ }
   }
   const verdict = { phase, ok: false, error: message };
   if (evidence && typeof evidence === "object") verdict.evidence = evidence;
@@ -247,6 +248,10 @@ async function finishPresentationCapture(page, capture) {
   }
   await capture.sample();
   await capture.stop();
+  // Preserve the real process log BEFORE evaluating any window/DOM assertion;
+  // the outer hygiene wrapper will subsequently restore the user's log file.
+  const godotRaw = readFileSync(godotLogPath, "utf8");
+  writeFileSync(outPath + ".godot.log", godotRaw);
   if (capture.errors.length) throw new Error("BOUNDARY: status/DOM sample unavailable inside the finite observation interval");
   const native = await page.evaluate(() => window.__shellPresentationCapture);
   const progress = native.messages.filter(({ payload: p, synthetic }) => !synthetic && p.type === "vit_launch_progress" && !p.replay);
@@ -269,8 +274,6 @@ async function finishPresentationCapture(page, capture) {
   const uiReady = capture.samples.find(s => s.dom.requestId === requestId && s.dom.terminal === "ready");
   if (!success && uiReady) throw new Error("failed request became ready in UI");
   if (uiReady && uiReady.receivedAt < terminal.receivedAt) throw new Error("UI ready preceded its real terminal stage");
-  const godotRaw = readFileSync(godotLogPath, "utf8");
-  writeFileSync(outPath + ".godot.log", godotRaw);
   const godotEvents = parseGodotReadiness(godotRaw, requestId);
   const mount = godotEvents.find(e => e.event === "workspace.mounted");
   const snapshot = godotEvents.find(e => e.event === "workspace.snapshot_applied");
