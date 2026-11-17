@@ -8,7 +8,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import { ConvergedLauncher } from "./ConvergedLauncher";
-import { LauncherSurface } from "./LauncherSurface";
 import {
   buildDirectNewDirective,
   cardPendingPlaceholder,
@@ -163,9 +162,9 @@ describe("cardsToEntries 回执卡映射", () => {
   });
 });
 
-describe("LauncherSurface 静态渲染（fixture 模式，零网络）", () => {
+describe("ConvergedLauncher 静态渲染（fixture 模式，零网络）", () => {
   it("标题栏只写 Vit 文本：无 i-vit 品牌标进入标题栏", () => {
-    const markup = renderToStaticMarkup(<LauncherSurface fixture={{ drawerState: "empty" }} />);
+    const markup = renderToStaticMarkup(<ConvergedLauncher fixture={{ drawerState: "empty" }} />);
     expect(markup).toContain('data-launcher-titlebar');
     expect(markup).toContain(">Vit</span>");
     const titlebar = markup.split('data-launcher-titlebar')[1]?.split("</header>")[0] ?? "";
@@ -175,7 +174,7 @@ describe("LauncherSurface 静态渲染（fixture 模式，零网络）", () => {
 
   it("ready 态：抽屉/真实 recent 数/建议/输入/问候全在卷", () => {
     const markup = renderToStaticMarkup(
-      <LauncherSurface
+      <ConvergedLauncher
         fixture={{
           greeting: { status: "ok", launcher: true, reply: "我在。想从哪开始？", recent_count: 1 },
           drawerState: "ready",
@@ -193,12 +192,12 @@ describe("LauncherSurface 静态渲染（fixture 模式，零网络）", () => {
     expect((markup.match(/data-launcher-suggestion=/g) ?? []).length).toBe(3);
     expect(markup).toContain('data-launcher-input');
     expect(markup).toContain('data-launcher-state="ready"');
-    expect(markup).toContain('data-fixture="launcher-surface"');
+    expect(markup).toContain('data-fixture="converged-launcher"');
   });
 
   it("加载态：greeting 与 drawer 各自 loading 文案", () => {
     const markup = renderToStaticMarkup(
-      <LauncherSurface fixture={{ thread: [], drawerState: "loading" }} />
+      <ConvergedLauncher fixture={{ thread: [], drawerState: "loading" }} />
     );
     // fixture greetingErrorText 未给 → ready greeting；drawer loading
     expect(markup).toContain('data-drawer-state="loading"');
@@ -207,7 +206,7 @@ describe("LauncherSurface 静态渲染（fixture 模式，零网络）", () => {
 
   it("错误态：agent 不可用 banner + 重试按钮 + 抽屉错误态", () => {
     const markup = renderToStaticMarkup(
-      <LauncherSurface fixture={{ greetingErrorText: LAUNCHER_AGENT_UNAVAILABLE_TEXT, drawerState: "error", drawerErrorText: "内核未就绪" }} />
+      <ConvergedLauncher fixture={{ greetingErrorText: LAUNCHER_AGENT_UNAVAILABLE_TEXT, drawerState: "error", drawerErrorText: "内核未就绪" }} />
     );
     expect(markup).toContain('data-launcher-state="error"');
     expect(markup).toContain('data-launcher-agent-error');
@@ -220,7 +219,7 @@ describe("LauncherSurface 静态渲染（fixture 模式，零网络）", () => {
 
   it("directive 线程条目渲染为自动执行回执（SHELL-5：无手动按钮、不虚报已打开）", () => {
     const markup = renderToStaticMarkup(
-      <LauncherSurface
+      <ConvergedLauncher
         fixture={{
           greeting: { reply: "我在。想从哪开始？" },
           drawerState: "empty",
@@ -238,7 +237,7 @@ describe("LauncherSurface 静态渲染（fixture 模式，零网络）", () => {
 
   it("结果卡线程条目为数据展示卡", () => {
     const markup = renderToStaticMarkup(
-      <LauncherSurface
+      <ConvergedLauncher
         fixture={{
           greeting: { reply: "最近的工程有 1 个——点卡片打开。" },
           drawerState: "ready",
@@ -259,7 +258,7 @@ const FIXTURE_DIRECTIVE = { action: "open_project", file_path: "D:/fixtures/甲.
 describe("UI-BRIDGE-1 桥呈现面", () => {
   it("fixture 线程不带 directive → 无执行按钮（纯占位呈报，行为零变化）", () => {
     const markup = renderToStaticMarkup(
-      <LauncherSurface
+      <ConvergedLauncher
         fixture={{
           thread: [{ kind: "directive", view: directivePlaceholder(FIXTURE_DIRECTIVE)! }]
         }}
@@ -271,7 +270,7 @@ describe("UI-BRIDGE-1 桥呈现面", () => {
 
   it("占位携带 directive（SHELL-5 自动执行）→ 无手动执行按钮；桥不可用给诚实说明", () => {
     const markup = renderToStaticMarkup(
-      <LauncherSurface
+      <ConvergedLauncher
         fixture={{
           thread: [{ kind: "directive", view: directivePlaceholder(FIXTURE_DIRECTIVE)!, directive: FIXTURE_DIRECTIVE }]
         }}
@@ -289,7 +288,7 @@ describe("UI-BRIDGE-1 桥呈现面", () => {
   });
 
   it("fixture 模式 data-launcher-bridge=fixture；不发起任何桥请求", () => {
-    const markup = renderToStaticMarkup(<LauncherSurface fixture={{ drawerState: "empty" }} />);
+    const markup = renderToStaticMarkup(<ConvergedLauncher fixture={{ drawerState: "empty" }} />);
     expect(markup).toContain('data-launcher-bridge="fixture"');
     expect(markup).not.toContain("data-launcher-choose-file");
   });
@@ -297,10 +296,10 @@ describe("UI-BRIDGE-1 桥呈现面", () => {
 
 // ── SHELL-2：抽屉手动按钮 + 页内治理三键卡 ──
 
-describe("launcherSurface 抽屉手动按钮（SHELL-2；SHELL-5 语义收口）", () => {
+describe("ConvergedLauncher 抽屉手动按钮（SHELL-2；SHELL-5 语义收口）", () => {
   it("抽屉头部「＋新建」=直连新建（不经对话问询）+「打开…」宿主对话框", () => {
     const markup = renderToStaticMarkup(
-      <LauncherSurface fixture={{ drawerState: "empty" }} />
+      <ConvergedLauncher fixture={{ drawerState: "empty" }} />
     );
     expect(markup).toContain("data-launcher-new");
     expect(markup).toContain('data-launcher-new-mode="direct"');
@@ -320,7 +319,7 @@ describe("launcherSurface 抽屉手动按钮（SHELL-2；SHELL-5 语义收口）
     });
     try {
       // live 面（无 fixture prop）：bridgeAvailable 只由 chrome.webview 在场判定。
-      const markup = renderToStaticMarkup(<LauncherSurface />);
+      const markup = renderToStaticMarkup(<ConvergedLauncher />);
       expect(markup).toContain('data-launcher-choose-file');
       expect(markup).toContain("打开…");
       // 有 recents 时不加空态突出修饰。
@@ -333,10 +332,10 @@ describe("launcherSurface 抽屉手动按钮（SHELL-2；SHELL-5 语义收口）
 
 // ── SHELL-4：内核态呈现（三态之二/之三的 UI 侧诚实区分）──
 
-describe("launcherSurface 内核态呈现（SHELL-4）", () => {
+describe("ConvergedLauncher 内核态呈现（SHELL-4）", () => {
   it("greeting kernel_unavailable=true → data-launcher-kernel=unavailable（内核不可达不冒充在线/空态）", () => {
     const markup = renderToStaticMarkup(
-      <LauncherSurface
+      <ConvergedLauncher
         fixture={{
           greeting: {
             status: "ok",
@@ -360,7 +359,7 @@ describe("launcherSurface 内核态呈现（SHELL-4）", () => {
 
   it("greeting 无 kernel 标记 → data-launcher-kernel=online", () => {
     const markup = renderToStaticMarkup(
-      <LauncherSurface
+      <ConvergedLauncher
         fixture={{
           greeting: { status: "ok", launcher: true, reply: "我在。最近的工程是《测试工程甲》——想从哪开始？", recent_count: 1 },
           drawerState: "ready",
@@ -372,17 +371,17 @@ describe("launcherSurface 内核态呈现（SHELL-4）", () => {
   });
 
   it("空态文案不再引用磁带流（v5.1 UI 无磁带流元素）", () => {
-    const markup = renderToStaticMarkup(<LauncherSurface fixture={{ drawerState: "empty" }} />);
+    const markup = renderToStaticMarkup(<ConvergedLauncher fixture={{ drawerState: "empty" }} />);
     expect(markup).toContain('data-drawer-state="empty"');
     expect(markup).toContain("还没有最近工程记录");
     expect(markup).not.toContain("磁带流");
   });
 });
 
-describe("launcherSurface 页内治理三键卡（SHELL-2）", () => {
+describe("ConvergedLauncher 页内治理三键卡（SHELL-2）", () => {
   it("fixture 线程治理项 → 三键全在场且 headline 陈述在开工程", () => {
     const markup = renderToStaticMarkup(
-      <LauncherSurface
+      <ConvergedLauncher
         fixture={{
           greeting: { status: "ok", reply: "fixture" },
           thread: [
@@ -406,7 +405,7 @@ describe("launcherSurface 页内治理三键卡（SHELL-2）", () => {
 
   it("已作答治理卡 → 三键退场，固定呈报在场（不重放选择）", () => {
     const markup = renderToStaticMarkup(
-      <LauncherSurface
+      <ConvergedLauncher
         fixture={{
           greeting: { status: "ok", reply: "fixture" },
           thread: [

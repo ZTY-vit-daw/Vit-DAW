@@ -1,0 +1,107 @@
+
+> ask-vit-webui@0.1.0 test:render
+> node src/gallery/render-smoke.mjs
+
+12:11:58 [vite] http proxy error: /agent/downloads/scan
+Error: connect ECONNREFUSED 127.0.0.1:7878
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+12:11:58 [vite] http proxy error: /agent/runtime/status
+Error: connect ECONNREFUSED 127.0.0.1:7878
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+12:11:58 [vite] http proxy error: /agent/ui/state
+Error: connect ECONNREFUSED 127.0.0.1:7878
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+12:11:58 [vite] http proxy error: /agent/downloads/scan
+Error: connect ECONNREFUSED 127.0.0.1:7878
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+12:11:58 [vite] http proxy error: /agent/runtime/status
+Error: connect ECONNREFUSED 127.0.0.1:7878
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+12:11:58 [vite] http proxy error: /agent/ui/state
+Error: connect ECONNREFUSED 127.0.0.1:7878
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+12:11:58 [vite] http proxy error: /agent/downloads/scan
+Error: connect ECONNREFUSED 127.0.0.1:7878
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+12:11:58 [vite] http proxy error: /agent/runtime/status
+Error: connect ECONNREFUSED 127.0.0.1:7878
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+12:11:58 [vite] http proxy error: /agent/ui/state
+Error: connect ECONNREFUSED 127.0.0.1:7878
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+12:11:58 [vite] http proxy error: /agent/events?conversation_id=webui_mwk6eepj&since=0&limit=120
+Error: connect ECONNREFUSED 127.0.0.1:7878
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+12:11:58 [vite] http proxy error: /health
+Error: connect ECONNREFUSED 127.0.0.1:7878
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+12:11:58 [vite] http proxy error: /health
+Error: connect ECONNREFUSED 127.0.0.1:7878
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+12:11:58 [vite] http proxy error: /agent/downloads/watch
+Error: connect ECONNREFUSED 127.0.0.1:7878
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+12:11:58 [vite] http proxy error: /health
+Error: connect ECONNREFUSED 127.0.0.1:7878
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+[test:render] appentryReport=C:\Users\timoz\.codex\worktrees\converge-cleanup-389\Vit_DAW\coord\runs\CONVERGE-CLEANUP-1\run_20261117_zerostack\render_attempt3\UI-SPRITE-MOUNT-1\render-smoke-appentry-report.json
+[test:render] APPENTRY_RESULT=PASS
+12:11:58 [vite] http proxy error: /agent/events?conversation_id=webui_mwk6eepj&since=0&limit=120
+Error: connect ECONNREFUSED 127.0.0.1:7878
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+12:11:59 [vite] http proxy error: /agent/ui/state
+Error: connect ECONNREFUSED 127.0.0.1:7878
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+12:11:59 [vite] http proxy error: /agent/ui/state
+Error: connect ECONNREFUSED 127.0.0.1:7878
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+12:11:59 [vite] http proxy error: /agent/events?conversation_id=webui_mwk6eepj&since=0&limit=120
+Error: connect ECONNREFUSED 127.0.0.1:7878
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+12:11:59 [vite] http proxy error: /agent/launcher/greeting
+Error: connect ECONNREFUSED 127.0.0.1:7878
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+12:11:59 [vite] http proxy error: /agent/launcher/recent-projects
+Error: connect ECONNREFUSED 127.0.0.1:7878
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+12:11:59 [vite] http proxy error: /agent/launcher/greeting
+Error: connect ECONNREFUSED 127.0.0.1:7878
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+12:11:59 [vite] http proxy error: /agent/launcher/recent-projects
+Error: connect ECONNREFUSED 127.0.0.1:7878
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+12:12:01 [vite] http proxy error: /agent/launcher/greeting
+Error: connect ECONNREFUSED 127.0.0.1:7878
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+12:12:01 [vite] http proxy error: /agent/launcher/recent-projects
+Error: connect ECONNREFUSED 127.0.0.1:7878
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+12:12:01 [vite] http proxy error: /agent/launcher/greeting
+Error: connect ECONNREFUSED 127.0.0.1:7878
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+12:12:01 [vite] http proxy error: /agent/launcher/recent-projects
+Error: connect ECONNREFUSED 127.0.0.1:7878
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1645:16)
+[test:render] ENTRY388_RESULT=PASS
+[test:render] url=http://127.0.0.1:5391/app/gallery.html
+[test:render] symbols=23 matrixOK=true
+[test:render] textMin=5.077 graphicMin=4.305 graphics=251
+[test:render] external=0 clip=0 tooSmall=0
+[test:render] report=C:\Users\timoz\.codex\worktrees\converge-cleanup-389\Vit_DAW\coord\runs\CONVERGE-CLEANUP-1\run_20261117_zerostack\render_attempt3\UI-FOUNDATION-1\render-smoke-report.json
+[test:render] RESULT=PASS
+[test:render] launcherReport=C:\Users\timoz\.codex\worktrees\converge-cleanup-389\Vit_DAW\coord\runs\CONVERGE-CLEANUP-1\run_20261117_zerostack\render_attempt3\UI-LAUNCHER-1\render-smoke-launcher-report.json
+[test:render] LAUNCHER_RESULT=PASS
+[test:render] projectReport=C:\Users\timoz\.codex\worktrees\converge-cleanup-389\Vit_DAW\coord\runs\CONVERGE-CLEANUP-1\run_20261117_zerostack\render_attempt3\UI-PROJECT-1\render-smoke-project-report.json
+[test:render] PROJECT_RESULT=PASS
+[test:render] loadingReport=C:\Users\timoz\.codex\worktrees\converge-cleanup-389\Vit_DAW\coord\runs\CONVERGE-CLEANUP-1\run_20261117_zerostack\render_attempt3\UI-LOADING-1\render-smoke-loading-report.json
+[test:render] LOADING_RESULT=PASS
+[test:render] fidelityReport=C:\Users\timoz\.codex\worktrees\converge-cleanup-389\Vit_DAW\coord\runs\CONVERGE-CLEANUP-1\run_20261117_zerostack\render_attempt3\UI-VISUAL-FIDELITY-1\render-smoke-fidelity-report.json
+[test:render] FIDELITY_RESULT=PASS
+[test:render] shadowboxReport=C:\Users\timoz\.codex\worktrees\converge-cleanup-389\Vit_DAW\coord\runs\CONVERGE-CLEANUP-1\run_20261117_zerostack\render_attempt3\UI-MSG-SHADOWBOX-1\render-smoke-shadowbox-report.json
+[test:render] SHADOWBOX_RESULT=PASS launcherUserFrame={"alignSelf":"auto","textAlign":"left","borderStyle":"solid","borderWidth":"1px","boxShadow":"rgba(0, 0, 0, 0.18) 0px 1px 2px 0px, rgba(21, 36, 54, 0.12) 0px 6px 16px 0px","backgroundColor":"rgb(255, 255, 255)","paddingTop":"6px","maxWidth":"100%"} projectUserFrame={"alignSelf":"flow-end","textAlign":"right","borderStyle":"solid","borderWidth":"1px","boxShadow":"rgba(0, 0, 0, 0.18) 0px 1px 2px 0px, rgba(21, 36, 54, 0.12) 0px 6px 16px 0px","backgroundColor":"rgb(255, 255, 255)","paddingTop":"6px","maxWidth":"min(576px, 100%)"}
+[test:render] recTapeReport=C:\Users\timoz\.codex\worktrees\converge-cleanup-389\Vit_DAW\coord\runs\CONVERGE-CLEANUP-1\run_20261117_zerostack\render_attempt3\UI-REC-TAPE-1\render-smoke-rec-tape-report.json
+[test:render] REC-TAPE_RESULT=PASS tapeBadges=6 tapeRows=3 tapeMinContrast=6.222
+[test:render] widgetsReport=C:\Users\timoz\.codex\worktrees\converge-cleanup-389\Vit_DAW\coord\runs\CONVERGE-CLEANUP-1\run_20261117_zerostack\render_attempt3\WIDGET-KIT-1\render-smoke-widget-report.json
+[test:render] WIDGETS_RESULT=PASS audioPlayers=9 comparePairs=2 cardCollapse=1 external=0
+[test:render] convergedReport=C:\Users\timoz\.codex\worktrees\converge-cleanup-389\Vit_DAW\coord\runs\CONVERGE-CLEANUP-1\run_20261117_zerostack\render_attempt3\CONVERGE-SHELL-1\render-smoke-converged-report.json
+[test:render] CONVERGED_RESULT=PASS tapeRows=3 messageRows=4 governance=1 tapeGraphics=28

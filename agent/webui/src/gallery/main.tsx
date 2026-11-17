@@ -16,7 +16,6 @@ import {
   type MacroOption,
 } from "../components";
 import { DESIGN_SYMBOLS, DesignSprite, SPRITE_SYMBOL_IDS } from "../design/sprite";
-import { LauncherSurface, type LauncherThreadItem } from "../launcher/LauncherSurface";
 import { directivePlaceholder } from "../launcher/launcherData";
 // CONVERGE-SHELL-1（387）：收敛壳 fixture 面（366 磁带卡整卡形态 + chat 域对话流复用）。
 import { ConvergedLauncher, type ConvergedThreadItem } from "../launcher/ConvergedLauncher";
@@ -77,7 +76,7 @@ const LAUNCHER_FIXTURE_CARDS: LauncherProjectCard[] = [
   }
 ];
 
-const LAUNCHER_FIXTURE_THREAD: LauncherThreadItem[] = [
+const LAUNCHER_FIXTURE_THREAD: ConvergedThreadItem[] = [
   { kind: "user", text: "看看最近的工程" },
   { kind: "assistant", text: "最近的工程有 3 个——点卡片打开，或直接跟我说名字：" },
   { kind: "cards", cards: LAUNCHER_FIXTURE_CARDS },
@@ -511,10 +510,10 @@ function Gallery() {
 
       <Section
         id="launcher-surface"
-        title="启动台 surface（UI-LAUNCHER-1）"
+        title="收敛启动台 surface（CONVERGE-CLEANUP-1）"
         desc="?surface=launcher 主面样例：左抽屉真实最近工程（此处为 fixture）+ 问候语 + 建议 + 输入；标题栏只写 Vit 文本；结果卡/directive 一律数据展示占位，不执行 open/new。全状态样例见 gallery.html?surface=launcher。"
       >
-        <LauncherSurface
+        <ConvergedLauncher
           fixture={{
             greeting: LAUNCHER_FIXTURE_GREETING,
             drawerState: "ready",
@@ -523,8 +522,8 @@ function Gallery() {
           }}
         />
         <p className="v5-gal-caption" data-launcher-gallery-note>
-          directive 卡 = 「准备打开…」占位（数据呈报，agent 端 requires_governance 恒 true；
-          打开/新建动作待工程桥接后执行）。
+          directive 卡呈报自动执行语态；fixture 不发送打开/新建桥请求。
+          live 工程切换由 Vit 桥执行，治理确认跟随发起方。
         </p>
       </Section>
 
@@ -565,7 +564,7 @@ function LauncherFixturePage() {
         </p>
       </header>
 
-      <LauncherSurface
+      <ConvergedLauncher
         fixture={{
           greeting: LAUNCHER_FIXTURE_GREETING,
           drawerState: "ready",
@@ -577,11 +576,11 @@ function LauncherFixturePage() {
       <div className="v5-gal-launcher-states" data-gallery="launcher-states">
         <div data-launcher-sample="loading">
           <h2 className="v5-gal-caption">加载态（greeting / 最近工程读取中）</h2>
-          <LauncherSurface fixture={{ thread: [], drawerState: "loading" }} />
+          <ConvergedLauncher fixture={{ thread: [], drawerState: "loading" }} />
         </div>
         <div data-launcher-sample="error">
           <h2 className="v5-gal-caption">错误态（agent 不可用 + 最近工程失败，各带重试）</h2>
-          <LauncherSurface
+          <ConvergedLauncher
             fixture={{
               greetingErrorText: "连不上 Vit agent——启动台暂时不可用。确认 VitAgent 已启动后重试。",
               drawerState: "error",
@@ -591,7 +590,7 @@ function LauncherFixturePage() {
         </div>
         <div data-launcher-sample="empty">
           <h2 className="v5-gal-caption">空态（还没有最近工程记录）</h2>
-          <LauncherSurface fixture={{ greeting: { reply: "我在。还没有最近的工程记录——想从哪开始？" }, drawerState: "empty" }} />
+          <ConvergedLauncher fixture={{ greeting: { reply: "我在。还没有最近的工程记录——想从哪开始？" }, drawerState: "empty" }} />
         </div>
       </div>
 
@@ -946,7 +945,7 @@ function LauncherLiveFixturePage() {
   return (
     <div className="v5-live-fixture" data-gallery-page="launcher-live">
       <DesignSprite />
-      <LauncherSurface
+      <ConvergedLauncher
         fill
         fixture={{
           greeting: LAUNCHER_FIXTURE_GREETING,

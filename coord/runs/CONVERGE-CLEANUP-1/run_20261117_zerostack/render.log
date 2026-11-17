@@ -1,0 +1,12 @@
+
+> ask-vit-webui@0.1.0 test:render
+> node src/gallery/render-smoke.mjs
+
+[test:render] ABORT: locator.screenshot: Timeout 30000ms exceeded.
+Call log:
+  - waiting for locator('[data-tape-badge]').first()
+
+    at main (C:\Users\timoz\.codex\worktrees\converge-cleanup-389\Vit_DAW\agent\webui\src\gallery\render-smoke.mjs:917:51) {
+  log: [ "  - waiting for locator('[data-tape-badge]').first()" ],
+  name: 'TimeoutError'
+}
