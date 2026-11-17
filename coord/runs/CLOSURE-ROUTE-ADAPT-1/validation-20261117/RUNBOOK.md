@@ -80,3 +80,15 @@ $code271 = $LASTEXITCODE
 - 主管部署已确认：内核到本worktree `VitApp/build/VitApp_artefacts/Release/VitApp.exe`，来源主仓A5947361同款二进制（本卡零C++改动）；Settings独立复制到本worktree `VitApp/Workspace/Settings/Settings.xml`，SHA256前缀 `72F0F511`、尾 `EDFBB8`。该Settings是已知运行库修改，保留不纳代码commit，不还原为仓库旧值。A5947361未含378 D3，披露为边界，不触本卡轮预算/音符分析。运行时仍必须记录完整SHA256。
 - 未来独立前端参数确定为 `C:/Users/timoz/.codex/worktrees/godot-runtime-388/vit-daw-frontend` @`d05043e1`；资源/扩展/缓存由主管确认已水合。未含394/402，不借本卡结论判焦点卡。当前仅记录路径，无Godot解析/运行。
 - 修订QA：PS5.1抽取真实guard函数，git/进程/端口全为本地空/模拟提供器；owner271+占用+净空通过、owner388拒绝、最新释放marker拒绝、外来agent拒绝，exit0。语法和diff检查exit0。无真实fetch/端口探测/进程操作；正式场景仍待主管登记放行。
+
+## 正式启动记录（跑前）
+
+- 放行与资源登记：主管明确放行，origin/main f83cca4f资源首条owner /root/closure271已亲核；当前HEAD=e79740dc，唯一M=主管部署Settings。
+- run：C:\Users\timoz\.codex\worktrees\closure-validation-271\Vit_DAW\coord\runs\CLOSURE-ROUTE-ADAPT-1\validation-20261117\run_20261117_122151
+- 完整命令：powershell -NoProfile -ExecutionPolicy Bypass -File C:/Users/timoz/.codex/worktrees/closure-validation-271/Vit_DAW/scripts/dev_agent_smoke.ps1 -RepoRoot C:/Users/timoz/.codex/worktrees/closure-validation-271/Vit_DAW -StartKernel -KernelExe C:/Users/timoz/.codex/worktrees/closure-validation-271/Vit_DAW/VitApp/build/VitApp_artefacts/Release/VitApp.exe -RestartAgent -StartUI -GodotProjectRoot C:/Users/timoz/.codex/worktrees/godot-runtime-388/vit-daw-frontend -GodotExe D:/Godot/Godot_v4.6.1-stable_win64_console.exe -NoChatSmoke -NoStripSilenceSmoke -ClosureDiagnosticValidation -RunArtifactsDir C:\Users\timoz\.codex\worktrees\closure-validation-271\Vit_DAW\coord\runs\CLOSURE-ROUTE-ADAPT-1\validation-20261117\run_20261117_122151
+- 内核SHA256=A59473614152882B21433DCEE684F8B13AE0BD5B632A97CD5E2C8765BB18348E；Settings=72F0F5112EF926ED77F59F015E6CE492142F8FDF1828E5082E970AA949EDFBB8；源XML=947E4D00886F146F7DB082215BC8A69E1727A41D5EA339FA064DEE814E0D521C。
+
+### 装置轮122151（零LLM、非有效模型样本）
+
+- build通过后guard因误要求前导斜杠而拒绝真实资源首条，outer exit1；真实共享格式为时间后直接接占用marker。原始d1/console/recents/fixture hash均保留；源资源f83cca4f字节快照保留resource_f83cca4f_raw.txt。进程/TCP/UDP亲核0，recents还原及亲核807226F4一致。属于装置断言格式错误，不是产品断言或模型随机环境中断。
+- 修正仅移除marker前想象斜杠，并新增启动守卫原始资源落盘。PS5.1离线测试从本次真实f83cca4f首条UTF8快照取行，配对验证owner271通过、替换owner388拒绝、替换release marker拒绝及外来进程拒绝，exit0。原始测试文件C:/Users/timoz/AppData/Local/Temp/vit271-guard-a98c14844b7f413ea02818798d83d393.ps1。新run沿用冻结场景和全部预算，不continue、不改话术。

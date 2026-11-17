@@ -1266,9 +1266,10 @@ function Assert-Closure271StartOwnership {
     }
     finally { [Console]::OutputEncoding = $priorConsoleEncoding }
     $latest = @($resourceLines | Where-Object { $_ -match '^- \d{4}-\d{2}-\d{2} ' } | Select-Object -First 1)
+    $resourceLines | Set-Content -LiteralPath (Join-Path $RunDir "immediate_resource_raw.txt") -Encoding UTF8
     # Unicode codepoints avoid PS5.1's ANSI interpretation of no-BOM source.
     $occupiedMarker = [string][char]0x5360 + [char]0x7528
-    if ($latest.Count -ne 1 -or $latest[0] -notmatch (' / ' + $occupiedMarker + ' / ') -or
+    if ($latest.Count -ne 1 -or $latest[0] -notmatch ('\s' + $occupiedMarker + ' / ') -or
         $latest[0] -notmatch 'owner=[^;\r\n]*?/root/closure271(?=[^A-Za-z0-9_]|$)') {
         throw "271 latest shared runtime record does not grant occupied owner /root/closure271"
     }
