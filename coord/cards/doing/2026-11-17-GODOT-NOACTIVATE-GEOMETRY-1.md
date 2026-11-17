@@ -42,3 +42,10 @@
 - 新RUNBOOK-runtime先冻结，新GODOT-NOACTIVATE-GEOMETRY-1/runtime_01，显式`-GodotRestoreForensics -ForensicsCard 405 -TestTransitionObserver -TestNoActivateGeometry`，前端shell-window-transition-406 @24c6664。synthetic/external各最多1新Godot child、总≤20min，条件not_exercised可如实结束该条件不强造；任一异常停止余下、无环境/装置补跑、无运行中修改代码/标准。
 - 通过必须唯一五步目标T上下文顺序、physical/target/workspace往返/冻结monitor、safe hidden stagedrect/z先成立，target-native所有ordinary可见与proposal/嵌套提交已目标workarea且guard后/无FG或focus/非TOPMOST，single show内首ordinary转换因果记录、后无纠正、mode0/client一致≥2s、zero nativefail/drop/IO与自然卸载exit0全闭环。synthetic缺失仍保持overall coverage不足，不冒称2/2。
 - 只隔离装置，不开完整DAW工程/内核/agent，无LLM。source/ABI/binary/HEAD/status/命令exit/原始父+targettrace/ZIP/hash/recents before/finally/全零齐；失败归类正确且首cause留存。主管启前全零已亲核，执行启前fetch owner+≤60s再次核，长build后重查。
+
+## 坐标前提失败后的窄修订（19:25 +0800）
+
+- runtime_01 runner1/targetmutation0，synthetic未覆盖，external SYSTEM_AWARE/同monitor/DPI168前置已过，联合坐标转换拒绝；工件544431ee原始保存。主管核报告与0候选调用事实，不归产品或API失败。单个角点返回未记，不能凭零矩形归因。
+- 允许原probe一个文件窄修：转换逐角点单独记录输入/输出/BOOL/即时GetLastError适用边界，不短路吞后续事实；只读审官方PhysicalToLogical/LogicalToPhysical适用域（最小化窗角点在窗外的限制须核实，不猜）。为本机已证同monitor/systemDPI domain优先采用T/P各自GetMonitorInfo独立读同rcWork/rcMonitor并exact一致的无缩放同域契约，须有官方依据、同时核GetDpiForSystem(T)==GetDpiForWindow(child)==GetDpiForWindow(PMv2guard)，T=SYSTEM_AWARE、guard=PMv2，任一不一致拒绝；不能扩大到混DPI/其他monitor/未知domain。
+- 这不是盲目跳过转换：明确限定原physical/T坐标数值一致的已验证子域，保留P/T独立读回与postshow物理审计；workspace差值仍用T monitor/work。旧转换拒绝原证据不改，报告分别说明原前提为何不适用与新契约证明范围。不改五步候选/native-trace几何/z/focus判据。
+- 只无窗/静态官方核对与pure domain反例，代码提交后主管审再新预算；当前不授权窗口。代码若无法用官方契约支持该同域直接读法，停止只交诊断，不能自行补fallback或改容差。
