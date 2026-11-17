@@ -33,3 +33,10 @@
 - SetChainUi追加可选stage；发布schema=vitshell.launch_progress.v1的vit_launch_progress（request_id、单调seq、phase/detail、真实可选stage），仅既有实际阶段。opened stage来自nonce已校验result_body；未知stage不升ready。保持旧五type与chain_detail语义。
 - ask_vit_shell/window_presentation_ready非空subscription_id握手：消费者先挂listener，native只读fresh WindowStateJson+最后progress replay，同seq不自增、不启动/切工程/操作窗口，无初态则unknown。
 - 锁内只快照，dispatch/user hook锁外；无栈配对测试验证seq/转义/stage/晚订阅/错channel/缺ID/重放不变，真栈仍候388释放。
+
+## 394-E 首次激活真实反例与修订准备（2026-11-17）
+
+- 组合normal首腿内外exit1，依赖矩阵停止。真实native事件与139样本中5个加载违规：guardactive且同DAW HWND初现时foreground=daw、shell_above=false、noactivate=false，约63ms后style/z修正但仍DAW前台，约391ms才回shell。后续nonce/workspace_ready和guard释放不冲销该反例。
+- 根因方向=OUTOFCONTEXT事件纠正晚、Godot wrapper/engine可覆盖STARTUPINFO；仍须方案与实测证据，不把猜想写已修根因。主管交原Sol/xhigh执行owner只读定位，并按用户“最疑难仅参谋”授权Astra只读征询（不实现、不终验）。
+- 新独立生产修订worktree=C:/Users/timoz/.codex/worktrees/shell-first-focus-394/vit-daw-frontend，branch=codex/shell-first-focus-394，基线1301345、status/diff初空；owner=/root/window391。本段只领取诊断/方案，生产修改待主管方案裁定，保持≤5原生生产文件、不触395UI或402B已验装置域。
+- 禁止全局输入/CBT DLL植入、嵌入合窗、永久topmost、周期强抢焦点；用户切外部应用须尊重，终态/失败/超时/退出清理。不能降低原noactivate断言。真实栈当前entry388已拆净候释放，不授本owner启栈。
