@@ -40,3 +40,9 @@
 - 根因方向=OUTOFCONTEXT事件纠正晚、Godot wrapper/engine可覆盖STARTUPINFO；仍须方案与实测证据，不把猜想写已修根因。主管交原Sol/xhigh执行owner只读定位，并按用户“最疑难仅参谋”授权Astra只读征询（不实现、不终验）。
 - 新独立生产修订worktree=C:/Users/timoz/.codex/worktrees/shell-first-focus-394/vit-daw-frontend，branch=codex/shell-first-focus-394，基线1301345、status/diff初空；owner=/root/window391。本段只领取诊断/方案，生产修改待主管方案裁定，保持≤5原生生产文件、不触395UI或402B已验装置域。
 - 禁止全局输入/CBT DLL植入、嵌入合窗、永久topmost、周期强抢焦点；用户切外部应用须尊重，终态/失败/超时/退出清理。不能降低原noactivate断言。真实栈当前entry388已拆净候释放，不授本owner启栈。
+
+### E阶段review必要接缝（2026-11-17）
+
+主管review指出GD fire-and-forget bootstrap与terminal两个HTTP可乱序，fixed202不证明UI prepared；批准E同一安全提交6生产文件（原5+start_page.gd仅await begin）。begin等bootstrap POST完成后只读status核同directPID/hidden_boot_state prepared/guardactive，失败停止后续create/open；native早ready拒绝仍保留，不能把提交顺序当barrier。此为明确必要单行跨函数接缝例外，避免不安全中间提交。
+
+显示顺序先在hidden时styleNOACTIVATE+z behind+workarea，再SetWindowPos SHOWWINDOW|NOACTIVATE同次指定z显现，禁止先show后退。源码/Win32文档仍不替真栈，隐藏后currentmode不要求1（WM_WINDOWPOSCHANGED会更新），验证feature初始effective mode1避免误拒。E-OBS另紧邻≤3原生文件保原WinEvent目标/时间/guard区间，先记事实再策略动作，不将dedup快照冒称原始事件。
