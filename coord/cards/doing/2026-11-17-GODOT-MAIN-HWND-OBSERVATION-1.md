@@ -22,3 +22,9 @@
 - R1在runner硬编码resource第4行403卡号时拒绝404，actual owner未变；runner1/窗口0。报告与原字节证据1c3df5fe保留，不归HWND或API失败。主管承认在换卡时未核此接缝。
 - 现仅扩域原`scripts/vitshell_smoke.ps1`资源断言（本卡总2文件），修为显式预期卡号参数与exact owner验证、只允许403/404，记录实际匹配行；旧默认403兼容，404运行必须显式指定。必须同时要求首个当前资源记录=占用/预留、卡号与owner一致，不能历史任一行搜到owner就放行；空闲/其他owner/错卡/空记录均拒绝。
 - 只无窗静态helper正反例/PS解析/代码diff，至少403预留、404预留通过，错owner/错card/释放/空闲/历史匹配/缺header拒绝；不调用top-level、fetch、进程或窗口。提交代码/精简报告后主管复核，再决定运行预算。现不授新窗口/Godot运行。
+
+## 门禁验收与R2独立预算（15:27 +0800）
+
+- c187681a显式卡号门禁+f7558136 PS5 ASCII常量修正，14纯反例真实PS5通过；原未修UTF8无BOM在PS5 ACP936的8解析错误证据保留。主管读完整diff并亲用真实powershell.exe5.1 AST提取helper、实际`git show origin/main:coord/resources/PC-RUNTIME-STACK.md`原生输出解码匹配404成功exit0（不是只验预先UTF8文件）。不绕过预留/owner/卡号门槛。
+- 单独放行R2，新RUNBOOK-R2/formal_02，主runner=f7558136、前端cdf1924保持；调用明确`-GodotRestoreForensics -ForensicsCard 404`。≤2新child/15min，两前台条件与所有原标准不变，无补跑，任一异常停剩余。不再进行本卡第三runtime候选。
+- 主管启前亲核全部进程/端口0；执行fetch最新owner并≤60秒即时再查。代码不再修改，原始消息/逐窗清单/nonce PID HWND/模式同步/FG/interval/hash/teardown/recents/ZIP完整保存。若仍未到恢复，明确当前取证未完成，不把装置状态改成产品结论。
