@@ -73,7 +73,7 @@
 
 ### 未成卡 backlog
 
-C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/JOURNEY-1 渲染面/旅程烟测债；154/155 卫生项；AF 体检下轮抽查（261 其余三腿）。
+C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/JOURNEY-1 渲染面/旅程烟测债；154/155 卫生项；AF 体检下轮抽查（261 其余三腿）；**lease 门 owner 参数化**（408 runtime 发现：ps1 lease 门硬编码 owner 串与资源记录格式耦合，曾致预检假拒+现场格式修正绕行，窄修卡候 409 后）。
 
 ## 二、三线（乐局/编曲/生成）——按 [11 月三线执行排序](../reports/2026-11-05-nov-three-line-execution-plan.md)（领卡顺序权威）
 
@@ -210,4 +210,5 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 405 | GODOT-NOACTIVATE-GEOMETRY-1 | blocked（R2首ordinary尺寸正确但engine4/紧邻门失败；试验具体化纠正→407，原FAIL保留） |
 | 406 | WINDOW-TRANSITION-OBSERVER-1 | doing（Sol/high /root/restore403；测试专用自进程观察DLL+纯无窗策略，供405因果geometry证据；不改生产、不授启窗） |
 | 407 | ORDINARY-LARGE-WINDOW-1 | blocked（R2尺寸/mode0/noFG过但rawdownprefix证child在guard前；目标自线程z事务→408） |
-| 408 | TARGET-Z-TRANSACTION-1 | doing（**首段无窗 PASS 11-17 21:40 主管亲证**：126+23+34 例全绿+PS5 门；实现留分支 e3e6374/24a84b7d；runtime≤2 待授权；产品缝裁定见 [decisions/2026-11-17-window-z-path-and-seam-ruling.md](../decisions/2026-11-17-window-z-path-and-seam-ruling.md)） |
+| 408 | TARGET-Z-TRANSACTION-1 | done 取证PASS收口（11-17晚GLM亲证：z事务机制全绿——1821/1821三phase配对+guard_after 5/5锚定已核reference+16DIP+窗口期零FG/focus；runtime_01停机期焦点违约=产品窗外known behavior〔用户裁定A〕；工件9873eaf1；external腿转409） |
+| 409 | SHELL-WIN-ZPRODUCT-1 | todo 可领 P1（产品修订：原生缝装配guard+reference显式传递+显示后纠正兜底；external前台腿并入；真栈腿+391手测节点；391解锁要件之一，另件=395） |
