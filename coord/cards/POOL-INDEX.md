@@ -180,7 +180,7 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 381 | YUE-VOCAL-FORENSICS-1 | done 已验收 pass 合入 1001a216+补腿 731a7d9f→main（C8 双版时长比例窗 [0.6,1.5] 干跑 0；**人声定性后被 390 查证修正**：官方有 instrumental 工作流，差距在本地封装） |
 | 390 | YUE-INSTRUMENTAL-PATH-1 | doing 零栈两腿 pass 合入（**模型件齐+接入=纯封装层**：S1/S2/S4/S6 官方语义对齐+干跑断言+go 回归 0；**真栈生成+用户听核候栈**——人声抑制效果无先例，fallback 待命） |
 | 391 | SHELL-WIN-BEHAVIOR-1 | 父卡（执行拆394原生/395呈现，父卡不可重复领；窗口行为包：DAW 不抢焦点+对话窗前台保持+窗口内动效包〔跨窗联动裁定不做〕；真栈腿；裁定档 2026-11-17 §一） |
-| 392 | SCORE-TRACK-BIND-1 | todo 可领 P1（谱面轨道绑定+双模式：轨道选择器+GUI 跟随+clip 小条+草稿 clip 资产不落位；374 痛点承接；裁定档 §二） |
+| 392 | SCORE-TRACK-BIND-1 | 父卡（397绑定→398跟随→399小条；400草稿契约先行，父卡不可重复领；谱面轨道绑定+双模式：轨道选择器+GUI 跟随+clip 小条+草稿 clip 资产不落位；374 痛点承接；裁定档 §二） |
 | 393 | CHAT-STREAM-LIST-1 | todo 可领 P2（工程态对话流列表侧栏+会话切换最简档；裁定档 §三；settings 归 388 补） |
 | —— | music_score 对话流控件 | 登记阶段 2 承接（裁定档 §二：374 内核包装成卡内挂载组件；候 388/389 收口后随阶段 2 发卡） |
 | 382 | SCORE-ENTRY-REACH-1 | done 已验收 pass 合入（**D4 归因翻案**：内核命令面正确〔377 归因撤销〕，真因=373 模板 MIDICLIP 拍数值被 tracktion loader 当秒读→**模板资产修正并入 384 腿 D**；ErrorBoundary+「打开工作台」入口+J1-J3 旅程断言；702/702 主管复跑+真栈 28/28；**用户 M4 重测就绪**〔VitShell 进工程→打开工作台〕） |
@@ -197,3 +197,8 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 396 | GODOT-RETRY-LAUNCHER-1 | todo（收编点A独立微卡，前端仓gd域） |
 
 - 2026-11-17协调说明：384重复todo快照保留至archive，doing为权威；390物理归位doing，既有owner未变。当前PC主管Codex /root，子代理自主执行授权见decisions/2026-11-17-autonomous-subagent-execution.md。
+
+| 397 | SCORE-BINDING-SAFE-1 | doing（Sol/high，/root/score392_recon，轨道绑定+dirty/异步安全） |
+| 398 | SCORE-GUI-FOLLOW-1 | todo（依397，GUI真实选择装配/反向回读） |
+| 399 | SCORE-CLIP-STRIP-1 | todo（依397/398，clip时间小条） |
+| 400 | SCORE-DRAFT-CONTRACT-1 | todo（只读契约，工程包草稿库前提未成立） |

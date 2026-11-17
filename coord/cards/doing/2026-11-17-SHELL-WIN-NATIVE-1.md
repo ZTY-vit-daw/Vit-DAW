@@ -10,3 +10,6 @@
 - 停止：前提失效/域外缺口/缺少可靠加载终态→附锚点上报；同确定性断点连败2次停止原样重跑；真实栈未经主管放行不得启动。
 - 领取：owner=`/root/window391`（GPT-6.1 Sol/xhigh，PC）；前端基线`d05043e11a79452b9155a89f3405668994eafdcb`，分支`codex/shell-win-native-394`；worktree=`C:/Users/timoz/.codex/worktrees/shell-window-391/vit-daw-frontend`，领取时tracked status为空。主仓领取基线`116f22155b1ba52c5c6e37076799791a3d1ee1a7`。正式开工以本卡领取提交成功同步共享main并核对远端owner为准。
 - 回执/验收：待回填。
+
+### 终态边界裁定（2026-11-17）
+现launch-result ok来自start_page change_scene_to_packed受理，未证项目仓库加载完成；本卡原生阶段明确命名scene_accepted，以现有终态有限释放临时noactivate，不宣称workspace_ready。允许修复spawn后ResetEvent清掉快速回执的同域竞态。395只呈现实证步骤，不捏造ready；完整workspace_ready若需Godot装配+首次project_repository.apply应独立小卡。main只沿既有set_chain/detail暴露真实状态，不扩status_server生产文件。
