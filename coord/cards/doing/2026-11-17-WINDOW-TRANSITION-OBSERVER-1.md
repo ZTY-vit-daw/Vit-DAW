@@ -16,3 +16,10 @@
 - 在run生成的最小GDScript里通过自身OS.set_environment设置本nonce/output，GDExtensionManager显式加载隔离test.gdextension（DLL按hash复制到run）；不用父远程加载，保持零生产extension/autoload。observer safe_armed必须先于parent允许恢复，exact nonce/PID/TID/HWND与engine/原raw WinEvent关联。
 - graceful收尾需应用自己卸载：parent仅向run内本次nonce专属stop.request写请求，fixture _process读取本请求后在UI线程unload_extension、记录返回与observer shutdown/removed_verified，再quit；parent等actual child自然exit0，有界超时才exact handle fail teardown，不把forced0当正常闭环。最小observer记录样例允许保持原404单shownoactivate路径，406不新增geometry策略。
 - 首段仍只代码/构建/PS5解析/helper实际租约正负/配置文件静态无BOM/ABI资源静态校验，禁止窗口。补puretests验证请求nonce匹配/拒绝复用/超时路径必要逻辑，不增加镜像测试。完成独立commit与短回执，主管审装配后另批运行。
+
+## 隔离运行预算（18:35 +0800）
+
+- 装配前端1a4ff1c、主script2d7eb8f2/工件e5f65625。主管读完整装配diff与报告，亲跑最终policy34check exit0；identity23/PS5门禁/配置无BOM/ABI静态有原证据，支持进入runtime，不算加载或消息链已过。
+- 只放行已审代码，新`RUNBOOK-runtime.md`先成文、新`coord/runs/WINDOW-TRANSITION-OBSERVER-1/runtime_01`，实际命令显式`-GodotRestoreForensics -ForensicsCard 406 -TestTransitionObserver`，前端shell-window-transition-406。两个条件synthetic/external各至多1新child，准备+执行≤20min，无环境/装置补跑；任一异常停剩余，不能运行中改代码/断言。
+- 通过=原404安全恢复2s标准+native self-thread safe_armed精确身份先于恢复、原生entry/after/嵌套depth配对与连续seq、zero failures/dropped/IOerror、亲证加载结果0与observer records、自然child exit0和nonce stop/removed_verified/shutdown/engine_ack完整闭环。任何forced exit不得记PASS；观察器异常归coverage/probe而不误归产品失败。初始show前覆盖仍不宣称。
+- 不新增geometry策略、不碰生产、无LLM/内核/agent/用户工程/fixture，不复跑E/E2。自然external无法取得记not_exercised，不强造外部FG。原字节ZIP/source/ABI/binary hash、recents完整快照及finally hash、exact child拆净、末核全零后回主管释放。
