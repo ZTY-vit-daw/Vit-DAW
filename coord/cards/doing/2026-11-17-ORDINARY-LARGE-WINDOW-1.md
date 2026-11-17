@@ -20,3 +20,8 @@
 - 现有raw up/down数组保留，新增必要纯predicate/prefix完整性反例；不扩容量、不改geometry/fiveops/native首ordinary/FG/mode0/自然卸载标准。可只改observer.h关系predicate与probe纯selftest，observer.cpp不需要改则不动；如须分方向错误锚点才能无歧义决定prefix，只在同授权observer字段域补精确字段，先证明其必要性。
 - 原“truncated无条件reject”反例改为ref缺失或截断位于ref前仍reject，补ref已在连续up前缀且down截断可证above、连续down前缀而up截断可证below、crosschain重复/双ref矛盾拒绝。真实JSONL仍原raw解析，不能把缺record或非法handle当prefix成立。
 - 只代码/无窗自验/提交后主管审，再新R2独立预算；当前不启窗口、不补跑。
+
+## 有向prefix复核与R2（20:08 +0800）
+
+- 前端ae86c7d/主工件d9add341，主管审完整direction stop/verified采集与predicate/JSONL字段、96pure和未变geometry门报告；此修订有新证据范围，旧R1 coverage结果不改。保容量64，缺reference/有效prefix/身份仍fail-closed。
+- 放行新RUNBOOK-R2/runtime_02，前端ae86c7d、主scripte61f636e保持。参数同407全部门，≤2child/15min，first anomaly停/无补跑/无运行中修代码。target16DIP/mode0/原生首ordinary全nested/QPC/有效refprefix/无FGfocus/2s/自然卸载/recents全门不变。
