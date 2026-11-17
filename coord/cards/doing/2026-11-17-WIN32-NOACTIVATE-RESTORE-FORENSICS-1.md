@@ -23,3 +23,11 @@
 - 止损：总计≤30分钟/6正式场景，不原样重跑；同确定性断点累计两次后停止相关路径。任一越域、资源冲突或不能证事件连续性立即停止并短报阻塞。结果仅支持API语义取证，不能解锁391/395或用户手测。
 - 资源：主管已核Vit进程/TCP5555,5556,7878,7879,8787,9333/UDP4445全零；资源记录预留给403自有probe，启动前仍须fetch重读owner并≤60秒即时复核。不得启动kernel/agent/Godot；不触工程/fixture/用户配置，用户recents前后哈希亲证，若意外启动内核按快照/finally还原纪律处理并报告。
 - 短回执：两个repo commit、文件范围、每命令退出码、报告/原始工件路径、可证/不可证结论、是否值得进入独立Godot取证及阻塞。原始日志留盘，最终验收由主管定向抽核。
+
+### R1装置失败复核与R2独立预算（14:25 +0800）
+
+- R1=`formal_01`，runner exit1，正式窗口场景0/6：PS5 Stop把fetch原生stderr提升异常，configure/build/Start-Process均未到达。原fetch实际退出码未被采集，不追认exit0；原始failure与finally failure均保留。不是API失败，不作Godot结论。
+- 执行提交主仓`8cca7d9cf0429499ada9bf01ec9a1e56036351d3`、前端`ac3866cf38e4e6c87a4c36fd1e759e7890c3df3f`均远端亲核。主管已读完整3文件diff、R1 report/RUNBOOK、构建与静态工件；亲跑仅helper的stderr正/负对照得到0/7、父Stop保持，PS解析与diffcheck exit0。只认可装置修正，未认可恢复语义。
+- 本次单独授R2：先落新的`RUNBOOK-R2.md`，新目录`formal_02`，同三API×两前台条件≤6场景、每场景新进程1次，最长20分钟；无环境/装置补跑，不修改既有判据，不覆盖R1。沿原candidate/coverage/probe/environment/not_exercised分类；两candidate失败停止，任何装置/观测/控制异常立即停止。此次不是复跑E/E2，仍不启动Godot或产品栈。
+- R2只运行上述已审代码，若须改probe/runner先停止报告；前端baseline=ac3866c、主仓baseline=8cca7d9c，启动前fetch远端owner与即时净空。主管已再次核进程/全部端口零、recents维持807226F4…13E353。
+- 收尾先提交报告与原始工件（排除build目录/二进制/缓存；按具体路径加入），保留所有失败，再短回执。协调卡/资源由主管统一更新；本授权成功同步main并重读后可执行R2，Godot仍需之后证据关口。
