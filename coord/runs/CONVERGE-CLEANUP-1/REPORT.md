@@ -48,3 +48,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/ui_entry_smoke.ps1
 不带 SkipBuild/SkipLegacy。仅 1 条成功路径，不宣称稳定性；同版本同确定断点两次失败停止并诊断。ui_entry 脚本已有 recents before 快照/finally 回写，但未包含哈希亲证/absent-before 清理，须沿现有外层卫生快照模式包裹：recents 与 repo/frontend Settings.xml/default_project.xml bytes/absence 前后亲核，源 fixture hash 不变，还原失败=环境中断非零退出。本卡未扩张卫生机制。
 
 vitshell_full_smoke.ps1 及 CDP 现行 launcher/project/management 选择器与新壳对应；未修改该域，真实组合须重跑，不能引用 388 旧成功代替本卡回归。用户手测仍从 Godot 前端进入启动页，阶段出口由主管统一安排。
+
+## 主管复核补充（零栈）
+
+首提交 b4889ec8 后按主管复核，为同脚本 Start-GodotLeg 与 leg1 的 Godot Start-Process 加 -WindowStyle Hidden，沿用已有内核/agent/headless import 选项；只重跑 PowerShell AST 与 diff 检查，均 exit0。此选项未重跑渲染或宣称真实窗口行为验证。sprite 真实入口挂载/23 symbol/引用解析、launcher/fidelity 图形集合非空及≥3:1、文字≥4.5:1 均仍在最终 render attempt3 原始报告，未删除覆盖。

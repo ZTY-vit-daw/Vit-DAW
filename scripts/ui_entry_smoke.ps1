@@ -255,7 +255,7 @@ function Start-GodotLeg {
     $env:VIT_SKIP_DEV_AUTOSTART = "1"
     $env:VIT_DAW_DEV_ROOT = $RepoRoot
     try {
-        $proc = Start-Process -FilePath $GodotExe -ArgumentList @("--path", $GodotProjectRoot, "--log-file", $LogPath) -WorkingDirectory $GodotProjectRoot -PassThru
+        $proc = Start-Process -FilePath $GodotExe -ArgumentList @("--path", $GodotProjectRoot, "--log-file", $LogPath) -WorkingDirectory $GodotProjectRoot -WindowStyle Hidden -PassThru
     }
     finally {
         Remove-Item Env:VIT_AGENT_WINDOW_MODE -ErrorAction SilentlyContinue
@@ -299,7 +299,7 @@ try {
     $env:VIT_SKIP_DEV_AUTOSTART = "1"
     $env:VIT_DAW_DEV_ROOT = $RepoRoot
     try {
-        $godotFailInjectProc = Start-Process -FilePath $GodotExe -ArgumentList @("--path", $GodotProjectRoot, "--log-file", $godotFailInjectLog) -WorkingDirectory $GodotProjectRoot -PassThru
+        $godotFailInjectProc = Start-Process -FilePath $GodotExe -ArgumentList @("--path", $GodotProjectRoot, "--log-file", $godotFailInjectLog) -WorkingDirectory $GodotProjectRoot -WindowStyle Hidden -PassThru
     }
     finally {
         Remove-Item Env:VIT_AGENT_WINDOW_MODE -ErrorAction SilentlyContinue
