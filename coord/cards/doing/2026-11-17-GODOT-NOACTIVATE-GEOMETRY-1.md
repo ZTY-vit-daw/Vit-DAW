@@ -49,3 +49,9 @@
 - 允许原probe一个文件窄修：转换逐角点单独记录输入/输出/BOOL/即时GetLastError适用边界，不短路吞后续事实；只读审官方PhysicalToLogical/LogicalToPhysical适用域（最小化窗角点在窗外的限制须核实，不猜）。为本机已证同monitor/systemDPI domain优先采用T/P各自GetMonitorInfo独立读同rcWork/rcMonitor并exact一致的无缩放同域契约，须有官方依据、同时核GetDpiForSystem(T)==GetDpiForWindow(child)==GetDpiForWindow(PMv2guard)，T=SYSTEM_AWARE、guard=PMv2，任一不一致拒绝；不能扩大到混DPI/其他monitor/未知domain。
 - 这不是盲目跳过转换：明确限定原physical/T坐标数值一致的已验证子域，保留P/T独立读回与postshow物理审计；workspace差值仍用T monitor/work。旧转换拒绝原证据不改，报告分别说明原前提为何不适用与新契约证明范围。不改五步候选/native-trace几何/z/focus判据。
 - 只无窗/静态官方核对与pure domain反例，代码提交后主管审再新预算；当前不授权窗口。代码若无法用官方契约支持该同域直接读法，停止只交诊断，不能自行补fallback或改容差。
+
+## 同域窄修复核与R2预算（19:31 +0800）
+
+- 前端87a5359/主工件2dbb76a6，主管读单文件全diff、官方契约/61pure例及未变判据逐段比对；支持严格同systemDPI/同monitor/T与P独立exact读回子域。旧角点失败原因保持unknown，8逐角点诊断不作为fallback或放行输入。
+- 新RUNBOOK-R2/runtime_02，已审前端87a5359、主scriptc43d66ad不变，参数同R1显式405/observer/geometry。最多2child/15min、每条件1次，any anomaly停剩余、无补跑，不允许再同版本原样retry；若到五步候选失败需保全target消息/proposal/geometry首cause再裁定，不循环试API。
+- 所有geometry/原生trace/首ordinary/z/FG/自然卸载/recents门原样，首domain准入exact0px，最终rect仍1px。synthetic前提缺失不追跑，overallcoverage如实。本轮不是完整产品验收。

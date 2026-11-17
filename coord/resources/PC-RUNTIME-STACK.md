@@ -1,6 +1,7 @@
 # PC 真实运行栈占用记录
 本记录是共享卡池协作的资源登记面，操作协议见 [PROTOCOL.md](../PROTOCOL.md) §2.2。
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
+- 2026-11-17 19:31 +0800 预留 / **405同systemDPI严格子域R2**：owner=Codex `/root/restore403`（Sol/high，PC），主2dbb76a6/scriptc43d66ad，前端shell-window-transition-406 @87a5359。主管审全diff/官方域/61pure反例与原门未变，现只新runtime_02≤2child/15min，any anomaly停、无补跑，先RUNBOOK；same-monitor/systemDPI/T-P exact读回，8角点仅诊断，所有原五步/native/User32geometry/z/FG2s/自然卸载门不变。零产品/内核/agent；启动前fetch owner/≤60秒净空，recents快照/finallyhash/原字节/exact child全退后主管释放。
 - 2026-11-17 19:25 +0800 释放 / **405 runtime_01坐标前提coverage不足**：runner1，synthetic child0/not_exercised、external18636同monitor/DPI前置过但转换组合拒绝，target五步mutation0，非产品/API失败。主管核0调用/原报告并独立核全部进程/TCP6口/UDP全0，recents807226F4…13E353一致；工件544431ee。只窄修静态坐标契约/逐点返回记录，不授新启动；当前空闲。
 - 2026-11-17 19:18 +0800 预留 / **405唯一geometry候选runtime_01**：owner=Codex `/root/restore403`（Sol/high，PC），主4784b563(scriptc43d66ad)、前端shell-window-transition-406 @24c6664。主管审全候选/DPI/schema装配并亲跑41纯check0，现只最小隔离Godot≤2child/20min、任何异常停/无补跑，先RUNBOOK；显式405/observer/geometry门控。native self-thread转换/proposal/全可见rect/z/2s模式/零FG与自然卸载完整要求，不宣称DWM像素帧、不启产品/内核/agent。主管亲核Vit/Godot/probe/TCP6口/UDP全零；启前fetch owner/≤60秒再查、recents快照/finallyhash、原字节保全/exact child全退后主管释放。
 - 2026-11-17 18:45 +0800 释放 / **406 runtime_01覆盖不足如实收口**：runner2，synthetic前提缺失child0/not_exercised；external child21460观察器加载/54native seq/26对/2层嵌套/单恢复/卸载自然0。主管亲解析原native与尾并独立核全部Vit/Godot/probe/TCP6口/UDP全0、recents807226F4…13E353一致；工件1056214c待后续归档。406不冒称整体PASS；405现只准同owner串行几何候选代码/无窗自验，不授新启动。当前栈空闲。
