@@ -38,7 +38,7 @@
 //   node ../../scripts/vitshell_full_smoke_cdp.mjs --cdp-port 9333 --phase probe-launcher
 
 import { createRequire } from "node:module";
-import { writeFileSync } from "node:fs";
+import { writeFileSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 function arg(name, fallback = "") {
@@ -49,6 +49,11 @@ function arg(name, fallback = "") {
 
 const cdpPort = arg("cdp-port", "9333");
 const statusUrl = arg("status-url", "http://127.0.0.1:7879/status");
+const presentationScenario = arg("presentation-scenario", "normal");
+const windowChecks = process.argv.includes("--window-behavior-checks");
+const previousLaunchId = arg("previous-launch-id");
+const godotLogPath = arg("godot-log", join(process.env.APPDATA || "", "Godot/app_userdata/Vit_DAW_Frontend/logs/godot.log"));
+const bridgeLogPath = arg("bridge-log");
 const phase = arg("phase", "");
 const outPath = arg("out", "");
 const chatText = arg("chat-text", "这个工程现在是什么状态？");
@@ -58,8 +63,12 @@ const chatTimeoutMs = parseInt(arg("chat-timeout-ms", "90000"), 10);
 const webuiDir = arg("webui-dir", join(process.cwd(), "agent/webui"));
 const requireFromWebui = createRequire(join(webuiDir, "package.json"));
 const { chromium } = requireFromWebui("playwright");
+let activePresentationCapture = null;
 
 function fail(message, evidence) {
+  if (activePresentationCapture && outPath) {
+    writeFileSync(outPath + ".presentation-partial.json", JSON.stringify({ scenario: presentationScenario, samples: activePresentationCapture.samples, sample_errors: activePresentationCapture.errors, last_native: activePresentationCapture.lastNative, failed: message }, null, 2));
+  }
   const verdict = { phase, ok: false, error: message };
   if (evidence && typeof evidence === "object") verdict.evidence = evidence;
   if (outPath) writeFileSync(outPath, JSON.stringify(verdict, null, 2));
@@ -98,6 +107,159 @@ async function readSentinel(page) {
   return page.evaluate(() => window.__vit_no_reload ?? null);
 }
 
+function parseGodotReadiness(raw, requestId) {
+  return raw.split(/\r?\n/).flatMap((line, lineIndex) => {
+    const match = line.match(/\[VitShellLaunch\] ([\w.]+) (\{.*\})/);
+    if (!match) return [];
+    try { const payload = JSON.parse(match[2]); return payload.launch_id === requestId ? [{ event: match[1], lineIndex, payload }] : []; } catch { return []; }
+  });
+}
+
+// Read-only observation, armed before the existing launch action. A finite
+// 40ms sample/event window does not claim absence of every transient OS state.
+async function beginPresentationCapture(page) {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.evaluate(() => {
+    const subscriptionId = `smoke-window-${crypto.randomUUID()}`;
+    const capture = { subscriptionId, messages: [], startedAt: Date.now() };
+    window.__shellPresentationCapture = capture;
+    window.chrome.webview.addEventListener("message", (event) => {
+      const payload = event.data;
+      if (payload && ["vit_launch_progress", "vit_window_state", "vit_launcher_result", "vit_surface"].includes(payload.type)) {
+        capture.messages.push({ index: capture.messages.length, receivedAt: Date.now(), payload });
+      }
+    });
+    window.chrome.webview.postMessage({ channel: "ask_vit_shell", type: "window_presentation_ready", subscription_id: subscriptionId });
+  });
+  const samples = [];
+  const errors = [];
+  const capture = { samples, errors, lastNative: null };
+  activePresentationCapture = capture;
+  let stopped = false;
+  let pendingSample = null;
+  const sample = async () => {
+    try {
+      const response = await page.request.get(statusUrl, { timeout: 2000 });
+      if (!response.ok()) throw new Error(`status HTTP ${response.status()}`);
+      const status = await response.json();
+      const dom = await page.evaluate(() => {
+        const el = document.querySelector("[data-window-launch-feedback]");
+        return { requestId: el?.getAttribute("data-window-launch-request"), seq: Number(el?.getAttribute("data-window-launch-seq") || 0),
+          terminal: el?.getAttribute("data-window-launch-terminal"), text: el?.textContent || "",
+          focus: document.querySelector("[data-project-root], [data-launcher-root]")?.getAttribute("data-native-focus"),
+          nativeCapture: window.__shellPresentationCapture,
+          percentage: Boolean(el?.querySelector('[role="progressbar"][aria-valuenow]')) || /\d\s*%/.test(el?.textContent || "") };
+      });
+      capture.lastNative = dom.nativeCapture;
+      delete dom.nativeCapture;
+      samples.push({ index: samples.length, receivedAt: Date.now(), status, dom });
+    } catch (error) { errors.push(String(error)); }
+  };
+  await sample(); // Must finish before any open/new action.
+  if (samples.length !== 1) throw new Error("initial pre-open status sample unavailable");
+  const timer = setInterval(() => { if (!stopped && !pendingSample) pendingSample = sample().finally(() => { pendingSample = null; }); }, 40);
+  capture.sample = sample;
+  capture.stop = async () => { stopped = true; clearInterval(timer); await pendingSample; };
+  return capture;
+}
+
+async function finishPresentationCapture(page, capture) {
+  const success = ["normal", "delayed_success"].includes(presentationScenario);
+  const expectedTerminal = success ? "opened" : "failed";
+  let injected = null;
+  if (presentationScenario === "delayed_success") {
+    if (!previousLaunchId) throw new Error("old nonce must come from a completed normal run");
+    await page.waitForFunction(() => window.__shellPresentationCapture.messages.some(({ payload: p }) => p.type === "vit_launch_progress" && !p.replay && p.phase === "waiting_launch_result"), null, { timeout: 45000 });
+    const requestId = await page.evaluate(() => window.__shellPresentationCapture.messages.find(({ payload: p }) => p.type === "vit_launch_progress" && !p.replay && p.phase === "spawning")?.payload.request_id);
+    if (!requestId || requestId === previousLaunchId) throw new Error("current nonce missing or reused");
+    const wrongId = `wrong-${crypto.randomUUID()}`;
+    const boundaryDeadline = Date.now() + 15000;
+    while (Date.now() < boundaryDeadline) {
+      const raw = (() => { try { return readFileSync(godotLogPath, "utf8"); } catch { return ""; } })();
+      if (parseGodotReadiness(raw, requestId).some(e => e.payload.trigger === "repository.before_apply.delay_begin")) break;
+      await new Promise(resolve => setTimeout(resolve, 40));
+    }
+    if (!parseGodotReadiness(readFileSync(godotLogPath, "utf8"), requestId).some(e => e.payload.trigger === "repository.before_apply.delay_begin")) throw new Error("nonce injection did not reach actual delayed snapshot boundary");
+    const beforeResponse = await page.request.get(statusUrl);
+    const before = await beforeResponse.json();
+    if (before.window_state?.loading_guard_active !== true) throw new Error("nonce injection started after loading guard was released");
+    const injections = [];
+    for (const id of [wrongId, previousLaunchId]) {
+      const response = await page.request.post(statusUrl.replace(/\/status$/, "/vitshell/launch-result"), { data: { ok: true, stage: "workspace_ready", scene: "synthetic-wrong-nonce", launch_id: id }, timeout: 5000 });
+      injections.push({ launch_id: id, http_status: response.status(), synthetic_injection: true });
+    }
+    const afterResponse = await page.request.get(statusUrl);
+    const after = await afterResponse.json();
+    const prematurelyOpened = await page.evaluate((id) => window.__shellPresentationCapture.messages.some(({ payload: p }) => p.request_id === id && (p.phase === "opened" || p.status === "opened")), requestId);
+    if (after.window_state?.loading_guard_active !== true || prematurelyOpened) throw new Error("wrong/old nonce terminated the current pending chain");
+    injected = { current_request_id: requestId, injections, before_status: before, after_status: after };
+  }
+  await page.waitForFunction((terminal) => {
+    const messages = window.__shellPresentationCapture.messages;
+    const requestId = messages.find(({ payload: p }) => p.type === "vit_launch_progress" && !p.replay && p.phase === "spawning")?.payload.request_id;
+    return requestId && messages.some(({ payload: p }) => p.type === "vit_launch_progress" && !p.replay && p.request_id === requestId && p.phase === terminal);
+  }, expectedTerminal, { timeout: 250000 });
+  await page.waitForFunction(() => window.__shellPresentationCapture.messages.some(({ payload: p }) => p.type === "vit_window_state" && p.window_state?.loading_guard_active === false && p.window_state?.release_reason), null, { timeout: 10000 });
+  await page.waitForFunction(() => document.querySelector('[data-window-launch-terminal="ready"], [data-window-launch-terminal="failed"]'), null, { timeout: 10000 });
+  await capture.sample();
+  await capture.stop();
+  if (capture.errors.length) throw new Error("BOUNDARY: status/DOM sample unavailable inside the finite observation interval");
+  const native = await page.evaluate(() => window.__shellPresentationCapture);
+  const progress = native.messages.filter(({ payload: p }) => p.type === "vit_launch_progress" && !p.replay);
+  const requestId = progress.find(({ payload: p }) => p.phase === "spawning")?.payload.request_id;
+  const current = progress.filter(({ payload: p }) => p.request_id === requestId);
+  if (!requestId || !current.length || current.some((m, i) => i && m.payload.seq <= current[i - 1].payload.seq)) throw new Error("native request sequence is missing/nonmonotonic");
+  const terminal = current.find(({ payload: p }) => p.phase === expectedTerminal);
+  if (!terminal || (success && terminal.payload.stage !== "workspace_ready")) throw new Error("opened lacks current workspace_ready evidence");
+  const sampledWindows = capture.samples.map(s => s.status.window_state);
+  const loadingWindows = sampledWindows.filter(w => w?.loading_guard_active === true && w.daw_hwnd !== null);
+  if (!loadingWindows.length || !loadingWindows.some(w => w.foreground === "shell" && w.shell_above_daw === true && w.daw_noactivate === true && w.event_hooks_ready === true)) throw new Error("BOUNDARY: no complete loading foreground/z-order/noactivate observation");
+  if (loadingWindows.some(w => w.foreground === "daw" || w.shell_above_daw === false || w.daw_noactivate === false)) throw new Error("observed DAW activation/order/style violation while loading");
+  const released = capture.samples.filter(s => s.receivedAt >= terminal.receivedAt).map(s => s.status.window_state).find(w => w?.loading_guard_active === false && w.release_reason);
+  if (!released || (released.daw_hwnd !== null && released.daw_noactivate !== false)) throw new Error("guard/noactivate release not observed");
+  if (capture.samples.some(s => s.dom.percentage)) throw new Error("UI fabricated a percentage");
+  const domForRequest = capture.samples.filter(s => s.dom.requestId === requestId);
+  if (!domForRequest.length || domForRequest.some((s, i) => i && s.dom.seq < domForRequest[i - 1].dom.seq)) throw new Error("UI request sequence absent/regressed");
+  const uiReady = capture.samples.find(s => s.dom.requestId === requestId && s.dom.terminal === "ready");
+  if (!success && uiReady) throw new Error("failed request became ready in UI");
+  if (uiReady && uiReady.receivedAt < terminal.receivedAt) throw new Error("UI ready preceded its real terminal stage");
+  const godotRaw = readFileSync(godotLogPath, "utf8");
+  writeFileSync(outPath + ".godot.log", godotRaw);
+  const godotEvents = parseGodotReadiness(godotRaw, requestId);
+  const mount = godotEvents.find(e => e.event === "workspace.mounted");
+  const snapshot = godotEvents.find(e => e.event === "workspace.snapshot_applied");
+  const decision = godotEvents.find(e => e.event === "readiness.decided");
+  if (success && (!mount || !snapshot || !decision || !(mount.lineIndex < snapshot.lineIndex && snapshot.lineIndex < decision.lineIndex) || decision.payload.stage !== "workspace_ready" || decision.payload.ok !== true || mount.payload.workspace_instance_id !== snapshot.payload.workspace_instance_id)) throw new Error("real mounted/snapshot/ready association/order missing");
+  if (!success && (snapshot || decision?.payload.ok === true)) throw new Error("negative scenario acquired a ready snapshot");
+  if (presentationScenario === "workspace_timeout" && (!mount || decision?.payload.stage !== "workspace_timeout" || !godotEvents.some(e => e.payload.trigger === "repository.before_apply.delay_begin"))) throw new Error("timeout did not reach the actual delayed snapshot boundary");
+  if (["scene_failed", "snapshot_failed"].includes(presentationScenario) && decision?.payload.stage !== presentationScenario) throw new Error("failure did not come from intended real boundary");
+  if (presentationScenario === "exit_before_ready" && !godotEvents.some(e => e.payload.trigger === "workspace_mounted.quit" && e.payload.exit_code === 17)) throw new Error("real early exit marker missing");
+  const bridgeRaw = readFileSync(bridgeLogPath, "utf8");
+  if (injected) for (const injection of injected.injections) {
+    const rejection = bridgeRaw.split(/\r?\n/).find(line => line.includes("launch_result.rejected") && line.includes(`\"launch_id\":\"${injection.launch_id}\"`) && line.includes(`\"expected_launch_id\":\"${requestId}\"`) && line.includes("wrong_launch_id"));
+    if (!rejection) throw new Error("HTTP wrong/old nonce rejection lacks native run-local pairing");
+  }
+  if (success && !bridgeRaw.includes(`launch_result.accepted {\"launch_id\":\"${requestId}\"`)) throw new Error("current real receipt was not nonce-accepted");
+  const result = { scenario: presentationScenario, request_id: requestId, observation_boundary: "finite 40ms samples plus host events; no assertion about every transient OS state", native, samples: capture.samples, sample_errors: capture.errors, godot_events: godotEvents, injected };
+  writeFileSync(outPath + ".presentation.json", JSON.stringify(result, null, 2));
+  await page.screenshot({ path: outPath + ".presentation.png" });
+  return result;
+}
+
+if (process.argv.includes("--presentation-self-test")) {
+  const fixture = [
+    '[VitShellLaunch] workspace.mounted {"launch_id":"old","workspace_instance_id":"8"}',
+    '[VitShellLaunch] readiness.decided malformed',
+    '[VitShellLaunch] workspace.mounted {"launch_id":"current","workspace_instance_id":"9"}',
+    '[VitShellLaunch] workspace.snapshot_applied {"launch_id":"current","workspace_instance_id":"9"}',
+    '[VitShellLaunch] readiness.decided {"launch_id":"current","workspace_instance_id":"9","ok":true,"stage":"workspace_ready"}',
+  ].join("\n");
+  const parsed = parseGodotReadiness(fixture, "current");
+  if (parsed.length !== 3 || parsed.some(e => e.payload.launch_id !== "current") || parsed[0].lineIndex !== 2 || parsed[2].payload.stage !== "workspace_ready" || parseGodotReadiness(fixture, "wrong").length !== 0) throw new Error("readiness parser nonce/order self-test failed");
+  console.log("PRESENTATION_STATIC_SELF_TEST_PASS (no browser/native/HTTP)");
+  process.exit(0);
+}
+
 const browser = await chromium
   .connectOverCDP("http://127.0.0.1:" + cdpPort, { timeout: 20000 })
   .catch((error) => {
@@ -109,7 +271,16 @@ try {
   if (!page) fail("no page found over CDP (WebView2 not reachable?)");
 
   const url = page.url();
+  let presentationCapture = null;
+  if (windowChecks && ["launcher-chat-new", "presentation-launch"].includes(phase)) presentationCapture = await beginPresentationCapture(page);
   switch (phase) {
+    case "presentation-launch": {
+      await page.locator('[data-launcher-root][data-launcher-state="ready"]').waitFor({ state: "visible", timeout: 30000 });
+      await page.locator("[data-launcher-choose-file]").click();
+      const verdict = { phase, ok: true, url, opened_via: "existing file-dialog smoke bypass" };
+      if (outPath) writeFileSync(outPath, JSON.stringify(verdict, null, 2));
+      break;
+    }
     case "management-roundtrip": {
       // 388/401 optional phase: no chat, config save, native window control, or
       // lifecycle operation. Kernel/PID/telemetry interval checked by ps1.
@@ -798,6 +969,12 @@ try {
     }
     default:
       fail("unknown phase: " + phase);
+  }
+  if (presentationCapture) {
+    const evidence = await finishPresentationCapture(page, presentationCapture);
+    const verdict = JSON.parse(readFileSync(outPath, "utf8"));
+    verdict.presentation = { scenario: evidence.scenario, request_id: evidence.request_id, evidence: outPath + ".presentation.json" };
+    writeFileSync(outPath, JSON.stringify(verdict, null, 2));
   }
 } catch (error) {
   fail((error && error.message) ? error.message : String(error));
