@@ -1,0 +1,5 @@
+cmake -S C:/Users/timoz/.codex/worktrees/shell-window-transition-406/vit-daw-frontend/VitShell/tests -B C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\GODOT-NOACTIVATE-GEOMETRY-1\domain_revision_static\build -G Visual Studio 18 2026 -A x64
+configure_exit=0
+build_exit=0
+geometry_domain_selftest_exit=0
+unchanged_criteria_compare_exit=0

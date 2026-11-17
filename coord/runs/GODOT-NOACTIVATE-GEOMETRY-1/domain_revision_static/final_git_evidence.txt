@@ -1,0 +1,22 @@
+Main
+544431ee168c09bf1964f0fde9e82e943ccfcc05
+?? coord/runs/GODOT-MAIN-HWND-OBSERVATION-1/formal_02/external.godot.project/isolated_user/
+?? coord/runs/GODOT-MAIN-HWND-OBSERVATION-1/formal_02/synthetic.godot.project/isolated_user/
+?? coord/runs/GODOT-NOACTIVATE-GEOMETRY-1/domain_revision_static/
+?? coord/runs/GODOT-NOACTIVATE-GEOMETRY-1/implementation_static/generated_fixture_checks/generated_fixture/window_transition_observer.dll
+?? coord/runs/GODOT-NOACTIVATE-GEOMETRY-1/runtime_01/external.godot.project/isolated_user/
+?? coord/runs/GODOT-NOACTIVATE-GEOMETRY-1/runtime_01/external.godot.project/window_transition_observer.dll
+?? coord/runs/GODOT-NOACTIVATE-GEOMETRY-1/runtime_01/synthetic.godot.project/window_transition_observer.dll
+?? coord/runs/WIN32-NOACTIVATE-RESTORE-FORENSICS-1/phase_b_01/formal_B/synthetic.godot.project/isolated_user/
+?? coord/runs/WIN32-NOACTIVATE-RESTORE-FORENSICS-1/phase_b_02/formal_B2/synthetic.godot.project/isolated_user/
+?? coord/runs/WINDOW-TRANSITION-OBSERVER-1/assembly_static/generated_fixture/window_transition_observer.dll
+?? coord/runs/WINDOW-TRANSITION-OBSERVER-1/assembly_static/static_fixture_final/generated_fixture/window_transition_observer.dll
+?? coord/runs/WINDOW-TRANSITION-OBSERVER-1/assembly_static/static_fixture_v2/generated_fixture/window_transition_observer.dll
+?? coord/runs/WINDOW-TRANSITION-OBSERVER-1/runtime_01/external.godot.project/isolated_user/
+?? coord/runs/WINDOW-TRANSITION-OBSERVER-1/runtime_01/external.godot.project/window_transition_observer.dll
+?? coord/runs/WINDOW-TRANSITION-OBSERVER-1/runtime_01/synthetic.godot.project/window_transition_observer.dll
+Frontend
+87a5359171ea3cf6837e666df46e61b0c5c92ecf
+87a5359 405: diagnose each DPI corner and admit only exact same-system monitor domain
+ VitShell/tests/win32_noactivate_restore_probe.cpp | 94 ++++++++++++++++++++---
+ 1 file changed, 82 insertions(+), 12 deletions(-)

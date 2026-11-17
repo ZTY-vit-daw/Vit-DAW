@@ -1,0 +1,128 @@
+diff --git a/VitShell/tests/win32_noactivate_restore_probe.cpp b/VitShell/tests/win32_noactivate_restore_probe.cpp
+index b8b9dce..9de088d 100644
+--- a/VitShell/tests/win32_noactivate_restore_probe.cpp
++++ b/VitShell/tests/win32_noactivate_restore_probe.cpp
+@@ -252,10 +252,35 @@ static void mutationEnd(GeometryPlan& p,GeometryMutation m,bool ok,long long api
+     m.end=exactEnd?exactEnd:qpcNow();m.ok=ok;p.mutations.push_back(m);
+     log("geometry_mutation_end",",\"api\":\""+std::string(m.api)+"\",\"mutation\":"+std::to_string(m.kind)+",\"qpc_begin\":"+std::to_string(m.begin)+",\"qpc_end\":"+std::to_string(m.end)+",\"return\":"+std::to_string(apiReturn)+",\"last_error\":"+std::to_string(error)+",\"last_error_applicable\":"+std::to_string(errorApplicable)+",\"ok\":"+std::to_string(ok)+state(reinterpret_cast<HWND>(m.hwnd)));
+ }
+-static bool convertRect(HWND window,const GeoRect& source,GeoRect& converted,bool physicalToLogical) {
+-    POINT a{source.left,source.top},b{source.right,source.bottom};
+-    bool ok=physicalToLogical ? PhysicalToLogicalPointForPerMonitorDPI(window,&a)&&PhysicalToLogicalPointForPerMonitorDPI(window,&b) : LogicalToPhysicalPointForPerMonitorDPI(window,&a)&&LogicalToPhysicalPointForPerMonitorDPI(window,&b);
+-    converted={a.x,a.y,b.x,b.y};return ok;
++struct SameDpiDomain {
++    bool physical_scope=false,target_scope=false,physical_monitor_read=false,target_monitor_read=false;
++    bool child_system_aware=false,guard_pmv2=false,target_thread_equal=false;
++    std::uint64_t selected_monitor=0,child_monitor=0,guard_monitor=0;
++    unsigned system_dpi=0,child_dpi=0,guard_dpi=0;
++    GeoRect workP{},monitorP{},workT{},monitorT{};
++};
++static const char* sameDpiDomainRejection(const SameDpiDomain& d) {
++    if(!d.physical_scope||!d.target_scope||!d.physical_monitor_read||!d.target_monitor_read)return "dpi_api_or_scope_unavailable";
++    if(!d.child_system_aware||!d.guard_pmv2||!d.target_thread_equal)return "dpi_awareness_domain_mismatch";
++    if(!d.selected_monitor||d.child_monitor!=d.selected_monitor||d.guard_monitor!=d.selected_monitor)return "dpi_monitor_mismatch";
++    if(!d.system_dpi||d.system_dpi!=d.child_dpi||d.system_dpi!=d.guard_dpi)return "system_child_guard_dpi_mismatch";
++    if(!rectNear(d.workP,d.workT,0)||!rectNear(d.monitorP,d.monitorT,0))return "physical_target_monitor_rect_mismatch";
++    if(d.workP.right<=d.workP.left||d.workP.bottom<=d.workP.top||d.monitorP.right<=d.monitorP.left||d.monitorP.bottom<=d.monitorP.top||
++       d.workP.left<d.monitorP.left||d.workP.top<d.monitorP.top||d.workP.right>d.monitorP.right||d.workP.bottom>d.monitorP.bottom)return "invalid_monitor_work_rect";
++    return nullptr;
++}
++static bool conversionDiagnostic(HWND window,const GeoRect& source,GeoRect& converted,bool physicalToLogical,const char* label) {
++    POINT points[2]={{source.left,source.top},{source.right,source.bottom}};
++    bool all=true;
++    for(unsigned corner=0;corner<2;++corner){
++        POINT input=points[corner];SetLastError(ERROR_SUCCESS);
++        BOOL ok=physicalToLogical?PhysicalToLogicalPointForPerMonitorDPI(window,&points[corner]):LogicalToPhysicalPointForPerMonitorDPI(window,&points[corner]);
++        DWORD rawError=GetLastError(); // Neither per-monitor API documents a GetLastError contract.
++        all=all&&(ok!=FALSE);
++        auto tc=GetThreadDpiAwarenessContext(),wc=GetWindowDpiAwarenessContext(window);
++        log("geometry_conversion_diagnostic",",\"label\":\""+std::string(label)+"\",\"api\":\""+(physicalToLogical?"PhysicalToLogicalPointForPerMonitorDPI":"LogicalToPhysicalPointForPerMonitorDPI")+"\",\"corner\":"+std::to_string(corner)+",\"input\":["+std::to_string(input.x)+","+std::to_string(input.y)+"],\"output\":["+std::to_string(points[corner].x)+","+std::to_string(points[corner].y)+"],\"return\":"+std::to_string(ok)+",\"raw_last_error\":"+std::to_string(rawError)+",\"last_error_documented\":false,\"output_valid\":"+std::to_string(ok!=FALSE)+",\"admission_input\":false,\"thread_awareness\":"+std::to_string(GetAwarenessFromDpiAwarenessContext(tc))+",\"window_awareness\":"+std::to_string(GetAwarenessFromDpiAwarenessContext(wc))+",\"context_equal\":"+std::to_string(AreDpiAwarenessContextsEqual(tc,wc)));
++    }
++    converted={points[0].x,points[0].y,points[1].x,points[1].y};return all;
+ }
+ static bool freezeGeometry(GeometryPlan& p,HWND window) {
+     p.hwnd=id(window);p.tid=GetWindowThreadProcessId(window,&p.pid);p.target_context=GetWindowDpiAwarenessContext(window);p.dpi=GetDpiForWindow(window);
+@@ -268,23 +293,44 @@ static bool freezeGeometry(GeometryPlan& p,HWND window) {
+        GetAwarenessFromDpiAwarenessContext(p.target_context)==DPI_AWARENESS_SYSTEM_AWARE;
+     log("geometry_dpi_preflight",",\"ok\":"+std::to_string(physicalDomain)+",\"monitor_ok\":"+std::to_string(monitorOK)+",\"selected_monitor\":"+std::to_string(reinterpret_cast<std::uintptr_t>(p.monitor))+",\"child_monitor\":"+std::to_string(reinterpret_cast<std::uintptr_t>(MonitorFromWindow(window,MONITOR_DEFAULTTONULL)))+",\"guard_dpi\":"+std::to_string(GetDpiForWindow(p.guard))+",\"physical_work_current\":"+rectJSON(geoRect(monitor.rcWork))+",\"physical_work_frozen\":"+rectJSON(p.workP)+state(window));
+     if(!physicalDomain)return false;
+-    DpiScope targetScope(p.target_context); GeoRect roundWork{},roundMonitor{};
++    DpiScope targetScope(p.target_context);
+     MONITORINFO contextual{sizeof(contextual)};
+-    p.domain_valid=targetScope.ok && convertRect(window,p.workP,p.workT,true) && convertRect(window,p.monitorP,p.monitorT,true) &&
+-        convertRect(window,p.workT,roundWork,false) && convertRect(window,p.monitorT,roundMonitor,false) &&
+-        rectNear(roundWork,p.workP) && rectNear(roundMonitor,p.monitorP) && GetMonitorInfoW(p.monitor,&contextual) &&
+-        rectNear(geoRect(contextual.rcWork),p.workT) && rectNear(geoRect(contextual.rcMonitor),p.monitorT);
++    BOOL contextualOK=targetScope.ok?GetMonitorInfoW(p.monitor,&contextual):FALSE;
++    unsigned systemDpi=targetScope.ok?GetDpiForSystem():0;
++    SameDpiDomain domain;domain.physical_scope=physical.ok;domain.target_scope=targetScope.ok;domain.physical_monitor_read=monitorOK;domain.target_monitor_read=contextualOK!=FALSE;
++    domain.child_system_aware=AreDpiAwarenessContextsEqual(p.target_context,DPI_AWARENESS_CONTEXT_SYSTEM_AWARE)!=FALSE;
++    domain.guard_pmv2=AreDpiAwarenessContextsEqual(GetWindowDpiAwarenessContext(p.guard),DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2)!=FALSE;
++    domain.target_thread_equal=contextIsTarget(p);domain.selected_monitor=reinterpret_cast<std::uintptr_t>(p.monitor);
++    domain.child_monitor=reinterpret_cast<std::uintptr_t>(MonitorFromWindow(window,MONITOR_DEFAULTTONULL));domain.guard_monitor=reinterpret_cast<std::uintptr_t>(MonitorFromWindow(p.guard,MONITOR_DEFAULTTONULL));
++    domain.system_dpi=systemDpi;domain.child_dpi=p.dpi;domain.guard_dpi=GetDpiForWindow(p.guard);domain.workP=geoRect(monitor.rcWork);domain.monitorP=geoRect(monitor.rcMonitor);domain.workT=geoRect(contextual.rcWork);domain.monitorT=geoRect(contextual.rcMonitor);
++    const char* rejected=sameDpiDomainRejection(domain);p.domain_valid=rejected==nullptr;
++    p.workT=domain.workT;p.monitorT=domain.monitorT;
++    // All eight point calls are diagnostic, never an admission fallback. Execute
++    // every corner/direction independently even after an earlier BOOL failure.
++    GeoRect diagnosticWork{},diagnosticMonitor{},roundWork{},roundMonitor{};
++    bool forwardWork=false,forwardMonitor=false,inverseWork=false,inverseMonitor=false;
++    if(targetScope.ok){
++        forwardWork=conversionDiagnostic(window,p.workP,diagnosticWork,true,"work_forward");
++        forwardMonitor=conversionDiagnostic(window,p.monitorP,diagnosticMonitor,true,"monitor_forward");
++        inverseWork=conversionDiagnostic(window,p.workT,roundWork,false,"work_inverse_from_independent_T");
++        inverseMonitor=conversionDiagnostic(window,p.monitorT,roundMonitor,false,"monitor_inverse_from_independent_T");
++    }
+     const int dx=p.workT.left-p.monitorT.left,dy=p.workT.top-p.monitorT.top;
+     p.workspace={p.workT.left-dx,p.workT.top-dy,p.workT.right-dx,p.workT.bottom-dy};
+-    log("geometry_coordinate_contract",",\"ok\":"+std::to_string(p.domain_valid)+",\"monitor\":"+std::to_string(reinterpret_cast<std::uintptr_t>(p.monitor))+",\"dpi\":"+std::to_string(p.dpi)+",\"physical_work\":"+rectJSON(p.workP)+",\"physical_monitor\":"+rectJSON(p.monitorP)+",\"target_work\":"+rectJSON(p.workT)+",\"target_monitor\":"+rectJSON(p.monitorT)+",\"workspace\":"+rectJSON(p.workspace)+",\"work_roundtrip\":"+rectJSON(roundWork)+",\"monitor_roundtrip\":"+rectJSON(roundMonitor)+state(window));
++    log("geometry_coordinate_contract",",\"mode\":\"same_monitor_system_dpi_exact_read\",\"ok\":"+std::to_string(p.domain_valid)+",\"reason\":\""+(rejected?rejected:"accepted")+"\",\"P_monitor_read\":"+std::to_string(monitorOK)+",\"T_monitor_read\":"+std::to_string(contextualOK)+",\"system_dpi_T\":"+std::to_string(systemDpi)+",\"child_dpi\":"+std::to_string(p.dpi)+",\"guard_dpi\":"+std::to_string(domain.guard_dpi)+",\"monitor\":"+std::to_string(reinterpret_cast<std::uintptr_t>(p.monitor))+",\"physical_work\":"+rectJSON(p.workP)+",\"physical_monitor\":"+rectJSON(p.monitorP)+",\"target_work\":"+rectJSON(p.workT)+",\"target_monitor\":"+rectJSON(p.monitorT)+",\"workspace\":"+rectJSON(p.workspace)+",\"diagnostic_forward_work\":"+rectJSON(diagnosticWork)+",\"diagnostic_forward_monitor\":"+rectJSON(diagnosticMonitor)+",\"diagnostic_inverse_work\":"+rectJSON(roundWork)+",\"diagnostic_inverse_monitor\":"+rectJSON(roundMonitor)+",\"diagnostic_returns\":["+std::to_string(forwardWork)+","+std::to_string(forwardMonitor)+","+std::to_string(inverseWork)+","+std::to_string(inverseMonitor)+"]"+state(window));
+     return p.domain_valid;
+ }
+ static bool geometryEnvironment(const GeometryPlan& p) {
+     DpiScope physical(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);MONITORINFO m{sizeof(m)};
+-    return physical.ok && p.domain_valid && IsWindowVisible(p.guard) && !IsIconic(p.guard) && !(GetWindowLongPtrW(p.guard,GWL_EXSTYLE)&WS_EX_TOPMOST) &&
++    bool physicalOK=physical.ok && p.domain_valid && IsWindowVisible(p.guard) && !IsIconic(p.guard) && !(GetWindowLongPtrW(p.guard,GWL_EXSTYLE)&WS_EX_TOPMOST) &&
+         MonitorFromWindow(p.guard,MONITOR_DEFAULTTONULL)==p.monitor && MonitorFromWindow(target,MONITOR_DEFAULTTONULL)==p.monitor &&
+         GetMonitorInfoW(p.monitor,&m) && rectNear(geoRect(m.rcWork),p.workP,0) && rectNear(geoRect(m.rcMonitor),p.monitorP,0) &&
+-        GetDpiForWindow(p.guard)==p.dpi && GetDpiForWindow(target)==p.dpi && AreDpiAwarenessContextsEqual(GetWindowDpiAwarenessContext(target),p.target_context);
++        GetDpiForWindow(p.guard)==p.dpi && GetDpiForWindow(target)==p.dpi && AreDpiAwarenessContextsEqual(GetWindowDpiAwarenessContext(target),p.target_context) &&
++        AreDpiAwarenessContextsEqual(GetWindowDpiAwarenessContext(p.guard),DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
++    DpiScope targetScope(p.target_context);MONITORINFO t{sizeof(t)};
++    return physicalOK && targetScope.ok && contextIsTarget(p) && GetDpiForSystem()==p.dpi && GetMonitorInfoW(p.monitor,&t) &&
++        rectNear(geoRect(t.rcWork),p.workT,0) && rectNear(geoRect(t.rcMonitor),p.monitorT,0) &&
++        rectNear(geoRect(t.rcWork),p.workP,0) && rectNear(geoRect(t.rcMonitor),p.monitorP,0);
+ }
+ static bool geometryNativeNormal(const GeometryPlan& p) {
+     if(!geometryEnvironment(p)) return false;
+@@ -477,6 +523,30 @@ static int geometrySelftest(const std::wstring& output) {
+     fileTest("jsonl_nested_flags_nosend_decoded",base,lines,true,"nosendchanging");
+     lines=schema;replace(lines[3],"\"flags\":64}","\"flags\":67}");replace(lines[3],"\"normal_rect\":[0,0,1920,1040]","\"normal_rect\":[0,0,425,311]");
+     fileTest("jsonl_nested_flags_and_normal_rect_decoded",base,lines,true,"restoring_placement_unproven");
++    SameDpiDomain same;same.physical_scope=true;same.target_scope=true;same.physical_monitor_read=true;same.target_monitor_read=true;
++    same.child_system_aware=true;same.guard_pmv2=true;same.target_thread_equal=true;same.selected_monitor=1;same.child_monitor=1;same.guard_monitor=1;
++    same.system_dpi=168;same.child_dpi=168;same.guard_dpi=168;same.workP={0,0,2560,1400};same.monitorP={0,0,2560,1440};same.workT=same.workP;same.monitorT=same.monitorP;
++    auto domainTest=[&](const char* name,const SameDpiDomain& domain,const char* expected){const char* reason=sameDpiDomainRejection(domain);bool pass=expected?reason&&std::string(reason)==expected:!reason;++checks;if(!pass)++failures;log("geometry_domain_selftest",std::string(",\"case\":\"")+name+"\",\"pass\":"+std::to_string(pass)+",\"reason\":\""+(reason?reason:"accepted")+"\"");};
++    domainTest("same_system_dpi_exact_monitor_reads",same,nullptr);
++    auto d=same;d.system_dpi=144;domainTest("system_dpi_changed",d,"system_child_guard_dpi_mismatch");
++    d=same;d.child_dpi=144;domainTest("child_dpi_mismatch",d,"system_child_guard_dpi_mismatch");
++    d=same;d.guard_dpi=144;domainTest("mixed_guard_monitor_dpi",d,"system_child_guard_dpi_mismatch");
++    d=same;d.system_dpi=0;domainTest("system_dpi_unavailable",d,"system_child_guard_dpi_mismatch");
++    d=same;d.child_monitor=2;domainTest("child_other_monitor",d,"dpi_monitor_mismatch");
++    d=same;d.guard_monitor=2;domainTest("guard_other_monitor",d,"dpi_monitor_mismatch");
++    d=same;d.selected_monitor=0;domainTest("missing_monitor",d,"dpi_monitor_mismatch");
++    d=same;d.child_system_aware=false;domainTest("target_not_system_aware",d,"dpi_awareness_domain_mismatch");
++    d=same;d.guard_pmv2=false;domainTest("guard_not_pmv2",d,"dpi_awareness_domain_mismatch");
++    d=same;d.target_thread_equal=false;domainTest("caller_not_exact_T",d,"dpi_awareness_domain_mismatch");
++    d=same;d.target_scope=false;domainTest("target_scope_api_unavailable",d,"dpi_api_or_scope_unavailable");
++    d=same;d.physical_scope=false;domainTest("physical_scope_api_unavailable",d,"dpi_api_or_scope_unavailable");
++    d=same;d.target_monitor_read=false;domainTest("T_monitor_read_failed",d,"dpi_api_or_scope_unavailable");
++    d=same;d.physical_monitor_read=false;domainTest("P_monitor_read_failed",d,"dpi_api_or_scope_unavailable");
++    d=same;d.workT.right-=1;domainTest("one_pixel_domain_difference_rejected",d,"physical_target_monitor_rect_mismatch");
++    d=same;d.monitorT.left=-1;domainTest("monitor_origins_differ",d,"physical_target_monitor_rect_mismatch");
++    d=same;d.workP.right=0;d.workT=d.workP;domainTest("zero_workarea_rejected",d,"invalid_monitor_work_rect");
++    d=same;d.workP.right=3000;d.workT=d.workP;domainTest("workarea_outside_monitor",d,"invalid_monitor_work_rect");
++    d=same;d.workP={-1920,40,0,1080};d.workT=d.workP;d.monitorP={-1920,0,0,1080};d.monitorT=d.monitorP;domainTest("negative_monitor_origin_exact_reads",d,nullptr);
+     log("geometry_selftest_result",",\"cases\":"+std::to_string(checks)+",\"failures\":"+std::to_string(failures)+",\"windows_created\":0");logFile.close();return failures?1:0;
+ }
+ static NativeIdentity readIdentity(HWND h) {
