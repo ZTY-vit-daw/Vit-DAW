@@ -1,0 +1,100 @@
+﻿{
+    "powershell_version":  "5.1.26100.9818",
+    "acp":  936,
+    "parser_errors":  0,
+    "helper_cases":  [
+                         {
+                             "case":  "406_reserved",
+                             "accepted":  true,
+                             "expected":  true,
+                             "pass":  true,
+                             "reason":  ""
+                         },
+                         {
+                             "case":  "403_compatible",
+                             "accepted":  true,
+                             "expected":  true,
+                             "pass":  true,
+                             "reason":  ""
+                         },
+                         {
+                             "case":  "404_compatible",
+                             "accepted":  true,
+                             "expected":  true,
+                             "pass":  true,
+                             "reason":  ""
+                         },
+                         {
+                             "case":  "wrong_card",
+                             "accepted":  false,
+                             "expected":  false,
+                             "pass":  true,
+                             "reason":  "forensics current resource card mismatch"
+                         },
+                         {
+                             "case":  "wrong_owner",
+                             "accepted":  false,
+                             "expected":  false,
+                             "pass":  true,
+                             "reason":  "forensics current resource owner mismatch"
+                         },
+                         {
+                             "case":  "released",
+                             "accepted":  false,
+                             "expected":  false,
+                             "pass":  true,
+                             "reason":  "forensics current resource is not reserved or occupied"
+                         },
+                         {
+                             "case":  "history",
+                             "accepted":  false,
+                             "expected":  false,
+                             "pass":  true,
+                             "reason":  "forensics current resource is not reserved or occupied"
+                         },
+                         {
+                             "case":  "missing_header",
+                             "accepted":  false,
+                             "expected":  false,
+                             "pass":  true,
+                             "reason":  "forensics resource header missing"
+                         },
+                         {
+                             "case":  "empty",
+                             "accepted":  false,
+                             "expected":  false,
+                             "pass":  true,
+                             "reason":  "forensics resource header missing"
+                         }
+                     ],
+    "fixture_files":  [
+                          {
+                              "file":  "project.godot",
+                              "utf8_bom":  false,
+                              "sha256":  "81A929835FF788CE15D9808758C8141C09AD1221D109248BD1B2DF2B81F3422F",
+                              "first_bytes":  "63-6F-6E-66-69-67-5F-76-65-72-73-69-6F-6E-3D-35"
+                          },
+                          {
+                              "file":  "main.tscn",
+                              "utf8_bom":  false,
+                              "sha256":  "570673E58632A7DD962AE1A6CA25AA0A53FF4F1867B981CCFD1B4DE5DD1464C7",
+                              "first_bytes":  "5B-67-64-5F-73-63-65-6E-65-20-6C-6F-61-64-5F-73"
+                          },
+                          {
+                              "file":  "observer.gd",
+                              "utf8_bom":  false,
+                              "sha256":  "8D2FF1DA5B4DD78A2FE9CA388B00103B8B57FC5DDFDB17F553992146D1DDD165",
+                              "first_bytes":  "65-78-74-65-6E-64-73-20-4E-6F-64-65-0D-0A-76-61"
+                          },
+                          {
+                              "file":  "test.gdextension",
+                              "utf8_bom":  false,
+                              "sha256":  "EB133F83ACABEE9770C63DCBE2E9EBD70BFDFE1AE299617B715E122CD66E26DF",
+                              "first_bytes":  "5B-63-6F-6E-66-69-67-75-72-61-74-69-6F-6E-5D-0D"
+                          }
+                      ],
+    "fixture_static_ok":  true,
+    "script_top_level_invoked":  false,
+    "Godot_or_DLL_loaded":  false,
+    "boundary":  "Generated text/entrypoint/hash contract only; no GDScript runtime parse claim"
+}

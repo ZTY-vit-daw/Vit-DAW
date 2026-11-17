@@ -1,0 +1,57 @@
+UpdateCTestConfiguration  from :C:/Users/timoz/.codex/worktrees/win32-restore-403/Vit_DAW/coord/runs/ORDINARY-LARGE-WINDOW-1/implementation_static/build/DartConfiguration.tcl
+Test project C:/Users/timoz/.codex/worktrees/win32-restore-403/Vit_DAW/coord/runs/ORDINARY-LARGE-WINDOW-1/implementation_static/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 1
+    Start 1: window_transition_observer_policy
+
+1: Test command: C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\ORDINARY-LARGE-WINDOW-1\implementation_static\build\Release\window_transition_observer_policy_test.exe
+1: Working Directory: C:/Users/timoz/.codex/worktrees/win32-restore-403/Vit_DAW/coord/runs/ORDINARY-LARGE-WINDOW-1/implementation_static/build
+1: Test timeout computed to be: 10000000
+1: {"case":"nested_complete","pass":true}
+1: {"case":"nested_wrong_exit","pass":true}
+1: {"case":"overflow_rejected","pass":true}
+1: {"case":"ring_preserves_first","pass":true}
+1: {"case":"ring_preserves_second","pass":true}
+1: {"case":"ring_empty","pass":true}
+1: {"case":"overflow_forbids_clean_shutdown","pass":true}
+1: {"case":"wrong_thread","pass":true}
+1: {"case":"wrong_hwnd","pass":true}
+1: {"case":"reused_generation","pass":true}
+1: {"case":"destroy_recorded","pass":true}
+1: {"case":"callback_after_destroy","pass":true}
+1: {"case":"missing_changing","pass":true}
+1: {"case":"nosendchanging","pass":true}
+1: {"case":"uncommitted_changing","pass":true}
+1: {"case":"remove_failure","pass":true}
+1: {"case":"remove_still_installed","pass":true}
+1: {"case":"removed_callback_rejected","pass":true}
+1: {"case":"no_remove_no_success","pass":true}
+1: {"case":"depth_nonzero_teardown","pass":true}
+1: {"case":"depth_limit","pass":true}
+1: {"case":"clean_release","pass":true}
+1: {"case":"invalid_arm","pass":true}
+1: {"case":"stop_wrong_nonce","pass":true}
+1: {"case":"stop_file_reused","pass":true}
+1: {"case":"stop_request_twice","pass":true}
+1: {"case":"stop_timeout","pass":true}
+1: {"case":"stop_ack_nonce_mismatch","pass":true}
+1: {"case":"stop_missing_remove","pass":true}
+1: {"case":"stop_missing_shutdown","pass":true}
+1: {"case":"stop_missing_engine_ack","pass":true}
+1: {"case":"stop_forced_exit_is_failure","pass":true}
+1: {"case":"stop_natural_exit_error","pass":true}
+1: {"case":"stop_clean_natural_exit","pass":true}
+1: {"checks":34,"failures":0,"windows_created":0}
+1/1 Test #1: window_transition_observer_policy ...   Passed    0.03 sec
+
+The following tests passed:
+	window_transition_observer_policy
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =   0.05 sec

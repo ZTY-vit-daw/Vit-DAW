@@ -1,0 +1,1 @@
+Schema audit helper initial exit1: newly added safe-point array encoder has a format string before native_record snprintf; old audit captured it too. Narrowed static extraction to actual native-record snprintf; no runtime code/parser/criteria change.

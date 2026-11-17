@@ -1,0 +1,116 @@
+﻿{
+    "powershell_version":  "5.1.26100.9818",
+    "acp":  936,
+    "parser_errors":  0,
+    "source_ascii":  true,
+    "helper_cases":  [
+                         {
+                             "case":  "407_reserved",
+                             "pass":  true,
+                             "accepted":  true,
+                             "reason":  ""
+                         },
+                         {
+                             "case":  "403_compatible",
+                             "pass":  true,
+                             "accepted":  true,
+                             "reason":  ""
+                         },
+                         {
+                             "case":  "404_compatible",
+                             "pass":  true,
+                             "accepted":  true,
+                             "reason":  ""
+                         },
+                         {
+                             "case":  "406_compatible",
+                             "pass":  true,
+                             "accepted":  true,
+                             "reason":  ""
+                         },
+                         {
+                             "case":  "405_wrong_card",
+                             "pass":  true,
+                             "accepted":  false,
+                             "reason":  "forensics current resource card mismatch"
+                         },
+                         {
+                             "case":  "wrong_owner",
+                             "pass":  true,
+                             "accepted":  false,
+                             "reason":  "forensics current resource owner mismatch"
+                         },
+                         {
+                             "case":  "released",
+                             "pass":  true,
+                             "accepted":  false,
+                             "reason":  "forensics current resource is not reserved or occupied"
+                         },
+                         {
+                             "case":  "history",
+                             "pass":  true,
+                             "accepted":  false,
+                             "reason":  "forensics current resource is not reserved or occupied"
+                         },
+                         {
+                             "case":  "missing_header",
+                             "pass":  true,
+                             "accepted":  false,
+                             "reason":  "forensics resource header missing"
+                         },
+                         {
+                             "case":  "empty",
+                             "pass":  true,
+                             "accepted":  false,
+                             "reason":  "forensics resource header missing"
+                         }
+                     ],
+    "option_gates":  [
+                         {
+                             "case":  "default403",
+                             "pass":  true,
+                             "accepted":  true
+                         },
+                         {
+                             "case":  "old406",
+                             "pass":  true,
+                             "accepted":  true
+                         },
+                         {
+                             "case":  "407_explicit",
+                             "pass":  true,
+                             "accepted":  true
+                         },
+                         {
+                             "case":  "407_missing_ordinary",
+                             "pass":  true,
+                             "accepted":  false
+                         },
+                         {
+                             "case":  "407_missing_geometry",
+                             "pass":  true,
+                             "accepted":  false
+                         },
+                         {
+                             "case":  "407_missing_observer",
+                             "pass":  true,
+                             "accepted":  false
+                         },
+                         {
+                             "case":  "407_missing_Godot",
+                             "pass":  true,
+                             "accepted":  false
+                         },
+                         {
+                             "case":  "ordinary_wrong_card",
+                             "pass":  true,
+                             "accepted":  false
+                         }
+                     ],
+    "actual407_lease_accepted":  false,
+    "actual407_lease_expected":  false,
+    "actual407_lease_reason":  "forensics current resource is not reserved or occupied",
+    "guard_count":  6,
+    "top_level_invoked":  false,
+    "Godot_or_window_started":  false
+}

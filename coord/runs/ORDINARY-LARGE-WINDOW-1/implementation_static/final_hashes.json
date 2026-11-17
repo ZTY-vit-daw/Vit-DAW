@@ -1,0 +1,32 @@
+[
+  {
+    "Algorithm": "SHA256",
+    "Hash": "93509A7B30AD177A96AE0307A93AC6B986EEE02005F01340223740A678B49744",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\shell-window-transition-406\\vit-daw-frontend\\VitShell\\tests\\win32_noactivate_restore_probe.cpp"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "7523B1DD6170F9E1537CB7EE296454CDD289ED1F020AE4FEB98454D4D59E0364",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\shell-window-transition-406\\vit-daw-frontend\\VitShell\\tests\\window_transition_observer.h"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "7E971175FE5E07D3ECA78AE92AF32FC6601F4A56CED249FD8EE309322E369452",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\shell-window-transition-406\\vit-daw-frontend\\VitShell\\tests\\window_transition_observer.cpp"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "BFEFEC4E4A790233BCEFF0A9ECC247670A39904326D077CDFE53BEEAB49E0BF9",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\scripts\\vitshell_smoke.ps1"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "7BE408DFE9DBACFE8DF9DAC8CDF7C1EB18D4CB1FBE1097BD3E80B280E575BB48",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\ORDINARY-LARGE-WINDOW-1\\implementation_static\\build\\Release\\win32_noactivate_restore_probe.exe"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "6CB43914FA55413CADB815B31E27FFC2C8C8B91E79459485C832D4833FC95BA1",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\ORDINARY-LARGE-WINDOW-1\\implementation_static\\build\\Release\\window_transition_observer.dll"
+  }
+]

@@ -1,0 +1,26 @@
+Main
+e61f636e03871ea44014bedcdf4c7c788bf532cb
+?? coord/runs/GODOT-MAIN-HWND-OBSERVATION-1/formal_02/external.godot.project/isolated_user/
+?? coord/runs/GODOT-MAIN-HWND-OBSERVATION-1/formal_02/synthetic.godot.project/isolated_user/
+?? coord/runs/GODOT-NOACTIVATE-GEOMETRY-1/implementation_static/generated_fixture_checks/generated_fixture/window_transition_observer.dll
+?? coord/runs/GODOT-NOACTIVATE-GEOMETRY-1/runtime_01/external.godot.project/isolated_user/
+?? coord/runs/GODOT-NOACTIVATE-GEOMETRY-1/runtime_01/external.godot.project/window_transition_observer.dll
+?? coord/runs/GODOT-NOACTIVATE-GEOMETRY-1/runtime_01/synthetic.godot.project/window_transition_observer.dll
+?? coord/runs/GODOT-NOACTIVATE-GEOMETRY-1/runtime_02/synthetic.godot.project/isolated_user/
+?? coord/runs/GODOT-NOACTIVATE-GEOMETRY-1/runtime_02/synthetic.godot.project/window_transition_observer.dll
+?? coord/runs/ORDINARY-LARGE-WINDOW-1/
+?? coord/runs/WIN32-NOACTIVATE-RESTORE-FORENSICS-1/phase_b_01/formal_B/synthetic.godot.project/isolated_user/
+?? coord/runs/WIN32-NOACTIVATE-RESTORE-FORENSICS-1/phase_b_02/formal_B2/synthetic.godot.project/isolated_user/
+?? coord/runs/WINDOW-TRANSITION-OBSERVER-1/assembly_static/generated_fixture/window_transition_observer.dll
+?? coord/runs/WINDOW-TRANSITION-OBSERVER-1/assembly_static/static_fixture_final/generated_fixture/window_transition_observer.dll
+?? coord/runs/WINDOW-TRANSITION-OBSERVER-1/assembly_static/static_fixture_v2/generated_fixture/window_transition_observer.dll
+?? coord/runs/WINDOW-TRANSITION-OBSERVER-1/runtime_01/external.godot.project/isolated_user/
+?? coord/runs/WINDOW-TRANSITION-OBSERVER-1/runtime_01/external.godot.project/window_transition_observer.dll
+?? coord/runs/WINDOW-TRANSITION-OBSERVER-1/runtime_01/synthetic.godot.project/window_transition_observer.dll
+Frontend
+5a9200618836a78ac57fca2c1da3bb755b11c37d
+5a92006 407: inset ordinary target and verify nonce-bound reference above via native z chains
+ VitShell/tests/win32_noactivate_restore_probe.cpp | 118 +++++++++++++++++-----
+ VitShell/tests/window_transition_observer.cpp     |  43 +++++++-
+ VitShell/tests/window_transition_observer.h       |  20 ++++
+ 3 files changed, 155 insertions(+), 26 deletions(-)
