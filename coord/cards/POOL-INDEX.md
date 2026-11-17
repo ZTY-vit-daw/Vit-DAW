@@ -179,7 +179,7 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 380 | MATERIAL-TRANSCRIBE-1 | 部分完成（批1五条transcribed_unverified；批2-4十五条候续派，保留uncertain/未听核边界） |
 | 381 | YUE-VOCAL-FORENSICS-1 | done 已验收 pass 合入 1001a216+补腿 731a7d9f→main（C8 双版时长比例窗 [0.6,1.5] 干跑 0；**人声定性后被 390 查证修正**：官方有 instrumental 工作流，差距在本地封装） |
 | 390 | YUE-INSTRUMENTAL-PATH-1 | doing 零栈两腿 pass 合入（**模型件齐+接入=纯封装层**：S1/S2/S4/S6 官方语义对齐+干跑断言+go 回归 0；**真栈生成+用户听核候栈**——人声抑制效果无先例，fallback 待命） |
-| 391 | SHELL-WIN-BEHAVIOR-1 | 父卡（执行拆394原生/395呈现，父卡不可重复领；窗口行为包：DAW 不抢焦点+对话窗前台保持+窗口内动效包〔跨窗联动裁定不做〕；真栈腿；裁定档 2026-11-17 §一） |
+| 391 | SHELL-WIN-BEHAVIOR-1 | blocked（11-17首次激活与E/E2恢复未过，受控诊断止损；执行拆394原生/395呈现，父卡不可重复领；窗口行为包：DAW 不抢焦点+对话窗前台保持+窗口内动效包〔跨窗联动裁定不做〕；真栈腿；裁定档 2026-11-17 §一） |
 | 392 | SCORE-TRACK-BIND-1 | 父卡（397绑定→398跟随→399小条；400草稿契约先行，父卡不可重复领；谱面轨道绑定+双模式：轨道选择器+GUI 跟随+clip 小条+草稿 clip 资产不落位；374 痛点承接；裁定档 §二） |
 | 393 | CHAT-STREAM-LIST-1 | todo 可领 P2（工程态对话流列表侧栏+会话切换最简档；裁定档 §三；settings 归 388 补） |
 | —— | music_score 对话流控件 | 登记阶段 2 承接（裁定档 §二：374 内核包装成卡内挂载组件；候 388/389 收口后随阶段 2 发卡） |
@@ -191,9 +191,9 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 386 | T9-PRE-1B-1 | done 已验收 pass 合入 dd367207（App.tsx **9448→2335 行**/17 域模块；698=698 主管复跑+render 9 段；过程事故 2 起披露在卷无权威丢弃；**387 解锁**） |
 | 387 | CONVERGE-SHELL-1 | done 技术面 pass 合入（**366 磁带卡落地**：磁带盒整卡结构主管截图亲核+渲染断言+真栈 ui_entry2 四腿；**366 用户目检已于2026-11-17终验PASS**；ui_entry_smoke 腿1 前提失效+data-tape-badge 断言对齐→389 承接） |
 | 388 | CONVERGE-ENTRY-1 | done 主管PASS合入be43a2a2（Codex /root/entry388 / Sol-high；收敛阶段1卡4：工程管理挂载+进出语义；**387 合入后解锁**；Godot 收编点 A 另微改卡） |
-| 389 | CONVERGE-CLEANUP-1 | done 主管技术PASS合入036b7eaf（收敛阶段1卡5：旧面退役+阶段出口=用户 Godot 拉起全旅程手测；**388 合入后解锁**） |
-| 394 | SHELL-WIN-NATIVE-1 | doing（391-A，Sol/xhigh；/root/window391；前端仓VitShell域，零栈先行） |
-| 395 | SHELL-WIN-PRESENTATION-1 | doing /root/window391 Sol/xhigh（391-B，候388验收与394协议，真栈串行） |
+| 389 | CONVERGE-CLEANUP-1 | done 主管技术PASS合入036b7eaf（收敛阶段1卡5：旧面退役+阶段出口入口已按用户11-17更新为VitShell.cmd；**388 合入后解锁**） |
+| 394 | SHELL-WIN-NATIVE-1 | blocked（E2窗口仍iconic，待403恢复语义取证；391-A，Sol/xhigh；/root/window391；前端仓VitShell域，零栈先行） |
+| 395 | SHELL-WIN-PRESENTATION-1 | blocked（呈现722测/31渲染与组合11报告过，依394真实normal未过；391-B，候388验收与394协议，真栈串行） |
 | 396 | GODOT-RETRY-LAUNCHER-1 | doing（/root/retry396，Luna/high；收编点A独立微卡，前端仓gd域） |
 
 - 2026-11-17协调说明：384重复todo快照保留至archive，doing为权威；390物理归位doing，既有owner未变。当前PC主管Codex /root，子代理自主执行授权见decisions/2026-11-17-autonomous-subagent-execution.md。
@@ -203,4 +203,6 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 399 | SCORE-CLIP-STRIP-1 | todo（依397/398，clip时间小条） |
 | 400 | SCORE-DRAFT-CONTRACT-1 | todo（只读契约，工程包草稿库前提未成立） |
 | 401 | LAUNCHER-RECENTS-READ-1 | done 主管PASS合入be43a2a2（388必要只读接缝，同owner独立提交；GET不经LLM/不物化工作区） |
-| 402 | SHELL-WORKSPACE-READY-1 | doing（/root/window391，Sol/xhigh；394取证必要接缝：生产装配+首份工程快照回执，配对失败/超时） |
+| 402 | SHELL-WORKSPACE-READY-1 | blocked（最终验证ownerentry388，native bootstrap恢复未过；394取证必要接缝：生产装配+首份工程快照回执，配对失败/超时） |
+
+| 403 | WIN32-NOACTIVATE-RESTORE-FORENSICS-1 | todo 下轮候选（系统恢复语义取证先行，本轮不自动启动） |

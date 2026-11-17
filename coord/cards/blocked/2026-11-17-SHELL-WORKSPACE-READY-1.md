@@ -23,3 +23,6 @@
 - 402-B独立commit；391验收装置在既有vitshell_full_smoke.ps1/cdp.mjs/run_entry_management_acceptance.ps1三脚本独立commit，原owner/main已无未提交实现不叠未知diff。
 - 矩阵跑前成文：成功/场景失败/快照失败/确定超时/退出各一腿；错误/上轮nonce在真实延迟成功窗配对（rejected、不结束本轮，后实际ready）；无百分比/假文件音频步骤。最终组合主旅程、395真实消费、只读焦点/z/guard取证，后续Godot用户手测仍单列。
 - 当前栈271 owner，402-B只能静态准备，禁止Godot解析/import/服务/端口操作；主管后续统一放行组合runtime。
+
+## 2026-11-17 本轮止损与状态
+blocked：391normal旧版首次激活FAIL，E/E2两个候选均bootstrap/恢复失败，最后E2 after仍iconic；按预设停止第三normal/产品修与依赖矩阵。具体代码/日志/范围见coord/reports/2026-11-17-pc-development-progress.md与coord/runs/SHELL-WIN-BEHAVIOR-1/stopped-native-candidates/。本卡既有局部测试/呈现成果保留，不等于最终端侧通过；不合未验候选main、不放手测。恢复前先403独立取证，未自动领取。真实栈全零/哈希还原，owner无在飞运行，分支/worktree保留。

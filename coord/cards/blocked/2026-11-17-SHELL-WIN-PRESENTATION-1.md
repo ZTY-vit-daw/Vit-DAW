@@ -19,3 +19,6 @@
 5生产文件=App.tsx、launcher/ConvergedLauncher.tsx、project/ProjectSurface.tsx、新project/loading/windowPresentation.tsx/.css。394-D协议前端组合7bd812f1：vit_launch_progress vitshell.launch_progress.v1含request_id/全bridge单调seq/真实phase/detail/可选stage；ask_vit_shell/window_presentation_ready非空subscription_id先订阅再握手重放fresh window_state与末progress，replay不自增seq。没有观测保持unknown；window焦点独立，不用release_reason当本请求终态。真实既有阶段按请求关联呈现，progress=null，无百分比。仅workspace_ready表示装配+首份快照，scene_accepted边界如实。旧五type不改。
 
 复用LoadingCard；侧栏只现有recents收展与可复用slot框架，393列表未实现不假装已落地；尊重reduced-motion。不得改gallery/render-smoke/旧LauncherSurface/ui_entry_smoke（归389），必要独立render扩展需生产App装配正反断言而非自建件。最终组合真栈由主管统一排队。
+
+## 2026-11-17 本轮止损与状态
+blocked：391normal旧版首次激活FAIL，E/E2两个候选均bootstrap/恢复失败，最后E2 after仍iconic；按预设停止第三normal/产品修与依赖矩阵。具体代码/日志/范围见coord/reports/2026-11-17-pc-development-progress.md与coord/runs/SHELL-WIN-BEHAVIOR-1/stopped-native-candidates/。本卡既有局部测试/呈现成果保留，不等于最终端侧通过；不合未验候选main、不放手测。恢复前先403独立取证，未自动领取。真实栈全零/哈希还原，owner无在飞运行，分支/worktree保留。

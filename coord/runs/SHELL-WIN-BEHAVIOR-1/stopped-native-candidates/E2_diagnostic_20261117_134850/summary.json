@@ -1,0 +1,8 @@
+{
+  "shell_preservation_branch": "not_exercised",
+  "failed": "real launch terminated failed: 工作台未能按当前启动配置打开，请检查运行程序或重试",
+  "sample_errors": 0,
+  "request_id": "webui_launcher_br_mwk9vvxk",
+  "samples": 127,
+  "preopen_foreground": "other"
+}

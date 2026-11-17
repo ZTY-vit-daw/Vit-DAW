@@ -60,3 +60,6 @@
 - 无窗policy反例/build/ctest后独立commit/push，当前不启真实栈；唯一剩E候选normal诊断需主管另放行，同确定断点第二次后停，不继续无限方案；不调整原用户“不抢焦点”标准。
 
 - E2源码575dd713已remote亲核/主管ctest5/5exit0；首cause/strictsafeiconic报告VitShell/tests/394-E2-REPORT.md，原owner停写。验证ownerentry388仅collector适配合法最小化阶段，大窗门与rawFG禁止仍不降。最后normal候选1轮跑前FG分支按实际shell/other分别记录；other尊重用户，不伪称shellbranch被测。
+
+## 2026-11-17 本轮止损与状态
+blocked：391normal旧版首次激活FAIL，E/E2两个候选均bootstrap/恢复失败，最后E2 after仍iconic；按预设停止第三normal/产品修与依赖矩阵。具体代码/日志/范围见coord/reports/2026-11-17-pc-development-progress.md与coord/runs/SHELL-WIN-BEHAVIOR-1/stopped-native-candidates/。本卡既有局部测试/呈现成果保留，不等于最终端侧通过；不合未验候选main、不放手测。恢复前先403独立取证，未自动领取。真实栈全零/哈希还原，owner无在飞运行，分支/worktree保留。
