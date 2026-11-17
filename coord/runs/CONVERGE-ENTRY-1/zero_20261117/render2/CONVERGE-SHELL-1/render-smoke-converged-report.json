@@ -1,0 +1,243 @@
+{
+  "run": "CONVERGE-SHELL-1 converged launcher render smoke",
+  "date": "2026-11-17T03:17:33.954Z",
+  "url": "http://127.0.0.1:5391/app/gallery.html?surface=converged",
+  "viewport": "1440x900@1",
+  "reducedMotion": "reduce",
+  "externalRequestCount": 0,
+  "dom": {
+    "rootState": "ready",
+    "fixtureMarks": {
+      "page": true,
+      "notice": true,
+      "surface": "converged-launcher"
+    },
+    "v5Classes": {
+      "design": true,
+      "converged": true,
+      "launcher": true
+    },
+    "v5Tokens": {
+      "readBgVar": "#FFFFFF",
+      "inkVar": "#090b0e",
+      "frameBg": {
+        "rgb": [
+          255,
+          255,
+          255
+        ],
+        "a": 1
+      }
+    },
+    "drawerState": "ready",
+    "recentsCount": 3,
+    "declaredRecentsCount": "3",
+    "recentsTape": [
+      {
+        "shell": 1,
+        "window": 1,
+        "reels": 2,
+        "reelsHaveDisc": true,
+        "reelsHaveHub": true,
+        "label": 1,
+        "name": "示例工程甲（fixture）",
+        "path": "D:/design-fixtures/示例工程甲.vit",
+        "shellFill": {
+          "rgb": [
+            115,
+            184,
+            245
+          ],
+          "a": 0.62
+        },
+        "shellFillRaw": "rgba(115, 184, 245, 0.62)"
+      },
+      {
+        "shell": 1,
+        "window": 1,
+        "reels": 2,
+        "reelsHaveDisc": true,
+        "reelsHaveHub": true,
+        "label": 1,
+        "name": "示例工程乙（fixture）",
+        "path": "D:/design-fixtures/示例工程乙.vit",
+        "shellFill": {
+          "rgb": [
+            115,
+            184,
+            245
+          ],
+          "a": 0.62
+        },
+        "shellFillRaw": "rgba(115, 184, 245, 0.62)"
+      },
+      {
+        "shell": 1,
+        "window": 1,
+        "reels": 2,
+        "reelsHaveDisc": true,
+        "reelsHaveHub": true,
+        "label": 1,
+        "name": "示例工程丙（fixture）",
+        "path": "D:/design-fixtures/示例工程丙.vit",
+        "shellFill": {
+          "rgb": [
+            6,
+            91,
+            199
+          ],
+          "a": 0.62
+        },
+        "shellFillRaw": "rgba(6, 91, 199, 0.62)"
+      }
+    ],
+    "recentsOpenButtons": 3,
+    "recentsOpenDisabled": 0,
+    "missingSample": true,
+    "missingRowAttr": "true",
+    "missingButtonDisabled": true,
+    "missingNoteText": "文件已不在原位置",
+    "missingTapeNodes": {
+      "shell": 1,
+      "window": 1,
+      "reels": 2
+    },
+    "threadCards": [
+      {
+        "shell": 1,
+        "window": 1,
+        "reels": 2,
+        "reelsHaveDisc": true,
+        "reelsHaveHub": true,
+        "label": 1,
+        "name": "示例工程甲（fixture）",
+        "path": "D:/design-fixtures/示例工程甲.vit",
+        "shellFill": {
+          "rgb": [
+            115,
+            184,
+            245
+          ],
+          "a": 0.62
+        },
+        "shellFillRaw": "rgba(115, 184, 245, 0.62)"
+      },
+      {
+        "shell": 1,
+        "window": 1,
+        "reels": 2,
+        "reelsHaveDisc": true,
+        "reelsHaveHub": true,
+        "label": 1,
+        "name": "示例工程乙（fixture）",
+        "path": "D:/design-fixtures/示例工程乙.vit",
+        "shellFill": {
+          "rgb": [
+            115,
+            184,
+            245
+          ],
+          "a": 0.62
+        },
+        "shellFillRaw": "rgba(115, 184, 245, 0.62)"
+      },
+      {
+        "shell": 1,
+        "window": 1,
+        "reels": 2,
+        "reelsHaveDisc": true,
+        "reelsHaveHub": true,
+        "label": 1,
+        "name": "示例工程丙（fixture）",
+        "path": "D:/design-fixtures/示例工程丙.vit",
+        "shellFill": {
+          "rgb": [
+            6,
+            91,
+            199
+          ],
+          "a": 0.62
+        },
+        "shellFillRaw": "rgba(6, 91, 199, 0.62)"
+      }
+    ],
+    "newButton": 1,
+    "newButtonMode": "direct",
+    "messageRows": 4,
+    "userRows": 2,
+    "assistantRows": 2,
+    "userRowFrames": [
+      {
+        "border": "solid",
+        "borderWidth": "1px",
+        "shadow": "rgba(0, 0, 0, 0.18) 0px 1px 2px 0px, rgba(21, 36, 54, 0.12) 0px 6px 16px 0px"
+      }
+    ],
+    "threadPresent": true,
+    "greeting": 1,
+    "directiveState": "auto",
+    "directiveHeadline": "正在打开《示例工程甲》…",
+    "governance": 1,
+    "governanceSave": 1,
+    "governanceSwitch": 1,
+    "governanceCancel": 1,
+    "governanceHeadline": "当前工程《示例工程甲（fixture）》还在进行中——切换前要处理它吗？",
+    "suggestions": 3,
+    "composerTextarea": 1,
+    "composerSend": 1,
+    "emptySample": true,
+    "emptyText": "还没有最近工程记录。点「＋新建」直接新建一个工程，或点「打开…」选择工程文件。",
+    "liveRoot": true,
+    "liveBridgeAttr": "unavailable",
+    "liveChooseFile": 0
+  },
+  "textContrastMin": {
+    "text": "空态（还没有最近工程记录）",
+    "ratio": 5.077,
+    "fg": "rgb(102,102,102)",
+    "bg": "rgb(240,241,242)"
+  },
+  "graphicChecks": 28,
+  "tapeGraphicChecks": 28,
+  "graphicMinRatio": 6.222,
+  "clipIssues": [],
+  "docScrollWidth": 1440,
+  "fontTooSmall": [],
+  "expectedShells": [
+    {
+      "rgb": [
+        115,
+        184,
+        245
+      ],
+      "a": 0.62
+    },
+    {
+      "rgb": [
+        115,
+        184,
+        245
+      ],
+      "a": 0.62
+    },
+    {
+      "rgb": [
+        6,
+        91,
+        199
+      ],
+      "a": 0.62
+    }
+  ],
+  "failures": [],
+  "notes": [
+    "convergedUrl=http://127.0.0.1:5391/app/gallery.html?surface=converged",
+    "recentsClickShot=C:\\Users\\timoz\\.codex\\worktrees\\converge-entry-388\\Vit_DAW\\coord\\runs\\CONVERGE-ENTRY-1\\zero_20261117\\render2\\CONVERGE-SHELL-1\\screens\\converged-recents-click-failed-degradation.png"
+  ],
+  "screenshots": [
+    "C:\\Users\\timoz\\.codex\\worktrees\\converge-entry-388\\Vit_DAW\\coord\\runs\\CONVERGE-ENTRY-1\\zero_20261117\\render2\\CONVERGE-SHELL-1\\screens\\converged-viewport-1440x900.png",
+    "C:\\Users\\timoz\\.codex\\worktrees\\converge-entry-388\\Vit_DAW\\coord\\runs\\CONVERGE-ENTRY-1\\zero_20261117\\render2\\CONVERGE-SHELL-1\\screens\\converged-full.png",
+    "C:\\Users\\timoz\\.codex\\worktrees\\converge-entry-388\\Vit_DAW\\coord\\runs\\CONVERGE-ENTRY-1\\zero_20261117\\render2\\CONVERGE-SHELL-1\\screens\\converged-recents-tape-closeup.png"
+  ],
+  "result": "PASS"
+}

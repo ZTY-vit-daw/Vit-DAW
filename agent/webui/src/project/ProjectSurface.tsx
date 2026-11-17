@@ -104,6 +104,11 @@ export interface ProjectSurfaceProps {
    * 工作台接进工程面可达旅程（App 级 React 内部切 surface，零导航零重载）。
    * 未传（gallery fixture/独立渲染）=按钮不渲染，行为零变化。 */
   onOpenWorkbench?: () => void;
+  /** 查看启动页的工程管理视图；工程保持打开，不能用作退出成功回执。 */
+  onViewLauncher?: (projectName: string) => void;
+  onOpenSettings?: () => void;
+  /** 隐藏的工程页保留本地对话，但不消费工程管理视图的治理请求。 */
+  active?: boolean;
 }
 
 /** 轨迹视图 → 344 StatusCard 三态映射（idle 由 surface 渲染为待机行）。 */
@@ -312,7 +317,7 @@ function MacroItem({
   );
 }
 
-export function ProjectSurface({ fixture, fill = false, onOpenWorkbench }: ProjectSurfaceProps) {
+export function ProjectSurface({ fixture, fill = false, onOpenWorkbench, onViewLauncher, onOpenSettings, active = true }: ProjectSurfaceProps) {
   const fixtureService = fixture?.service ?? null;
   const [state, dispatch] = useReducer(
     (s: ProjectSurfaceState, e: ProjectEvent) => reduceProject(s, e),
@@ -413,7 +418,7 @@ export function ProjectSurface({ fixture, fill = false, onOpenWorkbench }: Proje
   }, []);
 
   useEffect(() => {
-    if (fixture) return;
+    if (fixture || !active) return;
     return subscribeGovernanceRequests((request) => {
       dispatch({
         type: "governanceRequested",
@@ -425,7 +430,11 @@ export function ProjectSurface({ fixture, fill = false, onOpenWorkbench }: Proje
         }
       });
     });
-  }, [fixture]);
+  }, [fixture, active]);
+
+  useEffect(() => {
+    if (!fixture && active) refreshContextQuietly();
+  }, [fixture, active, refreshContextQuietly]);
 
   // 确认承接卡：按钮=把用户本可亲口说的确认/取消话术走同一对话通道（真实
   // 协议，不硬造）；已作答后固定呈报不重放。
@@ -563,6 +572,11 @@ export function ProjectSurface({ fixture, fill = false, onOpenWorkbench }: Proje
           </span>
           {state.context?.detail ? (
             <span className="v5-project-titlebar-detail">{state.context.detail}</span>
+          ) : null}
+          {onViewLauncher ? (
+            <button type="button" className="v5-btn v5-btn--secondary v5-project-view-launcher" data-project-view-launcher onClick={() => onViewLauncher(contextName)} disabled={state.replying || bridgeExec?.state === "waiting" || bridgeExec?.state === "pending"} title="查看工程管理；当前工程保持打开">
+              查看启动页
+            </button>
           ) : null}
           {onOpenWorkbench ? (
             <button
@@ -866,6 +880,13 @@ export function ProjectSurface({ fixture, fill = false, onOpenWorkbench }: Proje
             </div>
           </form>
         </div>
+        {onOpenSettings ? (
+          <footer className="v5-project-footer">
+            <button type="button" className="v5-btn v5-btn--secondary" onClick={onOpenSettings} data-project-settings>
+              设置
+            </button>
+          </footer>
+        ) : null}
       </div>
     </div>
   );

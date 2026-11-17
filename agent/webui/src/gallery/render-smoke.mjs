@@ -89,27 +89,29 @@ import { createServer } from "vite";
 const here = dirname(fileURLToPath(import.meta.url)); // agent/webui/src/gallery
 const webuiRoot = resolve(here, "../.."); // agent/webui
 const repoRoot = resolve(webuiRoot, "../.."); // 仓库根
-const outDir = resolve(repoRoot, "coord/runs/UI-FOUNDATION-1");
+// 独立自验 run 可指定输出根，避免覆盖已有权威渲染工件。
+const runArtifactDir = (card) => resolve(process.env.VIT_RENDER_SMOKE_OUTPUT_ROOT || resolve(repoRoot, "coord/runs"), card);
+const outDir = runArtifactDir("UI-FOUNDATION-1");
 const screensDir = resolve(outDir, "screens");
 // UI-LAUNCHER-1（345）：launcher 渲染烟测工件独立落卡目录（344 产物路径不变）。
-const launcherOutDir = resolve(repoRoot, "coord/runs/UI-LAUNCHER-1");
+const launcherOutDir = runArtifactDir("UI-LAUNCHER-1");
 const launcherScreensDir = resolve(launcherOutDir, "screens");
 // UI-PROJECT-1（346）：工程内主窗渲染烟测工件独立落卡目录（344/345 产物路径不变）。
-const projectOutDir = resolve(repoRoot, "coord/runs/UI-PROJECT-1");
+const projectOutDir = runArtifactDir("UI-PROJECT-1");
 const projectScreensDir = resolve(projectOutDir, "screens");
 // UI-SPRITE-MOUNT-1（361）：本卡工件目录（真实入口渲染烟测报告 + 两面截图）。
-const spriteMountOutDir = resolve(repoRoot, "coord/runs/UI-SPRITE-MOUNT-1");
+const spriteMountOutDir = runArtifactDir("UI-SPRITE-MOUNT-1");
 const spriteMountScreensDir = resolve(spriteMountOutDir, "screens");
 // UI-MSG-SHADOWBOX-1（362）：用户消息阴影框渲染烟测工件目录（两面 computed 断言报告 + 两面截图）。
-const shadowboxOutDir = resolve(repoRoot, "coord/runs/UI-MSG-SHADOWBOX-1");
+const shadowboxOutDir = runArtifactDir("UI-MSG-SHADOWBOX-1");
 const shadowboxScreensDir = resolve(shadowboxOutDir, "screens");
 // UI-REC-TAPE-1（365）：磁带 cassette 头像 + 收起回归守卫工件目录（launcher tape 断言 +
 // 真实入口守卫报告 + 磁带特写/整面/守卫前后截图）。
-const recTapeOutDir = resolve(repoRoot, "coord/runs/UI-REC-TAPE-1");
+const recTapeOutDir = runArtifactDir("UI-REC-TAPE-1");
 const recTapeScreensDir = resolve(recTapeOutDir, "screens");
 // WIDGET-KIT-1（379）：音乐控件 fixture 页工件目录（audio_player/compare_pair/
 // 卡内挂载渲染断言报告 + 截图）。
-const widgetsOutDir = resolve(repoRoot, "coord/runs/WIDGET-KIT-1");
+const widgetsOutDir = runArtifactDir("WIDGET-KIT-1");
 const widgetsScreensDir = resolve(widgetsOutDir, "screens");
 
 /** 与 src/design/sprite.tsx 同源（23 symbol）。 */
@@ -1234,7 +1236,7 @@ async function main() {
   // 扫描 + 截图；工件落 coord/runs/UI-LOADING-1/{render-smoke-loading-report.json, screens/*.png}。
   const loadingFailures = [];
   const loadingNotes = [];
-  const loadingOutDir = resolve(repoRoot, "coord/runs/UI-LOADING-1");
+  const loadingOutDir = runArtifactDir("UI-LOADING-1");
   const loadingScreensDir = resolve(loadingOutDir, "screens");
   mkdirSync(loadingScreensDir, { recursive: true });
   const loadingUrl = `${galleryUrl}?surface=loading`;
@@ -1392,7 +1394,7 @@ async function main() {
   // /最小字号扫描 ⑤零外部请求 ⑥fixture 标注在卷（surface root data-fixture）。
   // 工件：coord/runs/UI-VISUAL-FIDELITY-1/{render-smoke-fidelity-report.json, screens/}。
   // 既有 344/345/346/347 断言与工件路径不变。
-  const fidelityOutDir = resolve(repoRoot, "coord/runs/UI-VISUAL-FIDELITY-1");
+  const fidelityOutDir = runArtifactDir("UI-VISUAL-FIDELITY-1");
   const fidelityScreensDir = resolve(fidelityOutDir, "screens");
   mkdirSync(fidelityScreensDir, { recursive: true });
   const fidelityViewports = [
@@ -1984,7 +1986,7 @@ async function main() {
   //    launcher_choose_file（五 type 面零新增零改名的一枚实证）；
   //  ⑥ 空态样例 + 全页对比度/字号/裁切扫描 + 零外部请求 + 截图。
   // 工件：coord/runs/CONVERGE-SHELL-1/{render-smoke-converged-report.json, screens/}。
-  const convergedOutDir = resolve(repoRoot, "coord/runs/CONVERGE-SHELL-1");
+  const convergedOutDir = runArtifactDir("CONVERGE-SHELL-1");
   const convergedScreensDir = resolve(convergedOutDir, "screens");
   mkdirSync(convergedScreensDir, { recursive: true });
   const convergedUrl = `${galleryUrl}?surface=converged`;
@@ -2264,10 +2266,11 @@ async function main() {
       body: routeJson({ status: "ok", launcher: true, reply: "我在。（route fixture greeting）", recent_count: 2 })
     })
   );
-  await convergedBridgeContext.route("**/agent/chat", (route) =>
+  await convergedBridgeContext.route("**/agent/launcher/recent-projects", (route) =>
     route.fulfill({
       contentType: "application/json",
       body: routeJson({
+        status: "ok",
         conversation_id: "webui_launcher_route_fixture",
         reply: "最近的工程有 2 个——点卡片直接打开，或直接跟我说名字：",
         context_flow: "launcher",
@@ -2440,6 +2443,101 @@ async function main() {
   const convergedReportPath = resolve(convergedOutDir, "render-smoke-converged-report.json");
   writeFileSync(convergedReportPath, JSON.stringify(convergedReport, null, 2), "utf-8");
 
+  // 388/401: production App entry, read-only HTTP stubs and host bridge only.
+  // No real processes/LLM. Proves DOM journey, lifecycle semantics remain a real-stack gate.
+  const entryFailures = [];
+  const entryAssert = (name, ok, detail = "") => { if (!ok) entryFailures.push(`ENTRY388: ${name} ${detail}`); };
+  const entryOutDir = runArtifactDir("CONVERGE-ENTRY-1");
+  mkdirSync(entryOutDir, { recursive: true });
+  const entryContext = await browser.newContext(guardCommon);
+  await entryContext.addInitScript(() => {
+    window.__entryPosts = [];
+    const listeners = new Set();
+    window.chrome = { webview: {
+      postMessage: (message) => window.__entryPosts.push(message),
+      addEventListener: (_type, listener) => listeners.add(listener),
+      removeEventListener: (_type, listener) => listeners.delete(listener),
+    } };
+    window.__entryDispatch = (payload) => [...listeners].forEach((listener) => listener(new MessageEvent("message", { data: payload })));
+  });
+  let recentFailure = false;
+  let chatRequests = 0;
+  let configWrites = 0;
+  let recentReads = 0;
+  await entryContext.route("**/agent/**", async (route) => {
+    const path = new URL(route.request().url()).pathname;
+    let body = {};
+    let status = 200;
+    if (path === "/agent/launcher/recent-projects") {
+      recentReads++;
+      status = recentFailure ? 503 : 200;
+      body = recentFailure ? { status: "error", error: "fixture kernel unavailable", kernel_unavailable: true } : { status: "ok", project_result_cards: ROUTE_RECENTS };
+    } else if (path === "/agent/launcher/greeting") body = { status: "ok", reply: "fixture greeting", recent_count: 2 };
+    else if (path === "/agent/ui/state") body = { project: { project_path: "D:/route-fixtures/current.vit" }, tracks: [] };
+    else if (path === "/agent/config") {
+      if (route.request().method() === "POST") configWrites++;
+      body = { config: { baseUrl: "", defaultModel: "", apiKey: "" } };
+    } else if (path === "/agent/chat") { chatRequests++; body = { error: "unexpected chat" }; }
+    await route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
+  });
+  const entryPage = await entryContext.newPage();
+  const entryUrl = `${appUrl}?surface=launcher`;
+  try {
+    await entryPage.goto(entryUrl, { waitUntil: "networkidle" });
+    await entryPage.waitForSelector("[data-launcher-recent-open]");
+    const bottomLeft = async (selector) => entryPage.locator(selector).evaluate((button) => {
+      const b = button.getBoundingClientRect();
+      return b.x < innerWidth / 3 && b.bottom > innerHeight - 80 && b.bottom <= innerHeight;
+    });
+    entryAssert("startup settings bottom left", await bottomLeft("[data-launcher-settings]"));
+    await entryPage.locator("[data-launcher-settings]").click();
+    await entryPage.waitForSelector("[data-entry-settings][open] .settings-page");
+    await entryPage.keyboard.press("Escape");
+    entryAssert("Escape closes settings and restores focus", await entryPage.locator("[data-launcher-settings]").evaluate((button) => document.activeElement === button));
+    await entryPage.evaluate(() => window.__entryDispatch({ type: "vit_surface", surface: "project" }));
+    await entryPage.waitForSelector("[data-project-root]");
+    entryAssert("project settings bottom left", await bottomLeft("[data-project-settings]"));
+    await entryPage.locator("[data-project-composer] textarea, [data-project-composer] input").fill("保留输入 fixture");
+    await entryPage.locator("[data-project-view-launcher]").click();
+    await entryPage.waitForSelector('[data-launcher-mode="project-management"]');
+    await entryPage.waitForSelector('[data-launcher-drawer][data-drawer-state="ready"] [data-launcher-recent-open]');
+    entryAssert("current project remains open", (await entryPage.locator("[data-launcher-active-project]").innerText()).includes("current.vit"));
+    entryAssert("management composer/suggestions absent", await entryPage.locator("[data-launcher-input], [data-launcher-suggestion]").count() === 0);
+    entryAssert("management recent list reads real GET contract", await entryPage.locator("[data-launcher-recent-open]").count() === 2 && recentReads >= 2);
+    await entryPage.screenshot({ path: resolve(entryOutDir, "management-1440x900.png") });
+    await entryPage.locator("[data-launcher-return-project]").click();
+    entryAssert("project input retained", await entryPage.locator("[data-project-composer] textarea, [data-project-composer] input").inputValue() === "保留输入 fixture");
+    await entryPage.locator("[data-project-settings]").click();
+    await entryPage.waitForSelector("[data-entry-settings][open] .settings-page");
+    await entryPage.locator('[data-entry-settings] button[title="关闭设置"]').click();
+    await entryPage.locator("[data-project-view-launcher]").click();
+    await entryPage.locator('[data-launcher-recent-open="route_fixture_project_healthy"]').click();
+    const directive = await entryPage.evaluate(() => window.__entryPosts.find((p) => p.type === "launcher_directive"));
+    entryAssert("recent card governed host directive", directive?.directive?.action === "open_project" && directive?.directive?.requires_governance === true);
+    await entryPage.evaluate(() => window.__entryDispatch({ type: "vit_launcher_result", request_id: window.__entryPosts.find((p) => p.type === "launcher_directive").request_id, status: "canceled" }));
+    recentFailure = true;
+    await entryPage.locator("[data-launcher-return-project]").click();
+    await entryPage.locator("[data-project-view-launcher]").click();
+    await entryPage.waitForSelector("[data-launcher-drawer-error]");
+    entryAssert("kernel failure stays error", await entryPage.locator("[data-launcher-drawer-empty]").count() === 0);
+    recentFailure = false;
+    await entryPage.locator("[data-launcher-drawer-retry]").click();
+    await entryPage.waitForSelector("[data-launcher-recent-open]");
+    await entryPage.evaluate(() => window.__entryDispatch({ type: "vit_surface", surface: "launcher" }));
+    await entryPage.waitForSelector('[data-launcher-mode="startup"]');
+    entryAssert("host launcher clears active project", await entryPage.locator("[data-launcher-return-project], [data-project-root]").count() === 0);
+    entryAssert("zero chat/LLM and zero config writes", chatRequests === 0 && configWrites === 0, `chat=${chatRequests} config=${configWrites}`);
+    const acks = await entryPage.evaluate(() => window.__entryPosts.filter((p) => p.type === "vit_surface_ack").map((p) => p.surface));
+    entryAssert("both internal view directions acknowledge existing bridge", acks.includes("project") && acks.includes("launcher"), JSON.stringify(acks));
+    for (const width of [420, 1440]) {
+      await entryPage.setViewportSize({ width, height: 900 });
+      entryAssert(`settings accessible at ${width}px`, await bottomLeft("[data-launcher-settings]"));
+    }
+  } catch (err) { entryFailures.push(`ENTRY388: journey exception ${String(err)}`); }
+  finally { await entryContext.close(); }
+  writeFileSync(resolve(entryOutDir, "render-smoke-entry-report.json"), JSON.stringify({ date: new Date().toISOString(), url: entryUrl, recentReads, chatRequests, configWrites, failures: entryFailures, result: entryFailures.length ? "FAIL" : "PASS" }, null, 2));
+  console.log(`[test:render] ENTRY388_RESULT=${entryFailures.length ? "FAIL" : "PASS"}`);
+
   await browser.close();
   await server.close();
 
@@ -2473,7 +2571,7 @@ async function main() {
   console.log(
     `[test:render] CONVERGED_RESULT=${convergedReport.result} tapeRows=${cDom.recentsTape.length} messageRows=${cDom.messageRows} governance=${cDom.governance} tapeGraphics=${convergedReport.tapeGraphicChecks}`
   );
-  const allFailures = [...failures, ...launcherFailures, ...projectFailures, ...loadingFailures, ...fidelityFailures, ...appFailures, ...recTapeFailures, ...widgetFailures, ...convergedFailures];
+  const allFailures = [...failures, ...launcherFailures, ...projectFailures, ...loadingFailures, ...fidelityFailures, ...appFailures, ...recTapeFailures, ...widgetFailures, ...convergedFailures, ...entryFailures];
   if (allFailures.length > 0) {
     for (const f of allFailures) console.error(`[test:render] FAIL: ${f}`);
     process.exit(1);

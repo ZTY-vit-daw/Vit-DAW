@@ -36,6 +36,7 @@ import type { CSSProperties, FormEvent, RefObject } from "react";
 import {
   cardsToEntries,
   fetchLauncherGreeting,
+  fetchLauncherRecentProjects,
   sendLauncherChat,
   type LauncherChatResult,
   type LauncherDirective,
@@ -135,12 +136,13 @@ export interface ConvergedLauncherProps {
   fixture?: ConvergedLauncherFixtureOverrides;
   /** 撑满视口（live surface 用）。 */
   fill?: boolean;
+  /** 工程管理视图：工程仍在宿主打开，不是退出/解绑回执。 */
+  activeProjectName?: string;
+  onReturnProject?: () => void;
+  onOpenSettings?: () => void;
 }
 
 type DrawerState = "loading" | "ready" | "error" | "empty";
-
-/** list 意图词面（确定性零 LLM，见 agent launcherClassifyMessage）。 */
-const RECENTS_LIST_MESSAGE = "有哪些工程";
 
 /** 映射 ChatMessage 的单调时刻基线（只服务 trace 渲染计划的稳定性，不落盘）。 */
 const CONV_MSG_TIME_BASE = 1700000000000;
@@ -323,7 +325,7 @@ export function TapeCardFace({
   );
 }
 
-export function ConvergedLauncher({ fixture, fill = false }: ConvergedLauncherProps) {
+export function ConvergedLauncher({ fixture, fill = false, activeProjectName, onReturnProject, onOpenSettings }: ConvergedLauncherProps) {
   const fixtureGreeting = fixture?.greeting;
   const fixtureThread = fixture?.thread;
   const [greetingState, setGreetingState] = useState<LauncherGreetingState>(
@@ -513,29 +515,21 @@ export function ConvergedLauncher({ fixture, fill = false }: ConvergedLauncherPr
     setDrawerState("loading");
     setDrawerError("");
     try {
-      const result = await sendLauncherChat(conversationID, RECENTS_LIST_MESSAGE);
+      const entries = await fetchLauncherRecentProjects();
       if (loadRunRef.current !== run) return;
-      const entries = cardsToEntries(result.project_result_cards);
       if (entries.length > 0) {
         setDrawerEntries(entries);
         setDrawerState("ready");
         return;
       }
-      // 无卡回执：按回执文案区分空态与失败（不虚构工程名）。
-      const reply = result.reply?.trim() ?? "";
-      if (result.error || /连不上内核|暂时/.test(reply)) {
-        setDrawerState("error");
-        setDrawerError(reply || LAUNCHER_RECENTS_ERROR_TEXT);
-      } else {
-        setDrawerEntries([]);
-        setDrawerState("empty");
-      }
+      setDrawerEntries([]);
+      setDrawerState("empty");
     } catch (error) {
       if (loadRunRef.current !== run) return;
       setDrawerState("error");
       setDrawerError(error instanceof Error ? error.message : LAUNCHER_RECENTS_ERROR_TEXT);
     }
-  }, [conversationID]);
+  }, []);
 
   const loadGreeting = useCallback(async (run: number) => {
     setGreetingState("loading");
@@ -567,11 +561,11 @@ export function ConvergedLauncher({ fixture, fill = false }: ConvergedLauncherPr
   // 问候就绪后把开场白作为首条 Vit 消息入线程（live 模式仅一次）。
   const greetingThreadSeededRef = useRef(false);
   useEffect(() => {
-    if (fixture || greetingThreadSeededRef.current) return;
+    if (fixture || activeProjectName || greetingThreadSeededRef.current) return;
     if (greetingState !== "ready") return;
     greetingThreadSeededRef.current = true;
     setThread((prev) => (prev.length > 0 ? prev : [{ kind: "assistant", text: greetingDisplayText(greeting) }]));
-  }, [fixture, greeting, greetingState]);
+  }, [fixture, activeProjectName, greeting, greetingState]);
 
   const retryAll = useCallback(() => {
     const run = ++loadRunRef.current;
@@ -587,7 +581,7 @@ export function ConvergedLauncher({ fixture, fill = false }: ConvergedLauncherPr
   const send = useCallback(
     async (message: string) => {
       const trimmed = message.trim();
-      if (!trimmed || busy || fixture) return;
+      if (!trimmed || busy || fixture || activeProjectName) return;
       setInput("");
       setThread((prev) => [...prev, { kind: "user", text: trimmed }]);
       setBusy(true);
@@ -620,7 +614,7 @@ export function ConvergedLauncher({ fixture, fill = false }: ConvergedLauncherPr
         setBusy(false);
       }
     },
-    [busy, conversationID, fixture, executeDirective]
+    [busy, conversationID, fixture, activeProjectName, executeDirective]
   );
 
   // 烟测消息队列：greeting 就绪后发第一条；每条 vit_launcher_result 后延迟发下一条
@@ -871,6 +865,7 @@ export function ConvergedLauncher({ fixture, fill = false }: ConvergedLauncherPr
         greeting?.kernel_unavailable ? "unavailable" : greetingState === "ready" ? "online" : undefined
       }
       data-fixture={fixture ? "converged-launcher" : undefined}
+      data-launcher-mode={activeProjectName ? "project-management" : "startup"}
     >
       <div className={frameClass} data-launcher-frame>
         <header className="v5-launcher-titlebar" data-launcher-titlebar>
@@ -883,6 +878,17 @@ export function ConvergedLauncher({ fixture, fill = false }: ConvergedLauncherPr
             data-drawer-state={drawerState}
             aria-label="最近工程"
           >
+            <div className="v5-converged-projects" data-launcher-projects data-scroll-intentional="projects">
+            {activeProjectName ? (
+              <section className="v5-converged-active-project" aria-label="当前打开的工程" data-launcher-active-project>
+                <span>工程保持打开</span>
+                <strong data-launcher-active-project-name>{activeProjectName}</strong>
+                <button type="button" className="v5-btn v5-btn--secondary" onClick={onReturnProject} disabled={!onReturnProject} data-launcher-return-project>
+                  返回工程
+                </button>
+                <p>这里用于查找、新建与打开工程；切换工程仍需确认。</p>
+              </section>
+            ) : null}
             <div className="v5-launcher-drawer-head">
               <span className="v5-launcher-drawer-title">最近工程</span>
               <span className="v5-launcher-drawer-count" data-launcher-recents-count={drawerEntries.length}>
@@ -987,8 +993,16 @@ export function ConvergedLauncher({ fixture, fill = false }: ConvergedLauncherPr
                 })}
               </ul>
             ) : null}
+            </div>
+            {onOpenSettings ? (
+              <footer className="v5-converged-drawer-footer">
+                <button type="button" className="v5-btn v5-btn--secondary" onClick={onOpenSettings} data-launcher-settings>
+                  设置
+                </button>
+              </footer>
+            ) : null}
           </aside>
-          <section className="v5-launcher-main" aria-label="Vit 启动台对话">
+          <section className="v5-launcher-main" aria-label={activeProjectName ? "Vit 工程管理对话" : "Vit 启动台对话"}>
             {greetingState === "loading" ? (
               <p className="v5-launcher-greeting-status" data-launcher-greeting-loading>
                 正在连接 Vit agent…
@@ -1005,7 +1019,7 @@ export function ConvergedLauncher({ fixture, fill = false }: ConvergedLauncherPr
             {greetingState === "ready" ? (
               <>
                 <p className="v5-launcher-greeting" data-launcher-greeting>
-                  {greetingDisplayText(greeting)}
+                  {activeProjectName ? "工程管理" : greetingDisplayText(greeting)}
                 </p>
                 <div className="v5-launcher-thread v5-converged-thread" data-launcher-thread data-scroll-intentional="thread">
                   {segments.map((segment) => renderThreadSegment(segment))}
@@ -1013,6 +1027,12 @@ export function ConvergedLauncher({ fixture, fill = false }: ConvergedLauncherPr
                 </div>
               </>
             ) : null}
+            {activeProjectName ? (
+              <p className="v5-converged-management-note" data-launcher-management-note>
+                这里用于管理工程。要继续当前工程的对话，请点「返回工程」。
+              </p>
+            ) : (
+              <>
             <ul className="v5-launcher-suggestions" data-launcher-suggestions aria-label="上下文建议">
               {LAUNCHER_SUGGESTIONS.map((suggestion) => (
                 <li key={suggestion.text}>
@@ -1056,6 +1076,8 @@ export function ConvergedLauncher({ fixture, fill = false }: ConvergedLauncherPr
                 onRemoveMacroControl={() => undefined}
               />
             </div>
+              </>
+            )}
           </section>
         </div>
       </div>
