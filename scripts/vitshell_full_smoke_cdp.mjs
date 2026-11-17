@@ -335,10 +335,15 @@ async function finishPresentationCapture(page, capture) {
   writeFileSync(outPath + ".win-event-evaluation.json", JSON.stringify(rawWindowEvents, null, 2));
   if (rawWindowEvents.violation) throw new Error(rawWindowEvents.violation);
   const sampledWindows = capture.samples.map(s => s.status.window_state);
-  const loadingWindows = sampledWindows.filter(w => w?.loading_guard_active === true && w.daw_hwnd !== null);
-  if (!loadingWindows.length || !loadingWindows.some(w => w.foreground === "shell" && w.shell_above_daw === true && w.daw_noactivate === true && w.event_hooks_ready === true)) throw new Error("BOUNDARY: no complete loading foreground/z-order/noactivate observation");
+  const loadingWindows = sampledWindows.filter(w => w?.loading_guard_active === true && w.daw_hwnd !== null && w.daw_visible === true && w.daw_iconic === false);
+  const preopen = capture.samples[0].status.window_state;
+  const foregroundCoverage = { preopen_foreground: preopen?.foreground, shell_preservation_branch: preopen?.foreground === "shell" ? "exercised" : "not_exercised", external_application_branch: preopen?.foreground === "other" ? "exercised" : "not_exercised" };
+  if (!["shell", "other"].includes(preopen?.foreground)) throw new Error("BOUNDARY: pre-open foreground identity unavailable");
+  if (!loadingWindows.length || !loadingWindows.some(w => w.shell_above_daw === true && w.daw_noactivate === true && w.event_hooks_ready === true)) throw new Error("BOUNDARY: no complete loading ordinary-window/z-order/noactivate observation");
+  if (preopen.foreground === "shell" && loadingWindows.some(w => w.foreground !== "shell")) throw new Error("shell preservation branch lost foreground during loading");
+  if (preopen.foreground === "other" && loadingWindows.some(w => w.foreground !== "other")) throw new Error("external-foreground branch did not preserve the external application");
   if (loadingWindows.some(w => w.foreground === "daw" || w.shell_above_daw === false || w.daw_noactivate === false)) throw new Error("observed DAW activation/order/style violation while loading");
-  const firstVisible = capture.samples.map(s => s.status.window_state).find(w => w?.win_event_log?.launch_id === requestId && w.daw_visible === true);
+  const firstVisible = capture.samples.map(s => s.status.window_state).find(w => w?.win_event_log?.launch_id === requestId && w.daw_visible === true && w.daw_iconic === false);
   if (!firstVisible || firstVisible.hidden_boot_state !== "prepared" || firstVisible.daw_topmost !== false || firstVisible.daw_iconic !== false || firstVisible.daw_noactivate !== true || firstVisible.shell_above_daw !== true) throw new Error("BOUNDARY: first observed visible DAW lacks prepared/non-topmost/noactivate/large-window facts");
   if (loadingWindows.some(w => w.daw_topmost !== false || w.daw_visible !== true || w.daw_iconic !== false)) throw new Error("loading DAW topmost/visibility/iconic fact failed or unavailable");
   const released = capture.samples.filter(s => s.receivedAt >= terminal.receivedAt).map(s => s.status.window_state).find(w => w?.loading_guard_active === false && w.release_reason);
@@ -373,13 +378,15 @@ async function finishPresentationCapture(page, capture) {
   if (!nativeBoot) throw new Error("nonce-matched native bootstrap preparation log missing");
   const bootRecord = JSON.parse(nativeBoot.slice(nativeBoot.indexOf('{')));
   if (bootRecord.state !== "prepared" || bootRecord.pid !== rawWindowEvents.direct_child_pid || bootRecord.native?.hidden_boot_state !== "prepared" || bootRecord.native?.daw_topmost !== false || bootRecord.native?.daw_noactivate !== true || bootRecord.native?.daw_visible !== true || bootRecord.native?.daw_iconic !== false) throw new Error("native bootstrap prepared facts incomplete");
+  const trace = bootRecord.native.hidden_boot_trace;
+  if (!trace || trace.daw_foreground_seen !== false || trace.foreground_identity_unknown !== false || !trace.before || !trace.after || trace.before.pid !== rawWindowEvents.direct_child_pid || trace.before.topmost !== false || (trace.before.visible === true && trace.before.iconic !== true) || trace.after.visible !== true || trace.after.iconic !== false || trace.after.noactivate !== true || trace.after.topmost !== false) throw new Error("safe hidden/iconic native prestate and ordinary-window poststate evidence incomplete");
   if (injected) for (const injection of injected.injections) {
     const rejection = bridgeRaw.split(/\r?\n/).find(line => line.includes("launch_result.rejected") && line.includes(`\"launch_id\":\"${injection.launch_id}\"`) && line.includes(`\"expected_launch_id\":\"${requestId}\"`) && line.includes("wrong_launch_id"));
     if (!rejection) throw new Error("HTTP wrong/old nonce rejection lacks native run-local pairing");
   }
   if (success && !bridgeRaw.includes(`launch_result.accepted {\"launch_id\":\"${requestId}\"`)) throw new Error("current real receipt was not nonce-accepted");
   const result = { scenario: presentationScenario, request_id: requestId, observation_boundary: "finite 40ms current-state samples plus complete available raw hook union and 500ms drain; no claim about absolute every transient OS state", raw_window_events: rawWindowEvents, first_observed_visible: firstVisible, bootstrap_native: bootRecord, native, samples: capture.samples, sample_errors: capture.errors, godot_events: godotEvents, injected, consumer_negative: consumerNegative, sidebar: capture.sidebar,
-    focus_hint_positive_observed: capture.samples.some(s => s.status.window_state?.foreground === "daw" && s.dom.focus === "daw"), focus_experience_boundary: "No desktop input was generated. Ordinary post-ready focus remains for user testing." };
+    foreground_coverage: foregroundCoverage, focus_hint_positive_observed: capture.samples.some(s => s.status.window_state?.foreground === "daw" && s.dom.focus === "daw"), focus_experience_boundary: "No desktop input was generated. Ordinary post-ready focus remains for user testing." };
   writeFileSync(outPath + ".presentation.json", JSON.stringify(result, null, 2));
   await page.screenshot({ path: outPath + ".presentation.png" });
   return result;
@@ -416,6 +423,9 @@ if (process.argv.includes("--presentation-self-test")) {
   const firstNormal = [{ loading_guard_active: true, foreground: "daw", shell_above_daw: false, daw_noactivate: false },
     { loading_guard_active: true, foreground: "shell", shell_above_daw: true, daw_noactivate: true }];
   if (!firstNormal.some(w => w.foreground === "daw" || w.shell_above_daw === false || w.daw_noactivate === false)) throw new Error("first-normal counterexample was erased");
+  const iconicFixture = [{ daw_visible: true, daw_iconic: true, daw_noactivate: false }, { daw_visible: true, daw_iconic: false, daw_noactivate: true }];
+  const ordinaryFixture = iconicFixture.filter(w => w.daw_visible === true && w.daw_iconic === false);
+  if (ordinaryFixture.length !== 1 || ordinaryFixture[0].daw_noactivate !== true) throw new Error("iconic was incorrectly treated as ordinary visible window");
   console.log("PRESENTATION_STATIC_SELF_TEST_PASS (no browser/native/HTTP)");
   process.exit(0);
 }

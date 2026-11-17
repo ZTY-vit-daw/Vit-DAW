@@ -105,3 +105,9 @@ raw观测与当前态分开：`vit_window_state`本体是当前态，不能称�
 首可见事实以当前态新增daw_visible/daw_iconic/daw_topmost+prepared/NOACTIVATE/z真实样本亲证，null不代false；native prepared原日志单独校验nonce/PID/首show后style；guard前台样本与原raw FG两层均不得出现DAW激活。终态后drain500ms只扩有限观测窗，不宣称Windows绝对所有瞬态或无限迟到消息都无激活。普通ready后“点击谁前台”仍留用户VitShell.cmd产品入口体验，不生成主机键鼠/焦点修复动作。
 
 离线helper测试只用合成event数据/原已失败状态反例：完整union容许历史drop、当前gap拒绝、DWORD回绕、guard释放后迟到FG仍违规、targetPID0已知HWND不能静默过、原坏sample不被后续好sample冲销。node --check/selftest与PS AST均须exit0再交正式放行。
+
+## E2 最后normal诊断跑前覆盖裁定
+
+E1已失败完整留卷；本次唯一剩余normal1轮，新前端固定575dd7138e835a23c40dc630f65aab6c4c4daef0，路径shell-first-focus-394，freshbuild、skip无关failure/legacy/C。first ordinary visible定义为visible=true且iconic=false，仍必须prepared/NOACTIVATE/behind/nonTOPMOST；合法iconic仅按同nonce/directPID、native完整hook无DAWFG/unknown、nonTOPMOST的before/after trace亲证，不用iconic的noactivate=false冒充普通大窗失败或豁免任何rawFG。uniongap/unknown仍不可当0。
+
+首open前原FG从第1sample记录：若shell，加载ordinary窗期间须保持shell，覆盖shell-preservation；若other，尊重外部前台且不得DAW激活，shell-preservation明确not_exercised，不能other当shellpass或整体手测放行。不得使用桌面键鼠/SetForegroundWindow制造样本。none/unknown为覆盖边界失败。其余真实new/open、bootstrap→confirmed→direct→mounted/snapshot/ready、395seq、六hash/fixture/全零不变。技术断言通过但onlycoverage boundary须主管裁定，依赖矩阵仍不自动恢复。不再增加第三诊断。
