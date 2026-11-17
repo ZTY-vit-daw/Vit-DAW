@@ -6,3 +6,9 @@
 - childobserver用仅测试env reference HWND+parentPID（child创建前记录，nonce绑定）取得自有guard，只读核有效/同声明parentPID，snapshot记录有界前驱HWND链、reference是否在上方/chain截断循环。来源为本parent新建guard，不操纵他人窗；回调仍固定容量，无heap/IO/pump。可保持最多64或128个前驱，有界且未找到reference的截断/错误不得当PASS。
 - firstordinary与每nested native state都核targetrect/engine mode0/guard above，不要求neighbor；链是采集时读数非全OS原子快照，若原native proposal/读链相互矛盾则fail/coverage。parent原子show区间/targetnative所有changes因果核对与2s保FG、自主卸载自然0全门保留。只有目标rect生成和z语义换契约，不删mode0/早小窗/后修正/无activation/zero error门。
 - pure tests更新原geometry反例：16DIP数值/负origin/tinyworkarea拒绝、helper/interveningwindow仍guardabove、childabove拒绝、missing/loop/truncatedchain拒绝、前后reference错PID/nonce拒绝等，真实JSONLschema往返与实际formatter静态核对；真实PS5卡407/门控兼容先验。仅实现build/无窗，不授新窗口；提交后主管审再独立≤2runtime，任何异常停/无补跑。生产394改动与完整栈另授权。
+
+## 首轮runtime授权（19:53 +0800）
+
+- 前端5a92006、主scripte61f636e/工件eb7725ed；主管审全4文件diff/原schema与82pure/34policy及PS5门禁原结果。保留core五步/T-P严格域与原首ordinary/2s门，new契约来源已记录，不回改405失败。
+- 先RUNBOOK-runtime、新ORDINARY-LARGE-WINDOW-1/runtime_01，显式407/Godot/Observer/Geometry/Ordinary开关全有，最多2child/15min，每条件1次，任一异常停，no补跑/no运行中改代码。第一次ordinary target={28,28,2532,1412}仅在当前DPI168/该workarea预期，实际冻结按16DIP计算，不硬编码本机rect来凑。
+- 原生reference/parentPID/nonce、up/down数组与loop/truncated完整性核对；guardabove允许中间窗，guardbelow失败；unknown链coverage不足不强推PASS。engine0/client一致≥2s、zero FG/focus/nativefail/drop/IO、自然unload0与recents/全零全门不变。只隔离取证，不产品验收。
