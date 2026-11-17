@@ -71,3 +71,5 @@
 - 当前PC栈owner为/root/entry388，271仅零栈准备。复用scripts/edu_transform_smoke.py与dev_agent_smoke.ps1体系，可加明确271模式/观测断言；最多2脚本，不另建测试框架。旧276未通过的第三次重跑禁令不被本卡掩盖：这是271已修预算版本的独立验证，明确旧/新代码hash和判据。
 - 成功至少=真实三件套在场、自然生产路由closure.mode=diagnostic被实证、midi分析工具真实执行且既有golden结果成立、未在单轮max_turns旧断点停泊。若生产路由未走diagnostic则记not_exercised而非PASS；no_candidate/capability_blocked/assertion/崩溃/环境中断分开。不能用单元测试或无关388 UI旅程代终验。
 - 跑前必须RUNBOOK写次数/LLM计费调用上限/成功与非命中/失败分类/止损；本次只准备，不授启栈权。原始日志、prompt/telemetry不泄漏密钥，fixture独立复制与recents强制哈希还原。
+
+- 验证worktree=C:/Users/timoz/.codex/worktrees/closure-validation-271/Vit_DAW；branch=codex/closure-validation-271；创建后HEAD=e2745369、status/diff空；owner=/root/closure271。本领取提交push并重读owner后可做零栈脚本准备。
