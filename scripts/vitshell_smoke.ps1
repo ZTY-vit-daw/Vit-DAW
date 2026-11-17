@@ -27,7 +27,9 @@ param(
     [int]$AgentReadyTimeoutSec = 120,
     [string]$RunRoot = "",
     [switch]$SkipBuild,
-    [switch]$Win32RestoreForensics
+    [switch]$Win32RestoreForensics,
+    [switch]$GodotRestoreForensics,
+    [string]$ForensicsGodotExe = 'D:/Godot/Godot_v4.6.1-stable_win64.exe'
 )
 
 $ErrorActionPreference = "Stop"
@@ -36,7 +38,8 @@ $MainRoot = Split-Path -Parent $PSScriptRoot   # main-repo worktree root (script
 # Card 403: explicitly selected, independent owned-window experiment. Return
 # before any product build/start/HTTP/project code below. No product code links
 # to this probe, and the normal smoke path is unchanged when this switch is off.
-if ($Win32RestoreForensics) {
+if ($Win32RestoreForensics -or $GodotRestoreForensics) {
+    if ($Win32RestoreForensics -and $GodotRestoreForensics) { throw 'Select only one 403 phase' }
     if ($SkipBuild) { throw "403 requires a fresh isolated probe build" }
     if ([string]::IsNullOrWhiteSpace($RunRoot)) { throw "403 requires a new explicit -RunRoot" }
     if (Test-Path -LiteralPath $RunRoot) { throw "403 refuses to overwrite an existing run directory" }
@@ -78,6 +81,7 @@ if ($Win32RestoreForensics) {
     }
     $recentsBefore = Get-403RecentsHash
     $recentsBefore | Out-File (Join-Path $RunRoot 'recents.before.sha256') -Encoding utf8
+    if ($GodotRestoreForensics -and (Test-Path -LiteralPath $recentsPath)) { Copy-Item -LiteralPath $recentsPath -Destination (Join-Path $RunRoot 'recents.before.json') }
     try {
         foreach ($entry in @(@('main',$MainRoot),@('frontend',$FrontendWorktree))) {
             $prefix=$entry[0]; $tree=$entry[1]
@@ -88,6 +92,11 @@ if ($Win32RestoreForensics) {
         }
         Get-FileHash -Algorithm SHA256 -LiteralPath $PSCommandPath,(Join-Path $FrontendWorktree 'VitShell/tests/CMakeLists.txt'),(Join-Path $FrontendWorktree 'VitShell/tests/win32_noactivate_restore_probe.cpp') |
             ConvertTo-Json | Out-File (Join-Path $RunRoot 'source_hashes.json') -Encoding utf8
+        if ($GodotRestoreForensics) {
+            if ($ForensicsGodotExe -match '(?i)console' -or -not (Test-Path -LiteralPath $ForensicsGodotExe)) { throw '403B requires the direct existing GUI Godot executable' }
+            Get-FileHash -LiteralPath $ForensicsGodotExe -Algorithm SHA256 | ConvertTo-Json | Out-File (Join-Path $RunRoot 'godot_binary_hash.json') -Encoding utf8
+            (Get-Item -LiteralPath $ForensicsGodotExe).VersionInfo | Select-Object FileVersion,ProductVersion,OriginalFilename | ConvertTo-Json | Out-File (Join-Path $RunRoot 'godot_version_resource.json') -Encoding utf8
+        }
         Assert-403Idle 'before_build'
         $testSource=Join-Path $FrontendWorktree 'VitShell/tests'
         $testBuild=Join-Path $RunRoot 'build'
@@ -105,20 +114,83 @@ if ($Win32RestoreForensics) {
             Out-File (Join-Path $RunRoot 'binary_hash.json') -Encoding utf8
         $failCount=0
         foreach ($condition in @('synthetic','external')) {
-            foreach ($variant in @('restore','shownoactivate','placement')) {
+            $variants=@('restore','shownoactivate','placement')
+            if ($GodotRestoreForensics) { $variants=@('godot') }
+            foreach ($variant in $variants) {
                 if (((Get-Date)-$probeStarted).TotalMinutes -ge 30) { throw '403 30-minute stop line' }
                 if ($failCount -ge 2) { throw '403 two candidate failure stop line; no replacement runs' }
                 $scene="$condition.$variant"
+                if ($GodotRestoreForensics) {
+                    $project=Join-Path $RunRoot "$scene.project"
+                    $null=New-Item -ItemType Directory -Path (Join-Path $project isolated_user) -Force
+                    $nonce=[guid]::NewGuid().ToString('N')
+                    $engineObservation=Join-Path $project 'observation.jsonl'
+                    @'
+config_version=5
+[application]
+config/name="403 isolated Godot observation"
+run/main_scene="res://main.tscn"
+[display]
+window/size/viewport_width=720
+window/size/viewport_height=480
+window/size/mode=1
+window/size/always_on_top=false
+window/size/no_focus=false
+[rendering]
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+'@ | Set-Content -LiteralPath (Join-Path $project project.godot) -Encoding utf8
+                    @'
+[gd_scene load_steps=2 format=3]
+[ext_resource type="Script" path="res://observer.gd" id="1"]
+[node name="Observer403" type="Node"]
+script = ExtResource("1")
+'@ | Set-Content -LiteralPath (Join-Path $project main.tscn) -Encoding utf8
+                    $observationPath=$engineObservation.Replace('\','/')
+                    @"
+extends Node
+var output: FileAccess
+var sequence: int = 0
+var ready_seen: bool = false
+var elapsed: float = 0.0
+func emit_observation(kind: String) -> void:
+	if output == null:
+		return
+	sequence += 1
+	var record = {"kind":kind,"seq":sequence,"nonce":"$nonce","pid":OS.get_process_id(),"unix_ms":int(Time.get_unix_time_from_system()*1000.0),"ticks_msec":Time.get_ticks_msec(),"ready":int(ready_seen),"window_mode":get_window().mode,"display_mode":DisplayServer.window_get_mode(),"focused":int(get_window().has_focus()),"hwnd":DisplayServer.window_get_native_handle(DisplayServer.WINDOW_HANDLE),"width":get_window().size.x,"height":get_window().size.y,"version":Engine.get_version_info()}
+	output.store_line(JSON.stringify(record))
+	output.flush()
+func _ready() -> void:
+	output = FileAccess.open("$observationPath",FileAccess.WRITE)
+	get_window().focus_entered.connect(func(): emit_observation("focus_entered"))
+	get_window().focus_exited.connect(func(): emit_observation("focus_exited"))
+	get_window().size_changed.connect(func(): emit_observation("size_changed"))
+	emit_observation("scene_ready")
+func _process(delta: float) -> void:
+	if not ready_seen:
+		ready_seen = true
+		emit_observation("first_process_ready")
+	elapsed += delta
+	if elapsed >= 0.02:
+		elapsed = 0.0
+		emit_observation("sample")
+"@ | Set-Content -LiteralPath (Join-Path $project observer.gd) -Encoding utf8
+                    [ordered]@{nonce=$nonce; project=$project; command=('"'+$ForensicsGodotExe+'" --path "'+$project+'" --log-file "'+$project+'/godot_engine.log"'); startup_flags=1; startup_show=0; creation_flags='CREATE_SUSPENDED|CREATE_NO_WINDOW|CREATE_UNICODE_ENVIRONMENT'; user_environment='Child-only APPDATA/LOCALAPPDATA/USERPROFILE/TEMP/TMP redirected to run project isolated_user; VIT_* removed'; no_autoload=$true; no_plugins=$true; no_extensions=$true} | ConvertTo-Json | Out-File (Join-Path $RunRoot "$scene.project_manifest.json") -Encoding utf8
+                }
                 Assert-403Idle "before_$scene"
                 $raw=Join-Path $RunRoot "$scene.jsonl"
-                "`"$probeExe`" $variant $condition `"$raw`" (Start-Process -WindowStyle Hidden; new process)" |
-                    Add-Content (Join-Path $RunRoot 'commands.txt')
-                $probeProcess=Start-Process -FilePath $probeExe -ArgumentList @($variant,$condition,('"'+$raw+'"')) -WindowStyle Hidden -PassThru
+                if (-not $GodotRestoreForensics) { "`"$probeExe`" $variant $condition `"$raw`" (Start-Process -WindowStyle Hidden; new process)" |
+                    Add-Content (Join-Path $RunRoot 'commands.txt') }
+                $probeArgs=@($variant,$condition,('"'+$raw+'"'))
+                if ($GodotRestoreForensics) { $probeArgs=@('--godot',$condition,('"'+$raw+'"'),('"'+$ForensicsGodotExe+'"'),('"'+$project+'"'),('"'+$engineObservation+'"'),$nonce); ('"'+$probeExe+'" '+($probeArgs -join ' ')) | Add-Content (Join-Path $RunRoot commands.txt) }
+                $probeProcess=Start-Process -FilePath $probeExe -ArgumentList $probeArgs -WindowStyle Hidden -PassThru
                 $ownedPID=$probeProcess.Id
                 $null=$probeProcess.Handle # retain the exact created process handle before waiting
                 [ordered]@{ pid=$ownedPID; started_utc=$probeProcess.StartTime.ToUniversalTime().ToString('o'); exe=$probeExe; variant=$variant; condition=$condition } |
                     ConvertTo-Json | Out-File (Join-Path $RunRoot "$scene.process.json") -Encoding utf8
-                if (-not $probeProcess.WaitForExit(15000)) { throw "403 timeout in owned process $ownedPID" }
+                $probeTimeout=15000
+                if ($GodotRestoreForensics) { $probeTimeout=20000 }
+                if (-not $probeProcess.WaitForExit($probeTimeout)) { throw "403 timeout in owned process $ownedPID" }
                 $code=$probeProcess.ExitCode
                 $probeProcess.Dispose()
                 $probeProcess=$null
@@ -127,6 +199,7 @@ if ($Win32RestoreForensics) {
                 $result=@($records | Where-Object { $_.kind -eq 'result' })
                 if ($result.Count -ne 1 -or $records[-1].kind -ne 'hook_removed') { throw "403 incomplete raw interval/teardown in $scene" }
                 $probeResults += [ordered]@{ scene=$scene; pid=$ownedPID; exit=$code; classification=$result[0].classification; raw=$raw }
+                if ($GodotRestoreForensics -and $code -notin @(0,10)) { throw "403B first anomaly in $scene; remaining scene stopped, no rerun" }
                 if ($code -eq 40 -and $variant -ne 'restore') { ++$failCount }
                 if ($code -in @(20,30,50) -or ($variant -eq 'restore' -and $code -notin @(0,10))) { throw "403 observation/probe/environment failure in $scene; no rerun" }
             }
@@ -144,7 +217,9 @@ if ($Win32RestoreForensics) {
         $recentsAfter | Out-File (Join-Path $RunRoot 'recents.after.sha256') -Encoding utf8
         if ($recentsAfter -ne $recentsBefore) { $probeExit=1; 'Unexpected recents change: no restore/write attempted (no kernel launched)' | Out-File (Join-Path $RunRoot 'recents.failure.txt') }
         try { Assert-403Idle 'after_teardown' } catch { $probeExit=1; $_ | Out-String | Out-File (Join-Path $RunRoot 'teardown.failure.txt') }
-        [ordered]@{ card='403'; run_id=(Split-Path -Leaf $RunRoot); started=$probeStarted.ToUniversalTime().ToString('o'); finished=(Get-Date).ToUniversalTime().ToString('o'); exit=$probeExit; recents_unchanged=($recentsBefore -eq $recentsAfter); scenarios=$probeResults; boundary='Owned synthetic Win32 windows only; no VitShell/Godot/product conclusions' } |
+        $boundary='Owned synthetic Win32 windows only; no VitShell/Godot/product conclusions'
+        if ($GodotRestoreForensics) { $boundary='Isolated minimal Godot only; raw child WinEvent plus engine observations, no child WndProc or product acceptance' }
+        [ordered]@{ card='403'; run_id=(Split-Path -Leaf $RunRoot); started=$probeStarted.ToUniversalTime().ToString('o'); finished=(Get-Date).ToUniversalTime().ToString('o'); exit=$probeExit; recents_unchanged=($recentsBefore -eq $recentsAfter); scenarios=$probeResults; boundary=$boundary } |
             ConvertTo-Json -Depth 8 | Out-File (Join-Path $RunRoot 'report.json') -Encoding utf8
     }
     exit $probeExit
