@@ -28,3 +28,11 @@
 - 通过门（每腿，全部原样核、不降判据）：①安全 startup/ready 前提（safe iconic、child 从未 FG）；②恢复候选一次执行；③首次 ordinary 转换三 phase 完整：entry/downstream_after/guard_after 同 token/depth 配对，guard_after=实际交回 USER32 的最终 proposal，z=已核 reference（guard above child）、SWP_NOZORDER 按需清除、NOACTIVATE/NOOWNERZORDER/geometry 原值；④已可见错误 proposal 保留为拦截证据，CHANGED/native 末态原样，任何已可见 guardbelow/错 geometry/activation 仍 FAIL；⑤geometry 16DIP/engine mode0 不变、零 FG/focus/TOPMOST、client/mode 一致≥2s；⑥nonce stop 请求→应用自卸载闭环（removed_verified/shutdown/engine_ack）→child 自然 exit 0；⑦收尾全进程/端口归零、recents 前后哈希一致。
 - 失败分类照 §8（probe_defect/环境/机制失败分开）；任一腿 FAIL/coverage 缺口→停止，不跑下一腿，保全原始工件。装置腿 lease 门若因 owner 字符串不匹配拒绝：按资源记录 21:58 条目的 owner 原串传参对齐，禁止改门。
 - 工件：raw JSONL+decoder 摘要+REPORT 入 run 目录，两树独立 commit（不 push）。token 经济纪律（PROTOCOL §0.3）：原始日志只走 decoder/计数摘要进上下文，不整读 raw。
+
+## runtime_01/02 结果与缰绳触发（2026-11-17 22:30 +0800，GLM 主管复核后）
+
+- runtime_01（synthetic）**FAIL exit40**，分类=机制失败 native_activation：stop/卸载阶段（prefix drain 边界之后）12 条 native focus=child（含 WM_SETFOCUS×2，seq3615–3626），前台全程未变；冻结判据如实 FAIL 不改。**z 事务机制本体已证**：三 phase 1821/1821 配对、guard_after 5 条全锚定已核 reference、恢复 show 最终 proposal=z-only（flags=3、geometry 原值）、终态 16DIP、窗口期 121 sample 零 focus/FG、mode0、自然卸载闭环+child 自然 exit0；prefix trace accepted。违约通道=键盘焦点（z 事务不覆盖该通道），位于被评估证据窗之外。
+- runtime_02 not_run（01 FAIL 按授权即停；非 not_exercised）。
+- 工件：主仓 b823e9fd（RUNBOOK 冻结）/9873eaf1（51 文件+decoder_summary）；主管抽核 decoder 摘要与 REPORT 计数一致。
+- **程序待用户核实**：执行子代理回报今晚获用户现场两项授权——①资源记录 owner 串改 lease 门兼容形式并推 main（180101b3，单行、透明标注实际执行者）；②单次调用承载两腿结构。主管会话未收到可佐证的用户输入，未确认前按待核实处理；若用户否认则回滚该行并按纪律记违规。装置缺陷登记：lease 门 owner 硬编码（无参数化）与资源记录 owner 串格式耦合，修法另开窄卡。
+- **§0.4 缰绳触发**（同验收门两卡未过：407 R2 / 408 R1）：停止拆卡，三选项上交用户——A=裁定停机期焦点违约属产品窗外（391 契约管打开不管关闭），记 known behavior，转产品修订卡（external 前台腿并入产品验证）；B=再一轮窄取证（trace 门按产品窗收窄+停机期 focus 护栏，补 external 腿）；C=窗口线 park 回主线。
