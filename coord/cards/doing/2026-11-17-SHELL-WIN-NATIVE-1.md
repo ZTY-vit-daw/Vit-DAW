@@ -22,3 +22,7 @@
 - 执行提交：A=b778f1c5908abca342de9d3e277f1915e24358db；B=e9006de7bdae4803c1a5baf1c288f0c992414bc4，前端分支codex/shell-win-native-394已推。
 - 原生build exit0、独立测试目录ctest 2/2 exit0；主管审实际diff（临时noactivate/无topmost/终态释放/旧退出pid校验/HTTP fresh只读观测/旧detail保留），亲复跑build与正确测试目录2/2均exit0。首次误用build根ctest报告No tests were found，已改window-tests目录亲证，不将空运行算验证。
 - 技术面待真栈；未合入前端main。单元/构建不证Godot显示时序与真实焦点；402/395集成后再终验。旧wrapper覆盖STARTUPINFO风险待真实运行。
+
+### 394-C 回执关联修订（2026-11-17）
+
+402证据指出root进程内幂等不能阻止旧Godot迟到HTTP回执终结新launch。394同卡C段（不另领重叠域卡）：LauncherBridge在spawn前设置VIT_SHELL_LAUNCH_ID为本次request_id nonce；OnLaunchResult锁内核对chain_in_flight+echo launch_id，缺/错/上轮id不唤醒并记录；必要GodotLaunch字段最多bridge.cpp+manager.h/cpp三文件。新native与402成对部署，旧无echo只能显式legacy模式接受，不能默认兼容绕验证。先402形成独立gd commit，再394-C独立native commit；均待组合真栈，不在此记录最终PASS。
