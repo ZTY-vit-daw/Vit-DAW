@@ -12,7 +12,9 @@ param(
     [ValidateSet('CONVERGE-ENTRY-1','SHELL-WIN-BEHAVIOR-1')][string]$CardId = 'CONVERGE-ENTRY-1',
     [switch]$WindowBehaviorChecks,
     [ValidateSet('normal','delayed_success','scene_failed','snapshot_failed','workspace_timeout','exit_before_ready')][string]$PresentationScenario = 'normal',
-    [string]$PreviousLaunchId = ''
+    [string]$PreviousLaunchId = '',
+    [switch]$SkipFailureLegs,
+    [switch]$SkipLegacyLegs
 )
 $ErrorActionPreference = 'Stop'
 $repo = Split-Path -Parent $PSScriptRoot
@@ -99,6 +101,8 @@ try {
             $deviceArgs += @('-WindowBehaviorChecks','-PresentationScenario',$PresentationScenario)
             if ($PreviousLaunchId) { $deviceArgs += @('-PreviousLaunchId',$PreviousLaunchId) }
         }
+        if ($SkipFailureLegs) { $deviceArgs += '-SkipFailureLegs' }
+        if ($SkipLegacyLegs) { $deviceArgs += '-SkipLegacyLegs' }
         & powershell @deviceArgs *> (Join-Path $RunRoot 'stdout.log')
     } elseif ($Leg -eq 'B') {
         & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'ui_entry2_smoke.ps1') -RepoRoot $repo -GodotProjectRoot $FrontendWorktree -ProjectSource $FixtureSource -KernelExe (Join-Path $repo 'VitApp/build/VitApp_artefacts/Release/VitApp.exe') -EntryManagementChecks -RunRoot $device *> (Join-Path $RunRoot 'stdout.log')

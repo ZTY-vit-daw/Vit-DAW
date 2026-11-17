@@ -116,6 +116,68 @@ function parseGodotReadiness(raw, requestId) {
   });
 }
 
+function reconstructEventTick(eventTime32, receivedTick64) {
+  const wrap = 0x100000000;
+  if (!Number.isSafeInteger(receivedTick64) || !Number.isInteger(eventTime32) || eventTime32 < 0 || eventTime32 >= wrap) throw new Error("invalid WinEvent clock value");
+  const age = ((receivedTick64 % wrap) - eventTime32 + wrap) % wrap;
+  if (age >= wrap / 2) throw new Error("WinEvent time is not in the unambiguous preceding DWORD half-window");
+  return receivedTick64 - age;
+}
+
+// Union the bounded native ring across fresh status reads AND host messages.
+// A global historic dropped_count is not a gap in this launch if the union
+// covers every sequence from guard start through the final drain observation.
+function evaluateRawWindowEvents(samples, messages, requestId) {
+  const facts = [
+    ...samples.map(s => ({ source: `status:${s.index}`, window: s.status?.window_state })),
+    ...messages.filter(m => !m.synthetic && m.payload?.type === "vit_window_state").map(m => ({ source: `message:${m.index}`, window: m.payload.window_state })),
+  ].filter(f => f.window?.win_event_log?.schema === "vitshell.win_event_log.v1");
+  const currentFacts = facts.filter(f => f.window.win_event_log.launch_id === requestId);
+  if (!currentFacts.length) throw new Error("BOUNDARY: current launch raw WinEvent log unavailable");
+  const releasedFacts = currentFacts.filter(f => f.window.win_event_log.guard_released_tick_ms > 0);
+  const final = releasedFacts.sort((a, b) => b.window.observed_at_tick_ms - a.window.observed_at_tick_ms)[0]?.window;
+  if (!final) throw new Error("BOUNDARY: guard release raw endpoints unavailable");
+  const metadata = final.win_event_log;
+  const startTick = metadata.guard_started_tick_ms, endTick = metadata.guard_released_tick_ms;
+  const startSeq = metadata.guard_started_seq, releasedSeq = metadata.guard_released_seq;
+  const endSeq = Math.max(...currentFacts.map(f => f.window.win_event_log.last_seq));
+  const pid = final.direct_child_pid;
+  if (!(Number.isInteger(pid) && pid > 0 && startTick > 0 && endTick >= startTick && startSeq > 0 && releasedSeq >= startSeq - 1 && endSeq >= releasedSeq)) throw new Error("BOUNDARY: invalid current launch guard/PID endpoints");
+  const firstObservedTick = Math.min(...samples.map(s => s.status?.window_state?.observed_at_tick_ms).filter(Number.isFinite));
+  if (!(firstObservedTick <= startTick)) throw new Error("BOUNDARY: observation began after the loading guard");
+  const knownWindows = new Set(currentFacts.filter(f => f.window.direct_child_pid === pid && f.window.daw_hwnd).map(f => f.window.daw_hwnd));
+  const bySeq = new Map();
+  for (const fact of facts) for (const event of fact.window.win_event_log.events || []) {
+    if (!Number.isSafeInteger(event.seq)) throw new Error("BOUNDARY: malformed raw event sequence");
+    const prior = bySeq.get(event.seq);
+    if (prior && JSON.stringify(prior.event) !== JSON.stringify(event)) throw new Error("BOUNDARY: conflicting raw event sequence payload");
+    if (prior) prior.sources.push(fact.source);
+    else bySeq.set(event.seq, { event, sources: [fact.source] });
+  }
+  const missing = [];
+  for (let seq = startSeq; seq <= endSeq; seq++) if (!bySeq.has(seq)) missing.push(seq);
+  if (missing.length) throw new Error(`BOUNDARY: raw event union has current interval gaps: ${missing.slice(0, 12).join(",")}`);
+  const events = [...bySeq.values()].filter(e => e.event.launch_id === requestId && e.event.launch_pid === pid)
+    .map(item => ({ ...item, occurred_tick_ms: reconstructEventTick(item.event.event_time_ms, item.event.received_tick_ms) }))
+    .filter(e => e.occurred_tick_ms >= startTick && e.occurred_tick_ms <= endTick)
+    .sort((a, b) => a.event.seq - b.event.seq);
+  const foregroundTargets = events.filter(({ event: e }) => e.event === 3 && (e.target_pid === pid || knownWindows.has(e.target_hwnd)));
+  const unknownForeground = events.filter(({ event: e }) => e.event === 3 && e.target_pid === 0);
+  // Callback receive-time guard=false or seq>releasedSeq does not exclude an
+  // event that actually occurred during the loading guard.
+  const lateGuardEvents = events.filter(e => e.event.seq > releasedSeq || !e.event.guard_active_at_receive);
+  const raw = { schema: metadata.schema, launch_id: requestId, direct_child_pid: pid, first_observed_tick_ms: firstObservedTick,
+    guard_started_tick_ms: startTick, guard_released_tick_ms: endTick, guard_started_seq: startSeq, guard_released_seq: releasedSeq,
+    union_through_seq: endSeq, covered_sequence_count: Math.max(0, endSeq - startSeq + 1), missing_sequences: missing,
+    historical_dropped_count: metadata.dropped_count, historical_truncated: metadata.truncated,
+    known_daw_windows: [...knownWindows], foreground_targets: foregroundTargets, unknown_foreground_targets: unknownForeground,
+    late_guard_events: lateGuardEvents, events,
+    boundary: "Complete available hook union within capture plus 500ms terminal drain; not a claim about all Windows events or unbounded delayed callbacks." };
+  if (foregroundTargets.length) raw.violation = "raw FOREGROUND targeted current DAW during guard";
+  else if (unknownForeground.length) raw.violation = "BOUNDARY: foreground target PID unavailable during guard";
+  return raw;
+}
+
 // Read-only observation, armed before the existing launch action. A finite
 // 40ms sample/event window does not claim absence of every transient OS state.
 async function beginPresentationCapture(page) {
@@ -236,6 +298,7 @@ async function finishPresentationCapture(page, capture) {
   }, expectedTerminal, { timeout: 250000 });
   await page.waitForFunction(() => window.__shellPresentationCapture.messages.some(({ payload: p }) => p.type === "vit_window_state" && p.window_state?.loading_guard_active === false && p.window_state?.release_reason), null, { timeout: 10000 });
   await page.waitForFunction(() => document.querySelector('[data-window-launch-terminal="ready"], [data-window-launch-terminal="failed"]'), null, { timeout: 10000 });
+  await new Promise(resolve => setTimeout(resolve, 500)); // bounded late-hook drain, no input/focus writes
   if (presentationScenario === "workspace_timeout") {
     const timeoutRequestId = await page.evaluate(() => window.__shellPresentationCapture.messages.find(({ payload: p, synthetic }) => !synthetic && p.phase === "spawning")?.payload.request_id);
     const lateDeadline = Date.now() + 30000;
@@ -260,10 +323,16 @@ async function finishPresentationCapture(page, capture) {
   if (!requestId || !current.length || current.some((m, i) => i && m.payload.seq <= current[i - 1].payload.seq)) throw new Error("native request sequence is missing/nonmonotonic");
   const terminal = current.find(({ payload: p }) => p.phase === expectedTerminal);
   if (!terminal || (success && terminal.payload.stage !== "workspace_ready")) throw new Error("opened lacks current workspace_ready evidence");
+  const rawWindowEvents = evaluateRawWindowEvents(capture.samples, native.messages, requestId);
+  writeFileSync(outPath + ".win-event-evaluation.json", JSON.stringify(rawWindowEvents, null, 2));
+  if (rawWindowEvents.violation) throw new Error(rawWindowEvents.violation);
   const sampledWindows = capture.samples.map(s => s.status.window_state);
   const loadingWindows = sampledWindows.filter(w => w?.loading_guard_active === true && w.daw_hwnd !== null);
   if (!loadingWindows.length || !loadingWindows.some(w => w.foreground === "shell" && w.shell_above_daw === true && w.daw_noactivate === true && w.event_hooks_ready === true)) throw new Error("BOUNDARY: no complete loading foreground/z-order/noactivate observation");
   if (loadingWindows.some(w => w.foreground === "daw" || w.shell_above_daw === false || w.daw_noactivate === false)) throw new Error("observed DAW activation/order/style violation while loading");
+  const firstVisible = capture.samples.map(s => s.status.window_state).find(w => w?.win_event_log?.launch_id === requestId && w.daw_visible === true);
+  if (!firstVisible || firstVisible.hidden_boot_state !== "prepared" || firstVisible.daw_topmost !== false || firstVisible.daw_iconic !== false || firstVisible.daw_noactivate !== true || firstVisible.shell_above_daw !== true) throw new Error("BOUNDARY: first observed visible DAW lacks prepared/non-topmost/noactivate/large-window facts");
+  if (loadingWindows.some(w => w.daw_topmost !== false || w.daw_visible !== true || w.daw_iconic !== false)) throw new Error("loading DAW topmost/visibility/iconic fact failed or unavailable");
   const released = capture.samples.filter(s => s.receivedAt >= terminal.receivedAt).map(s => s.status.window_state).find(w => w?.loading_guard_active === false && w.release_reason);
   if (!released || (released.daw_hwnd !== null && released.daw_noactivate !== false)) throw new Error("guard/noactivate release not observed");
   if (capture.samples.some(s => s.dom.percentage)) throw new Error("UI fabricated a percentage");
@@ -278,6 +347,13 @@ async function finishPresentationCapture(page, capture) {
   const mount = godotEvents.find(e => e.event === "workspace.mounted");
   const snapshot = godotEvents.find(e => e.event === "workspace.snapshot_applied");
   const decision = godotEvents.find(e => e.event === "readiness.decided");
+  const config = godotEvents.find(e => e.event === "window_bootstrap.config");
+  const confirmed = godotEvents.find(e => e.event === "window_bootstrap.confirmed");
+  const begin = godotEvents.find(e => e.event === "readiness.begin");
+  // direct.begin historically lacks launch_id. Require its line after the
+  // nonce-matched confirmation by scanning the same per-process log below.
+  const directLine = godotRaw.split(/\r?\n/).findIndex(line => line.includes('[VitShellLaunch] direct.begin '));
+  if (!begin || !config || !confirmed || config.payload.feature_enabled !== true || config.payload.initial_mode !== 1 || confirmed.payload.prepared !== true || confirmed.payload.godot_pid !== rawWindowEvents.direct_child_pid || !(begin.lineIndex < config.lineIndex && config.lineIndex < confirmed.lineIndex && confirmed.lineIndex < directLine)) throw new Error("real hidden-bootstrap/config/prepared/direct-open sequence missing");
   if (success && (!mount || !snapshot || !decision || !(mount.lineIndex < snapshot.lineIndex && snapshot.lineIndex < decision.lineIndex) || decision.payload.stage !== "workspace_ready" || decision.payload.ok !== true || mount.payload.workspace_instance_id !== snapshot.payload.workspace_instance_id)) throw new Error("real mounted/snapshot/ready association/order missing");
   if (!success && (snapshot || decision?.payload.ok === true)) throw new Error("negative scenario acquired a ready snapshot");
   if (!success && current.some(({ payload: p }) => p.phase === "opened")) throw new Error("negative scenario emitted opened");
@@ -285,12 +361,16 @@ async function finishPresentationCapture(page, capture) {
   if (["scene_failed", "snapshot_failed"].includes(presentationScenario) && decision?.payload.stage !== presentationScenario) throw new Error("failure did not come from intended real boundary");
   if (presentationScenario === "exit_before_ready" && !godotEvents.some(e => e.payload.trigger === "workspace_mounted.quit" && e.payload.exit_code === 17)) throw new Error("real early exit marker missing");
   const bridgeRaw = readFileSync(bridgeLogPath, "utf8");
+  const nativeBoot = bridgeRaw.split(/\r?\n/).find(line => line.includes('[LauncherBridge] window_bootstrap ') && line.includes(`\"launch_id\":\"${requestId}\"`));
+  if (!nativeBoot) throw new Error("nonce-matched native bootstrap preparation log missing");
+  const bootRecord = JSON.parse(nativeBoot.slice(nativeBoot.indexOf('{')));
+  if (bootRecord.state !== "prepared" || bootRecord.pid !== rawWindowEvents.direct_child_pid || bootRecord.native?.hidden_boot_state !== "prepared" || bootRecord.native?.daw_topmost !== false || bootRecord.native?.daw_noactivate !== true || bootRecord.native?.daw_visible !== true || bootRecord.native?.daw_iconic !== false) throw new Error("native bootstrap prepared facts incomplete");
   if (injected) for (const injection of injected.injections) {
     const rejection = bridgeRaw.split(/\r?\n/).find(line => line.includes("launch_result.rejected") && line.includes(`\"launch_id\":\"${injection.launch_id}\"`) && line.includes(`\"expected_launch_id\":\"${requestId}\"`) && line.includes("wrong_launch_id"));
     if (!rejection) throw new Error("HTTP wrong/old nonce rejection lacks native run-local pairing");
   }
   if (success && !bridgeRaw.includes(`launch_result.accepted {\"launch_id\":\"${requestId}\"`)) throw new Error("current real receipt was not nonce-accepted");
-  const result = { scenario: presentationScenario, request_id: requestId, observation_boundary: "finite 40ms samples plus host events; no assertion about every transient OS state", native, samples: capture.samples, sample_errors: capture.errors, godot_events: godotEvents, injected, consumer_negative: consumerNegative, sidebar: capture.sidebar,
+  const result = { scenario: presentationScenario, request_id: requestId, observation_boundary: "finite 40ms current-state samples plus complete available raw hook union and 500ms drain; no claim about absolute every transient OS state", raw_window_events: rawWindowEvents, first_observed_visible: firstVisible, bootstrap_native: bootRecord, native, samples: capture.samples, sample_errors: capture.errors, godot_events: godotEvents, injected, consumer_negative: consumerNegative, sidebar: capture.sidebar,
     focus_hint_positive_observed: capture.samples.some(s => s.status.window_state?.foreground === "daw" && s.dom.focus === "daw"), focus_experience_boundary: "No desktop input was generated. Ordinary post-ready focus remains for user testing." };
   writeFileSync(outPath + ".presentation.json", JSON.stringify(result, null, 2));
   await page.screenshot({ path: outPath + ".presentation.png" });
@@ -307,6 +387,27 @@ if (process.argv.includes("--presentation-self-test")) {
   ].join("\n");
   const parsed = parseGodotReadiness(fixture, "current");
   if (parsed.length !== 3 || parsed.some(e => e.payload.launch_id !== "current") || parsed[0].lineIndex !== 2 || parsed[2].payload.stage !== "workspace_ready" || parseGodotReadiness(fixture, "wrong").length !== 0) throw new Error("readiness parser nonce/order self-test failed");
+  const event = (seq, extra = {}) => ({ seq, event: 0x8000, target_hwnd: "20", target_pid: 77, event_thread: 1, event_time_ms: 100 + seq,
+    received_tick_ms: 100 + seq, object_id: 0, child_id: 0, launch_pid: 77, launch_generation: 1, launch_id: "current", guard_active_at_receive: true, ...extra });
+  const rawFixture = (events, extra = {}) => ({ schema: "vitshell.window_state.v1", observed_at_tick_ms: 220, direct_child_pid: 77, daw_hwnd: "20",
+    win_event_log: { schema: "vitshell.win_event_log.v1", launch_id: "current", guard_started_tick_ms: 100, guard_released_tick_ms: 200,
+      guard_started_seq: 1, guard_released_seq: 2, last_seq: events.at(-1)?.seq || 2, dropped_count: 90, truncated: true, events, ...extra } });
+  const makeSamples = (window) => [{ index: 0, status: { window_state: { observed_at_tick_ms: 90 } } }, { index: 1, status: { window_state: window } }];
+  const normalRaw = evaluateRawWindowEvents(makeSamples(rawFixture([event(1), event(2)])), [], "current");
+  if (normalRaw.violation || normalRaw.missing_sequences.length || normalRaw.covered_sequence_count !== 2) throw new Error("historic drop/complete current union self-test failed");
+  const late = evaluateRawWindowEvents(makeSamples(rawFixture([event(1), event(2), event(3, { event: 3, event_time_ms: 150, received_tick_ms: 210, guard_active_at_receive: false })])), [], "current");
+  if (!late.violation || late.late_guard_events.length !== 1) throw new Error("delayed foreground callback escaped occurrence-time guard self-test");
+  const zeroPid = evaluateRawWindowEvents(makeSamples(rawFixture([event(1, { event: 3, target_pid: 0 }), event(2)])), [], "current");
+  if (!zeroPid.violation) throw new Error("zero-PID known DAW HWND was ignored");
+  let gapRejected = false;
+  try { evaluateRawWindowEvents(makeSamples(rawFixture([event(2)])), [], "current"); } catch { gapRejected = true; }
+  if (!gapRejected) throw new Error("missing native sequence was accepted as zero activation");
+  if (reconstructEventTick(0xfffffffe, 0x100000005) !== 0xfffffffe || reconstructEventTick(2, 0x100000005) !== 0x100000002) throw new Error("DWORD wrap reconstruction failed");
+  // The permanently retained first-normal current-state counterexample remains
+  // a failure; a later good sample must not overwrite the first bad fact.
+  const firstNormal = [{ loading_guard_active: true, foreground: "daw", shell_above_daw: false, daw_noactivate: false },
+    { loading_guard_active: true, foreground: "shell", shell_above_daw: true, daw_noactivate: true }];
+  if (!firstNormal.some(w => w.foreground === "daw" || w.shell_above_daw === false || w.daw_noactivate === false)) throw new Error("first-normal counterexample was erased");
   console.log("PRESENTATION_STATIC_SELF_TEST_PASS (no browser/native/HTTP)");
   process.exit(0);
 }

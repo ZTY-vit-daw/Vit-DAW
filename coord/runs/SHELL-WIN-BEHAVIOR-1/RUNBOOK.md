@@ -83,3 +83,25 @@ powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/run_entry_manageme
 ```
 
 C仍用同一外层卫生runner，新增把Godot默认日志纳入快照（recents+默认Godot log+两个root各Settings/default XML=6），还原前保全该日志。当前C自己的Godot --log-file原日志、ui_entry_smoke原生JSON/report、stdout、inner/outer exit与hygiene独立留卷。每真实spawn前fetch远端owner和即时净空；只允许本run已记录且路径匹配的独立kernel/agent，禁止复用他人进程。完成全零与哈希亲证报主管统一释放，不自行改资源main。
+
+## 394-E/OBS 首轮修订诊断（跑前冻结，未放行）
+
+原normal的139个sample/5个违规与GD raw缺失边界永久保留；独立C已PASS且389已主管合入，不重复。此次修订前端切换到`C:/Users/timoz/.codex/worktrees/shell-first-focus-394/vit-daw-frontend`、branch codex/shell-first-focus-394；E/OBS原基线1b3c1d566632f6a49273f009473fde2807b256b5，追加明确只读style字段提交a4a6ec500fcac1c6811a03e2a68c3103238b62cd（manager.cpp仅加daw_topmost/daw_visible/daw_iconic，缺DAW为null；focus策略零改动）。native build与ctest5/5exit0，远端hash核一致；knownM仅EXR水合。
+
+E只支持本次已部署official Godot4.6.1：native按配置console路径解析同目录GUI sibling，读取PE/editor能力及project feature覆盖作为预检。预检不替代实际feature/mode/首次显示证据，也不代表任意版本通用支持。正式normal仍构建本候选，不用旧主前端或旧VitShell产物给E归功。
+
+首轮只跑相关normal完整new/open/388管理/395消费旅程，最多2次E候选诊断；同断点第二次失败停止并取证，不恢复dependent场景直到normal通过。无关C、旧bad-agent/occupied-port/WebView2/legacy不重复（首次normal原始基础腿PASS仍留卷）。若实际证据要求重验被nativeexec改变的具体错误路径，先单独列明受影响路径，不用全矩阵无目的重跑。本次normal命令显式skip这些基础腿，保留主旅程全部断言、构建及冷启动内核/agent检查。
+
+```powershell
+# 在主管登记owner并放行后运行；工具生成真实runID，不用手填时间标签。
+$entryDiagnosticRoot = Join-Path (Get-Location) ('coord/runs/SHELL-WIN-BEHAVIOR-1/E_diagnostic_' + (Get-Date -Format 'yyyyMMdd_HHmmss'))
+powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/run_entry_management_acceptance.ps1 -Leg A -CardId SHELL-WIN-BEHAVIOR-1 -WindowBehaviorChecks -PresentationScenario normal -SkipFailureLegs -SkipLegacyLegs -FrontendWorktree 'C:/Users/timoz/.codex/worktrees/shell-first-focus-394/vit-daw-frontend' -FixtureSource 'D:/Vit_DAW/temp/f3_empty_project.vit' -RunRoot $entryDiagnosticRoot
+```
+
+成功仍须inner+wrapper exit0、真实new/open/mounted→snapshot→ready/nonce接受、395真实seq消费、所有窗口与卫生门通过。GD日志新顺序为readiness.begin→window_bootstrap.config(feature=true,initialmode1)→native同nonce/directPID prepared+HTTP POST完成→GD GET/status prepared确认→window_bootstrap.confirmed→direct.begin→真实new/open→mounted/snapshot/ready→native opened/release；不能把bootstrap确认当完整ready。`direct.begin`旧行本无launch_id，用同一个实际进程日志行序与相邻nonce确认配对，不改旧产品日志含义。每次相关打开结束在任何断言前把当前默认GD raw复制到run唯一phase文件，失败函数与外层还原前均兜底保存。
+
+raw观测与当前态分开：`vit_window_state`本体是当前态，不能称原WinEvent。collector合并所有status+宿主消息的`win_event_log.v1.events`按原seq去重，校验同seq内容一致，证明从guard_started_seq到500ms终态drain最后last_seq逐序无gap。全局启动更早历史dropped/truncated只保留注记，当前union覆盖充分才可过；缺当前seq/起采晚于guard/unknown target均不能当“0激活”。DWORD32 event_time以received_tick64的前半周最近时刻重构；不裸比32/64。判原FG event=3按发生tick落guard[start,release]且当前launchID/directPID或已识别DAW HWND；receive时guard=false/seq>released_seq但发生于guard内的迟到回调仍纳，targetpid0且已知DAW HWND不能忽略。全局其他进程FG只如实记录，不强造shell前台。
+
+首可见事实以当前态新增daw_visible/daw_iconic/daw_topmost+prepared/NOACTIVATE/z真实样本亲证，null不代false；native prepared原日志单独校验nonce/PID/首show后style；guard前台样本与原raw FG两层均不得出现DAW激活。终态后drain500ms只扩有限观测窗，不宣称Windows绝对所有瞬态或无限迟到消息都无激活。普通ready后“点击谁前台”仍留用户VitShell.cmd产品入口体验，不生成主机键鼠/焦点修复动作。
+
+离线helper测试只用合成event数据/原已失败状态反例：完整union容许历史drop、当前gap拒绝、DWORD回绕、guard释放后迟到FG仍违规、targetPID0已知HWND不能静默过、原坏sample不被后续好sample冲销。node --check/selftest与PS AST均须exit0再交正式放行。
