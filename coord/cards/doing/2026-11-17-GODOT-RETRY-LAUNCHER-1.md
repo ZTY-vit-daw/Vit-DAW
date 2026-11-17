@@ -9,3 +9,8 @@
 - 并行：与394 VitShell不同域；同前端仓独立worktree。真栈候394/388错峰。
 - 停止：发现现状已修或接口非1行级→记录证据交主管；无GUI/computer-use。
 - 领取/回执/验收：待回填。
+
+## 领取（2026-11-17）
+
+- owner=/root/retry396（GPT-6 Luna/high，PC）；分支codex/godot-retry-396；worktree=C:/Users/timoz/.codex/worktrees/godot-retry-396/vit-daw-frontend；基线d05043e1，status/diff空。
+- 主仓领取基线cde9c7bb；领取记录同步main并重读owner后实现。只改单gd文件，headless语法/导入须禁运行时自启动，真实栈未放行。编译DLL仅可复制主前端extension/bin到隔离worktree，记录哈希，不建junction。

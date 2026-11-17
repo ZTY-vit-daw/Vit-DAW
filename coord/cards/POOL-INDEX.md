@@ -194,7 +194,7 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 389 | CONVERGE-CLEANUP-1 | todo（收敛阶段1卡5：旧面退役+阶段出口=用户 Godot 拉起全旅程手测；**388 合入后解锁**） |
 | 394 | SHELL-WIN-NATIVE-1 | doing（391-A，Sol/xhigh；/root/window391；前端仓VitShell域，零栈先行） |
 | 395 | SHELL-WIN-PRESENTATION-1 | todo（391-B，候388验收与394协议，真栈串行） |
-| 396 | GODOT-RETRY-LAUNCHER-1 | todo（收编点A独立微卡，前端仓gd域） |
+| 396 | GODOT-RETRY-LAUNCHER-1 | doing（/root/retry396，Luna/high；收编点A独立微卡，前端仓gd域） |
 
 - 2026-11-17协调说明：384重复todo快照保留至archive，doing为权威；390物理归位doing，既有owner未变。当前PC主管Codex /root，子代理自主执行授权见decisions/2026-11-17-autonomous-subagent-execution.md。
 

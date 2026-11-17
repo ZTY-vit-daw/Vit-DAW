@@ -10,3 +10,8 @@
 - 停止：真实数据无clip type或项目身份无法锚定/需要>5生产文件或越域→锚点上报；禁止降断言、伪造GUI选择、主机GUI操作。
 - 领取：owner=`/root/score392_recon`（勘察后转本卡执行，Sol/high，PC）；分支`codex/score-binding-397`；worktree=`C:/Users/timoz/.codex/worktrees/score-binding-397/Vit_DAW`；创建基线779477ea，初始status/diff空。正式实现须本领取提交成功同步main并重读owner。
 - 回执/验收：待回填。
+
+## 2026-11-17 零栈交付
+
+- c6991e1872de690b9c8976ec465366ff7c3cb1c0 @codex/score-binding-397 已推，26文件957+/149-（5生产文件）。715项全量vitest+最终focused11反例+build+真实App→Workbench装配11断言执行侧exit0，日志/报告在coord/runs/SCORE-BINDING-SAFE-1/local-397。
+- 不将局部自验视为最终通过；真实栈及J1-J3欠证，主管独立审diff/复跑待执行。生产path身份非CAS，前端检查到写入间并发切工程边界如实。
