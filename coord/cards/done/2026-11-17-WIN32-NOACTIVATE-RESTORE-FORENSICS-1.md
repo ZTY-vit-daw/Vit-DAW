@@ -56,3 +56,7 @@
 - B2主f9792767/前端bb2a401，runner1/probe20，child10448；engine ready同nonce/PID、主HWND2034330、mode1/1/focus0，原生误选同PID隐藏helper4656690，seq31 rawSHOW属于2034330，seq34错误target4656690，seq35 coverage_insufficient。主管亲读原JSONL/engine嵌入与原报告核实；无hide/restore API调用，不归候选失败。
 - 403阶段A通过保持；阶段B两预算均停止，不做第三B候选。B1/B2原字节及证据已main cdc06f16/c623b68b，相关未通过装置代码留执行branch，不纳产品main。主管核全进程/端口0与recents一致。精确观察器缺陷另拆404，不直接发产品修法。
 - 领取owner结束本卡写入，无在飞进程；403 blocked等待404精确HWND观测及Godot恢复证据，再由主管裁定整卡。裁定见`coord/rulings/2026-11-17-WIN32-NOACTIVATE-RESTORE-FORENSICS-1-blocked.md`。
+
+## 最终取证验收（15:35 +0800）
+
+404精确观察器和独立R2补证已主管通过，解除本卡取证阻塞；自窗6/6与隔离Godot两条件2/2共同支持准备过的SW_SHOWNOACTIVATE恢复路径，Godot modes同步normal约62/63ms且保持≥2s，未见childFG/focus。主管亲重解析两个raw序列/全部127样本、source与ZIP哈希、末态全零/recents一致；不重跑实验。取证目标完成，不证完整产品/大窗几何/z/工程ready/395。原失败记录不删，ruling见`coord/rulings/2026-11-17-RESTORE-403-404-forensics-pass.md`；新几何/z缺口另405，用户手测未放行。

@@ -28,3 +28,11 @@
 - c187681a显式卡号门禁+f7558136 PS5 ASCII常量修正，14纯反例真实PS5通过；原未修UTF8无BOM在PS5 ACP936的8解析错误证据保留。主管读完整diff并亲用真实powershell.exe5.1 AST提取helper、实际`git show origin/main:coord/resources/PC-RUNTIME-STACK.md`原生输出解码匹配404成功exit0（不是只验预先UTF8文件）。不绕过预留/owner/卡号门槛。
 - 单独放行R2，新RUNBOOK-R2/formal_02，主runner=f7558136、前端cdf1924保持；调用明确`-GodotRestoreForensics -ForensicsCard 404`。≤2新child/15min，两前台条件与所有原标准不变，无补跑，任一异常停剩余。不再进行本卡第三runtime候选。
 - 主管启前亲核全部进程/端口0；执行fetch最新owner并≤60秒即时再查。代码不再修改，原始消息/逐窗清单/nonce PID HWND/模式同步/FG/interval/hash/teardown/recents/ZIP完整保存。若仍未到恢复，明确当前取证未完成，不把装置状态改成产品结论。
+
+## 主管最终验收与提交（15:35 +0800）
+
+- R2 formal_02 runner/wrapper0，synthetic/external两新child2/2通过；engine主HWND精确关联，helper先枚举不误选，nonce/PID/generation/CREATE/SHOW核对成立；候选API各1次，mode0约62/63ms同步，63/64样本、2s保持、raw childFG0/focus0。
+- 主管亲读完整报告与源diff、亲重解析两JSONL的seq/identity/ready/iconic/候选次数/全部127样本/interval/尾hook_removed并额外判mode/nonce/PID/HWND/normal/nonTOPMOST/FG一致：badSamples0；source及原字节ZIP SHA一致。边界=无childWndProc/独立标准流，本地seq不作OS全局零丢失保证；每条件单次不称稳定性。
+- 主代码/工件精选已main：3c64f4bb/2195d737/69d8d7ce/2fc8a2b5/e07b3f53/c4e8be70/473d4bc9/641ea4f4/9cfc24db；前端仅隔离probe500dd44/2d92d55。没有失败产品manager/GD/UI变更。
+- 主管独立核Vit/Godot/probe/六TCP口/UDP全零，recents807226F4…13E353一致，资源释放。所有原失败/原字节保全，本卡owner停止写入；两个执行树留作可追溯工件，已知shadercache不入库、不删除。
+- 裁定=取证通过并收口，解锁403取证验收，不直接解锁391/395/402或手测。下一405先补普通大窗工作区geometry/z取证，不直接把API插产品。ruling=`coord/rulings/2026-11-17-RESTORE-403-404-forensics-pass.md`。

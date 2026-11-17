@@ -205,5 +205,6 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 401 | LAUNCHER-RECENTS-READ-1 | done 主管PASS合入be43a2a2（388必要只读接缝，同owner独立提交；GET不经LLM/不物化工作区） |
 | 402 | SHELL-WORKSPACE-READY-1 | blocked（最终验证ownerentry388，native bootstrap恢复未过；394取证必要接缝：生产装配+首份工程快照回执，配对失败/超时） |
 
-| 403 | WIN32-NOACTIVATE-RESTORE-FORENSICS-1 | blocked（阶段A自窗6/6主管PASS；B1装置parse/B2错选helper均候选调用0，预算关闭；精确观察修订→404） |
-| 404 | GODOT-MAIN-HWND-OBSERVATION-1 | doing（/root/restore403 Sol/high；仅观察器单文件精确HWND关联+无窗反例，真实Godot须复核后另授预算） |
+| 403 | WIN32-NOACTIVATE-RESTORE-FORENSICS-1 | done 主管取证PASS（自窗6/6+404补独立Godot2/2；非产品修复，普通大窗geometry/z→405） |
+| 404 | GODOT-MAIN-HWND-OBSERVATION-1 | done 主管取证PASS（精确主HWND+23纯关联/14门禁反例+实际Godot两条件0；测试装置合入，不含失败产品候选） |
+| 405 | GODOT-NOACTIVATE-GEOMETRY-1 | todo 已确认（单一普通大窗geometry/z最小取证；先静态方案，运行另冻结，不直接改产品） |

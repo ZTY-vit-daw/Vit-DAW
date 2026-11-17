@@ -41,3 +41,10 @@
 
 - B1 generated scene BOM→parse失败；B2无BOM场景正常ready，但观察器按首个unowned HWND误选同PID helper。两个B都未调用恢复API，未证Godot恢复。两轮按各自预算停，原工件与原字节ZIP已合main，403 blocked。
 - 404只修探针的engine nonce/PID/native HWND精确关联+逐窗证据，先无窗反例与源码复核，不原样重跑B。用户产品面/394失败候选/手测均不放行；栈主管亲核全零并释放。
+
+## 403/404取证验收完成（15:35 +0800）
+
+- 404先修exact HWND，23纯关联反例主管复跑0；原403卡号guard与PS5 ACP936源码解码缺陷分别留证并无窗修正，14门禁反例真PS5通过，主管实际git show/native decode亲验0。404 R1窗口0，不冒充API失败。
+- 新404 R2 formal_02两条件各1child，runner/wrapper0，精确engine HWND与native lifecycle一致；SW_SHOWNOACTIVATE后mode0约62/63ms同步，63/64样本≥2s、rawFG0。主管亲解析原始序列/全部127样本与ZIP/sourcehash、末态全零/recents一致；403/404取证PASS收口。
+- 仅测试装置/原证据合入：主仓至9cfc24db，前端至2d92d55（基于d05043e，未合E/E2产品代码）。原失败全保留，独立树/缓存不删除。
+- 405已发todo：补首次ordinary大窗工作区geometry/z准备。最小probe native rect425×311并未证产品目标几何，不能直接将API塞manager。先静态方案再限定最小取证；391/394/395/402仍blocked，397/J1-J3/271/352状态不变，用户手测未放行。资源已释放，无在飞子代理。
