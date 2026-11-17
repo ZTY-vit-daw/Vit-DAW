@@ -55,12 +55,13 @@ describe("launcherData 纯函数", () => {
     const open = directivePlaceholder({ action: "open_project", file_path: "D:/fixtures/甲.vit", requires_governance: true });
     expect(open?.headline).toBe("正在打开《甲》…");
     expect(open?.detail).toBe("D:/fixtures/甲.vit");
-    expect(open?.note).toContain("正在执行");
-    expect(open?.note).toContain("UI-BRIDGE-1");
+    expect(open?.note).toBe("工程操作请求已提交，进度见下方；切换工程前会请你确认。");
+    expect(open?.note).not.toMatch(/UI-BRIDGE-1|Vit 桥|宿主|治理/);
 
     const fresh = directivePlaceholder({ action: "new_project", project_name: "新曲草稿", requires_governance: true });
     expect(fresh?.headline).toBe("正在新建《新曲草稿》…");
-    expect(fresh?.note).toContain("正在执行");
+    expect(fresh?.note).toBe(open?.note);
+    expect(fresh?.headline).not.toContain("已打开");
 
     expect(directivePlaceholder(null)).toBeNull();
     expect(directivePlaceholder({ action: "", requires_governance: true })).toBeNull();
@@ -75,7 +76,8 @@ describe("launcherData 纯函数", () => {
     const view = cardPendingPlaceholder(FIXTURE_CARD);
     expect(view.action).toBe("open");
     expect(view.headline).toBe("正在打开《测试工程甲》…");
-    expect(view.note).toContain("UI-BRIDGE-1");
+    expect(view.note).toBe("工程操作请求已提交，进度见下方；切换工程前会请你确认。");
+    expect(view.note).not.toMatch(/UI-BRIDGE-1|Vit 桥|宿主|治理/);
   });
 
   it("缺省新工程名与直连 directive（SHELL-5：＋新建按钮直建）", () => {
@@ -379,6 +381,20 @@ describe("ConvergedLauncher 内核态呈现（SHELL-4）", () => {
 });
 
 describe("ConvergedLauncher 页内治理三键卡（SHELL-2）", () => {
+  it("收敛壳确认说明只解释三个选择，按钮与请求关联保持", () => {
+    const markup = renderToStaticMarkup(
+      <ConvergedLauncher fixture={{
+        greeting: { status: "ok", reply: "fixture" },
+        thread: [{ kind: "governance", view: { requestID: "req-copy-fixture", action: "open_project", currentProject: "测试工程（fixture）" } }]
+      }} />
+    );
+    expect(markup).toContain("请选择保存后切换、直接切换，或留在当前工程。");
+    expect(markup).toContain('data-launcher-governance-request="req-copy-fixture"');
+    for (const choice of ["save", "switch", "cancel"]) expect(markup).toContain(`data-launcher-governance-${choice}`);
+    expect(markup).not.toContain("治理确认跟随发起方");
+    expect(markup).not.toContain("UI-BRIDGE-1");
+  });
+
   it("fixture 线程治理项 → 三键全在场且 headline 陈述在开工程", () => {
     const markup = renderToStaticMarkup(
       <ConvergedLauncher
