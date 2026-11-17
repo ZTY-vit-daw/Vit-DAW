@@ -8,3 +8,11 @@
 - 无窗验证：构建、静态/纯关联谓词反例覆盖①helper先枚举但engine主HWND有效②错PID③无效HWND④未ready/错nonce⑤缺show事件⑥主HWND重用/更换。不得以probe自建窗口假装真实Godot。必要自测试函数只在同probe.cpp内，不能默认启动窗口；不启动Godot/产品。
 - 本轮只授权实现+无窗检查+提交短回执，不启任何新测试窗口/child。主管审核diff/反例/构建后，才会另登记新运行预算（最多两个条件）。403 B预算关闭，本卡不是原样重跑。
 - 停止：需其他代码域/无法精确归属/丢原证据/运行资源冲突即上报；不启kernel/agent/完整工程，不复跑E/E2，不CUA/输入/截图/其他窗口控制。结尾提交hash、唯一文件域、命令exit、报告路径与待证边界，不自行合main或最终验收。
+
+## 无窗复核与独立运行预算（15:17 +0800）
+
+- 前端cdf1924仅1文件，主工件4641f6c3；主管亲读完整diff、23例原输出/构建与source/binary hash，亲跑显式无窗selftest23/23 exit0，未使用自建窗口充Godot。engine同nonce/PID/native handle唯一选择、CREATE/SHOW generation与每次固定身份核验符合卡意。
+- 现在授权本卡新独立runtime：先RUNBOOK-404冻结，新`coord/runs/GODOT-MAIN-HWND-OBSERVATION-1/formal_01`，主runner f9792767内容、前端cdf1924保持，不准运行中改代码。最多synthetic/external各1个新Godot child，≤15min，无补跑；任一失败/观测不足/装置/环境异常即停止其余，不以部分正常续凑。
+- 仅最小隔离Godot与单SW_SHOWNOACTIVATE路径；所有403阶段B成功标准原样维持，加exact engineHWND/PID/nonce/逐窗inventory/generation关联证据。safeiconic后hide+NOACTIVATE再restore，Win32 normal与engine mode0两秒一致、无childFG、保baseline。自然external缺失not_exercised，尊重他人前台。跨进程无WndProc/stdout独立capture缺口如实，不伪造完整性。
+- 停止后精确区分：关联成立但candidate恢复/模式失败是新功能反例；身份不成立仍coverage不足，均保全原证据，不能继续改实验追跑。无生产产品/工程启动或修改，结果不直接放行391/395/用户手测。
+- 资源登记成功重读后，每child前fetch owner和≤60秒净空；recents快照hash、子进程exact handle拆净、末态全零，原字节ZIP排cache/build，全部commit/push后短报。主管保留最终验收和资源释放。
