@@ -1,0 +1,5 @@
+﻿# PC 真实运行栈占用记录
+本记录是共享卡池协作的资源登记面，操作协议见 [PROTOCOL.md](../PROTOCOL.md) §2.2。
+初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
+- 2026-11-17 19:53 +0800 预留 / **407普通大窗16DIP与原生z链runtime_01**：owner=Codex `/root/restore403`（Sol/high，PC），主eb7725ed/scripte61f636e，前端shell-window-transition-406 @5a92006。主管审4文件/82pure/34policy/schema/PS5门禁，现只隔离Godot≤2child/15min，任何异常停/无补跑，先RUNBOOK；firstordinary目标inset16DIP、engine0、referenceabove原始链证据而非邻接、无FG/2s/自然卸载，未改405原失败。零产品/内核/agent；启动前fetch owner/≤60秒净空，recents快照/finallyhash/原字节/exact child全退后主管释放。
+- 2026-11-17 19:39 +0800 释放 / **405 R2真实候选FAIL**：synthetic child13400五步到达/首ordinary2560×1440无FG，但mode4/非immediateguard，runner1；external停。主管审原报告与Godot源码，并独立核全部Vit/Godot/probe/TCP6口/UDP全零、recents807226F4…13E353一致；工件377ca68b。新407修正试验“大窗=铺满/在后=紧邻”假设，先代码无窗，不授启动；当前空闲。

@@ -1,0 +1,8 @@
+﻿git.exe : From github.com:ZTY-vit-daw/Vit-DAW
+At C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\scripts\vitshell_smoke.ps1:73 char:9
++         & $Exe @NativeArgs 2>&1 | Out-File -LiteralPath $LogPath -Enc ...
++         ~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (From github.com:ZTY-vit-daw/Vit-DAW:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+ * branch              main       -> FETCH_HEAD
