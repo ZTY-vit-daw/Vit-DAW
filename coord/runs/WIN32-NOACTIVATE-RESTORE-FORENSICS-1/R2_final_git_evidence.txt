@@ -1,0 +1,13 @@
+Main tested implementation
+8cca7d9cf0429499ada9bf01ec9a1e56036351d3
+8cca7d9c 403: add opt-in owned-window restore forensics smoke leg
+ scripts/vitshell_smoke.ps1 | 120 ++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 119 insertions(+), 1 deletion(-)
+?? coord/runs/WIN32-NOACTIVATE-RESTORE-FORENSICS-1/
+Frontend tested implementation
+ac3866cf38e4e6c87a4c36fd1e759e7890c3df3f
+ac3866c 403: add isolated Win32 noactivate restore forensics probe
+ VitShell/tests/CMakeLists.txt                     |  12 ++
+ VitShell/tests/win32_noactivate_restore_probe.cpp | 172 ++++++++++++++++++++++
+ 2 files changed, 184 insertions(+)
+R2 source changes

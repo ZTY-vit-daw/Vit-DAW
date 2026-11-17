@@ -1,0 +1,53 @@
+﻿{
+    "card":  "403",
+    "run_id":  "formal_02",
+    "started":  "2026-11-17T06:26:52.3803426Z",
+    "finished":  "2026-11-17T06:27:54.7612015Z",
+    "exit":  0,
+    "recents_unchanged":  true,
+    "scenarios":  [
+                      {
+                          "scene":  "synthetic.restore",
+                          "pid":  7212,
+                          "exit":  0,
+                          "classification":  "control_expected_activation",
+                          "raw":  "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\formal_02\\synthetic.restore.jsonl"
+                      },
+                      {
+                          "scene":  "synthetic.shownoactivate",
+                          "pid":  22732,
+                          "exit":  0,
+                          "classification":  "candidate_pass",
+                          "raw":  "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\formal_02\\synthetic.shownoactivate.jsonl"
+                      },
+                      {
+                          "scene":  "synthetic.placement",
+                          "pid":  30596,
+                          "exit":  0,
+                          "classification":  "candidate_pass",
+                          "raw":  "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\formal_02\\synthetic.placement.jsonl"
+                      },
+                      {
+                          "scene":  "external.restore",
+                          "pid":  29320,
+                          "exit":  0,
+                          "classification":  "control_expected_activation",
+                          "raw":  "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\formal_02\\external.restore.jsonl"
+                      },
+                      {
+                          "scene":  "external.shownoactivate",
+                          "pid":  13436,
+                          "exit":  0,
+                          "classification":  "candidate_pass",
+                          "raw":  "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\formal_02\\external.shownoactivate.jsonl"
+                      },
+                      {
+                          "scene":  "external.placement",
+                          "pid":  20048,
+                          "exit":  0,
+                          "classification":  "candidate_pass",
+                          "raw":  "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\formal_02\\external.placement.jsonl"
+                      }
+                  ],
+    "boundary":  "Owned synthetic Win32 windows only; no VitShell/Godot/product conclusions"
+}

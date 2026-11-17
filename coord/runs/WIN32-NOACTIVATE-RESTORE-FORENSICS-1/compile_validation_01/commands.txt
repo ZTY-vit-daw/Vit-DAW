@@ -1,0 +1,4 @@
+cmake -S "C:/Users/timoz/.codex/worktrees/win32-restore-403-fe/vit-daw-frontend/VitShell/tests" -B "C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\compile_validation_01\build" -G "Visual Studio 18 2026" -A x64
+configure_exit=0
+cmake --build "C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\compile_validation_01\build" --config Release
+build_exit=0

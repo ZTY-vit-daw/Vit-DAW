@@ -1,0 +1,7 @@
+﻿{
+    "pid":  29320,
+    "started_utc":  "2026-11-17T06:27:30.2495192Z",
+    "exe":  "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\formal_02\\build\\Release\\win32_noactivate_restore_probe.exe",
+    "variant":  "restore",
+    "condition":  "external"
+}

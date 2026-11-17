@@ -1,0 +1,12 @@
+﻿{
+    "card":  "403",
+    "run_id":  "formal_01",
+    "started":  "2026-11-17T06:17:01.7943649Z",
+    "finished":  "2026-11-17T06:17:11.6328374Z",
+    "exit":  1,
+    "recents_unchanged":  true,
+    "scenarios":  [
+
+                  ],
+    "boundary":  "Owned synthetic Win32 windows only; no VitShell/Godot/product conclusions"
+}
