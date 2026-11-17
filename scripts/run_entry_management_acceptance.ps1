@@ -73,7 +73,7 @@ New-Item -ItemType Directory -Path $RunRoot | Out-Null
 Assert-EntryLeaseAndStack # Refuse foreign ownership before taking restorable runtime snapshots.
 $snapshots = @()
 $paths = @((Join-Path $env:APPDATA 'Vit-DAW/global_project_config.json'))
-if ($WindowBehaviorChecks) { $paths += Join-Path $env:APPDATA 'Godot/app_userdata/Vit_DAW_Frontend/logs/godot.log' }
+if ($WindowBehaviorChecks -or $Leg -eq 'C') { $paths += Join-Path $env:APPDATA 'Godot/app_userdata/Vit_DAW_Frontend/logs/godot.log' }
 foreach ($base in @($repo, 'D:/Vit_DAW')) { foreach ($relative in @('VitApp/Workspace/Settings/Settings.xml', 'VitApp/Workspace/default_project.xml')) { $paths += Join-Path $base $relative } }
 foreach ($path in $paths) {
     $exists = Test-Path -LiteralPath $path
@@ -113,7 +113,7 @@ finally {
     Remove-Item Env:VIT_AGENT_LLM_BASE_URL -ErrorAction SilentlyContinue
     foreach ($snapshot in $snapshots) {
         try {
-            if ($WindowBehaviorChecks -and $snapshot.path -like '*Godot*logs*godot.log' -and (Test-Path -LiteralPath $snapshot.path)) {
+            if (($WindowBehaviorChecks -or $Leg -eq 'C') -and $snapshot.path -like '*Godot*logs*godot.log' -and (Test-Path -LiteralPath $snapshot.path)) {
                 Copy-Item -LiteralPath $snapshot.path -Destination (Join-Path $RunRoot 'godot_before_restore.log') -Force
             }
             if ($snapshot.existed) { Copy-Item -LiteralPath $snapshot.backup -Destination $snapshot.path -Force }

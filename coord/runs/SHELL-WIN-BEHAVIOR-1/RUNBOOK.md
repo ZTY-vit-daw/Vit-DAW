@@ -69,3 +69,17 @@ $entryPreviousLaunchId = (Get-Content "$entryMatrixRoot/normal/device/r1_cdp_cha
 外层在snapshot前先守卫owner/净空，seed/build前快照recents bytes/absence、两个root Settings/default XML（窗口run另保全Godot默认日志）；每场景finally还原并SHA256亲证、fixture源前后哈希，失败非0。只写run fixture副本。C调用389修后的原ui_entry_smoke，native/import每真实spawn前调用同wrapper守卫，仅放行本run已记录PID且exe路径等于本worktree的独立kernel/agent与已确认子树，绝不一般复用同名进程。optional catch只清本run shell子树，启动前守卫失败不获全机kill权。所有配置/env只在本run子树。最终完整TCP7878/7879/8787/5555/5556/9333、UDP4445与Vit进程全零后报告主管释放，自己不写协调main。
 
 工件每run独立：HEAD/status/diffstat、完整命令/inner+wrapper exit、构建hash、stdout、native原bridge、Godot原日志、capture消息/采样全量JSONL、当前request阶段JSON、395 DOM证据/截图、wrong/old注入与拒绝、telemetry局部快照、hygiene before/after与fixture hash。沿用原生meta.json/phase JSON，不造d1report。readiness/noactivate/consumer任一不足必须标剩余边界；不能以字面phase出现代替最终exit。
+
+## 2026-11-17 独立Leg C提前（主管跑前裁定）
+
+组合normal首腿已按窗口抢前台反例FAIL（详matrix_20261117_first/NORMAL-FAILED.md），394-E在另一个前端树修订中。主管明确将原已冻结的389独立C提前，避免原生诊断挡住389；**C不是dependent failure matrix，不要求normal先成功**。本次只验证389实际改动的ui_entry_smoke：autoload失败不回退原生启动页、真实open、同HWND/零导航、legacy与395新UI正常挂载的入口回归。C绝不证明VitShell first-focus、394-E bootstrap或391窗口矩阵通过；原139样本/5违规与Godot raw缺口永久保留，其他场景仍停。
+
+被测主仓基线21d560ce（本次仅附录+外层C第六日志快照小补丁），前端固定旧组合1301345及已知EXR hydrationM，不使用正在开发的shell-first-focus-394。不开WindowBehaviorChecks，不注入VIT_SMOKE_SHELL_READINESS及scenario/delay，走原C产品路径；供应商LLM预算0（本机拒绝端点兜底、C不发chat）。正式唯一1次有效场景；成功=内层ui_entry_smoke exit0+外层exit0+6快照bytes/absence还原SHA256亲证+fixture源哈希一致+Vit/TCP/UDP全零。装置/产品/环境失败分开记，首次失败先锚点，不原样重跑；同断点2连败停止。
+
+完整命令（等主管另登记放行后，从组合主仓根执行，RunRoot必须不存在）：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/run_entry_management_acceptance.ps1 -Leg C -CardId SHELL-WIN-BEHAVIOR-1 -FrontendWorktree 'C:/Users/timoz/.codex/worktrees/godot-entry-396/vit-daw-frontend' -FixtureSource 'D:/Vit_DAW/temp/f3_empty_project.vit' -RunRoot 'C:/Users/timoz/.codex/worktrees/entry-final-validation/Vit_DAW/coord/runs/SHELL-WIN-BEHAVIOR-1/entry389_C_20261117_XXXX'
+```
+
+C仍用同一外层卫生runner，新增把Godot默认日志纳入快照（recents+默认Godot log+两个root各Settings/default XML=6），还原前保全该日志。当前C自己的Godot --log-file原日志、ui_entry_smoke原生JSON/report、stdout、inner/outer exit与hygiene独立留卷。每真实spawn前fetch远端owner和即时净空；只允许本run已记录且路径匹配的独立kernel/agent，禁止复用他人进程。完成全零与哈希亲证报主管统一释放，不自行改资源main。
