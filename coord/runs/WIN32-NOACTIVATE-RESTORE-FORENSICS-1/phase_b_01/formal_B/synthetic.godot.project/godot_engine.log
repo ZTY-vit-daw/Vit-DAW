@@ -1,0 +1,9 @@
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+OpenGL API 3.3.0 NVIDIA 617.42 - Compatibility - Using Device: NVIDIA - NVIDIA GeForce RTX 4070
+
+ERROR: res://main.tscn:1 - Parse Error: Expected '['.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+ERROR: Failed loading resource: res://main.tscn.
+   at: _load (core/io/resource_loader.cpp:343)
+ERROR: Failed loading scene: res://main.tscn.
+   at: start (main/main.cpp:4635)

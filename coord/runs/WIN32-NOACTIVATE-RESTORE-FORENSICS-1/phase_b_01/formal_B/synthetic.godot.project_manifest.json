@@ -1,0 +1,12 @@
+﻿{
+    "nonce":  "cc55ff33d7464d56b2e608b2e1fd193a",
+    "project":  "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\phase_b_01\\formal_B\\synthetic.godot.project",
+    "command":  "\"D:/Godot/Godot_v4.6.1-stable_win64.exe\" --path \"C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\phase_b_01\\formal_B\\synthetic.godot.project\" --log-file \"C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\phase_b_01\\formal_B\\synthetic.godot.project/godot_engine.log\"",
+    "startup_flags":  1,
+    "startup_show":  0,
+    "creation_flags":  "CREATE_SUSPENDED|CREATE_NO_WINDOW|CREATE_UNICODE_ENVIRONMENT",
+    "user_environment":  "Child-only APPDATA/LOCALAPPDATA/USERPROFILE/TEMP/TMP redirected to run project isolated_user; VIT_* removed",
+    "no_autoload":  true,
+    "no_plugins":  true,
+    "no_extensions":  true
+}

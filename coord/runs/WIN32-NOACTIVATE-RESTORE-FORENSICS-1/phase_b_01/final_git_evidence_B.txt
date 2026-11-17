@@ -1,0 +1,12 @@
+Main
+f9792767fee274e661e3315c960527bcb6c4b130
+f9792767 403 B: write generated Godot fixture text as UTF-8 without BOM
+ scripts/vitshell_smoke.ps1 | 15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
+?? coord/runs/WIN32-NOACTIVATE-RESTORE-FORENSICS-1/phase_a_original_bytes.zip.sha256.json
+?? coord/runs/WIN32-NOACTIVATE-RESTORE-FORENSICS-1/phase_b_01/
+Frontend
+bb2a401dd7af5e3abcff234fc036714083efec8a
+bb2a401 403 B: observe isolated Godot startup and nonactivating restore
+ VitShell/tests/win32_noactivate_restore_probe.cpp | 128 +++++++++++++++++++++-
+ 1 file changed, 125 insertions(+), 3 deletions(-)

@@ -1,0 +1,8 @@
+﻿cmake -S "C:\Users\timoz\.codex\worktrees\win32-restore-403-fe\vit-daw-frontend\VitShell\tests" -B "C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\phase_b_01\formal_B\build" -G "Visual Studio 18 2026" -A x64
+configure_exit=0
+cmake --build "C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\phase_b_01\formal_B\build" --config Release
+build_exit=0
+git -C "C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW" fetch origin main; exit=0
+"C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\phase_b_01\formal_B\build\Release\win32_noactivate_restore_probe.exe" --godot synthetic "C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\phase_b_01\formal_B\synthetic.godot.jsonl" "D:/Godot/Godot_v4.6.1-stable_win64.exe" "C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\phase_b_01\formal_B\synthetic.godot.project" "C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\phase_b_01\formal_B\synthetic.godot.project\observation.jsonl" cc55ff33d7464d56b2e608b2e1fd193a
+scenario=synthetic.godot pid=28720 exit=50
+git -C "C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW" fetch origin main; exit=0
