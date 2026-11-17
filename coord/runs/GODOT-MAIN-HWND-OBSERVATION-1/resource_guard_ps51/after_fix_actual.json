@@ -1,0 +1,11 @@
+﻿{
+    "powershell_version":  "5.1.26100.9818",
+    "edition":  "Desktop",
+    "acp":  936,
+    "source_has_utf8_bom":  false,
+    "parser_errors":  0,
+    "actual_resource_accepted":  true,
+    "reason":  "",
+    "matched_line":  "- 2026-11-17 15:17 +0800 预留 / **404精确Godot主HWND取证**：owner=Codex `/root/restore403`（Sol/high，PC），原两tree/branch。主管亲审前端cdf1924单文件与23反例并亲跑无窗selftest23/23 exit0；主runner f979内容不变。放行新404 RUNBOOK/formal_01≤2新child/15min，无补跑，任何异常停剩余，原403 B预算关闭。只隔离最小项目/SW_SHOWNOACTIVATE、exact native HWND/nonce/PID与逐窗inventory；不启kernel/agent/完整工程/产品，不复跑E/E2。主管亲核全部进程/端口0，启动前fetch owner/≤60秒复核，recents快照/finally hash/全零，其他流禁启栈。",
+    "helper_as_parsed":  "function Get-ForensicsResourceReservation {\r\n        param([string[]]$Lines, [ValidateSet(\u0027403\u0027,\u0027404\u0027)][string]$ExpectedCard)\r\n        # Inspect the first resource record only; never authorize via history.\r\n        $nonempty=@($Lines | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })\r\n        if (-not $nonempty.Count -or $nonempty[0].Trim() -cnotmatch \u0027^# PC \\u771f\\u5b9e\\u8fd0\\u884c\\u6808\\u5360\\u7528\\u8bb0\\u5f55$\u0027) { throw \u0027forensics resource header missing\u0027 }\r\n        $current=$Lines | Where-Object { $_ -match \u0027^\\s*-\\s+\u0027 } | Select-Object -First 1\r\n        if (-not $current -or $current -notmatch \u0027^- .+? (?\u003cstate\u003e\\u7eed\\u9884\\u7559|\\u9884\\u7559|\\u5360\\u7528)\\s*/\\s*\\*\\*(?\u003ccard\u003e\\d+)(?=\\D)\u0027) { throw \u0027forensics current resource is not reserved or occupied\u0027 }\r\n        if ($Matches.card -cne $ExpectedCard) { throw \u0027forensics current resource card mismatch\u0027 }\r\n        if ($current -notmatch \u0027owner=Codex `(?\u003cowner\u003e[^`]+)`\u0027 -or $Matches.owner -cne \u0027/root/restore403\u0027) { throw \u0027forensics current resource owner mismatch\u0027 }\r\n        return $current\r\n    }"
+}
