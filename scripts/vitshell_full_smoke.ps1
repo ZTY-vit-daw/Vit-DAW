@@ -989,7 +989,7 @@ for ($round = 1; $round -le $Rounds; $round++) {
             $beforeStatusHttp.body | Out-File (Join-Path $RunRoot "r${round}_management_status_before.json") -Encoding utf8
             $beforeStateHttp.body | Out-File (Join-Path $RunRoot "r${round}_management_state_before.json") -Encoding utf8
             $managementBridgeLog = Join-Path $RunRoot "r${round}_bridge.log"
-            $bridgeLinesBefore = @(Get-Content -LiteralPath $managementBridgeLog).Count
+            $bridgeLinesBefore = @(Get-Content -LiteralPath $managementBridgeLog -Encoding UTF8).Count
             $management = Invoke-CdpPhase -Phase "management-roundtrip" -OutFile "r${round}_cdp_management.json"
             $afterStatusHttp = Get-HttpJson -Url $StatusUrl
             $afterStateHttp = Get-HttpJson -Url "http://127.0.0.1:$AgentPort/agent/state"
@@ -1006,7 +1006,7 @@ for ($round = 1; $round -le $Rounds; $round++) {
                 if ($null -eq $beforeStatus.$field -or $null -eq $afterStatus.$field) { throw "management status field unavailable: $field" }
                 if ($beforeStatus.$field -ne $afterStatus.$field) { throw "management changed $field" }
             }
-            $bridgeInterval = @(Get-Content -LiteralPath $managementBridgeLog | Select-Object -Skip $bridgeLinesBefore)
+            $bridgeInterval = @(Get-Content -LiteralPath $managementBridgeLog -Encoding UTF8 | Select-Object -Skip $bridgeLinesBefore)
             $bridgeInterval | Out-File (Join-Path $RunRoot "r${round}_management_bridge_interval.log") -Encoding utf8
             if (@($bridgeInterval | Select-String -SimpleMatch 'godot.spawn').Count) { throw 'management cancellation spawned DAW' }
             $canceledResults = @($bridgeInterval | Where-Object { $_ -match '\[LauncherBridge\] result ' } | ForEach-Object { $_.Substring($_.IndexOf('{')) | ConvertFrom-Json } | Where-Object status -eq 'canceled')

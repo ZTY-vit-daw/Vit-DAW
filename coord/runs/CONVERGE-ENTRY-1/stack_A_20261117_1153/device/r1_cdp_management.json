@@ -1,0 +1,265 @@
+{
+  "phase": "management-roundtrip",
+  "ok": true,
+  "url": "http://127.0.0.1:7878/app/?surface=launcher",
+  "sentinel": 1794887658040,
+  "main_frame_navigations": 0,
+  "context_name": "fixture_a.vit",
+  "view_only_status": {
+    "phase": "ready",
+    "error": "",
+    "vitshell_pid": 17672,
+    "window_hwnd": "1052462",
+    "window_title": "Vit",
+    "agent_pid": 28016,
+    "agent_running": true,
+    "agent_url": "http://127.0.0.1:7878",
+    "agent_exe": "C:\\Users\\timoz\\.codex\\worktrees\\converge-entry-388\\Vit_DAW\\agent\\bin\\VitAgent.exe",
+    "agent_cwd": "C:\\Users\\timoz\\.codex\\worktrees\\converge-entry-388\\Vit_DAW\\agent",
+    "current_url": "http://127.0.0.1:7878/app/?surface=launcher",
+    "document_ready": "complete",
+    "navigation_loading": false,
+    "started_at_utc": "2026-11-17T03:54:14Z",
+    "surface": "launcher",
+    "chain_state": "opened",
+    "chain_detail": "res://vit_dock/scenes/VitDockRoot.tscn",
+    "godot_pid": 25324,
+    "godot_running": true,
+    "godot_exe": "D:/Godot/Godot_v4.6.1-stable_win64_console.exe",
+    "godot_project_dir": "C:/Users/timoz/.codex/worktrees/godot-runtime-388/vit-daw-frontend",
+    "launch_count": 3
+  },
+  "canceled_request_ids": [
+    "webui_launcher_br_mwk5s5f0",
+    "webui_launcher_br_mwk5s5gs",
+    "webui_launcher_br_mwk5s5ir"
+  ],
+  "real_get": {
+    "status": 200,
+    "body": {
+      "project_result_cards": [
+        {
+          "exists": true,
+          "file_path": "C:\\Users\\timoz\\.codex\\worktrees\\converge-entry-388\\Vit_DAW\\coord\\runs\\CONVERGE-ENTRY-1\\stack_A_20261117_1153\\device\\fixtures\\fixture_a.vit",
+          "id": "launcher_project_1_fixture_a",
+          "kind": "launcher_project",
+          "launcher_directive": {
+            "action": "open_project",
+            "file_path": "C:\\Users\\timoz\\.codex\\worktrees\\converge-entry-388\\Vit_DAW\\coord\\runs\\CONVERGE-ENTRY-1\\stack_A_20261117_1153\\device\\fixtures\\fixture_a.vit",
+            "reason": "打开工程《fixture_a》",
+            "requires_governance": true
+          },
+          "name": "fixture_a",
+          "type": "project_open_candidate"
+        },
+        {
+          "exists": true,
+          "file_path": "D:\\Vit_DAW\\coord\\runs\\SRC-TEMPLATE-1\\run_20261116_0012\\lesson_project.vit",
+          "id": "launcher_project_2_lesson_project",
+          "kind": "launcher_project",
+          "launcher_directive": {
+            "action": "open_project",
+            "file_path": "D:\\Vit_DAW\\coord\\runs\\SRC-TEMPLATE-1\\run_20261116_0012\\lesson_project.vit",
+            "reason": "打开工程《lesson_project》",
+            "requires_governance": true
+          },
+          "name": "lesson_project",
+          "type": "project_open_candidate"
+        },
+        {
+          "exists": true,
+          "file_path": "C:\\Users\\timoz\\wt_score1\\coord\\runs\\SCORE-WORKBENCH-1\\run_dg1a_20261116_0455\\score_wb_fixture.vit",
+          "id": "launcher_project_3_score_wb_fixture",
+          "kind": "launcher_project",
+          "launcher_directive": {
+            "action": "open_project",
+            "file_path": "C:\\Users\\timoz\\wt_score1\\coord\\runs\\SCORE-WORKBENCH-1\\run_dg1a_20261116_0455\\score_wb_fixture.vit",
+            "reason": "打开工程《score_wb_fixture》",
+            "requires_governance": true
+          },
+          "name": "score_wb_fixture",
+          "type": "project_open_candidate"
+        },
+        {
+          "exists": true,
+          "file_path": "C:\\Users\\timoz\\wt_score1\\coord\\runs\\SCORE-WORKBENCH-1\\run_dg1a_20261116_0455\\default_project.xml",
+          "id": "launcher_project_4_default_project",
+          "kind": "launcher_project",
+          "launcher_directive": {
+            "action": "open_project",
+            "file_path": "C:\\Users\\timoz\\wt_score1\\coord\\runs\\SCORE-WORKBENCH-1\\run_dg1a_20261116_0455\\default_project.xml",
+            "reason": "打开工程《default_project》",
+            "requires_governance": true
+          },
+          "name": "default_project",
+          "type": "project_open_candidate"
+        },
+        {
+          "exists": true,
+          "file_path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261116_050012\\agent_drafts\\draft_20261115T210016_64edeb32\\Unsaved.vit",
+          "id": "launcher_project_5_unsaved",
+          "kind": "launcher_project",
+          "launcher_directive": {
+            "action": "open_project",
+            "file_path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261116_050012\\agent_drafts\\draft_20261115T210016_64edeb32\\Unsaved.vit",
+            "reason": "打开工程《Unsaved》",
+            "requires_governance": true
+          },
+          "name": "Unsaved",
+          "type": "project_open_candidate"
+        },
+        {
+          "exists": true,
+          "file_path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261116_045434\\agent_drafts\\draft_20261115T205437_f3e87777\\Unsaved.vit",
+          "id": "launcher_project_6_unsaved",
+          "kind": "launcher_project",
+          "launcher_directive": {
+            "action": "open_project",
+            "file_path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261116_045434\\agent_drafts\\draft_20261115T205437_f3e87777\\Unsaved.vit",
+            "reason": "打开工程《Unsaved》",
+            "requires_governance": true
+          },
+          "name": "Unsaved",
+          "type": "project_open_candidate"
+        },
+        {
+          "exists": false,
+          "file_path": "D:\\Vit_DAW_wt_yue1\\coord\\runs\\GEN-YUE-WIRE-1\\run_20261116_000009\\student_score_project.vit",
+          "id": "launcher_project_7_student_score_project",
+          "kind": "launcher_project",
+          "launcher_directive": {
+            "action": "open_project",
+            "file_path": "D:\\Vit_DAW_wt_yue1\\coord\\runs\\GEN-YUE-WIRE-1\\run_20261116_000009\\student_score_project.vit",
+            "reason": "打开工程《student_score_project》",
+            "requires_governance": true
+          },
+          "name": "student_score_project",
+          "type": "project_open_candidate"
+        },
+        {
+          "exists": true,
+          "file_path": "D:\\Vit_DAW\\7.11 B1后工程.vit",
+          "id": "launcher_project_8_7_11_b1后工程",
+          "kind": "launcher_project",
+          "launcher_directive": {
+            "action": "open_project",
+            "file_path": "D:\\Vit_DAW\\7.11 B1后工程.vit",
+            "reason": "打开工程《7.11 B1后工程》",
+            "requires_governance": true
+          },
+          "name": "7.11 B1后工程",
+          "type": "project_open_candidate"
+        },
+        {
+          "exists": false,
+          "file_path": "D:\\Vit_DAW_wt_uios1\\coord\\runs\\UI-OS-1\\run_20261114_193656\\fixture\\ui_os_912.vit",
+          "id": "launcher_project_9_ui_os_912",
+          "kind": "launcher_project",
+          "launcher_directive": {
+            "action": "open_project",
+            "file_path": "D:\\Vit_DAW_wt_uios1\\coord\\runs\\UI-OS-1\\run_20261114_193656\\fixture\\ui_os_912.vit",
+            "reason": "打开工程《ui_os_912》",
+            "requires_governance": true
+          },
+          "name": "ui_os_912",
+          "type": "project_open_candidate"
+        },
+        {
+          "exists": false,
+          "file_path": "D:\\Vit_DAW_wt_uios1\\coord\\runs\\UI-OS-1\\run_20261114_193526\\fixture\\ui_os_912.vit",
+          "id": "launcher_project_10_ui_os_912",
+          "kind": "launcher_project",
+          "launcher_directive": {
+            "action": "open_project",
+            "file_path": "D:\\Vit_DAW_wt_uios1\\coord\\runs\\UI-OS-1\\run_20261114_193526\\fixture\\ui_os_912.vit",
+            "reason": "打开工程《ui_os_912》",
+            "requires_governance": true
+          },
+          "name": "ui_os_912",
+          "type": "project_open_candidate"
+        }
+      ],
+      "recent_count": 10,
+      "status": "ok"
+    }
+  },
+  "method_rejected": 405,
+  "synthetic_failure_injection": "GET503 presentation only",
+  "screenshots": [
+    "C:\\Users\\timoz\\.codex\\worktrees\\converge-entry-388\\Vit_DAW\\coord\\runs\\CONVERGE-ENTRY-1\\stack_A_20261117_1153\\device\\r1_cdp_management.json.management.png"
+  ],
+  "requests": [
+    {
+      "path": "/agent/config",
+      "method": "GET"
+    },
+    {
+      "path": "/agent/runtime/status",
+      "method": "GET"
+    },
+    {
+      "path": "/agent/ui/state",
+      "method": "GET"
+    },
+    {
+      "path": "/agent/launcher/greeting",
+      "method": "GET"
+    },
+    {
+      "path": "/agent/launcher/recent-projects",
+      "method": "GET"
+    },
+    {
+      "path": "/agent/config",
+      "method": "GET"
+    },
+    {
+      "path": "/agent/runtime/status",
+      "method": "GET"
+    },
+    {
+      "path": "/agent/ui/state",
+      "method": "GET"
+    },
+    {
+      "path": "/agent/launcher/recent-projects",
+      "method": "GET"
+    },
+    {
+      "path": "/agent/launcher/recent-projects",
+      "method": "POST"
+    },
+    {
+      "path": "/agent/ui/state",
+      "method": "GET"
+    },
+    {
+      "path": "/agent/launcher/greeting",
+      "method": "GET"
+    },
+    {
+      "path": "/agent/launcher/recent-projects",
+      "method": "GET"
+    },
+    {
+      "path": "/agent/ui/state",
+      "method": "GET"
+    },
+    {
+      "path": "/agent/launcher/greeting",
+      "method": "GET"
+    },
+    {
+      "path": "/agent/launcher/recent-projects",
+      "method": "GET"
+    },
+    {
+      "path": "/agent/launcher/recent-projects",
+      "method": "GET"
+    },
+    {
+      "path": "/agent/ui/state",
+      "method": "GET"
+    }
+  ]
+}
