@@ -25,3 +25,8 @@
 
 - 前端ae86c7d/主工件d9add341，主管审完整direction stop/verified采集与predicate/JSONL字段、96pure和未变geometry门报告；此修订有新证据范围，旧R1 coverage结果不改。保容量64，缺reference/有效prefix/身份仍fail-closed。
 - 放行新RUNBOOK-R2/runtime_02，前端ae86c7d、主scripte61f636e保持。参数同407全部门，≤2child/15min，first anomaly停/无补跑/无运行中修代码。target16DIP/mode0/原生首ordinary全nested/QPC/有效refprefix/无FGfocus/2s/自然卸载/recents全门不变。
+
+## R2真实层级反例（20:14 +0800）
+
+- 工件1aec3670，synthetic到全部五步，native首ordinary尺寸16DIP/engine0/noFG正确，但有效downprefix第5项guard，首ordinarychild确在guard上方。runner1/probe40、external停，2s未完成；84native/41对/自然卸载健康。主管核原报告，保持FAIL，不改API追跑。
+- 407 blocked；另408用本进程UI线程CHANGING-afterdownstream临时只约束z的因果必要接缝，先纯反例/静态审再新runtime。观测器记录before/afterguard，绝不将postshow repair抵销首显反例。

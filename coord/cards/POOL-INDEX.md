@@ -209,4 +209,5 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 404 | GODOT-MAIN-HWND-OBSERVATION-1 | done 主管取证PASS（精确主HWND+23纯关联/14门禁反例+实际Godot两条件0；测试装置合入，不含失败产品候选） |
 | 405 | GODOT-NOACTIVATE-GEOMETRY-1 | blocked（R2首ordinary尺寸正确但engine4/紧邻门失败；试验具体化纠正→407，原FAIL保留） |
 | 406 | WINDOW-TRANSITION-OBSERVER-1 | doing（Sol/high /root/restore403；测试专用自进程观察DLL+纯无窗策略，供405因果geometry证据；不改生产、不授启窗） |
-| 407 | ORDINARY-LARGE-WINDOW-1 | doing（Sol/high /root/restore403；普通态16DIP边距/原生前驱链证guardabove；先代码+无窗） |
+| 407 | ORDINARY-LARGE-WINDOW-1 | blocked（R2尺寸/mode0/noFG过但rawdownprefix证child在guard前；目标自线程z事务→408） |
+| 408 | TARGET-Z-TRANSACTION-1 | doing（Sol/high /root/restore403；隔离test-only同线程CHANGING返回前z约束，先无窗审查） |
