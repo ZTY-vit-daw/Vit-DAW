@@ -1,0 +1,40 @@
+﻿适用于 .NET Framework MSBuild 版本 18.4.0+6e61e96ac
+
+  1>Checking Build System
+  Building Custom Rule C:/Users/timoz/.codex/worktrees/win32-restore-403-fe/vit-daw-frontend/VitShell/tests/CMakeLists.txt
+  win32_noactivate_restore_probe.cpp
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.50.35717\include\xutility(4924,18): warning C4244: “=”: 从“const wchar_t”转换到“char”，可能丢失数据 [C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\phase_b_02\formal_B2\build\win32_noactivate_restore_probe.vcxproj]
+  (编译源文件“../../../../../../../../win32-restore-403-fe/vit-daw-frontend/VitShell/tests/win32_noactivate_restore_probe.cpp”)
+      C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.50.35717\include\xutility(4924,18):
+      模板实例化上下文(最早的实例化上下文)为
+          C:\Users\timoz\.codex\worktrees\win32-restore-403-fe\vit-daw-frontend\VitShell\tests\win32_noactivate_restore_probe.cpp(132,36):
+          查看对正在编译的函数 模板 实例化“std::basic_string<char,std::char_traits<char>,std::allocator<char>>::basic_string<std::_String_const_iterator<std::_String_val<std::_Simple_types<_Elem>>>,0>(_Iter,_Iter,const _Alloc &)”的引用
+          with
+          [
+              _Elem=wchar_t,
+              _Iter=std::_String_const_iterator<std::_String_val<std::_Simple_types<wchar_t>>>,
+              _Alloc=std::allocator<char>
+          ]
+              C:\Users\timoz\.codex\worktrees\win32-restore-403-fe\vit-daw-frontend\VitShell\tests\win32_noactivate_restore_probe.cpp(132,36):
+              请参阅 "godotProbe" 中对 "std::basic_string<char,std::char_traits<char>,std::allocator<char>>::basic_string" 的第一个引用
+          C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.50.35717\include\xstring(862,17):
+          查看对正在编译的函数 模板 实例化“void std::basic_string<char,std::char_traits<char>,std::allocator<char>>::_Construct_from_iter<const wchar_t*,const wchar_t*,_Size_type>(_Iter,const _Sent,_Size)”的引用
+          with
+          [
+              _Size_type=unsigned __int64,
+              _Iter=const wchar_t *,
+              _Sent=const wchar_t *,
+              _Size=unsigned __int64
+          ]
+          C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.50.35717\include\xstring(1018,18):
+          查看对正在编译的函数 模板 实例化“_OutIt *std::_Copy_n_unchecked4<const wchar_t*,_Size,char*>(_InIt,_SizeTy,_OutIt)”的引用
+          with
+          [
+              _OutIt=char *,
+              _Size=unsigned __int64,
+              _InIt=const wchar_t *,
+              _SizeTy=unsigned __int64
+          ]
+  
+  win32_noactivate_restore_probe.vcxproj -> C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\phase_b_02\formal_B2\build\Release\win32_noactivate_restore_probe.exe
+  Building Custom Rule C:/Users/timoz/.codex/worktrees/win32-restore-403-fe/vit-daw-frontend/VitShell/tests/CMakeLists.txt

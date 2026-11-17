@@ -1,0 +1,5 @@
+﻿# PC 真实运行栈占用记录
+本记录是共享卡池协作的资源登记面，操作协议见 [PROTOCOL.md](../PROTOCOL.md) §2.2。
+初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
+- 2026-11-17 15:00 +0800 续预留 / **403 B2独立Godot预算**：owner=Codex `/root/restore403`（Sol/high，PC）；B1因生成tscn BOM parse装置失败，child1/2、恢复API0，原工件保留。主管亲读raw log/首字节/两文件diff/无BOM静态修正，现只放行已审主f9792767/前端bb2a401，新phase_b_02/RUNBOOK-B2≤2child/15min，任何异常立即停止、无补跑、无第三B候选。完整配置log有据，独立stdout/stderr缺口保留。主管即时亲核全部Vit/Godot/probe/端口0、recents一致；执行启前仍fetch owner/≤60秒再查，结束exact child teardown与hash/全零交主管释放。零产品/真实工程/内核/agent，不复跑E/E2。
+- 2026-11-17 14:37 +0800 续预留 / **403阶段B隔离Godot恢复语义**：owner=Codex `/root/restore403`（Sol/high，PC），两树/branch同上。阶段A formal_02自窗6/6主管已验收，主管再次核Vit/probe/全部端口零及recents807226F4…13E353。只在新run生成零autoload/插件/extension的最小Godot项目，同版本GUI binary，最多2正式子进程/30min，SW_SHOWNOACTIVATE单路径、两前台条件，任一异常立即停、无补跑。原始hook在spawn前，exact child/PID归属，不启kernel/agent/用户工程/完整产品，不复跑E/E2。启前fetch owner与≤60秒净空、finally仅清本次PID/recents快照hash/全零，其他流禁启栈；代码与判据范围见403末节。
