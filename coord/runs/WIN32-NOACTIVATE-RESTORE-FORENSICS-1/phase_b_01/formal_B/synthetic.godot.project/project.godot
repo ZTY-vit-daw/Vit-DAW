@@ -1,0 +1,13 @@
+﻿config_version=5
+[application]
+config/name="403 isolated Godot observation"
+run/main_scene="res://main.tscn"
+[display]
+window/size/viewport_width=720
+window/size/viewport_height=480
+window/size/mode=1
+window/size/always_on_top=false
+window/size/no_focus=false
+[rendering]
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"

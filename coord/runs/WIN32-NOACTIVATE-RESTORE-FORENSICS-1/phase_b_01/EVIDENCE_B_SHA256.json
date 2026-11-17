@@ -1,0 +1,194 @@
+[
+  {
+    "Hash": "BC1D2B370A8F2BF087E3F6DAD2EA4568AE7116E072B5508408119500BD88F5C3",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\phase_b_01\\diagnostic_crosscheck.json"
+  },
+  {
+    "Hash": "FFD472B4139ACE2255C0FFC3C0F6C9BDC0820C4F96A5C65BDC21CF7D153D7AC3",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\phase_b_01\\e2_godot_manager_reference.cpp"
+  },
+  {
+    "Hash": "5DCB4E72D15E3A407BAC4353C9E5F721A69317DFAD68176A5E17BBAC56601440",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\phase_b_01\\final_git_evidence_B.txt"
+  },
+  {
+    "Hash": "EFD133816D76344C4A34A5C6666982F86926ECB1ABB0B2278A87FB75776DF644",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\phase_b_01\\formal_B.wrapper_exit.txt"
+  },
+  {
+    "Hash": "CD48959510438E2A3CD6A4326247C0B774D436676418CF8D15D32CE4474D703F",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\phase_b_01\\godot_4.6.1_display_server_windows.cpp"
+  },
+  {
+    "Hash": "93233DB7517FE26D1ADDDB4BEC455935C7D7F7F07F5E9C5772CF2FAD21E58208",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\phase_b_01\\REPORT-B.md"
+  },
+  {
+    "Hash": "D5C9A3E4149FBFF7F44F85B445474289504079DDAC6BAFE80CB7CC0CD0F84368",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\phase_b_01\\RUNBOOK-B.md"
+  },
+  {
+    "Hash": "4F6CDBF1495A540EC4F90CE74B76C18D462BBC00B10AE3E590FA34568677C8F1",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\phase_b_01\\formal_B\\after_teardown.fetch.log"
+  },
+  {
+    "Hash": "2B2E8F57FDB26CB195564CD181E4B0378C822AA5A08A6E0913CB1CD2A5069F64",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\phase_b_01\\formal_B\\after_teardown.idle.json"
+  },
+  {
+    "Hash": "412D49CD035FB35C5155A6E10C948C721A253D6855B0FC49AE5A73A34189587A",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\phase_b_01\\formal_B\\after_teardown.resource.txt"
+  },
+  {
+    "Hash": "4F6CDBF1495A540EC4F90CE74B76C18D462BBC00B10AE3E590FA34568677C8F1",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\phase_b_01\\formal_B\\before_build.fetch.log"
+  },
+  {
+    "Hash": "C017AE9EBB7279003BE3659300C1F21A2C24405552B0B63D2D23492F0388167F",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\phase_b_01\\formal_B\\before_build.idle.json"
+  },
+  {
+    "Hash": "412D49CD035FB35C5155A6E10C948C721A253D6855B0FC49AE5A73A34189587A",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\phase_b_01\\formal_B\\before_build.resource.txt"
+  },
+  {
+    "Hash": "4F6CDBF1495A540EC4F90CE74B76C18D462BBC00B10AE3E590FA34568677C8F1",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\phase_b_01\\formal_B\\before_synthetic.godot.fetch.log"
+  },
+  {
+    "Hash": "FFD4DC1573F4CB72F14099AC1236E97500091578F3BB71A70EA99722855EDCBF",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\phase_b_01\\formal_B\\before_synthetic.godot.idle.json"
+  },
+  {
+    "Hash": "412D49CD035FB35C5155A6E10C948C721A253D6855B0FC49AE5A73A34189587A",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\phase_b_01\\formal_B\\before_synthetic.godot.resource.txt"
+  },
+  {
+    "Hash": "BC179EB25AE7204424DCEF5837D48E964078751746881AE61BFB58FD5776A77C",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\phase_b_01\\formal_B\\binary_hash.json"
+  },
+  {
+    "Hash": "A9DA5E68266D5690641BF29D5DCFF25C34FF18D51A649F41E8B54455F300A9DD",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\phase_b_01\\formal_B\\build.log"
+  },
+  {
+    "Hash": "0A9300D806796225569743ADA75F1B95F5030DE836FABE5957F163F4A35278F4",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\phase_b_01\\formal_B\\commands.txt"
+  },
+  {
+    "Hash": "01666653B73674621BA435DEC69012EBB14973A6D52BEA0D562829DD33B1B065",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\phase_b_01\\formal_B\\configure.log"
+  },
+  {
+    "Hash": "653BD09746E03F27195FC689FADCE7E1FB072F8C632A5E3BEB7188DF2BE13FDE",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\phase_b_01\\formal_B\\failure.txt"
+  },
+  {
+    "Hash": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\phase_b_01\\formal_B\\frontend.diff.txt"
+  },
+  {
+    "Hash": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\phase_b_01\\formal_B\\frontend.diffstat.txt"
+  },
+  {
+    "Hash": "EAE06FE5A780344081EE5011F7BFBB5C6C84F6FB207941F95ED3F4A302E2D9AC",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\phase_b_01\\formal_B\\frontend.head.txt"
+  },
+  {
+    "Hash": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\phase_b_01\\formal_B\\frontend.status.txt"
+  },
+  {
+    "Hash": "0454D56DCEB174880BAD7DE5C12845CDF8A1626D90FBA7197B1B4344F08BDCB9",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\phase_b_01\\formal_B\\godot_binary_hash.json"
+  },
+  {
+    "Hash": "1D4BC9F302A1D02E11B9C23A04F0122E905B5A515D385369DBAD76A145B9C830",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\phase_b_01\\formal_B\\godot_version_resource.json"
+  },
+  {
+    "Hash": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\phase_b_01\\formal_B\\main.diff.txt"
+  },
+  {
+    "Hash": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\phase_b_01\\formal_B\\main.diffstat.txt"
+  },
+  {
+    "Hash": "F84E490BCC4CFD03B7D47151A9A6EB305D5AC34F08F35A25D5638AD9AA20A7E8",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\phase_b_01\\formal_B\\main.head.txt"
+  },
+  {
+    "Hash": "97E6A2B96E9105A97478EECF00391B74D23354C6B6431E3D5220E14BDA471FD2",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\phase_b_01\\formal_B\\main.status.txt"
+  },
+  {
+    "Hash": "3FC83DF140E1A0785D32B08EFB40841F8690EE547DC779F9401391197047D23E",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\phase_b_01\\formal_B\\recents.after.sha256"
+  },
+  {
+    "Hash": "807226F4AF3FC85C2B99BFD2FB827C1583E7C991826BDE5F0B4344A6DC13E353",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\phase_b_01\\formal_B\\recents.before.json"
+  },
+  {
+    "Hash": "3FC83DF140E1A0785D32B08EFB40841F8690EE547DC779F9401391197047D23E",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\phase_b_01\\formal_B\\recents.before.sha256"
+  },
+  {
+    "Hash": "B4333375C5425F098510B74DB338DF4F4A4C46506FAFC7D7D50EEDA03E84CCA7",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\phase_b_01\\formal_B\\report.json"
+  },
+  {
+    "Hash": "34511BFCA91834E322804A82C83748EE2CBA6DEA1CAFAED6BE711A634BAA79E4",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\phase_b_01\\formal_B\\source_hashes.json"
+  },
+  {
+    "Hash": "62AC6A86716E288C7BB1CFA70A0E6BC99CCD5988F439E0E09FAFBC76D9EACD5D",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\phase_b_01\\formal_B\\synthetic.godot.jsonl"
+  },
+  {
+    "Hash": "37201D1083F960DA61E485DA26EF796B5C261B6E02A32CC9879481E20499B70B",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\phase_b_01\\formal_B\\synthetic.godot.process.json"
+  },
+  {
+    "Hash": "95DFE1D81D8296B0367B5941A3702CC78DD351ED0C7CEE0A7901C5EE12DB5C92",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\phase_b_01\\formal_B\\synthetic.godot.project_manifest.json"
+  },
+  {
+    "Hash": "401BDD854EB852BAEFE0DDBD2CBC762F9E67B2561DB48E0246524591096667E8",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\phase_b_01\\formal_B\\synthetic.godot.project\\godot_engine.log"
+  },
+  {
+    "Hash": "C7BC4F195A769AA8AA19654B093064C11EDAFC5C8BDC13F4AE50D39D0CD44BC0",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\phase_b_01\\formal_B\\synthetic.godot.project\\main.tscn"
+  },
+  {
+    "Hash": "62731246A65093F2427A27C266F3DC12F433E61641EEE333C230D51041BCF67B",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\phase_b_01\\formal_B\\synthetic.godot.project\\observer.gd"
+  },
+  {
+    "Hash": "B3550D95566873161D07A1C21E170AA89AEE1834504E5934BEA97330A6960827",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\phase_b_01\\formal_B\\synthetic.godot.project\\project.godot"
+  },
+  {
+    "Hash": "2BEEF5F542E0A45AEB3B00D9F098B71D4AADC84514BEF07437496839D4C5AD1F",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\phase_b_01\\utf8_static_after_fix\\corrected_runner_hash.json"
+  },
+  {
+    "Hash": "570673E58632A7DD962AE1A6CA25AA0A53FF4F1867B981CCFD1B4DE5DD1464C7",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\phase_b_01\\utf8_static_after_fix\\main.tscn"
+  },
+  {
+    "Hash": "F8ADED17312520DA91CDB9339912ECFC4288B26C0FA980A195CE079D1EE879C7",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\phase_b_01\\utf8_static_after_fix\\observer.gd"
+  },
+  {
+    "Hash": "81A929835FF788CE15D9808758C8141C09AD1221D109248BD1B2DF2B81F3422F",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\phase_b_01\\utf8_static_after_fix\\project.godot"
+  },
+  {
+    "Hash": "1E931D87C96149E3CE1927CD2F0C1423679505C46E8CFA2D19DED1E17A85EE0F",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WIN32-NOACTIVATE-RESTORE-FORENSICS-1\\phase_b_01\\utf8_static_after_fix\\static_checks.json"
+  }
+]
