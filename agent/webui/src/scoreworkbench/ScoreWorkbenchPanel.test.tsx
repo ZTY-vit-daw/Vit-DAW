@@ -27,6 +27,8 @@ import { renderScoreInto } from "./render";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
+const target = { projectKey: "fixture.vit", trackID: "track-test", clipID: "clip-test", trackName: "测试轨", clipName: "测试片段" };
+
 const fixture: ScoreModel = {
   timeSignature: { numerator: 2, denominator: 4 },
   notes: [
@@ -278,7 +280,7 @@ describe("ScoreWorkbenchPanel interactions (M2)", () => {
       applyPatch: async () => ({ ok: false, error: "not under test" }),
       reload: async () => ({ ok: true, value: snapshot })
     };
-    const { container } = mount(createElement(ScoreWorkbenchPanel, { initialModel: fixture, kernelFactory: () => bridge }));
+    const { container } = mount(createElement(ScoreWorkbenchPanel, { initialModel: fixture, target, kernelFactory: () => bridge }));
     await act(async () => {
       await Promise.resolve();
     });
@@ -295,7 +297,7 @@ describe("ScoreWorkbenchPanel interactions (M2)", () => {
       applyPatch: async () => ({ ok: false, error: "not under test" }),
       reload: async () => ({ ok: false, error: "analyze_midi_transformations requires a connected kernel" })
     };
-    const { container } = mount(createElement(ScoreWorkbenchPanel, { initialModel: fixture, kernelFactory: () => bridge }));
+    const { container } = mount(createElement(ScoreWorkbenchPanel, { initialModel: fixture, target, kernelFactory: () => bridge }));
     await act(async () => {
       await Promise.resolve();
     });
@@ -334,7 +336,7 @@ describe("ScoreWorkbenchPanel interactions (M2)", () => {
       },
       reload: async () => ({ ok: true, value: baseSnapshot })
     };
-    const { container } = mount(createElement(ScoreWorkbenchPanel, { initialModel: fixture, kernelFactory: () => bridge }));
+    const { container } = mount(createElement(ScoreWorkbenchPanel, { initialModel: fixture, target, kernelFactory: () => bridge }));
     await act(async () => {
       await Promise.resolve();
     });
@@ -375,7 +377,7 @@ describe("ScoreWorkbenchPanel interactions (M2)", () => {
       reload: async () => ({ ok: true, value: snapshot })
     };
     // playhead 1.0s、clip 起点 0.5s、120bpm → clip 内 1 拍
-    const { container } = mount(createElement(ScoreWorkbenchPanel, { initialModel: fixture, kernelFactory: () => bridge }));
+    const { container } = mount(createElement(ScoreWorkbenchPanel, { initialModel: fixture, target, kernelFactory: () => bridge }));
     await act(async () => {
       await Promise.resolve();
     });
@@ -398,13 +400,13 @@ describe("ScoreWorkbenchPanel interactions (M2)", () => {
     const bridge: ScoreKernelBridge = {
       kind: "agent",
       applyPatch: async () => ({ ok: false, error: "RiskConfirm rejected" }),
-      reload: async () => ({ ok: false, error: "unreachable" })
+      reload: async () => ({ ok: true, value: { model: fixture, clipLengthBeats: 8, tempoBPM: 120, timeSignatureLabel: "2/4", clipStartSeconds: 0 } })
     };
-    const { container } = mount(createElement(ScoreWorkbenchPanel, { initialModel: fixture, kernelFactory: () => bridge }));
+    const { container } = mount(createElement(ScoreWorkbenchPanel, { initialModel: fixture, target, kernelFactory: () => bridge }));
     await act(async () => {
       await Promise.resolve();
     });
-    // 装载失败保留本地 fixture（fail-honest），编辑基于本地模型
+    // 成功装载后编辑；写入失败必须保留缓冲。
     fire(overlayOf(container), "pointerdown", clickAt(anchorFor(fixture, 4)));
     clickButton(container, "data-score-apply");
     clickButton(container, "data-score-confirm-apply");
@@ -455,7 +457,7 @@ describe("ScoreWorkbenchPanel interactions (M2)", () => {
       applyPatch: async () => ({ ok: false, error: "not under test" }),
       reload: async () => ({ ok: true, value: snapshot })
     };
-    const { container } = mount(createElement(ScoreWorkbenchPanel, { initialModel: fixture, kernelFactory: () => bridge }));
+    const { container } = mount(createElement(ScoreWorkbenchPanel, { initialModel: fixture, target, kernelFactory: () => bridge }));
     await act(async () => {
       await Promise.resolve();
     });

@@ -1,0 +1,7 @@
+{
+  "original_name": "full-vitest.log",
+  "original_bytes": 18468125,
+  "original_sha256": "ef57146a7b6c581250e7f19114e96c76d87de59cee6ce4fd06d0817942c076b7",
+  "compressed_name": "full-vitest.log.gz",
+  "compression": "gzip; decompress to recover byte-identical raw vitest output"
+}

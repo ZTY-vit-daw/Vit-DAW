@@ -586,14 +586,23 @@ async function main() {
     const tab = page.locator('[data-workbench-tab="score"]');
     if ((await tab.count()) !== 1) throw new Error("score tab missing on " + phaseName);
     await tab.click();
-    await page.waitForSelector("[data-score-root]", { timeout: 15000 });
+    await page.waitForSelector("[data-score-binding-root]", { timeout: 15000 });
+    const bindingState = await fetch(args.agentHttp + "/agent/ui/state").then((reply) => reply.json());
+    const targetTrack = (bindingState.tracks || []).find((track) => (track.clips || []).some((clip) => String(clip.clip_id ?? clip.id) === wanted));
+    if (!targetTrack) throw new Error("target track missing on " + phaseName);
+    await page.waitForSelector(".score-track-item", { timeout: 10000 });
+    const trackButtons = page.locator(".score-track-item");
+    const trackIndex = await trackButtons.evaluateAll((items, id) => items.findIndex((node) => node.getAttribute("data-score-track-id") === id), String(targetTrack.track_id ?? targetTrack.id));
+    if (trackIndex < 0) throw new Error("score track button missing on " + phaseName);
+    await trackButtons.nth(trackIndex).click();
     // 多 clip 工程=常态（boot 演示工程 7 轨+本腿 fixture）：显式选择目标 clip
     //（真实 UI 事件，非测试后门；单 clip 工程会自动选中无需此步）。
     await page.waitForSelector("[data-score-clip-select]", { timeout: 10000 });
-    const currentClip = await page.getAttribute("[data-score-root]", "data-score-clip-id");
+    const currentClip = await page.locator("[data-score-root]").count() ? await page.getAttribute("[data-score-root]", "data-score-clip-id") : "";
     if (currentClip !== wanted) {
       await page.selectOption('[data-score-clip-select]', wanted);
     }
+    await page.waitForSelector("[data-score-root]", { timeout: 15000 });
     await page.waitForTimeout(1800); // clip 选择 -> 桥重建 -> 回读装载
   };
   const domModel = async () => JSON.parse(await page.getAttribute("[data-score-root]", "data-score-model"));
@@ -977,12 +986,18 @@ async function main() {
       return fail(1, "J1-score-tab", "score tab missing on workbench surface after journey entry");
     }
     await journeyTab.click();
-    await page.waitForSelector("[data-score-root]", { timeout: 15000 });
+    await page.waitForSelector("[data-score-binding-root]", { timeout: 15000 });
+    await page.waitForSelector(".score-track-item", { timeout: 10000 });
+    const journeyTrackButtons = page.locator(".score-track-item");
+    const journeyTrackIndex = await journeyTrackButtons.evaluateAll((items, id) => items.findIndex((node) => node.getAttribute("data-score-track-id") === id), melodyTrackID);
+    if (journeyTrackIndex < 0) throw new Error("J1 score melody track button missing");
+    await journeyTrackButtons.nth(journeyTrackIndex).click();
     await page.waitForSelector("[data-score-clip-select]", { timeout: 10000 });
-    const journeyClip = await rootAttr("data-score-clip-id");
+    const journeyClip = await page.locator("[data-score-root]").count() ? await rootAttr("data-score-clip-id") : "";
     if (journeyClip !== melodyClipID) {
       await page.selectOption('[data-score-clip-select]', melodyClipID);
     }
+    await page.waitForSelector("[data-score-root]", { timeout: 15000 });
     await page.waitForTimeout(1800); // clip select -> bridge rebuild -> reload
     const journeyStatus = await rootAttr("data-score-status");
     await page.screenshot({ path: join(args.screenshotDir, "j1_score_panel_from_project.png") });

@@ -1,0 +1,52 @@
+{
+  "schema_version": "score_binding_render.v1",
+  "boundary": "zero-stack, production App/Workbench mount, HTTP fixtures",
+  "assertions": [
+    {
+      "name": "production Workbench mounts the binding container",
+      "passed": true
+    },
+    {
+      "name": "no implicit clip editing before track selection",
+      "passed": true
+    },
+    {
+      "name": "empty track has an honest empty state",
+      "passed": true
+    },
+    {
+      "name": "multi-clip track waits for explicit selection",
+      "passed": true
+    },
+    {
+      "name": "clip picker excludes audio",
+      "passed": true
+    },
+    {
+      "name": "selected track and clip identity visible",
+      "passed": true
+    },
+    {
+      "name": "cancel keeps A identity and edited buffer",
+      "passed": true
+    },
+    {
+      "name": "failed B reload cannot write old A buffer",
+      "passed": true
+    },
+    {
+      "name": "explicit apply uses only loaded track/clip with confirmation",
+      "passed": true
+    },
+    {
+      "name": "binding rail fits narrow viewport",
+      "passed": true
+    },
+    {
+      "name": "no uncaught render errors",
+      "passed": true
+    }
+  ],
+  "errors": [],
+  "status": "PASS"
+}
