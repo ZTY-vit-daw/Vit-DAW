@@ -23,3 +23,9 @@
 - 只放行已审代码，新`RUNBOOK-runtime.md`先成文、新`coord/runs/WINDOW-TRANSITION-OBSERVER-1/runtime_01`，实际命令显式`-GodotRestoreForensics -ForensicsCard 406 -TestTransitionObserver`，前端shell-window-transition-406。两个条件synthetic/external各至多1新child，准备+执行≤20min，无环境/装置补跑；任一异常停剩余，不能运行中改代码/断言。
 - 通过=原404安全恢复2s标准+native self-thread safe_armed精确身份先于恢复、原生entry/after/嵌套depth配对与连续seq、zero failures/dropped/IOerror、亲证加载结果0与observer records、自然child exit0和nonce stop/removed_verified/shutdown/engine_ack完整闭环。任何forced exit不得记PASS；观察器异常归coverage/probe而不误归产品失败。初始show前覆盖仍不宣称。
 - 不新增geometry策略、不碰生产、无LLM/内核/agent/用户工程/fixture，不复跑E/E2。自然external无法取得记not_exercised，不强造外部FG。原字节ZIP/source/ABI/binary hash、recents完整快照及finally hash、exact child拆净、末核全零后回主管释放。
+
+## runtime证据复核与交接405（18:45 +0800）
+
+- 工件1056214c，runner/wrapper2保留：synthetic前台前提不满足、child0/not_exercised10；external child21460通过。主管重解析54native seq/26entry-after配对/最大depth2/无leftover，nonce PID/TID/HWND/gen一致、fail/drop/IO0；safe_armed、removed_verified、shutdown均亲核，child自然0/非forced。
+- 可用证据=external分支已证明真实目标线程加载/记录/卸载；不能将本轮整体改PASS或宣称synthetic已覆盖。本卡保留doing待后续405/产品补充相应条件，不原样补跑。已提交代码保持，观察器实现只读交给405使用，owner同一执行流无并发写入。
+- 目标UI记录DPI168/client720×480、parentunaware411×274，支持DPI口径解释；405须冻结坐标口径，不再把parent数字直接当真实小窗。

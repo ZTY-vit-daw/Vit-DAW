@@ -26,3 +26,12 @@
 
 - 用户本轮明确“继续，直到可以交由我手测”。主管接受405只读成果为前置，不继续盲跑；先拆406测试专用目标自进程观察器。观察对象为User32自有主窗转换的geometry/z因果证据，不宣称像素/首个DWM合成帧原子保证，也不改变“不抢前台、普通大窗在后”的产品要求。
 - 406采用隔离GDExtension测试DLL，由Godot自身官方加载、在所属线程观察自己的HWND；不改产品extension/manager/GD，不跨进程注入/subclass、不全局hook。先实现和纯无窗检查，再单独冻结隔离运行。成功后405实施唯一placement/DPI候选，后续394修订与完整产品矩阵仍逐次验收。
+
+## 唯一几何候选实现放行（18:45 +0800）
+
+- 406 external真实加载/原生转换/自主卸载已主管定向核查；本轮整体exit2与synthetic缺失保留，不称整卡PASS。足以支持405使用已证观察渠道，405新增候选本身仍须独立验。406此段停写；同owner串行转回405。
+- 前端改在新406树`codex/window-transition-406`，baseline1a4ff1c，tracked clean；主baseline1056214c，script2d7eb8f2。允许4测试源域：win32_noactivate_restore_probe.cpp、window_transition_observer.h/.cpp仅必要DPI线程上下文字段（不改核心策略）、主scripts/vitshell_smoke.ps1；必要pure geometry predicate自测在probe原文件显式无窗入口，不另框架。
+- 实施PLAN唯一顺序：PMv2创建自有guard/只读物理审计→exact child T上下文几何API与往返→protect+hide→SetWindowPlacement(SW_HIDE,工作区normalrect)一次→隐藏态z置于可见自有guard后→单次SW_SHOWNOACTIVATE，无show后geometry/style/z修正。不能清WS_MINIMIZE试图恢复。external自有guard非激活可见且不变外部FG。
+- 父/目标DPI记录包括GetThreadDpiAwarenessContext与GetAwarenessFromDpiAwarenessContext，不能以opaque handle数字猜枚举；几何写/读固定T，P只读审计，API转换精确记录。GetDpiForWindow/monitor冻结与roundtrip失败即拒绝。所有父mutation记录QPC begin/end与参数/return，child native QPC可关联；初始首次ordinary可见state必须目标rect/z，不能只看2s终态。
+- 准备一个无窗native-trace评估器自测（可同probe）覆盖可见小窗后修正仍FAIL、嵌套错误提交、错坐标/monitor/身份、记录缺口、postshow修正、no-send等反例；最终用原生CHANGING after/CHANGED entry-after、全部可见非iconic快照和API区间因果核对，不只parent sample。范围仅User32状态，不升级为DWM像素帧保证。
+- 仍仅代码/build/纯无窗/真实PS5静态装配检查（显式卡405/geometry/observer参数与metadata，ForensicsCard白名单及时更新），不启动窗口。完整提交+短回执后主管复核，再冻结≤2runtime、任一异常停、无补跑。不得把既有406external0归新geometry结果。
