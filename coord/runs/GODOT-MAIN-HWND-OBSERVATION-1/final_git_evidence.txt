@@ -1,0 +1,10 @@
+Main
+beb380254a6713baf02a86ffb3dfeba9a676a502
+?? coord/runs/GODOT-MAIN-HWND-OBSERVATION-1/
+?? coord/runs/WIN32-NOACTIVATE-RESTORE-FORENSICS-1/phase_b_01/formal_B/synthetic.godot.project/isolated_user/
+?? coord/runs/WIN32-NOACTIVATE-RESTORE-FORENSICS-1/phase_b_02/formal_B2/synthetic.godot.project/isolated_user/
+Frontend
+cdf192478f255c72fb5ea25996227cb0094557c2
+cdf1924 404: bind Godot probe to validated engine HWND and reject identity changes
+ VitShell/tests/win32_noactivate_restore_probe.cpp | 173 ++++++++++++++++++++--
+ 1 file changed, 161 insertions(+), 12 deletions(-)

@@ -1,0 +1,252 @@
+diff --git a/VitShell/tests/win32_noactivate_restore_probe.cpp b/VitShell/tests/win32_noactivate_restore_probe.cpp
+index 450fe70..adc300f 100644
+--- a/VitShell/tests/win32_noactivate_restore_probe.cpp
++++ b/VitShell/tests/win32_noactivate_restore_probe.cpp
+@@ -8,6 +8,8 @@
+ #include <vector>
+ #include <cstdint>
+ #include <filesystem>
++#include <map>
++#include <cstdio>
+ 
+ static std::ofstream logFile;
+ static unsigned long long sequence = 0;
+@@ -17,7 +19,57 @@ static unsigned markers = 0;
+ static DWORD observedChild = 0;
+ static HWND markerWindow = nullptr;
+ static bool childEverForeground = false;
+-static std::vector<HWND> childShows;
++struct WindowEvents {
++    DWORD pid = 0;
++    unsigned generation = 0;
++    bool shown = false, destroyed = false;
++    DWORD createTick = 0, showTick = 0, destroyTick = 0;
++};
++static std::map<uintptr_t,WindowEvents> childWindows;
++struct ReadyIdentity {
++    bool ready = false;
++    std::string nonce;
++    long long pid = -1, seq = -1, hwnd = -1;
++};
++struct NativeIdentity {
++    uintptr_t hwnd = 0, owner = 0;
++    DWORD pid = 0;
++    bool valid = false, childStyle = false;
++    std::wstring windowClass;
++};
++struct MainBinding {
++    uintptr_t hwnd = 0;
++    unsigned generation = 0;
++    long long seq = -1;
++    std::wstring windowClass;
++};
++// Pure policy: enumeration order never participates in choosing the main HWND.
++// The exact engine handle is the lookup key; metadata and raw lifecycle evidence
++// must agree before binding, and every later sample must preserve that identity.
++static const char* identityRejection(const ReadyIdentity& ready,const std::string& nonce,DWORD childPID,
++    const NativeIdentity& native,const WindowEvents& events,const MainBinding* bound = nullptr) {
++    if(!ready.ready || ready.seq < 2) return "not_ready_or_missing_seq";
++    if(ready.nonce != nonce) return "wrong_nonce";
++    if(ready.pid != childPID || !childPID) return "wrong_ready_pid";
++    if(bound && ready.hwnd>0 && static_cast<uintptr_t>(ready.hwnd)!=bound->hwnd) return "main_hwnd_changed";
++    if(ready.hwnd <= 0 || static_cast<uintptr_t>(ready.hwnd) != native.hwnd || !native.valid) return "invalid_hwnd";
++    if(native.pid != childPID) return "wrong_native_pid";
++    if(native.owner || native.childStyle || native.windowClass.empty()) return "invalid_main_hierarchy";
++    if(events.pid != childPID || !events.generation || !events.shown) return "missing_raw_show";
++    if(events.destroyed) return "destroyed_hwnd";
++    if(static_cast<LONG>(events.showTick-events.createTick)<0) return "show_before_current_create";
++    if(bound) {
++        if(native.hwnd != bound->hwnd) return "main_hwnd_changed";
++        if(events.generation != bound->generation) return "main_hwnd_reused";
++        if(native.windowClass != bound->windowClass) return "main_class_changed";
++        if(ready.seq < bound->seq) return "engine_seq_regressed";
++    }
++    return nullptr;
++}
++static NativeIdentity exactCandidate(uintptr_t hwnd,const std::vector<NativeIdentity>& candidates) {
++    for(const auto& candidate:candidates) if(candidate.hwnd==hwnd) return candidate;
++    NativeIdentity missing; missing.hwnd=hwnd; return missing;
++}
+ static ULONGLONG lastDispatchTick = 0, maxOverallGap = 0;
+ struct ForegroundEvent { DWORD time; HWND hwnd; };
+ static std::vector<ForegroundEvent> foregroundEvents;
+@@ -55,12 +107,19 @@ static void CALLBACK eventHook(HWINEVENTHOOK, DWORD event, HWND h, LONG object,
+                                LONG child, DWORD thread, DWORD time) {
+     DWORD eventPID=0; GetWindowThreadProcessId(h,&eventPID);
+     const bool ownMarker=event == EVENT_OBJECT_NAMECHANGE && h == (markerWindow ? markerWindow : target);
+-    const bool childEvent=observedChild && eventPID==observedChild;
++    const auto known=childWindows.find(id(h));
++    const bool knownChild=known!=childWindows.end() && known->second.pid==observedChild;
++    const bool childEvent=observedChild && (eventPID==observedChild || (knownChild && eventPID==0));
+     if (event != EVENT_SYSTEM_FOREGROUND && !ownMarker && !childEvent) return;
+     if (event == EVENT_SYSTEM_FOREGROUND) foregroundEvents.push_back({time, h});
+     if (ownMarker) ++markers;
+     if (event == EVENT_SYSTEM_FOREGROUND && childEvent) childEverForeground=true;
+-    if (event == EVENT_OBJECT_SHOW && childEvent) childShows.push_back(h);
++    if (childEvent && object==OBJID_WINDOW && child==CHILDID_SELF) {
++        auto& facts=childWindows[id(h)]; facts.pid=observedChild;
++        if(event==EVENT_OBJECT_CREATE) { ++facts.generation; facts.shown=false; facts.destroyed=false; facts.createTick=time; facts.showTick=0; facts.destroyTick=0; }
++        if(event==EVENT_OBJECT_SHOW) { facts.shown=true; facts.showTick=time; }
++        if(event==EVENT_OBJECT_DESTROY) { facts.destroyed=true; facts.destroyTick=time; }
++    }
+     std::ostringstream s;
+     s << ",\"event\":" << event << ",\"event_tick32\":" << time << ",\"hwnd\":" << id(h)
+       << ",\"object\":" << object << ",\"child\":" << child << ",\"event_thread\":" << thread
+@@ -121,11 +180,75 @@ static std::string latestEngine(const std::wstring& path) {
+     while(std::getline(input,row)) if(!row.empty() && row.back()=='}') last=row;
+     return last;
+ }
+-static BOOL CALLBACK findChild(HWND h,LPARAM) {
+-    DWORD pid=0; GetWindowThreadProcessId(h,&pid);
+-    if(pid==observedChild && GetWindow(h,GW_OWNER)==nullptr) { target=h; return FALSE; }
++static NativeIdentity readIdentity(HWND h) {
++    NativeIdentity facts; facts.hwnd=id(h); facts.valid=IsWindow(h)!=FALSE;
++    GetWindowThreadProcessId(h,&facts.pid); facts.owner=id(GetWindow(h,GW_OWNER));
++    facts.childStyle=(GetWindowLongPtrW(h,GWL_STYLE)&WS_CHILD)!=0;
++    wchar_t name[256]{}; int length=GetClassNameW(h,name,256);
++    if(length>0) facts.windowClass.assign(name,length);
++    return facts;
++}
++static BOOL CALLBACK listChild(HWND h,LPARAM context) {
++    auto facts=readIdentity(h);
++    if(facts.pid==observedChild) reinterpret_cast<std::vector<NativeIdentity>*>(context)->push_back(facts);
+     return TRUE;
+ }
++static std::string jsonClass(const std::wstring& value) {
++    std::ostringstream result;
++    for(wchar_t c:value) { if(c>=32 && c<127 && c!=L'"' && c!=L'\\') result<<static_cast<char>(c); else { char escaped[7]{}; sprintf_s(escaped,"\\u%04x",static_cast<unsigned>(c)); result<<escaped; } }
++    return result.str();
++}
++static ReadyIdentity readyIdentity(const std::string& row) {
++    return {number(row,"ready")==1,stringValue(row,"nonce"),number(row,"pid"),number(row,"seq"),number(row,"hwnd")};
++}
++static WindowEvents windowEvents(uintptr_t hwnd) {
++    auto found=childWindows.find(hwnd); return found==childWindows.end() ? WindowEvents{} : found->second;
++}
++static void logChildInventory(const std::vector<NativeIdentity>& candidates,const ReadyIdentity& ready) {
++    for(size_t index=0;index<candidates.size();++index) {
++        const auto& native=candidates[index]; auto events=windowEvents(native.hwnd);
++        log("child_window_inventory",",\"enumeration_index\":"+std::to_string(index)+",\"native_pid\":"+std::to_string(native.pid)+",\"valid\":"+std::to_string(native.valid)+",\"owner\":"+std::to_string(native.owner)+",\"class\":\""+jsonClass(native.windowClass)+"\",\"engine_main_match\":"+std::to_string(ready.hwnd>0 && static_cast<uintptr_t>(ready.hwnd)==native.hwnd)+",\"show_match\":"+std::to_string(events.shown && !events.destroyed)+",\"generation\":"+std::to_string(events.generation)+",\"create_tick32\":"+std::to_string(events.createTick)+",\"show_tick32\":"+std::to_string(events.showTick)+",\"destroy_tick32\":"+std::to_string(events.destroyTick)+state(reinterpret_cast<HWND>(native.hwnd)));
++    }
++}
++static int identitySelftest(const std::wstring& output) {
++    logFile.open(std::filesystem::path(output)); if(!logFile) return 30;
++    ReadyIdentity ready{true,"nonce404",77,3,200};
++    NativeIdentity helper{100,0,77,true,false,L"Helper"}, main{200,0,77,true,false,L"GodotMain"};
++    WindowEvents events{77,1,true,false,10,20,0};
++    MainBinding binding{200,1,3,L"GodotMain"}; unsigned cases=0, failed=0;
++    auto check=[&](const char* name,const ReadyIdentity& r,const NativeIdentity& n,const WindowEvents& e,const MainBinding* bound,const char* expected) {
++        auto reason=identityRejection(r,"nonce404",77,n,e,bound);
++        bool pass=expected ? reason && std::string(reason)==expected : reason==nullptr;
++        ++cases; if(!pass) ++failed;
++        log("identity_selftest",std::string(",\"case\":\"")+name+"\",\"pass\":"+std::to_string(pass)+",\"reason\":\""+(reason?reason:"accepted")+"\"");
++    };
++    // No Win32 window, hook, process or desktop operation occurs in this branch.
++    check("helper_first",ready,exactCandidate(200,{helper,main}),events,nullptr,nullptr);
++    check("main_first",ready,exactCandidate(200,{main,helper}),events,nullptr,nullptr);
++    auto r=ready; r.pid=88; check("wrong_ready_pid",r,main,events,nullptr,"wrong_ready_pid");
++    auto n=main; n.pid=88; check("wrong_native_pid",ready,n,events,nullptr,"wrong_native_pid");
++    n=main; n.valid=false; check("invalid_hwnd",ready,n,events,nullptr,"invalid_hwnd");
++    r=ready; r.hwnd=0; check("null_hwnd",r,main,events,nullptr,"invalid_hwnd");
++    check("missing_candidate",ready,exactCandidate(200,{helper}),events,nullptr,"invalid_hwnd");
++    r=ready; r.ready=false; check("not_ready",r,main,events,nullptr,"not_ready_or_missing_seq");
++    r=ready; r.seq=-1; check("missing_seq",r,main,events,nullptr,"not_ready_or_missing_seq");
++    r=ready; r.nonce="other"; check("wrong_nonce",r,main,events,nullptr,"wrong_nonce");
++    auto e=events; e.shown=false; check("missing_show",ready,main,e,nullptr,"missing_raw_show");
++    e=events; e.pid=88; check("wrong_event_pid",ready,main,e,nullptr,"missing_raw_show");
++    e=events; e.generation=0; check("missing_create",ready,main,e,nullptr,"missing_raw_show");
++    e=events; e.showTick=9; check("stale_show_before_create",ready,main,e,nullptr,"show_before_current_create");
++    e=events; e.destroyed=true; check("destroyed",ready,main,e,&binding,"destroyed_hwnd");
++    e=events; e.generation=2; check("reused_hwnd",ready,main,e,&binding,"main_hwnd_reused");
++    r=ready; r.hwnd=100; check("changed_hwnd",r,helper,events,&binding,"main_hwnd_changed");
++    r=ready; r.seq=2; check("seq_regression",r,main,events,&binding,"engine_seq_regressed");
++    n=main; n.owner=100; check("owned_helper",ready,n,events,nullptr,"invalid_main_hierarchy");
++    n=main; n.childStyle=true; check("child_style",ready,n,events,nullptr,"invalid_main_hierarchy");
++    n=main; n.windowClass=L"Other"; check("class_reused",ready,n,events,&binding,"main_class_changed");
++    check("stable_same_seq",ready,main,events,&binding,nullptr);
++    r=ready; r.seq=4; check("stable_next_seq",r,main,events,&binding,nullptr);
++    log("identity_selftest_result",",\"cases\":"+std::to_string(cases)+",\"failures\":"+std::to_string(failed)+",\"window_operations\":0");
++    logFile.close(); return failed?1:0;
++}
+ static int godotProbe(HINSTANCE instance,const std::wstring& condition,const std::wstring& output,
+     const std::wstring& exe,const std::wstring& project,const std::wstring& engineLog,const std::wstring& nonce) {
+     logFile.open(std::filesystem::path(output)); if(!logFile) return 30;
+@@ -177,21 +300,44 @@ static int godotProbe(HINSTANCE instance,const std::wstring& condition,const std
+     if(ResumeThread(pi.hThread)==static_cast<DWORD>(-1)) return finish("probe_defect",30);
+     std::string engine; ULONGLONG waitStart=GetTickCount64();
+     do {
+-        pump(20); EnumWindows(findChild,0); engine=latestEngine(engineLog);
++        pump(20); engine=latestEngine(engineLog);
+         if(childEverForeground || (target && GetForegroundWindow()==target)) return finish("startup_path_fail",40);
+         if(GetForegroundWindow()!=baseline) return finish("environment_interrupted",50);
+         if(WaitForSingleObject(pi.hProcess,0)!=WAIT_TIMEOUT) return finish("child_crash",50);
+-        if(target && number(engine,"ready")==1 && number(engine,"pid")==observedChild && stringValue(engine,"nonce")==expectedNonce) break;
++        if(number(engine,"ready")==1) break;
+     } while(GetTickCount64()-waitStart<12000);
+-    log("engine_ready_observed",",\"engine\":"+(engine.empty()?"null":engine)+(target?state(target):""));
+-    if(!target || number(engine,"ready")!=1 || number(engine,"pid")!=observedChild || stringValue(engine,"nonce")!=expectedNonce) return finish("coverage_insufficient",20);
+-    if(std::find(childShows.begin(),childShows.end(),target)==childShows.end()) return finish("coverage_insufficient",20);
++    // Ready/file delivery and out-of-context native callbacks are independent.
++    // Drain before association; event records retain their original native tick.
++    pump(100); engine=latestEngine(engineLog);
++    ReadyIdentity ready=readyIdentity(engine);
++    std::vector<NativeIdentity> candidates; EnumWindows(listChild,reinterpret_cast<LPARAM>(&candidates));
++    logChildInventory(candidates,ready);
++    auto native=exactCandidate(ready.hwnd>0?static_cast<uintptr_t>(ready.hwnd):0,candidates);
++    auto evidence=windowEvents(native.hwnd);
++    const char* rejected=identityRejection(ready,expectedNonce,observedChild,native,evidence);
++    log("main_identity_association",",\"engine\":"+(engine.empty()?"null":engine)+",\"reason\":\""+(rejected?rejected:"accepted")+"\",\"native_pid\":"+std::to_string(native.pid)+",\"owner\":"+std::to_string(native.owner)+",\"generation\":"+std::to_string(evidence.generation));
++    if(rejected) return finish("coverage_insufficient",20);
++    // No fallback or retargeting: target is assigned exactly once from ready.
++    target=reinterpret_cast<HWND>(native.hwnd);
++    MainBinding binding{native.hwnd,evidence.generation,ready.seq,native.windowClass};
++    auto identityStillBound=[&](const std::string& current) {
++        auto r=readyIdentity(current); auto n=readIdentity(target); auto e=windowEvents(binding.hwnd);
++        const char* reason=identityRejection(r,expectedNonce,observedChild,n,e,&binding);
++        if(reason) log("main_identity_rejected",",\"reason\":\""+std::string(reason)+"\",\"engine\":"+(current.empty()?"null":current)+state(target));
++        else binding.seq=r.seq;
++        return reason==nullptr;
++    };
++    log("engine_ready_observed",",\"engine\":"+engine+state(target));
++    if(!identityStillBound(engine)) return finish("coverage_insufficient",20);
++    if(childEverForeground || GetForegroundWindow()==target) return finish("startup_path_fail",40);
++    if(GetForegroundWindow()!=baseline) return finish("environment_interrupted",50);
+     if(!IsIconic(target) || (GetWindowLongPtrW(target,GWL_EXSTYLE)&WS_EX_TOPMOST) || number(engine,"window_mode")!=1 || number(engine,"display_mode")!=1 || number(engine,"hwnd")!=static_cast<long long>(id(target))) return finish("probe_defect",30);
+     LONG_PTR originalEx=GetWindowLongPtrW(target,GWL_EXSTYLE); SetLastError(0);
+     auto previousEx=SetWindowLongPtrW(target,GWL_EXSTYLE,originalEx|WS_EX_NOACTIVATE);
+     if((!previousEx && GetLastError()!=0) || !(GetWindowLongPtrW(target,GWL_EXSTYLE)&WS_EX_NOACTIVATE)) return finish("probe_defect",30);
+     if(!SetWindowPos(target,HWND_BOTTOM,0,0,0,0,SWP_HIDEWINDOW|SWP_NOACTIVATE|SWP_NOMOVE|SWP_NOSIZE|SWP_NOOWNERZORDER|SWP_FRAMECHANGED)) return finish("probe_defect",30);
+     pump(100); log("safe_hidden_minimized",state(target));
++    engine=latestEngine(engineLog); if(!identityStillBound(engine)) return finish("coverage_insufficient",20);
+     if(childEverForeground) return finish("startup_path_fail",40);
+     if(IsWindowVisible(target) || !IsIconic(target)) return finish("probe_defect",30);
+     if(GetForegroundWindow()!=baseline) return finish("environment_interrupted",50);
+@@ -199,17 +345,19 @@ static int godotProbe(HINSTANCE instance,const std::wstring& condition,const std
+     BOOL returned=ShowWindow(target,SW_SHOWNOACTIVATE);
+     log("restore_api_return",",\"return_previous_visible\":"+std::to_string(returned)+",\"last_error_applicable\":false"+state(target));
+     ULONGLONG syncStart=GetTickCount64();
+-    do { pump(20); engine=latestEngine(engineLog); if(childEverForeground || GetForegroundWindow()!=baseline) return finish("candidate_fail",40); if(!normal()) return finish("candidate_fail",40); if(number(engine,"window_mode")==0 && number(engine,"display_mode")==0) break; } while(GetTickCount64()-syncStart<500);
++    do { pump(20); engine=latestEngine(engineLog); if(!identityStillBound(engine)) return finish("coverage_insufficient",20); if(childEverForeground || GetForegroundWindow()!=baseline) return finish("candidate_fail",40); if(!normal()) return finish("candidate_fail",40); if(number(engine,"window_mode")==0 && number(engine,"display_mode")==0) break; } while(GetTickCount64()-syncStart<500);
+     if(number(engine,"window_mode")!=0 || number(engine,"display_mode")!=0) return finish("mode_sync_fail",40);
+     DWORD stableStart=GetTickCount(); ULONGLONG stable=GetTickCount64(), engineChanged=stable; long long lastEngineSeq=-1; unsigned samples=0;
+     do {
+         pump(20); engine=latestEngine(engineLog); ++samples;
++        if(!identityStillBound(engine)) return finish("coverage_insufficient",20);
+         if(number(engine,"seq")!=lastEngineSeq) { lastEngineSeq=number(engine,"seq"); engineChanged=GetTickCount64(); }
+         log("godot_sample",",\"engine\":"+(engine.empty()?"null":engine)+state(target));
+         if(GetTickCount64()-engineChanged>250) return finish("coverage_insufficient",20);
+         if(!normal() || childEverForeground || GetForegroundWindow()!=baseline || number(engine,"window_mode")!=0 || number(engine,"display_mode")!=0 || number(engine,"focused")!=0) return finish("candidate_fail",40);
+     } while(GetTickCount64()-stable<2000);
+     NotifyWinEvent(EVENT_OBJECT_NAMECHANGE,markerWindow,OBJID_WINDOW,CHILDID_SELF); pump(150);
++    engine=latestEngine(engineLog); if(!identityStillBound(engine)) return finish("coverage_insufficient",20);
+     log("godot_interval",",\"restore_tick32\":"+std::to_string(restoreTick)+",\"stable_begin_tick32\":"+std::to_string(stableStart)+",\"end_tick32\":"+std::to_string(GetTickCount())+",\"samples\":"+std::to_string(samples)+",\"markers\":"+std::to_string(markers)+",\"max_pump_gap_ms\":"+std::to_string(maxOverallGap));
+     if(markers!=2 || maxOverallGap>250) return finish("coverage_insufficient",20);
+     if(childEverForeground || GetForegroundWindow()!=baseline) return finish("candidate_fail",40);
+@@ -217,6 +365,7 @@ static int godotProbe(HINSTANCE instance,const std::wstring& condition,const std
+ }
+ int WINAPI wWinMain(HINSTANCE instance,HINSTANCE,PWSTR,int) {
+     int argc=0; auto args=CommandLineToArgvW(GetCommandLineW(),&argc);
++    if(args && argc==3 && std::wstring(args[1])==L"--identity-selftest") { int code=identitySelftest(args[2]); LocalFree(args); return code; }
+     if(args && argc==8 && std::wstring(args[1])==L"--godot") { int code=godotProbe(instance,args[2],args[3],args[4],args[5],args[6],args[7]); LocalFree(args); return code; }
+     if (!args || argc!=4) { if(args) LocalFree(args); return 30; }
+     std::wstring variant=args[1], condition=args[2], output=args[3]; LocalFree(args);
