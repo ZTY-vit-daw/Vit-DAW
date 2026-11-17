@@ -1,0 +1,11 @@
+cmake -S VitShell/tests -B "C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\GODOT-MAIN-HWND-OBSERVATION-1\build" -G "Visual Studio 18 2026" -A x64
+configure_exit=0
+cmake --build "C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\GODOT-MAIN-HWND-OBSERVATION-1\build" --config Release
+build_exit=0
+"C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\GODOT-MAIN-HWND-OBSERVATION-1\build\Release\win32_noactivate_restore_probe.exe" --identity-selftest "C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\GODOT-MAIN-HWND-OBSERVATION-1\identity_selftest.jsonl" (Start-Process -WindowStyle Hidden; no-window branch)
+selftest_pid=22232 exit=0
+cmake --build "C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\GODOT-MAIN-HWND-OBSERVATION-1\build" --config Release (after stale-SHOW temporal predicate added)
+build_final_exit=0
+"C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\GODOT-MAIN-HWND-OBSERVATION-1\build\Release\win32_noactivate_restore_probe.exe" --identity-selftest "C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\GODOT-MAIN-HWND-OBSERVATION-1\identity_selftest_final.jsonl" (windowless only)
+selftest_final_pid=28392 exit=0
+git diff --quiet f9792767 -- scripts/vitshell_smoke.ps1; exit=0

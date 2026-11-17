@@ -1,0 +1,12 @@
+[
+  {
+    "Algorithm": "SHA256",
+    "Hash": "73A244DAB2EAC5927B8FC4802C8D1FCC1EED0B22DCC6DC6D8E977DEC5771EAC9",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-MAIN-HWND-OBSERVATION-1\\build\\Release\\win32_noactivate_restore_probe.exe"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "85F2CBAB4A785D5D52328AAB2A24225A863818F26116D10EF17CF25F87AD2AED",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403-fe\\vit-daw-frontend\\VitShell\\tests\\win32_noactivate_restore_probe.cpp"
+  }
+]
