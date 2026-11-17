@@ -35,8 +35,14 @@ both result records are retained in `raw-copy-logs.zip`. No full unit/render
 suite was repeated for this copy-only revision, and no real stack or Godot
 process was started.
 
-Known integration alignment for supervisor/389 owner: the existing shared
-`gallery/render-smoke.mjs:766` still checks the old technical note substring
-“已自动经 Vit 桥”. This file is outside this revision's write domain and was
-reported to the supervisor. Migrate that copy expectation while retaining
-automatic-execution state, no-manual-execute and no-false-success assertions.
+After the copy commit was already pushed, the supervisor authorized the
+adjacent render-script alignment. The 389 checkout was read-only verified at
+`0371a1d0ea41e37bd5303d5189f2ba73eb96a8ec`; only its ignored/untracked render
+artifacts remained, and the supervisor confirmed no active writer. The shared
+`gallery/render-smoke.mjs` assertion and its comment now require “工程操作请求已提交”
+and absence of `UI-BRIDGE-1`, retaining automatic state, no manual execute and
+no false-success checks. `node --check src/gallery/render-smoke.mjs` exited 0.
+No eleven-segment render rerun was performed; the supervisor's final combined
+run verifies that script together with 389's new-fixture migration. The
+follow-up is an adjacent commit to avoid rewriting the already-pushed copy
+commit. Production copy and its focused/build evidence did not change.

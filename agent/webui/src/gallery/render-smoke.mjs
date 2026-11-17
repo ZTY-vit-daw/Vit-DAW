@@ -58,7 +58,7 @@
  * UI-SMOKE-AUTOASSERT-1（376）扩展：LAUNCHER 面 directive 断言对齐 SHELL-5 自动执行
  * 态（产品=用户裁定口径；旧「待执行占位（准备打开…）+手动执行按钮」断言过时致
  * test:render LAUNCHER+SHADOWBOX 两面红）——state=auto + 执行语态 headline（正在打开
- * 《X》…）+「已自动经 Vit 桥」note + 无手动执行按钮（data-launcher-directive-execute）
+ * 《X》…）+「工程操作请求已提交」note（无代码ID）+ 无手动执行按钮（data-launcher-directive-execute）
  * 与不虚报「已打开」负断言；SHADOWBOX 报告为 launcher/project failures 聚合，随
  * LAUNCHER 转绿。零产品行为改动（diff 仅断言）。
  * WIDGET-KIT-1（379）扩展：追加音乐控件 fixture 页（gallery.html?surface=widgets）
@@ -759,11 +759,12 @@ async function main() {
   // =用户裁定口径，SHEE-5/367 验收缺口致断言漂移；旧「待执行占位（准备打开…，
   // 不虚报已打开）+手动执行按钮」期望已废）。
   launcherAssert(
-    "directive = 自动执行态（state=auto + 执行语态 headline 正在打开《X》… + Vit 桥已发出 note）",
+    "directive = 自动执行态（state=auto + 执行语态 headline 正在打开《X》… + 请求已提交用户说明）",
     ldom.directiveState === "auto" &&
       ldom.directiveHeadline.startsWith("正在打开《") &&
       ldom.directiveHeadline.endsWith("》…") &&
-      ldom.directiveNote.includes("已自动经 Vit 桥"),
+      ldom.directiveNote.includes("工程操作请求已提交") &&
+      !ldom.directiveNote.includes("UI-BRIDGE-1"),
     `state=${ldom.directiveState} headline=${ldom.directiveHeadline} note=${ldom.directiveNote}`
   );
   launcherAssert(
