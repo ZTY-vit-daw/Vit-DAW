@@ -191,7 +191,7 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 386 | T9-PRE-1B-1 | done 已验收 pass 合入 dd367207（App.tsx **9448→2335 行**/17 域模块；698=698 主管复跑+render 9 段；过程事故 2 起披露在卷无权威丢弃；**387 解锁**） |
 | 387 | CONVERGE-SHELL-1 | done 技术面 pass 合入（**366 磁带卡落地**：磁带盒整卡结构主管截图亲核+渲染断言+真栈 ui_entry2 四腿；**366 用户目检已于2026-11-17终验PASS**；ui_entry_smoke 腿1 前提失效+data-tape-badge 断言对齐→389 承接） |
 | 388 | CONVERGE-ENTRY-1 | done 主管PASS合入be43a2a2（Codex /root/entry388 / Sol-high；收敛阶段1卡4：工程管理挂载+进出语义；**387 合入后解锁**；Godot 收编点 A 另微改卡） |
-| 389 | CONVERGE-CLEANUP-1 | doing /root/cleanup389 Sol/high（收敛阶段1卡5：旧面退役+阶段出口=用户 Godot 拉起全旅程手测；**388 合入后解锁**） |
+| 389 | CONVERGE-CLEANUP-1 | done 主管技术PASS合入036b7eaf（收敛阶段1卡5：旧面退役+阶段出口=用户 Godot 拉起全旅程手测；**388 合入后解锁**） |
 | 394 | SHELL-WIN-NATIVE-1 | doing（391-A，Sol/xhigh；/root/window391；前端仓VitShell域，零栈先行） |
 | 395 | SHELL-WIN-PRESENTATION-1 | doing /root/window391 Sol/xhigh（391-B，候388验收与394协议，真栈串行） |
 | 396 | GODOT-RETRY-LAUNCHER-1 | doing（/root/retry396，Luna/high；收编点A独立微卡，前端仓gd域） |
