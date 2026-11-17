@@ -1,0 +1,7 @@
+﻿param([string]$Source,[string]$Output)
+$ErrorActionPreference='Stop';$errors=$null;$tokens=$null;$ast=[Management.Automation.Language.Parser]::ParseFile($Source,[ref]$tokens,[ref]$errors);if(@($errors).Count){exit 1}
+$guards=@($ast.FindAll({param($n)$n -is [Management.Automation.Language.IfStatementAst] -and ($n.Extent.Text.StartsWith('if ($TestTransitionObserver -and') -or $n.Extent.Text.StartsWith('if ($ForensicsCard -eq'))},$true))
+$cases=@(@('default403', $false,$false,'403',$true),@('observer_only',$true,$false,'406',$false),@('observer_wrong_card',$true,$true,'404',$false),@('card406_missing_observer',$false,$true,'406',$false),@('observer406_explicit',$true,$true,'406',$true))
+$results=@();foreach($c in $cases){$TestTransitionObserver=$c[1];$GodotRestoreForensics=$c[2];$ForensicsCard=$c[3];$accepted=$true;try{foreach($g in $guards){. ([scriptblock]::Create($g.Extent.Text))}}catch{$accepted=$false};$results += [ordered]@{case=$c[0];accepted=$accepted;pass=($accepted -eq $c[4])}}
+[ordered]@{host=$PSVersionTable.PSVersion.ToString();guards=$guards.Count;cases=$results;script_top_level_invoked=$false}|ConvertTo-Json -Depth 4|Out-File -LiteralPath $Output -Encoding utf8
+if($guards.Count -ne 2 -or @($results|Where-Object {-not $_.pass}).Count){exit 1}

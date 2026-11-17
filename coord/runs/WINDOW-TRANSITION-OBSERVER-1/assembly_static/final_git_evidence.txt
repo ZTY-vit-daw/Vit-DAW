@@ -1,0 +1,15 @@
+Main
+2d7eb8f211d9cd559c5d269f6c4d0a67d0962b44
+?? coord/runs/GODOT-MAIN-HWND-OBSERVATION-1/formal_02/external.godot.project/isolated_user/
+?? coord/runs/GODOT-MAIN-HWND-OBSERVATION-1/formal_02/synthetic.godot.project/isolated_user/
+?? coord/runs/WIN32-NOACTIVATE-RESTORE-FORENSICS-1/phase_b_01/formal_B/synthetic.godot.project/isolated_user/
+?? coord/runs/WIN32-NOACTIVATE-RESTORE-FORENSICS-1/phase_b_02/formal_B2/synthetic.godot.project/isolated_user/
+?? coord/runs/WINDOW-TRANSITION-OBSERVER-1/assembly_static/
+Frontend
+1a4ff1c3915a8091a2b50dac8fc2941dc69dfc60
+1a4ff1c 406: assemble gated Godot observer probe with verified graceful unload handshake
+ VitShell/tests/CMakeLists.txt                      |   6 +
+ VitShell/tests/win32_noactivate_restore_probe.cpp  | 508 +++++++++++++++++++++
+ VitShell/tests/window_transition_observer.h        |  15 +
+ .../window_transition_observer_policy_test.cpp     |  11 +
+ 4 files changed, 540 insertions(+)

@@ -1,0 +1,6 @@
+{
+  "newline_split_is_GDScript_escape": true,
+  "request_is_exact_untrimmed_nonce": true,
+  "transition_loaded_follows_unload": true,
+  "Godot_not_run": true
+}

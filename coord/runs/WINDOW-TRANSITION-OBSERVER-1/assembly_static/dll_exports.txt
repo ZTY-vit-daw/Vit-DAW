@@ -1,0 +1,26 @@
+
+Dump of file C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\WINDOW-TRANSITION-OBSERVER-1\assembly_static\build\Release\window_transition_observer.dll
+
+File Type: DLL
+
+  Section contains the following exports for window_transition_observer.dll
+
+    00000000 characteristics
+    FFFFFFFF time date stamp
+        0.00 version
+           1 ordinal base
+           1 number of functions
+           1 number of names
+
+    ordinal hint RVA      name
+
+          1    0 00003160 vit_window_transition_test_init
+
+  Summary
+
+      131000 .data
+        1000 .pdata
+        2000 .rdata
+        1000 .reloc
+        1000 .rsrc
+        3000 .text

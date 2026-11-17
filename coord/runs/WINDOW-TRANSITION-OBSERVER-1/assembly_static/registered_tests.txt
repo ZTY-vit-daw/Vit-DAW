@@ -1,0 +1,49 @@
+Test project C:/Users/timoz/.codex/worktrees/win32-restore-403/Vit_DAW/coord/runs/WINDOW-TRANSITION-OBSERVER-1/assembly_static/build
+  Test #1: window_transition_observer_policy
+Could not find executable C:/Users/timoz/.codex/worktrees/win32-restore-403/Vit_DAW/coord/runs/WINDOW-TRANSITION-OBSERVER-1/assembly_static/build/Release/loading_window_policy_test.exe
+Looked in the following places:
+C:/Users/timoz/.codex/worktrees/win32-restore-403/Vit_DAW/coord/runs/WINDOW-TRANSITION-OBSERVER-1/assembly_static/build/Release/loading_window_policy_test.exe
+C:/Users/timoz/.codex/worktrees/win32-restore-403/Vit_DAW/coord/runs/WINDOW-TRANSITION-OBSERVER-1/assembly_static/build/Release/loading_window_policy_test.exe.exe
+C:/Users/timoz/.codex/worktrees/win32-restore-403/Vit_DAW/coord/runs/WINDOW-TRANSITION-OBSERVER-1/assembly_static/build/Release/Release/loading_window_policy_test.exe
+C:/Users/timoz/.codex/worktrees/win32-restore-403/Vit_DAW/coord/runs/WINDOW-TRANSITION-OBSERVER-1/assembly_static/build/Release/Release/loading_window_policy_test.exe.exe
+Release/C:/Users/timoz/.codex/worktrees/win32-restore-403/Vit_DAW/coord/runs/WINDOW-TRANSITION-OBSERVER-1/assembly_static/build/Release/loading_window_policy_test.exe
+Release/C:/Users/timoz/.codex/worktrees/win32-restore-403/Vit_DAW/coord/runs/WINDOW-TRANSITION-OBSERVER-1/assembly_static/build/Release/loading_window_policy_test.exe.exe
+  Test #2: loading_window_policy
+Could not find executable C:/Users/timoz/.codex/worktrees/win32-restore-403/Vit_DAW/coord/runs/WINDOW-TRANSITION-OBSERVER-1/assembly_static/build/Release/window_status_serialization_test.exe
+Looked in the following places:
+C:/Users/timoz/.codex/worktrees/win32-restore-403/Vit_DAW/coord/runs/WINDOW-TRANSITION-OBSERVER-1/assembly_static/build/Release/window_status_serialization_test.exe
+C:/Users/timoz/.codex/worktrees/win32-restore-403/Vit_DAW/coord/runs/WINDOW-TRANSITION-OBSERVER-1/assembly_static/build/Release/window_status_serialization_test.exe.exe
+C:/Users/timoz/.codex/worktrees/win32-restore-403/Vit_DAW/coord/runs/WINDOW-TRANSITION-OBSERVER-1/assembly_static/build/Release/Release/window_status_serialization_test.exe
+C:/Users/timoz/.codex/worktrees/win32-restore-403/Vit_DAW/coord/runs/WINDOW-TRANSITION-OBSERVER-1/assembly_static/build/Release/Release/window_status_serialization_test.exe.exe
+Release/C:/Users/timoz/.codex/worktrees/win32-restore-403/Vit_DAW/coord/runs/WINDOW-TRANSITION-OBSERVER-1/assembly_static/build/Release/window_status_serialization_test.exe
+Release/C:/Users/timoz/.codex/worktrees/win32-restore-403/Vit_DAW/coord/runs/WINDOW-TRANSITION-OBSERVER-1/assembly_static/build/Release/window_status_serialization_test.exe.exe
+  Test #3: window_status_serialization
+Could not find executable C:/Users/timoz/.codex/worktrees/win32-restore-403/Vit_DAW/coord/runs/WINDOW-TRANSITION-OBSERVER-1/assembly_static/build/Release/launch_result_correlation_test.exe
+Looked in the following places:
+C:/Users/timoz/.codex/worktrees/win32-restore-403/Vit_DAW/coord/runs/WINDOW-TRANSITION-OBSERVER-1/assembly_static/build/Release/launch_result_correlation_test.exe
+C:/Users/timoz/.codex/worktrees/win32-restore-403/Vit_DAW/coord/runs/WINDOW-TRANSITION-OBSERVER-1/assembly_static/build/Release/launch_result_correlation_test.exe.exe
+C:/Users/timoz/.codex/worktrees/win32-restore-403/Vit_DAW/coord/runs/WINDOW-TRANSITION-OBSERVER-1/assembly_static/build/Release/Release/launch_result_correlation_test.exe
+C:/Users/timoz/.codex/worktrees/win32-restore-403/Vit_DAW/coord/runs/WINDOW-TRANSITION-OBSERVER-1/assembly_static/build/Release/Release/launch_result_correlation_test.exe.exe
+Release/C:/Users/timoz/.codex/worktrees/win32-restore-403/Vit_DAW/coord/runs/WINDOW-TRANSITION-OBSERVER-1/assembly_static/build/Release/launch_result_correlation_test.exe
+Release/C:/Users/timoz/.codex/worktrees/win32-restore-403/Vit_DAW/coord/runs/WINDOW-TRANSITION-OBSERVER-1/assembly_static/build/Release/launch_result_correlation_test.exe.exe
+  Test #4: launch_result_correlation
+Could not find executable C:/Users/timoz/.codex/worktrees/win32-restore-403/Vit_DAW/coord/runs/WINDOW-TRANSITION-OBSERVER-1/assembly_static/build/Release/launcher_presentation_test.exe
+Looked in the following places:
+C:/Users/timoz/.codex/worktrees/win32-restore-403/Vit_DAW/coord/runs/WINDOW-TRANSITION-OBSERVER-1/assembly_static/build/Release/launcher_presentation_test.exe
+C:/Users/timoz/.codex/worktrees/win32-restore-403/Vit_DAW/coord/runs/WINDOW-TRANSITION-OBSERVER-1/assembly_static/build/Release/launcher_presentation_test.exe.exe
+C:/Users/timoz/.codex/worktrees/win32-restore-403/Vit_DAW/coord/runs/WINDOW-TRANSITION-OBSERVER-1/assembly_static/build/Release/Release/launcher_presentation_test.exe
+C:/Users/timoz/.codex/worktrees/win32-restore-403/Vit_DAW/coord/runs/WINDOW-TRANSITION-OBSERVER-1/assembly_static/build/Release/Release/launcher_presentation_test.exe.exe
+Release/C:/Users/timoz/.codex/worktrees/win32-restore-403/Vit_DAW/coord/runs/WINDOW-TRANSITION-OBSERVER-1/assembly_static/build/Release/launcher_presentation_test.exe
+Release/C:/Users/timoz/.codex/worktrees/win32-restore-403/Vit_DAW/coord/runs/WINDOW-TRANSITION-OBSERVER-1/assembly_static/build/Release/launcher_presentation_test.exe.exe
+  Test #5: launcher_presentation
+Could not find executable C:/Users/timoz/.codex/worktrees/win32-restore-403/Vit_DAW/coord/runs/WINDOW-TRANSITION-OBSERVER-1/assembly_static/build/Release/hidden_bootstrap_test.exe
+Looked in the following places:
+C:/Users/timoz/.codex/worktrees/win32-restore-403/Vit_DAW/coord/runs/WINDOW-TRANSITION-OBSERVER-1/assembly_static/build/Release/hidden_bootstrap_test.exe
+C:/Users/timoz/.codex/worktrees/win32-restore-403/Vit_DAW/coord/runs/WINDOW-TRANSITION-OBSERVER-1/assembly_static/build/Release/hidden_bootstrap_test.exe.exe
+C:/Users/timoz/.codex/worktrees/win32-restore-403/Vit_DAW/coord/runs/WINDOW-TRANSITION-OBSERVER-1/assembly_static/build/Release/Release/hidden_bootstrap_test.exe
+C:/Users/timoz/.codex/worktrees/win32-restore-403/Vit_DAW/coord/runs/WINDOW-TRANSITION-OBSERVER-1/assembly_static/build/Release/Release/hidden_bootstrap_test.exe.exe
+Release/C:/Users/timoz/.codex/worktrees/win32-restore-403/Vit_DAW/coord/runs/WINDOW-TRANSITION-OBSERVER-1/assembly_static/build/Release/hidden_bootstrap_test.exe
+Release/C:/Users/timoz/.codex/worktrees/win32-restore-403/Vit_DAW/coord/runs/WINDOW-TRANSITION-OBSERVER-1/assembly_static/build/Release/hidden_bootstrap_test.exe.exe
+  Test #6: hidden_bootstrap
+
+Total Tests: 6

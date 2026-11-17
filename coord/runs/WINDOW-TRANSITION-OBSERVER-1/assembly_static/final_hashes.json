@@ -1,0 +1,47 @@
+[
+  {
+    "Algorithm": "SHA256",
+    "Hash": "6BB980C897210F130A371BD1375A8DFC69A144B25AAD604D57DDD58075B0CB9B",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\scripts\\vitshell_smoke.ps1"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "7775509EC278140977F8172F00005FC0BFACFD823E9FF83493DFD134D3E48097",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\shell-window-transition-406\\vit-daw-frontend\\VitShell\\tests\\window_transition_observer.cpp"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "E6CB01677CD5BEEF5C8B4113850FBEB4EEAFAA010845A25FBA5244BF36EE0E12",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\shell-window-transition-406\\vit-daw-frontend\\VitShell\\tests\\window_transition_observer.h"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "3362F831AA63CB302794C82D21A646C8FADAB346CFF99B4342794C68104817B7",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\shell-window-transition-406\\vit-daw-frontend\\VitShell\\tests\\window_transition_observer_policy_test.cpp"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "544E7B1724BC666DF702CE796462EBD8D1E32519FEC57B6ACE0D6AB8CA0A2927",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\shell-window-transition-406\\vit-daw-frontend\\VitShell\\tests\\win32_noactivate_restore_probe.cpp"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "B9688C1DE104EC999FF2F43B5D193487EFF3FE36080D93CF4A761A12D505E15D",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\shell-window-transition-406\\vit-daw-frontend\\VitShell\\tests\\CMakeLists.txt"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "8B58B75E669199E77CAF24E5E599E850353688794671E8875A5828FCD3CF741B",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WINDOW-TRANSITION-OBSERVER-1\\assembly_static\\build\\Release\\window_transition_observer.dll"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "4359D6F22DAC06FB729A2E3AFF6F55B23C51EA0C77D113FAE92BB077AFDF15CC",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WINDOW-TRANSITION-OBSERVER-1\\assembly_static\\build\\Release\\win32_noactivate_restore_probe.exe"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "5B41334F0C17FB09DFD56950634FEB10D9ADEF9D2215622BE3ADAA737F275C1E",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\WINDOW-TRANSITION-OBSERVER-1\\assembly_static\\build\\Release\\window_transition_observer_policy_test.exe"
+  }
+]

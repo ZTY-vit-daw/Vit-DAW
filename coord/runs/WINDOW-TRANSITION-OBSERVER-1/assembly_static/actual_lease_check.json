@@ -1,0 +1,7 @@
+﻿{
+    "accepted":  false,
+    "expected":  false,
+    "pass":  true,
+    "reason":  "forensics current resource is not reserved or occupied",
+    "boundary":  "Actual top record is released; rejection is required until future runtime reservation"
+}

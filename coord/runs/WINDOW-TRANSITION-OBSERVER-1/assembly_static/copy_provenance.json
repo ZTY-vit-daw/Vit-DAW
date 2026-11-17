@@ -1,0 +1,12 @@
+{
+  "copied_from_commit": "cdf192478f255c72fb5ea25996227cb0094557c2",
+  "initial_copied_sha256": "85F2CBAB4A785D5D52328AAB2A24225A863818F26116D10EF17CF25F87AD2AED",
+  "scope": "Only test source copied; native observer callback cpp unchanged from5ec88a9",
+  "old_tests": [
+    "loading_window_policy",
+    "window_status_serialization",
+    "launch_result_correlation",
+    "launcher_presentation",
+    "hidden_bootstrap"
+  ]
+}

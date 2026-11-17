@@ -1,0 +1,32 @@
+﻿{
+    "host":  "5.1.26100.9818",
+    "guards":  2,
+    "cases":  [
+                  {
+                      "case":  "default403",
+                      "accepted":  true,
+                      "pass":  true
+                  },
+                  {
+                      "case":  "observer_only",
+                      "accepted":  false,
+                      "pass":  true
+                  },
+                  {
+                      "case":  "observer_wrong_card",
+                      "accepted":  false,
+                      "pass":  true
+                  },
+                  {
+                      "case":  "card406_missing_observer",
+                      "accepted":  false,
+                      "pass":  true
+                  },
+                  {
+                      "case":  "observer406_explicit",
+                      "accepted":  true,
+                      "pass":  true
+                  }
+              ],
+    "script_top_level_invoked":  false
+}

@@ -1,0 +1,13 @@
+cmake -S C:/Users/timoz/.codex/worktrees/shell-window-transition-406/vit-daw-frontend/VitShell/tests -B C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\WINDOW-TRANSITION-OBSERVER-1\assembly_static\build -G Visual Studio 18 2026 -A x64 -DVIT_TEST_GDEXTENSION_INCLUDE=C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\WINDOW-TRANSITION-OBSERVER-1\dependencies
+configure_exit=0
+build_exit=0
+PS51_AST_helper_fixture_exit=0
+stop_policy_ctest_exit=0
+copied_probe_identity_selftest_exit=0
+PS51_AST_fixture_v2_exit=0
+PS51_explicit_observer_gates_exit=0
+dumpbin_exports_exit=0
+observer_core_diff_exit=0
+build_probe_final_exit=0
+PS51_AST_final_fixture_exit=0
+PS51_final_option_gates_exit=0

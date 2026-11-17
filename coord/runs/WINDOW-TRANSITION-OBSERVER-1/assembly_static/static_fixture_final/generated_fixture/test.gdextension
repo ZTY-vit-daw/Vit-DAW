@@ -1,0 +1,7 @@
+[configuration]
+entry_symbol="vit_window_transition_test_init"
+compatibility_minimum="4.6"
+reloadable=false
+[libraries]
+windows.debug.x86_64="res://window_transition_observer.dll"
+windows.release.x86_64="res://window_transition_observer.dll"

@@ -1,0 +1,6 @@
+{
+  "at": "2026-11-17T18:32:46.9235261+08:00",
+  "processes": [],
+  "recents_sha256": "807226F4AF3FC85C2B99BFD2FB827C1583E7C991826BDE5F0B4344A6DC13E353",
+  "boundary": "Static assembly and pure windowless executables only; no Godot/observer DLL loaded"
+}
