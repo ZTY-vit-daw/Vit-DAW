@@ -21,3 +21,8 @@
 - 方案ab2206d4/0ced980e/8f1b7c8a已提交；DPI坐标契约明确，但异步WinEvent不足以证首次转换geometry，当前单候选不能给严格PASS。主管与Astra最疑难只读参谋复核官方契约；参谋无实现/运行/验收。证据边界见`coord/decisions/2026-11-17-first-visible-evidence-boundary.md`。
 - 本段增加只读可行性勘察：既有目标Godot extension能否由应用自身在其窗口线程配合转换记录/geometry约束（合法自进程，不跨进程注入或subclass、不全局hook）。明确extension实际装配、主线程/生命周期、同nonce/PID/HWND协议、所有中间几何变化如何覆盖及停止/卸载边界。
 - 仅写本卡`PLAN.md`补充或`TARGET-COOPERATION.md`报告；不改生产/探针/脚本代码、不起任何窗口。若需超3实现文件域、引入维护性差的原生机制或无法保留legacy，明确方案风险并上交；当前无用户产品语义待裁定，不因取证难而放宽首显门。
+
+## 继续到手测的主管裁定（18:03 +0800）
+
+- 用户本轮明确“继续，直到可以交由我手测”。主管接受405只读成果为前置，不继续盲跑；先拆406测试专用目标自进程观察器。观察对象为User32自有主窗转换的geometry/z因果证据，不宣称像素/首个DWM合成帧原子保证，也不改变“不抢前台、普通大窗在后”的产品要求。
+- 406采用隔离GDExtension测试DLL，由Godot自身官方加载、在所属线程观察自己的HWND；不改产品extension/manager/GD，不跨进程注入/subclass、不全局hook。先实现和纯无窗检查，再单独冻结隔离运行。成功后405实施唯一placement/DPI候选，后续394修订与完整产品矩阵仍逐次验收。
