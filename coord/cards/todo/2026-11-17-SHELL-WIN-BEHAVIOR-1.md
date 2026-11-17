@@ -19,3 +19,6 @@
 ## 父391组合验收装置（2026-11-17）
 
 /root/entry388在自身主仓执行分支准备现有vitshell_full_smoke/cdp/wrapper三脚本WindowBehaviorChecks默认off；owner与CardId参数化、沿早退卫生包装；原生焦点/ready与395消费按独立run可复核，不能用388稳定前端run代替。402-B白名单失败注入已显式交接，C++不可扩域。当前271占栈，仅静态准备。
+
+## 组合真栈排栈（2026-11-17）
+ROOT entry388为本轮验证owner，组合主仓1c104631/前端1301345；normal后按已冻结矩阵，389实际LegC另退出码；未pass不合入main。主管零栈组合focused57/build与最终11渲染报告均exit0，原compact190px真回退留证，CSS修min0后绿，断言未降。用户已改手测入口为VitShell产品cmd，裁定86ae9c87。
