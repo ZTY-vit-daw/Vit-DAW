@@ -23,7 +23,8 @@ function Assert-EntryLeaseAndStack {
     if ($fetchExit -ne 0 -or $showExit -ne 0) { throw 'ENV-INTERRUPT: lease fetch/read failed' }
     $leaseHead = ($lease | Select-Object -First 4) -join "`n"
     $leaseHead | Out-File (Join-Path $RunRoot 'lease_head.log') -Append -Encoding utf8
-    if ($leaseHead -notmatch '占用.*CONVERGE-ENTRY-1\(388\)' -or $leaseHead -notmatch 'owner=Codex /root/entry388') { throw 'ENV-INTERRUPT: current remote stack owner is not entry388' }
+    $occupiedMarker = [string][char]0x5360 + [char]0x7528
+    if ($leaseHead -notmatch ($occupiedMarker + '.*CONVERGE-ENTRY-1\(388\)') -or $leaseHead -notmatch 'owner=Codex /root/entry388') { throw 'ENV-INTERRUPT: current remote stack owner is not entry388' }
     $processes = @(Get-CimInstance Win32_Process)
     $allowed = @{}
     if ($AllowedRootPid -gt 0) {
