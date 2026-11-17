@@ -26,11 +26,129 @@ param(
     [int]$AgentPort = 7878,
     [int]$AgentReadyTimeoutSec = 120,
     [string]$RunRoot = "",
-    [switch]$SkipBuild
+    [switch]$SkipBuild,
+    [switch]$Win32RestoreForensics
 )
 
 $ErrorActionPreference = "Stop"
 $MainRoot = Split-Path -Parent $PSScriptRoot   # main-repo worktree root (scripts/..)
+
+# Card 403: explicitly selected, independent owned-window experiment. Return
+# before any product build/start/HTTP/project code below. No product code links
+# to this probe, and the normal smoke path is unchanged when this switch is off.
+if ($Win32RestoreForensics) {
+    if ($SkipBuild) { throw "403 requires a fresh isolated probe build" }
+    if ([string]::IsNullOrWhiteSpace($RunRoot)) { throw "403 requires a new explicit -RunRoot" }
+    if (Test-Path -LiteralPath $RunRoot) { throw "403 refuses to overwrite an existing run directory" }
+    $null = New-Item -ItemType Directory -Path $RunRoot
+    $RunRoot = (Resolve-Path -LiteralPath $RunRoot).Path
+    $probeResults = @()
+    $probeExit = 1
+    $probeProcess = $null
+    $probeStarted = Get-Date
+    $recentsPath = Join-Path $env:APPDATA 'Vit-DAW/global_project_config.json'
+    function Get-403RecentsHash {
+        if (Test-Path -LiteralPath $recentsPath) { return (Get-FileHash -LiteralPath $recentsPath -Algorithm SHA256).Hash }
+        return 'absent'
+    }
+    function Invoke-403Native {
+        param([string]$Exe, [string[]]$NativeArgs, [string]$LogPath)
+        # Windows PowerShell 5 represents redirected native stderr as error
+        # records. A successful git fetch prints there; inspect the native exit
+        # code instead of treating any stderr text as a terminating failure.
+        $ErrorActionPreference = 'Continue'
+        & $Exe @NativeArgs 2>&1 | Out-File -LiteralPath $LogPath -Encoding utf8
+        return $LASTEXITCODE
+    }
+    function Assert-403Idle {
+        param([string]$Label)
+        $fetchCode=Invoke-403Native -Exe git -NativeArgs @('-C',$MainRoot,'fetch','origin','main') -LogPath (Join-Path $RunRoot "$Label.fetch.log")
+        "git -C `"$MainRoot`" fetch origin main; exit=$fetchCode" | Add-Content (Join-Path $RunRoot 'commands.txt')
+        if ($fetchCode -ne 0) { throw '403 resource fetch failed' }
+        $resource = @(& git -C $MainRoot show origin/main:coord/resources/PC-RUNTIME-STACK.md)
+        if ($LASTEXITCODE -ne 0) { throw '403 resource read failed' }
+        $resource | Select-Object -First 5 | Out-File (Join-Path $RunRoot "$Label.resource.txt") -Encoding utf8
+        if ($resource[3] -notmatch '403.*owner=Codex `/root/restore403`') { throw '403 resource owner changed' }
+        $processes = @(Get-CimInstance Win32_Process | Where-Object { $_.Name -match '^(VitShell|VitAgent|VitApp|VspHub|Godot|godot|win32_noactivate_restore_probe).*\.exe$' })
+        $tcp = @(Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue | Where-Object { $_.LocalPort -in @(5555,5556,7878,7879,8787,9333) })
+        $udp = @(Get-NetUDPEndpoint -LocalPort 4445 -ErrorAction SilentlyContinue)
+        [ordered]@{ at_utc=(Get-Date).ToUniversalTime().ToString('o'); processes=$processes; tcp=$tcp; udp=$udp } |
+            ConvertTo-Json -Depth 5 | Out-File (Join-Path $RunRoot "$Label.idle.json") -Encoding utf8
+        if ($processes.Count -or $tcp.Count -or $udp.Count) { throw '403 resource conflict: no processes stopped or reused' }
+    }
+    $recentsBefore = Get-403RecentsHash
+    $recentsBefore | Out-File (Join-Path $RunRoot 'recents.before.sha256') -Encoding utf8
+    try {
+        foreach ($entry in @(@('main',$MainRoot),@('frontend',$FrontendWorktree))) {
+            $prefix=$entry[0]; $tree=$entry[1]
+            & git -C $tree rev-parse HEAD | Out-File (Join-Path $RunRoot "$prefix.head.txt") -Encoding utf8
+            & git -C $tree status --short | Out-File (Join-Path $RunRoot "$prefix.status.txt") -Encoding utf8
+            & git -C $tree diff --stat | Out-File (Join-Path $RunRoot "$prefix.diffstat.txt") -Encoding utf8
+            & git -C $tree diff | Out-File (Join-Path $RunRoot "$prefix.diff.txt") -Encoding utf8
+        }
+        Get-FileHash -Algorithm SHA256 -LiteralPath $PSCommandPath,(Join-Path $FrontendWorktree 'VitShell/tests/CMakeLists.txt'),(Join-Path $FrontendWorktree 'VitShell/tests/win32_noactivate_restore_probe.cpp') |
+            ConvertTo-Json | Out-File (Join-Path $RunRoot 'source_hashes.json') -Encoding utf8
+        Assert-403Idle 'before_build'
+        $testSource=Join-Path $FrontendWorktree 'VitShell/tests'
+        $testBuild=Join-Path $RunRoot 'build'
+        "cmake -S `"$testSource`" -B `"$testBuild`" -G `"Visual Studio 18 2026`" -A x64" |
+            Out-File (Join-Path $RunRoot 'commands.txt') -Encoding utf8
+        $configureExit=Invoke-403Native -Exe cmake -NativeArgs @('-S',$testSource,'-B',$testBuild,'-G','Visual Studio 18 2026','-A','x64') -LogPath (Join-Path $RunRoot 'configure.log')
+        "configure_exit=$configureExit" | Add-Content (Join-Path $RunRoot 'commands.txt')
+        if ($configureExit -ne 0) { throw '403 configure failed; no scenario started' }
+        "cmake --build `"$testBuild`" --config Release" | Add-Content (Join-Path $RunRoot 'commands.txt')
+        $buildExit=Invoke-403Native -Exe cmake -NativeArgs @('--build',$testBuild,'--config','Release') -LogPath (Join-Path $RunRoot 'build.log')
+        "build_exit=$buildExit" | Add-Content (Join-Path $RunRoot 'commands.txt')
+        if ($buildExit -ne 0) { throw '403 build failed; no scenario started' }
+        $probeExe=Join-Path $testBuild 'Release/win32_noactivate_restore_probe.exe'
+        Get-FileHash -Algorithm SHA256 -LiteralPath $probeExe | ConvertTo-Json |
+            Out-File (Join-Path $RunRoot 'binary_hash.json') -Encoding utf8
+        $failCount=0
+        foreach ($condition in @('synthetic','external')) {
+            foreach ($variant in @('restore','shownoactivate','placement')) {
+                if (((Get-Date)-$probeStarted).TotalMinutes -ge 30) { throw '403 30-minute stop line' }
+                if ($failCount -ge 2) { throw '403 two candidate failure stop line; no replacement runs' }
+                $scene="$condition.$variant"
+                Assert-403Idle "before_$scene"
+                $raw=Join-Path $RunRoot "$scene.jsonl"
+                "`"$probeExe`" $variant $condition `"$raw`" (Start-Process -WindowStyle Hidden; new process)" |
+                    Add-Content (Join-Path $RunRoot 'commands.txt')
+                $probeProcess=Start-Process -FilePath $probeExe -ArgumentList @($variant,$condition,('"'+$raw+'"')) -WindowStyle Hidden -PassThru
+                $ownedPID=$probeProcess.Id
+                $null=$probeProcess.Handle # retain the exact created process handle before waiting
+                [ordered]@{ pid=$ownedPID; started_utc=$probeProcess.StartTime.ToUniversalTime().ToString('o'); exe=$probeExe; variant=$variant; condition=$condition } |
+                    ConvertTo-Json | Out-File (Join-Path $RunRoot "$scene.process.json") -Encoding utf8
+                if (-not $probeProcess.WaitForExit(15000)) { throw "403 timeout in owned process $ownedPID" }
+                $code=$probeProcess.ExitCode
+                $probeProcess.Dispose()
+                $probeProcess=$null
+                "scenario=$scene pid=$ownedPID exit=$code" | Add-Content (Join-Path $RunRoot 'commands.txt')
+                $records=@(Get-Content -LiteralPath $raw | ForEach-Object { $_ | ConvertFrom-Json })
+                $result=@($records | Where-Object { $_.kind -eq 'result' })
+                if ($result.Count -ne 1 -or $records[-1].kind -ne 'hook_removed') { throw "403 incomplete raw interval/teardown in $scene" }
+                $probeResults += [ordered]@{ scene=$scene; pid=$ownedPID; exit=$code; classification=$result[0].classification; raw=$raw }
+                if ($code -eq 40 -and $variant -ne 'restore') { ++$failCount }
+                if ($code -in @(20,30,50) -or ($variant -eq 'restore' -and $code -notin @(0,10))) { throw "403 observation/probe/environment failure in $scene; no rerun" }
+            }
+        }
+        $probeExit=0
+        if (@($probeResults | Where-Object { $_.exit -eq 40 }).Count) { $probeExit=1 }
+        elseif (@($probeResults | Where-Object { $_.exit -eq 10 }).Count) { $probeExit=2 }
+    } catch {
+        $_ | Out-String | Out-File (Join-Path $RunRoot 'failure.txt') -Encoding utf8
+        $probeExit=1
+    } finally {
+        # Never enumerate-and-kill: the only process eligible is our exact handle.
+        if ($null -ne $probeProcess -and -not $probeProcess.HasExited) { $probeProcess.Kill(); $probeProcess.WaitForExit() }
+        $recentsAfter=Get-403RecentsHash
+        $recentsAfter | Out-File (Join-Path $RunRoot 'recents.after.sha256') -Encoding utf8
+        if ($recentsAfter -ne $recentsBefore) { $probeExit=1; 'Unexpected recents change: no restore/write attempted (no kernel launched)' | Out-File (Join-Path $RunRoot 'recents.failure.txt') }
+        try { Assert-403Idle 'after_teardown' } catch { $probeExit=1; $_ | Out-String | Out-File (Join-Path $RunRoot 'teardown.failure.txt') }
+        [ordered]@{ card='403'; run_id=(Split-Path -Leaf $RunRoot); started=$probeStarted.ToUniversalTime().ToString('o'); finished=(Get-Date).ToUniversalTime().ToString('o'); exit=$probeExit; recents_unchanged=($recentsBefore -eq $recentsAfter); scenarios=$probeResults; boundary='Owned synthetic Win32 windows only; no VitShell/Godot/product conclusions' } |
+            ConvertTo-Json -Depth 8 | Out-File (Join-Path $RunRoot 'report.json') -Encoding utf8
+    }
+    exit $probeExit
+}
 
 # ---------- helpers ----------
 
