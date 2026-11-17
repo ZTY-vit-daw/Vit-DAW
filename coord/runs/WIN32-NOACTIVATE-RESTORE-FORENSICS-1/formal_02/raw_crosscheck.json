@@ -1,0 +1,442 @@
+[
+  {
+    "scene": "external.placement",
+    "pid": 20048,
+    "target_hwnd": 790150,
+    "baseline_foreground": 394908,
+    "baseline_foreground_pid": 25292,
+    "raw_rows": 95,
+    "contiguous_sequence": true,
+    "first_show_seq": 9,
+    "before_restore_seq": 20,
+    "restore_return_seq": 24,
+    "interval_seq": 90,
+    "result_seq": 91,
+    "duration_ms": 2000,
+    "samples": 64,
+    "marker_events": [
+      {
+        "seq": 19,
+        "tick64": 97424359,
+        "pid": 20048,
+        "kind": "winevent",
+        "event": 32780,
+        "event_tick32": 97424359,
+        "hwnd": 790150,
+        "object": 0,
+        "child": 0,
+        "event_thread": 18544,
+        "observing": 0
+      },
+      {
+        "seq": 89,
+        "tick64": 97426468,
+        "pid": 20048,
+        "kind": "winevent",
+        "event": 32780,
+        "event_tick32": 97426468,
+        "hwnd": 790150,
+        "object": 0,
+        "child": 0,
+        "event_thread": 18544,
+        "observing": 1
+      }
+    ],
+    "interval_foreground_events": [],
+    "target_activation_messages": [],
+    "target_size_messages": [
+      {
+        "seq": 23,
+        "tick64": 97424468,
+        "pid": 20048,
+        "kind": "message",
+        "hwnd": 790150,
+        "message": 5,
+        "wparam": 0,
+        "lparam": 28902080,
+        "observing": 1
+      }
+    ],
+    "classification": "candidate_pass",
+    "teardown_last_kind": "hook_removed"
+  },
+  {
+    "scene": "external.restore",
+    "pid": 29320,
+    "target_hwnd": 1379940,
+    "baseline_foreground": 394908,
+    "baseline_foreground_pid": 25292,
+    "raw_rows": 107,
+    "contiguous_sequence": true,
+    "first_show_seq": 9,
+    "before_restore_seq": 20,
+    "restore_return_seq": 30,
+    "interval_seq": 97,
+    "result_seq": 98,
+    "duration_ms": 2016,
+    "samples": 64,
+    "marker_events": [
+      {
+        "seq": 19,
+        "tick64": 97407687,
+        "pid": 29320,
+        "kind": "winevent",
+        "event": 32780,
+        "event_tick32": 97407687,
+        "hwnd": 1379940,
+        "object": 0,
+        "child": 0,
+        "event_thread": 524,
+        "observing": 0
+      },
+      {
+        "seq": 96,
+        "tick64": 97409812,
+        "pid": 29320,
+        "kind": "winevent",
+        "event": 32780,
+        "event_tick32": 97409812,
+        "hwnd": 1379940,
+        "object": 0,
+        "child": 0,
+        "event_thread": 524,
+        "observing": 1
+      }
+    ],
+    "interval_foreground_events": [
+      {
+        "seq": 31,
+        "tick64": 97407812,
+        "pid": 29320,
+        "kind": "winevent",
+        "event": 3,
+        "event_tick32": 97407796,
+        "hwnd": 1379940,
+        "object": 0,
+        "child": 0,
+        "event_thread": 524,
+        "observing": 1
+      }
+    ],
+    "target_activation_messages": [
+      {
+        "seq": 25,
+        "tick64": 97407796,
+        "pid": 29320,
+        "kind": "message",
+        "hwnd": 1379940,
+        "message": 6,
+        "wparam": 1,
+        "lparam": 0,
+        "observing": 1
+      },
+      {
+        "seq": 29,
+        "tick64": 97407812,
+        "pid": 29320,
+        "kind": "message",
+        "hwnd": 1379940,
+        "message": 6,
+        "wparam": 1,
+        "lparam": 0,
+        "observing": 1
+      }
+    ],
+    "target_size_messages": [
+      {
+        "seq": 28,
+        "tick64": 97407812,
+        "pid": 29320,
+        "kind": "message",
+        "hwnd": 1379940,
+        "message": 5,
+        "wparam": 0,
+        "lparam": 28902080,
+        "observing": 1
+      }
+    ],
+    "classification": "control_expected_activation",
+    "teardown_last_kind": "hook_removed"
+  },
+  {
+    "scene": "external.shownoactivate",
+    "pid": 13436,
+    "target_hwnd": 4132612,
+    "baseline_foreground": 394908,
+    "baseline_foreground_pid": 25292,
+    "raw_rows": 95,
+    "contiguous_sequence": true,
+    "first_show_seq": 9,
+    "before_restore_seq": 20,
+    "restore_return_seq": 24,
+    "interval_seq": 90,
+    "result_seq": 91,
+    "duration_ms": 2000,
+    "samples": 64,
+    "marker_events": [
+      {
+        "seq": 19,
+        "tick64": 97414984,
+        "pid": 13436,
+        "kind": "winevent",
+        "event": 32780,
+        "event_tick32": 97414984,
+        "hwnd": 4132612,
+        "object": 0,
+        "child": 0,
+        "event_thread": 28676,
+        "observing": 0
+      },
+      {
+        "seq": 89,
+        "tick64": 97417093,
+        "pid": 13436,
+        "kind": "winevent",
+        "event": 32780,
+        "event_tick32": 97417093,
+        "hwnd": 4132612,
+        "object": 0,
+        "child": 0,
+        "event_thread": 28676,
+        "observing": 1
+      }
+    ],
+    "interval_foreground_events": [],
+    "target_activation_messages": [],
+    "target_size_messages": [
+      {
+        "seq": 23,
+        "tick64": 97415093,
+        "pid": 13436,
+        "kind": "message",
+        "hwnd": 4132612,
+        "message": 5,
+        "wparam": 0,
+        "lparam": 28902080,
+        "observing": 1
+      }
+    ],
+    "classification": "candidate_pass",
+    "teardown_last_kind": "hook_removed"
+  },
+  {
+    "scene": "synthetic.placement",
+    "pid": 30596,
+    "target_hwnd": 8127672,
+    "baseline_foreground": 1248868,
+    "baseline_foreground_pid": 30596,
+    "raw_rows": 116,
+    "contiguous_sequence": true,
+    "first_show_seq": 9,
+    "before_restore_seq": 33,
+    "restore_return_seq": 37,
+    "interval_seq": 103,
+    "result_seq": 104,
+    "duration_ms": 2000,
+    "samples": 64,
+    "marker_events": [
+      {
+        "seq": 32,
+        "tick64": 97400359,
+        "pid": 30596,
+        "kind": "winevent",
+        "event": 32780,
+        "event_tick32": 97400359,
+        "hwnd": 8127672,
+        "object": 0,
+        "child": 0,
+        "event_thread": 30504,
+        "observing": 0
+      },
+      {
+        "seq": 102,
+        "tick64": 97402468,
+        "pid": 30596,
+        "kind": "winevent",
+        "event": 32780,
+        "event_tick32": 97402468,
+        "hwnd": 8127672,
+        "object": 0,
+        "child": 0,
+        "event_thread": 30504,
+        "observing": 1
+      }
+    ],
+    "interval_foreground_events": [],
+    "target_activation_messages": [],
+    "target_size_messages": [
+      {
+        "seq": 36,
+        "tick64": 97400468,
+        "pid": 30596,
+        "kind": "message",
+        "hwnd": 8127672,
+        "message": 5,
+        "wparam": 0,
+        "lparam": 28902080,
+        "observing": 1
+      }
+    ],
+    "classification": "candidate_pass",
+    "teardown_last_kind": "hook_removed"
+  },
+  {
+    "scene": "synthetic.restore",
+    "pid": 7212,
+    "target_hwnd": 1183300,
+    "baseline_foreground": 1052260,
+    "baseline_foreground_pid": 7212,
+    "raw_rows": 134,
+    "contiguous_sequence": true,
+    "first_show_seq": 9,
+    "before_restore_seq": 33,
+    "restore_return_seq": 45,
+    "interval_seq": 112,
+    "result_seq": 113,
+    "duration_ms": 2016,
+    "samples": 64,
+    "marker_events": [
+      {
+        "seq": 32,
+        "tick64": 97384875,
+        "pid": 7212,
+        "kind": "winevent",
+        "event": 32780,
+        "event_tick32": 97384875,
+        "hwnd": 1183300,
+        "object": 0,
+        "child": 0,
+        "event_thread": 13048,
+        "observing": 0
+      },
+      {
+        "seq": 111,
+        "tick64": 97387000,
+        "pid": 7212,
+        "kind": "winevent",
+        "event": 32780,
+        "event_tick32": 97387000,
+        "hwnd": 1183300,
+        "object": 0,
+        "child": 0,
+        "event_thread": 13048,
+        "observing": 1
+      }
+    ],
+    "interval_foreground_events": [
+      {
+        "seq": 46,
+        "tick64": 97385000,
+        "pid": 7212,
+        "kind": "winevent",
+        "event": 3,
+        "event_tick32": 97384984,
+        "hwnd": 1183300,
+        "object": 0,
+        "child": 0,
+        "event_thread": 13048,
+        "observing": 1
+      }
+    ],
+    "target_activation_messages": [
+      {
+        "seq": 39,
+        "tick64": 97384984,
+        "pid": 7212,
+        "kind": "message",
+        "hwnd": 1183300,
+        "message": 6,
+        "wparam": 1,
+        "lparam": 1052260,
+        "observing": 1
+      },
+      {
+        "seq": 44,
+        "tick64": 97385000,
+        "pid": 7212,
+        "kind": "message",
+        "hwnd": 1183300,
+        "message": 6,
+        "wparam": 1,
+        "lparam": 0,
+        "observing": 1
+      }
+    ],
+    "target_size_messages": [
+      {
+        "seq": 43,
+        "tick64": 97385000,
+        "pid": 7212,
+        "kind": "message",
+        "hwnd": 1183300,
+        "message": 5,
+        "wparam": 0,
+        "lparam": 28902080,
+        "observing": 1
+      }
+    ],
+    "classification": "control_expected_activation",
+    "teardown_last_kind": "hook_removed"
+  },
+  {
+    "scene": "synthetic.shownoactivate",
+    "pid": 22732,
+    "target_hwnd": 4001492,
+    "baseline_foreground": 5311874,
+    "baseline_foreground_pid": 22732,
+    "raw_rows": 116,
+    "contiguous_sequence": true,
+    "first_show_seq": 9,
+    "before_restore_seq": 33,
+    "restore_return_seq": 37,
+    "interval_seq": 103,
+    "result_seq": 104,
+    "duration_ms": 2000,
+    "samples": 64,
+    "marker_events": [
+      {
+        "seq": 32,
+        "tick64": 97392609,
+        "pid": 22732,
+        "kind": "winevent",
+        "event": 32780,
+        "event_tick32": 97392609,
+        "hwnd": 4001492,
+        "object": 0,
+        "child": 0,
+        "event_thread": 26904,
+        "observing": 0
+      },
+      {
+        "seq": 102,
+        "tick64": 97394718,
+        "pid": 22732,
+        "kind": "winevent",
+        "event": 32780,
+        "event_tick32": 97394718,
+        "hwnd": 4001492,
+        "object": 0,
+        "child": 0,
+        "event_thread": 26904,
+        "observing": 1
+      }
+    ],
+    "interval_foreground_events": [],
+    "target_activation_messages": [],
+    "target_size_messages": [
+      {
+        "seq": 36,
+        "tick64": 97392718,
+        "pid": 22732,
+        "kind": "message",
+        "hwnd": 4001492,
+        "message": 5,
+        "wparam": 0,
+        "lparam": 28902080,
+        "observing": 1
+      }
+    ],
+    "classification": "candidate_pass",
+    "teardown_last_kind": "hook_removed"
+  }
+]

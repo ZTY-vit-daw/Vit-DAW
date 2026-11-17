@@ -1,0 +1,8 @@
+﻿git.exe : From github.com:ZTY-vit-daw/Vit-DAW
+At C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\scripts\vitshell_smoke.ps1:56 char:9
++         & git -C $MainRoot fetch origin main 2>&1 | Out-File (Join-Pa ...
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (From github.com:ZTY-vit-daw/Vit-DAW:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+

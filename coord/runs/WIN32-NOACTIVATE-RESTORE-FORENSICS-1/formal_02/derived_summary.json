@@ -1,0 +1,2408 @@
+[
+  {
+    "scene": "external.placement",
+    "selected": [
+      {
+        "seq": 1,
+        "tick64": 97423906,
+        "pid": 20048,
+        "kind": "startup",
+        "startup_flags": 1,
+        "startup_show": 0
+      },
+      {
+        "seq": 4,
+        "tick64": 97423921,
+        "pid": 20048,
+        "kind": "before_first_show",
+        "hwnd": 790150,
+        "visible": 0,
+        "iconic": 0,
+        "zoomed": 0,
+        "style": 80674816,
+        "exstyle": 256,
+        "placement_ok": 1,
+        "showCmd": 1,
+        "placement_flags": 0,
+        "min_position": [
+          -1,
+          -1
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "rect_ok": 1,
+        "rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          704,
+          441
+        ],
+        "foreground": 394908,
+        "foreground_pid": 25292
+      },
+      {
+        "seq": 9,
+        "tick64": 97424031,
+        "pid": 20048,
+        "kind": "first_show_consumed",
+        "requested": 4,
+        "return_previous_visible": 0,
+        "last_error_applicable": false,
+        "hwnd": 790150,
+        "visible": 1,
+        "iconic": 0,
+        "zoomed": 0,
+        "style": 349110272,
+        "exstyle": 256,
+        "placement_ok": 1,
+        "showCmd": 1,
+        "placement_flags": 0,
+        "min_position": [
+          -1,
+          -1
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "rect_ok": 1,
+        "rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          704,
+          441
+        ],
+        "foreground": 394908,
+        "foreground_pid": 25292
+      },
+      {
+        "seq": 10,
+        "tick64": 97424140,
+        "pid": 20048,
+        "kind": "second_show",
+        "hwnd": 790150,
+        "visible": 1,
+        "iconic": 0,
+        "zoomed": 0,
+        "style": 349110272,
+        "exstyle": 256,
+        "placement_ok": 1,
+        "showCmd": 1,
+        "placement_flags": 0,
+        "min_position": [
+          -1,
+          -1
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "rect_ok": 1,
+        "rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          704,
+          441
+        ],
+        "foreground": 394908,
+        "foreground_pid": 25292
+      },
+      {
+        "seq": 14,
+        "tick64": 97424250,
+        "pid": 20048,
+        "kind": "minimized",
+        "hwnd": 790150,
+        "visible": 1,
+        "iconic": 1,
+        "zoomed": 0,
+        "style": 885981184,
+        "exstyle": 256,
+        "placement_ok": 1,
+        "showCmd": 2,
+        "placement_flags": 0,
+        "min_position": [
+          -32000,
+          -32000
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "rect_ok": 1,
+        "rect": [
+          -32000,
+          -32000,
+          -31724,
+          -31955
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "foreground": 394908,
+        "foreground_pid": 25292
+      },
+      {
+        "seq": 18,
+        "tick64": 97424359,
+        "pid": 20048,
+        "kind": "hidden_minimized",
+        "hwnd": 790150,
+        "visible": 0,
+        "iconic": 1,
+        "zoomed": 0,
+        "style": 617545728,
+        "exstyle": 256,
+        "placement_ok": 1,
+        "showCmd": 2,
+        "placement_flags": 0,
+        "min_position": [
+          -32000,
+          -32000
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "rect_ok": 1,
+        "rect": [
+          -32000,
+          -32000,
+          -31724,
+          -31955
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "foreground": 394908,
+        "foreground_pid": 25292
+      },
+      {
+        "seq": 20,
+        "tick64": 97424468,
+        "pid": 20048,
+        "kind": "before_restore",
+        "hwnd": 790150,
+        "visible": 0,
+        "iconic": 1,
+        "zoomed": 0,
+        "style": 617545728,
+        "exstyle": 256,
+        "placement_ok": 1,
+        "showCmd": 2,
+        "placement_flags": 0,
+        "min_position": [
+          -32000,
+          -32000
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "rect_ok": 1,
+        "rect": [
+          -32000,
+          -32000,
+          -31724,
+          -31955
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "foreground": 394908,
+        "foreground_pid": 25292
+      },
+      {
+        "seq": 24,
+        "tick64": 97424468,
+        "pid": 20048,
+        "kind": "restore_api_return",
+        "return": 1,
+        "last_error_applicable": false,
+        "last_error": 0,
+        "hwnd": 790150,
+        "visible": 1,
+        "iconic": 0,
+        "zoomed": 0,
+        "style": 349110272,
+        "exstyle": 256,
+        "placement_ok": 1,
+        "showCmd": 1,
+        "placement_flags": 0,
+        "min_position": [
+          -32000,
+          -32000
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "rect_ok": 1,
+        "rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          704,
+          441
+        ],
+        "foreground": 394908,
+        "foreground_pid": 25292
+      },
+      {
+        "seq": 90,
+        "tick64": 97426625,
+        "pid": 20048,
+        "kind": "interval",
+        "begin_tick32": 97424468,
+        "end_tick32": 97426468,
+        "samples": 64,
+        "markers": 2,
+        "max_pump_gap_ms": 16,
+        "all_normal": 1,
+        "target_activation": 0,
+        "target_foreground_event": 0,
+        "other_foreground_event": 0,
+        "foreground_kept": 1
+      },
+      {
+        "seq": 91,
+        "tick64": 97426625,
+        "pid": 20048,
+        "kind": "result",
+        "classification": "candidate_pass",
+        "exit_code": 0,
+        "hwnd": 790150,
+        "visible": 1,
+        "iconic": 0,
+        "zoomed": 0,
+        "style": 349110272,
+        "exstyle": 256,
+        "placement_ok": 1,
+        "showCmd": 1,
+        "placement_flags": 0,
+        "min_position": [
+          -32000,
+          -32000
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "rect_ok": 1,
+        "rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          704,
+          441
+        ],
+        "foreground": 394908,
+        "foreground_pid": 25292
+      }
+    ],
+    "contiguous_sequence": true,
+    "winevent_count": 2,
+    "target_messages": 17,
+    "last_kind": "hook_removed"
+  },
+  {
+    "scene": "external.restore",
+    "selected": [
+      {
+        "seq": 1,
+        "tick64": 97407250,
+        "pid": 29320,
+        "kind": "startup",
+        "startup_flags": 1,
+        "startup_show": 0
+      },
+      {
+        "seq": 4,
+        "tick64": 97407250,
+        "pid": 29320,
+        "kind": "before_first_show",
+        "hwnd": 1379940,
+        "visible": 0,
+        "iconic": 0,
+        "zoomed": 0,
+        "style": 80674816,
+        "exstyle": 256,
+        "placement_ok": 1,
+        "showCmd": 1,
+        "placement_flags": 0,
+        "min_position": [
+          -1,
+          -1
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "rect_ok": 1,
+        "rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          704,
+          441
+        ],
+        "foreground": 394908,
+        "foreground_pid": 25292
+      },
+      {
+        "seq": 9,
+        "tick64": 97407359,
+        "pid": 29320,
+        "kind": "first_show_consumed",
+        "requested": 4,
+        "return_previous_visible": 0,
+        "last_error_applicable": false,
+        "hwnd": 1379940,
+        "visible": 1,
+        "iconic": 0,
+        "zoomed": 0,
+        "style": 349110272,
+        "exstyle": 256,
+        "placement_ok": 1,
+        "showCmd": 1,
+        "placement_flags": 0,
+        "min_position": [
+          -1,
+          -1
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "rect_ok": 1,
+        "rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          704,
+          441
+        ],
+        "foreground": 394908,
+        "foreground_pid": 25292
+      },
+      {
+        "seq": 10,
+        "tick64": 97407468,
+        "pid": 29320,
+        "kind": "second_show",
+        "hwnd": 1379940,
+        "visible": 1,
+        "iconic": 0,
+        "zoomed": 0,
+        "style": 349110272,
+        "exstyle": 256,
+        "placement_ok": 1,
+        "showCmd": 1,
+        "placement_flags": 0,
+        "min_position": [
+          -1,
+          -1
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "rect_ok": 1,
+        "rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          704,
+          441
+        ],
+        "foreground": 394908,
+        "foreground_pid": 25292
+      },
+      {
+        "seq": 14,
+        "tick64": 97407578,
+        "pid": 29320,
+        "kind": "minimized",
+        "hwnd": 1379940,
+        "visible": 1,
+        "iconic": 1,
+        "zoomed": 0,
+        "style": 885981184,
+        "exstyle": 256,
+        "placement_ok": 1,
+        "showCmd": 2,
+        "placement_flags": 0,
+        "min_position": [
+          -32000,
+          -32000
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "rect_ok": 1,
+        "rect": [
+          -32000,
+          -32000,
+          -31724,
+          -31955
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "foreground": 394908,
+        "foreground_pid": 25292
+      },
+      {
+        "seq": 18,
+        "tick64": 97407687,
+        "pid": 29320,
+        "kind": "hidden_minimized",
+        "hwnd": 1379940,
+        "visible": 0,
+        "iconic": 1,
+        "zoomed": 0,
+        "style": 617545728,
+        "exstyle": 256,
+        "placement_ok": 1,
+        "showCmd": 2,
+        "placement_flags": 0,
+        "min_position": [
+          -32000,
+          -32000
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "rect_ok": 1,
+        "rect": [
+          -32000,
+          -32000,
+          -31724,
+          -31955
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "foreground": 394908,
+        "foreground_pid": 25292
+      },
+      {
+        "seq": 20,
+        "tick64": 97407796,
+        "pid": 29320,
+        "kind": "before_restore",
+        "hwnd": 1379940,
+        "visible": 0,
+        "iconic": 1,
+        "zoomed": 0,
+        "style": 617545728,
+        "exstyle": 256,
+        "placement_ok": 1,
+        "showCmd": 2,
+        "placement_flags": 0,
+        "min_position": [
+          -32000,
+          -32000
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "rect_ok": 1,
+        "rect": [
+          -32000,
+          -32000,
+          -31724,
+          -31955
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "foreground": 394908,
+        "foreground_pid": 25292
+      },
+      {
+        "seq": 30,
+        "tick64": 97407812,
+        "pid": 29320,
+        "kind": "restore_api_return",
+        "return": 0,
+        "last_error_applicable": false,
+        "last_error": 0,
+        "hwnd": 1379940,
+        "visible": 1,
+        "iconic": 0,
+        "zoomed": 0,
+        "style": 349110272,
+        "exstyle": 256,
+        "placement_ok": 1,
+        "showCmd": 1,
+        "placement_flags": 0,
+        "min_position": [
+          -32000,
+          -32000
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "rect_ok": 1,
+        "rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          704,
+          441
+        ],
+        "foreground": 1379940,
+        "foreground_pid": 29320
+      },
+      {
+        "seq": 97,
+        "tick64": 97409968,
+        "pid": 29320,
+        "kind": "interval",
+        "begin_tick32": 97407796,
+        "end_tick32": 97409812,
+        "samples": 64,
+        "markers": 2,
+        "max_pump_gap_ms": 16,
+        "all_normal": 1,
+        "target_activation": 1,
+        "target_foreground_event": 1,
+        "other_foreground_event": 0,
+        "foreground_kept": 0
+      },
+      {
+        "seq": 98,
+        "tick64": 97409968,
+        "pid": 29320,
+        "kind": "result",
+        "classification": "control_expected_activation",
+        "exit_code": 0,
+        "hwnd": 1379940,
+        "visible": 1,
+        "iconic": 0,
+        "zoomed": 0,
+        "style": 349110272,
+        "exstyle": 256,
+        "placement_ok": 1,
+        "showCmd": 1,
+        "placement_flags": 0,
+        "min_position": [
+          -32000,
+          -32000
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "rect_ok": 1,
+        "rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          704,
+          441
+        ],
+        "foreground": 1379940,
+        "foreground_pid": 29320
+      }
+    ],
+    "contiguous_sequence": true,
+    "winevent_count": 4,
+    "target_messages": 27,
+    "last_kind": "hook_removed"
+  },
+  {
+    "scene": "external.shownoactivate",
+    "selected": [
+      {
+        "seq": 1,
+        "tick64": 97414531,
+        "pid": 13436,
+        "kind": "startup",
+        "startup_flags": 1,
+        "startup_show": 0
+      },
+      {
+        "seq": 4,
+        "tick64": 97414546,
+        "pid": 13436,
+        "kind": "before_first_show",
+        "hwnd": 4132612,
+        "visible": 0,
+        "iconic": 0,
+        "zoomed": 0,
+        "style": 80674816,
+        "exstyle": 256,
+        "placement_ok": 1,
+        "showCmd": 1,
+        "placement_flags": 0,
+        "min_position": [
+          -1,
+          -1
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "rect_ok": 1,
+        "rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          704,
+          441
+        ],
+        "foreground": 394908,
+        "foreground_pid": 25292
+      },
+      {
+        "seq": 9,
+        "tick64": 97414656,
+        "pid": 13436,
+        "kind": "first_show_consumed",
+        "requested": 4,
+        "return_previous_visible": 0,
+        "last_error_applicable": false,
+        "hwnd": 4132612,
+        "visible": 1,
+        "iconic": 0,
+        "zoomed": 0,
+        "style": 349110272,
+        "exstyle": 256,
+        "placement_ok": 1,
+        "showCmd": 1,
+        "placement_flags": 0,
+        "min_position": [
+          -1,
+          -1
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "rect_ok": 1,
+        "rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          704,
+          441
+        ],
+        "foreground": 394908,
+        "foreground_pid": 25292
+      },
+      {
+        "seq": 10,
+        "tick64": 97414765,
+        "pid": 13436,
+        "kind": "second_show",
+        "hwnd": 4132612,
+        "visible": 1,
+        "iconic": 0,
+        "zoomed": 0,
+        "style": 349110272,
+        "exstyle": 256,
+        "placement_ok": 1,
+        "showCmd": 1,
+        "placement_flags": 0,
+        "min_position": [
+          -1,
+          -1
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "rect_ok": 1,
+        "rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          704,
+          441
+        ],
+        "foreground": 394908,
+        "foreground_pid": 25292
+      },
+      {
+        "seq": 14,
+        "tick64": 97414875,
+        "pid": 13436,
+        "kind": "minimized",
+        "hwnd": 4132612,
+        "visible": 1,
+        "iconic": 1,
+        "zoomed": 0,
+        "style": 885981184,
+        "exstyle": 256,
+        "placement_ok": 1,
+        "showCmd": 2,
+        "placement_flags": 0,
+        "min_position": [
+          -32000,
+          -32000
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "rect_ok": 1,
+        "rect": [
+          -32000,
+          -32000,
+          -31724,
+          -31955
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "foreground": 394908,
+        "foreground_pid": 25292
+      },
+      {
+        "seq": 18,
+        "tick64": 97414984,
+        "pid": 13436,
+        "kind": "hidden_minimized",
+        "hwnd": 4132612,
+        "visible": 0,
+        "iconic": 1,
+        "zoomed": 0,
+        "style": 617545728,
+        "exstyle": 256,
+        "placement_ok": 1,
+        "showCmd": 2,
+        "placement_flags": 0,
+        "min_position": [
+          -32000,
+          -32000
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "rect_ok": 1,
+        "rect": [
+          -32000,
+          -32000,
+          -31724,
+          -31955
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "foreground": 394908,
+        "foreground_pid": 25292
+      },
+      {
+        "seq": 20,
+        "tick64": 97415093,
+        "pid": 13436,
+        "kind": "before_restore",
+        "hwnd": 4132612,
+        "visible": 0,
+        "iconic": 1,
+        "zoomed": 0,
+        "style": 617545728,
+        "exstyle": 256,
+        "placement_ok": 1,
+        "showCmd": 2,
+        "placement_flags": 0,
+        "min_position": [
+          -32000,
+          -32000
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "rect_ok": 1,
+        "rect": [
+          -32000,
+          -32000,
+          -31724,
+          -31955
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "foreground": 394908,
+        "foreground_pid": 25292
+      },
+      {
+        "seq": 24,
+        "tick64": 97415093,
+        "pid": 13436,
+        "kind": "restore_api_return",
+        "return": 0,
+        "last_error_applicable": false,
+        "last_error": 0,
+        "hwnd": 4132612,
+        "visible": 1,
+        "iconic": 0,
+        "zoomed": 0,
+        "style": 349110272,
+        "exstyle": 256,
+        "placement_ok": 1,
+        "showCmd": 1,
+        "placement_flags": 0,
+        "min_position": [
+          -32000,
+          -32000
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "rect_ok": 1,
+        "rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          704,
+          441
+        ],
+        "foreground": 394908,
+        "foreground_pid": 25292
+      },
+      {
+        "seq": 90,
+        "tick64": 97417250,
+        "pid": 13436,
+        "kind": "interval",
+        "begin_tick32": 97415093,
+        "end_tick32": 97417093,
+        "samples": 64,
+        "markers": 2,
+        "max_pump_gap_ms": 16,
+        "all_normal": 1,
+        "target_activation": 0,
+        "target_foreground_event": 0,
+        "other_foreground_event": 0,
+        "foreground_kept": 1
+      },
+      {
+        "seq": 91,
+        "tick64": 97417250,
+        "pid": 13436,
+        "kind": "result",
+        "classification": "candidate_pass",
+        "exit_code": 0,
+        "hwnd": 4132612,
+        "visible": 1,
+        "iconic": 0,
+        "zoomed": 0,
+        "style": 349110272,
+        "exstyle": 256,
+        "placement_ok": 1,
+        "showCmd": 1,
+        "placement_flags": 0,
+        "min_position": [
+          -32000,
+          -32000
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "rect_ok": 1,
+        "rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          704,
+          441
+        ],
+        "foreground": 394908,
+        "foreground_pid": 25292
+      }
+    ],
+    "contiguous_sequence": true,
+    "winevent_count": 2,
+    "target_messages": 17,
+    "last_kind": "hook_removed"
+  },
+  {
+    "scene": "synthetic.placement",
+    "selected": [
+      {
+        "seq": 1,
+        "tick64": 97399734,
+        "pid": 30596,
+        "kind": "startup",
+        "startup_flags": 1,
+        "startup_show": 0
+      },
+      {
+        "seq": 4,
+        "tick64": 97399750,
+        "pid": 30596,
+        "kind": "before_first_show",
+        "hwnd": 8127672,
+        "visible": 0,
+        "iconic": 0,
+        "zoomed": 0,
+        "style": 80674816,
+        "exstyle": 256,
+        "placement_ok": 1,
+        "showCmd": 1,
+        "placement_flags": 0,
+        "min_position": [
+          -1,
+          -1
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "rect_ok": 1,
+        "rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          704,
+          441
+        ],
+        "foreground": 394908,
+        "foreground_pid": 25292
+      },
+      {
+        "seq": 9,
+        "tick64": 97399859,
+        "pid": 30596,
+        "kind": "first_show_consumed",
+        "requested": 4,
+        "return_previous_visible": 0,
+        "last_error_applicable": false,
+        "hwnd": 8127672,
+        "visible": 1,
+        "iconic": 0,
+        "zoomed": 0,
+        "style": 349110272,
+        "exstyle": 256,
+        "placement_ok": 1,
+        "showCmd": 1,
+        "placement_flags": 0,
+        "min_position": [
+          -1,
+          -1
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "rect_ok": 1,
+        "rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          704,
+          441
+        ],
+        "foreground": 394908,
+        "foreground_pid": 25292
+      },
+      {
+        "seq": 10,
+        "tick64": 97399968,
+        "pid": 30596,
+        "kind": "second_show",
+        "hwnd": 8127672,
+        "visible": 1,
+        "iconic": 0,
+        "zoomed": 0,
+        "style": 349110272,
+        "exstyle": 256,
+        "placement_ok": 1,
+        "showCmd": 1,
+        "placement_flags": 0,
+        "min_position": [
+          -1,
+          -1
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "rect_ok": 1,
+        "rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          704,
+          441
+        ],
+        "foreground": 394908,
+        "foreground_pid": 25292
+      },
+      {
+        "seq": 27,
+        "tick64": 97400250,
+        "pid": 30596,
+        "kind": "minimized",
+        "hwnd": 8127672,
+        "visible": 1,
+        "iconic": 1,
+        "zoomed": 0,
+        "style": 885981184,
+        "exstyle": 256,
+        "placement_ok": 1,
+        "showCmd": 2,
+        "placement_flags": 0,
+        "min_position": [
+          -32000,
+          -32000
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "rect_ok": 1,
+        "rect": [
+          -32000,
+          -32000,
+          -31724,
+          -31955
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "foreground": 1248868,
+        "foreground_pid": 30596
+      },
+      {
+        "seq": 31,
+        "tick64": 97400359,
+        "pid": 30596,
+        "kind": "hidden_minimized",
+        "hwnd": 8127672,
+        "visible": 0,
+        "iconic": 1,
+        "zoomed": 0,
+        "style": 617545728,
+        "exstyle": 256,
+        "placement_ok": 1,
+        "showCmd": 2,
+        "placement_flags": 0,
+        "min_position": [
+          -32000,
+          -32000
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "rect_ok": 1,
+        "rect": [
+          -32000,
+          -32000,
+          -31724,
+          -31955
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "foreground": 1248868,
+        "foreground_pid": 30596
+      },
+      {
+        "seq": 33,
+        "tick64": 97400468,
+        "pid": 30596,
+        "kind": "before_restore",
+        "hwnd": 8127672,
+        "visible": 0,
+        "iconic": 1,
+        "zoomed": 0,
+        "style": 617545728,
+        "exstyle": 256,
+        "placement_ok": 1,
+        "showCmd": 2,
+        "placement_flags": 0,
+        "min_position": [
+          -32000,
+          -32000
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "rect_ok": 1,
+        "rect": [
+          -32000,
+          -32000,
+          -31724,
+          -31955
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "foreground": 1248868,
+        "foreground_pid": 30596
+      },
+      {
+        "seq": 37,
+        "tick64": 97400468,
+        "pid": 30596,
+        "kind": "restore_api_return",
+        "return": 1,
+        "last_error_applicable": false,
+        "last_error": 0,
+        "hwnd": 8127672,
+        "visible": 1,
+        "iconic": 0,
+        "zoomed": 0,
+        "style": 349110272,
+        "exstyle": 256,
+        "placement_ok": 1,
+        "showCmd": 1,
+        "placement_flags": 0,
+        "min_position": [
+          -32000,
+          -32000
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "rect_ok": 1,
+        "rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          704,
+          441
+        ],
+        "foreground": 1248868,
+        "foreground_pid": 30596
+      },
+      {
+        "seq": 103,
+        "tick64": 97402625,
+        "pid": 30596,
+        "kind": "interval",
+        "begin_tick32": 97400468,
+        "end_tick32": 97402468,
+        "samples": 64,
+        "markers": 2,
+        "max_pump_gap_ms": 16,
+        "all_normal": 1,
+        "target_activation": 0,
+        "target_foreground_event": 0,
+        "other_foreground_event": 0,
+        "foreground_kept": 1
+      },
+      {
+        "seq": 104,
+        "tick64": 97402625,
+        "pid": 30596,
+        "kind": "result",
+        "classification": "candidate_pass",
+        "exit_code": 0,
+        "hwnd": 8127672,
+        "visible": 1,
+        "iconic": 0,
+        "zoomed": 0,
+        "style": 349110272,
+        "exstyle": 256,
+        "placement_ok": 1,
+        "showCmd": 1,
+        "placement_flags": 0,
+        "min_position": [
+          -32000,
+          -32000
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "rect_ok": 1,
+        "rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          704,
+          441
+        ],
+        "foreground": 1248868,
+        "foreground_pid": 30596
+      }
+    ],
+    "contiguous_sequence": true,
+    "winevent_count": 4,
+    "target_messages": 35,
+    "last_kind": "hook_removed"
+  },
+  {
+    "scene": "synthetic.restore",
+    "selected": [
+      {
+        "seq": 1,
+        "tick64": 97384265,
+        "pid": 7212,
+        "kind": "startup",
+        "startup_flags": 1,
+        "startup_show": 0
+      },
+      {
+        "seq": 4,
+        "tick64": 97384265,
+        "pid": 7212,
+        "kind": "before_first_show",
+        "hwnd": 1183300,
+        "visible": 0,
+        "iconic": 0,
+        "zoomed": 0,
+        "style": 80674816,
+        "exstyle": 256,
+        "placement_ok": 1,
+        "showCmd": 1,
+        "placement_flags": 0,
+        "min_position": [
+          -1,
+          -1
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "rect_ok": 1,
+        "rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          704,
+          441
+        ],
+        "foreground": 394908,
+        "foreground_pid": 25292
+      },
+      {
+        "seq": 9,
+        "tick64": 97384375,
+        "pid": 7212,
+        "kind": "first_show_consumed",
+        "requested": 4,
+        "return_previous_visible": 0,
+        "last_error_applicable": false,
+        "hwnd": 1183300,
+        "visible": 1,
+        "iconic": 0,
+        "zoomed": 0,
+        "style": 349110272,
+        "exstyle": 256,
+        "placement_ok": 1,
+        "showCmd": 1,
+        "placement_flags": 0,
+        "min_position": [
+          -1,
+          -1
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "rect_ok": 1,
+        "rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          704,
+          441
+        ],
+        "foreground": 394908,
+        "foreground_pid": 25292
+      },
+      {
+        "seq": 10,
+        "tick64": 97384484,
+        "pid": 7212,
+        "kind": "second_show",
+        "hwnd": 1183300,
+        "visible": 1,
+        "iconic": 0,
+        "zoomed": 0,
+        "style": 349110272,
+        "exstyle": 256,
+        "placement_ok": 1,
+        "showCmd": 1,
+        "placement_flags": 0,
+        "min_position": [
+          -1,
+          -1
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "rect_ok": 1,
+        "rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          704,
+          441
+        ],
+        "foreground": 394908,
+        "foreground_pid": 25292
+      },
+      {
+        "seq": 27,
+        "tick64": 97384765,
+        "pid": 7212,
+        "kind": "minimized",
+        "hwnd": 1183300,
+        "visible": 1,
+        "iconic": 1,
+        "zoomed": 0,
+        "style": 885981184,
+        "exstyle": 256,
+        "placement_ok": 1,
+        "showCmd": 2,
+        "placement_flags": 0,
+        "min_position": [
+          -32000,
+          -32000
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "rect_ok": 1,
+        "rect": [
+          -32000,
+          -32000,
+          -31724,
+          -31955
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "foreground": 1052260,
+        "foreground_pid": 7212
+      },
+      {
+        "seq": 31,
+        "tick64": 97384875,
+        "pid": 7212,
+        "kind": "hidden_minimized",
+        "hwnd": 1183300,
+        "visible": 0,
+        "iconic": 1,
+        "zoomed": 0,
+        "style": 617545728,
+        "exstyle": 256,
+        "placement_ok": 1,
+        "showCmd": 2,
+        "placement_flags": 0,
+        "min_position": [
+          -32000,
+          -32000
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "rect_ok": 1,
+        "rect": [
+          -32000,
+          -32000,
+          -31724,
+          -31955
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "foreground": 1052260,
+        "foreground_pid": 7212
+      },
+      {
+        "seq": 33,
+        "tick64": 97384984,
+        "pid": 7212,
+        "kind": "before_restore",
+        "hwnd": 1183300,
+        "visible": 0,
+        "iconic": 1,
+        "zoomed": 0,
+        "style": 617545728,
+        "exstyle": 256,
+        "placement_ok": 1,
+        "showCmd": 2,
+        "placement_flags": 0,
+        "min_position": [
+          -32000,
+          -32000
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "rect_ok": 1,
+        "rect": [
+          -32000,
+          -32000,
+          -31724,
+          -31955
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "foreground": 1052260,
+        "foreground_pid": 7212
+      },
+      {
+        "seq": 45,
+        "tick64": 97385000,
+        "pid": 7212,
+        "kind": "restore_api_return",
+        "return": 0,
+        "last_error_applicable": false,
+        "last_error": 0,
+        "hwnd": 1183300,
+        "visible": 1,
+        "iconic": 0,
+        "zoomed": 0,
+        "style": 349110272,
+        "exstyle": 256,
+        "placement_ok": 1,
+        "showCmd": 1,
+        "placement_flags": 0,
+        "min_position": [
+          -32000,
+          -32000
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "rect_ok": 1,
+        "rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          704,
+          441
+        ],
+        "foreground": 1183300,
+        "foreground_pid": 7212
+      },
+      {
+        "seq": 112,
+        "tick64": 97387156,
+        "pid": 7212,
+        "kind": "interval",
+        "begin_tick32": 97384984,
+        "end_tick32": 97387000,
+        "samples": 64,
+        "markers": 2,
+        "max_pump_gap_ms": 16,
+        "all_normal": 1,
+        "target_activation": 1,
+        "target_foreground_event": 1,
+        "other_foreground_event": 0,
+        "foreground_kept": 0
+      },
+      {
+        "seq": 113,
+        "tick64": 97387156,
+        "pid": 7212,
+        "kind": "result",
+        "classification": "control_expected_activation",
+        "exit_code": 0,
+        "hwnd": 1183300,
+        "visible": 1,
+        "iconic": 0,
+        "zoomed": 0,
+        "style": 349110272,
+        "exstyle": 256,
+        "placement_ok": 1,
+        "showCmd": 1,
+        "placement_flags": 0,
+        "min_position": [
+          -32000,
+          -32000
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "rect_ok": 1,
+        "rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          704,
+          441
+        ],
+        "foreground": 1183300,
+        "foreground_pid": 7212
+      }
+    ],
+    "contiguous_sequence": true,
+    "winevent_count": 6,
+    "target_messages": 51,
+    "last_kind": "hook_removed"
+  },
+  {
+    "scene": "synthetic.shownoactivate",
+    "selected": [
+      {
+        "seq": 1,
+        "tick64": 97391984,
+        "pid": 22732,
+        "kind": "startup",
+        "startup_flags": 1,
+        "startup_show": 0
+      },
+      {
+        "seq": 4,
+        "tick64": 97391984,
+        "pid": 22732,
+        "kind": "before_first_show",
+        "hwnd": 4001492,
+        "visible": 0,
+        "iconic": 0,
+        "zoomed": 0,
+        "style": 80674816,
+        "exstyle": 256,
+        "placement_ok": 1,
+        "showCmd": 1,
+        "placement_flags": 0,
+        "min_position": [
+          -1,
+          -1
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "rect_ok": 1,
+        "rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          704,
+          441
+        ],
+        "foreground": 394908,
+        "foreground_pid": 25292
+      },
+      {
+        "seq": 9,
+        "tick64": 97392109,
+        "pid": 22732,
+        "kind": "first_show_consumed",
+        "requested": 4,
+        "return_previous_visible": 0,
+        "last_error_applicable": false,
+        "hwnd": 4001492,
+        "visible": 1,
+        "iconic": 0,
+        "zoomed": 0,
+        "style": 349110272,
+        "exstyle": 256,
+        "placement_ok": 1,
+        "showCmd": 1,
+        "placement_flags": 0,
+        "min_position": [
+          -1,
+          -1
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "rect_ok": 1,
+        "rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          704,
+          441
+        ],
+        "foreground": 394908,
+        "foreground_pid": 25292
+      },
+      {
+        "seq": 10,
+        "tick64": 97392218,
+        "pid": 22732,
+        "kind": "second_show",
+        "hwnd": 4001492,
+        "visible": 1,
+        "iconic": 0,
+        "zoomed": 0,
+        "style": 349110272,
+        "exstyle": 256,
+        "placement_ok": 1,
+        "showCmd": 1,
+        "placement_flags": 0,
+        "min_position": [
+          -1,
+          -1
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "rect_ok": 1,
+        "rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          704,
+          441
+        ],
+        "foreground": 394908,
+        "foreground_pid": 25292
+      },
+      {
+        "seq": 27,
+        "tick64": 97392500,
+        "pid": 22732,
+        "kind": "minimized",
+        "hwnd": 4001492,
+        "visible": 1,
+        "iconic": 1,
+        "zoomed": 0,
+        "style": 885981184,
+        "exstyle": 256,
+        "placement_ok": 1,
+        "showCmd": 2,
+        "placement_flags": 0,
+        "min_position": [
+          -32000,
+          -32000
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "rect_ok": 1,
+        "rect": [
+          -32000,
+          -32000,
+          -31724,
+          -31955
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "foreground": 5311874,
+        "foreground_pid": 22732
+      },
+      {
+        "seq": 31,
+        "tick64": 97392609,
+        "pid": 22732,
+        "kind": "hidden_minimized",
+        "hwnd": 4001492,
+        "visible": 0,
+        "iconic": 1,
+        "zoomed": 0,
+        "style": 617545728,
+        "exstyle": 256,
+        "placement_ok": 1,
+        "showCmd": 2,
+        "placement_flags": 0,
+        "min_position": [
+          -32000,
+          -32000
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "rect_ok": 1,
+        "rect": [
+          -32000,
+          -32000,
+          -31724,
+          -31955
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "foreground": 5311874,
+        "foreground_pid": 22732
+      },
+      {
+        "seq": 33,
+        "tick64": 97392718,
+        "pid": 22732,
+        "kind": "before_restore",
+        "hwnd": 4001492,
+        "visible": 0,
+        "iconic": 1,
+        "zoomed": 0,
+        "style": 617545728,
+        "exstyle": 256,
+        "placement_ok": 1,
+        "showCmd": 2,
+        "placement_flags": 0,
+        "min_position": [
+          -32000,
+          -32000
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "rect_ok": 1,
+        "rect": [
+          -32000,
+          -32000,
+          -31724,
+          -31955
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "foreground": 5311874,
+        "foreground_pid": 22732
+      },
+      {
+        "seq": 37,
+        "tick64": 97392718,
+        "pid": 22732,
+        "kind": "restore_api_return",
+        "return": 0,
+        "last_error_applicable": false,
+        "last_error": 0,
+        "hwnd": 4001492,
+        "visible": 1,
+        "iconic": 0,
+        "zoomed": 0,
+        "style": 349110272,
+        "exstyle": 256,
+        "placement_ok": 1,
+        "showCmd": 1,
+        "placement_flags": 0,
+        "min_position": [
+          -32000,
+          -32000
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "rect_ok": 1,
+        "rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          704,
+          441
+        ],
+        "foreground": 5311874,
+        "foreground_pid": 22732
+      },
+      {
+        "seq": 103,
+        "tick64": 97394875,
+        "pid": 22732,
+        "kind": "interval",
+        "begin_tick32": 97392718,
+        "end_tick32": 97394718,
+        "samples": 64,
+        "markers": 2,
+        "max_pump_gap_ms": 16,
+        "all_normal": 1,
+        "target_activation": 0,
+        "target_foreground_event": 0,
+        "other_foreground_event": 0,
+        "foreground_kept": 1
+      },
+      {
+        "seq": 104,
+        "tick64": 97394875,
+        "pid": 22732,
+        "kind": "result",
+        "classification": "candidate_pass",
+        "exit_code": 0,
+        "hwnd": 4001492,
+        "visible": 1,
+        "iconic": 0,
+        "zoomed": 0,
+        "style": 349110272,
+        "exstyle": 256,
+        "placement_ok": 1,
+        "showCmd": 1,
+        "placement_flags": 0,
+        "min_position": [
+          -32000,
+          -32000
+        ],
+        "max_position": [
+          -1,
+          -1
+        ],
+        "normal_rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "rect_ok": 1,
+        "rect": [
+          240,
+          200,
+          960,
+          680
+        ],
+        "client_ok": 1,
+        "client": [
+          0,
+          0,
+          704,
+          441
+        ],
+        "foreground": 5311874,
+        "foreground_pid": 22732
+      }
+    ],
+    "contiguous_sequence": true,
+    "winevent_count": 4,
+    "target_messages": 35,
+    "last_kind": "hook_removed"
+  }
+]
