@@ -1,0 +1,32 @@
+[
+  {
+    "Algorithm": "SHA256",
+    "Hash": "9394650B9FD4E880D248805EDBA9BFFB07D476AA6C89D251D1A21BB165F70A37",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\scripts\\vitshell_smoke.ps1"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "1DFDC61A60977A90E9D58C37D5B07D55EA8485615F0EA9D51C96FDBF4EC5BC0F",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\shell-window-transition-406\\vit-daw-frontend\\VitShell\\tests\\win32_noactivate_restore_probe.cpp"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "64A43D2F7A166664E6809B5EFE7B9E0EF12A5424E84D344FB2FFB96B5CBFBC01",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\shell-window-transition-406\\vit-daw-frontend\\VitShell\\tests\\window_transition_observer.h"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "70192D851CA0DBF099A54D35BAD41B5664000B9E5E5087012A99B657BC47045B",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\shell-window-transition-406\\vit-daw-frontend\\VitShell\\tests\\window_transition_observer.cpp"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "8B5B8526331AA0A26AE629874740CE676D037AC25FF9328935F1343A1084B240",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\implementation_static\\build\\Release\\win32_noactivate_restore_probe.exe"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "4727BB7AE4FC9105A0842852B8004BDE8FBDEF054C5812CDF3BFDD7B0F34A06E",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\implementation_static\\build\\Release\\window_transition_observer.dll"
+  }
+]

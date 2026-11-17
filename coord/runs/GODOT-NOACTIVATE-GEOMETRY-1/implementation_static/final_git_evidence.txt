@@ -1,0 +1,23 @@
+Main
+c43d66ad5e565348f920058b9d8d29f4ac5a46b4
+c43d66ad 405: require explicit geometry/observer gates and card metadata
+ scripts/vitshell_smoke.ps1 | 15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
+?? coord/runs/GODOT-MAIN-HWND-OBSERVATION-1/formal_02/external.godot.project/isolated_user/
+?? coord/runs/GODOT-MAIN-HWND-OBSERVATION-1/formal_02/synthetic.godot.project/isolated_user/
+?? coord/runs/GODOT-NOACTIVATE-GEOMETRY-1/implementation_static/
+?? coord/runs/WIN32-NOACTIVATE-RESTORE-FORENSICS-1/phase_b_01/formal_B/synthetic.godot.project/isolated_user/
+?? coord/runs/WIN32-NOACTIVATE-RESTORE-FORENSICS-1/phase_b_02/formal_B2/synthetic.godot.project/isolated_user/
+?? coord/runs/WINDOW-TRANSITION-OBSERVER-1/assembly_static/generated_fixture/window_transition_observer.dll
+?? coord/runs/WINDOW-TRANSITION-OBSERVER-1/assembly_static/static_fixture_final/generated_fixture/window_transition_observer.dll
+?? coord/runs/WINDOW-TRANSITION-OBSERVER-1/assembly_static/static_fixture_v2/generated_fixture/window_transition_observer.dll
+?? coord/runs/WINDOW-TRANSITION-OBSERVER-1/runtime_01/external.godot.project/isolated_user/
+?? coord/runs/WINDOW-TRANSITION-OBSERVER-1/runtime_01/external.godot.project/window_transition_observer.dll
+?? coord/runs/WINDOW-TRANSITION-OBSERVER-1/runtime_01/synthetic.godot.project/window_transition_observer.dll
+Frontend
+ea643bf95cd6ec4df041a8c97ff30ec94894f01f
+ea643bf 405: stage hidden work-area geometry with explicit DPI domains and native trace gates
+ VitShell/tests/win32_noactivate_restore_probe.cpp | 287 +++++++++++++++++++++-
+ VitShell/tests/window_transition_observer.cpp     |   8 +-
+ VitShell/tests/window_transition_observer.h       |   3 +
+ 3 files changed, 289 insertions(+), 9 deletions(-)

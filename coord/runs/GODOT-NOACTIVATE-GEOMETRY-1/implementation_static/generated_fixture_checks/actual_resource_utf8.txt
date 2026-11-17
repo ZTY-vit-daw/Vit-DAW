@@ -1,0 +1,5 @@
+﻿# PC 真实运行栈占用记录
+本记录是共享卡池协作的资源登记面，操作协议见 [PROTOCOL.md](../PROTOCOL.md) §2.2。
+初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
+- 2026-11-17 18:45 +0800 释放 / **406 runtime_01覆盖不足如实收口**：runner2，synthetic前提缺失child0/not_exercised；external child21460观察器加载/54native seq/26对/2层嵌套/单恢复/卸载自然0。主管亲解析原native与尾并独立核全部Vit/Godot/probe/TCP6口/UDP全0、recents807226F4…13E353一致；工件1056214c待后续归档。406不冒称整体PASS；405现只准同owner串行几何候选代码/无窗自验，不授新启动。当前栈空闲。
+- 2026-11-17 18:35 +0800 预留 / **406测试专用目标线程观察器runtime**：owner=Codex `/root/restore403`（Sol/high，PC），主旧win32-restore-403 @e5f65625(script2d7eb8f2)，前端新shell-window-transition-406 @1a4ff1c。主管审装配+亲跑34纯check0，现只隔离最小Godot自身官方loader测试DLL，≤2child/20min，任何异常停、无补跑，先RUNBOOK；显式ForensicsCard406/TestTransitionObserver。标准含safe arm/原生WM完整记录/单shownoactivate/2s保FG/自主卸载自然0，不含405新geometry/产品。主管亲核进程/TCP6口/UDP全零，执行启前fetch owner和≤60秒净空，recents快照/finallyhash/原字节保全/exact child清理，其他流禁启栈。

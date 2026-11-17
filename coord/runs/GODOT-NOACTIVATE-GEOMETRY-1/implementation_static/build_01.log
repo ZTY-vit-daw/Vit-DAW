@@ -1,0 +1,18 @@
+适用于 .NET Framework MSBuild 版本 18.4.0+6e61e96ac
+
+  1>Checking Build System
+  Building Custom Rule C:/Users/timoz/.codex/worktrees/shell-window-transition-406/vit-daw-frontend/VitShell/tests/CMakeLists.txt
+  win32_noactivate_restore_probe.cpp
+C:\Users\timoz\.codex\worktrees\shell-window-transition-406\vit-daw-frontend\VitShell\tests\win32_noactivate_restore_probe.cpp(209,14): error C2513: “auto”: 在“=”前没有声明变量 [C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\GODOT-NOACTIVATE-GEOMETRY-1\implementation_static\build\win32_noactivate_restore_probe.vcxproj]
+C:\Users\timoz\.codex\worktrees\shell-window-transition-406\vit-daw-frontend\VitShell\tests\win32_noactivate_restore_probe.cpp(260,29): error C2664: “DWORD GetWindowThreadProcessId(HWND,LPDWORD)”: 无法将参数 2 从“unsigned int *”转换为“LPDWORD” [C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\GODOT-NOACTIVATE-GEOMETRY-1\implementation_static\build\win32_noactivate_restore_probe.vcxproj]
+      C:\Users\timoz\.codex\worktrees\shell-window-transition-406\vit-daw-frontend\VitShell\tests\win32_noactivate_restore_probe.cpp(260,61):
+      指向的类型不相关; 转换需要 reinterpret_cast、C 样式强制转换或带圆括号的函数样式强制转换
+      C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\um\winuser.h(10275,1):
+      参见“GetWindowThreadProcessId”的声明
+      C:\Users\timoz\.codex\worktrees\shell-window-transition-406\vit-daw-frontend\VitShell\tests\win32_noactivate_restore_probe.cpp(260,29):
+      尝试匹配参数列表“(HWND, unsigned int *)”时
+  
+C:\Users\timoz\.codex\worktrees\shell-window-transition-406\vit-daw-frontend\VitShell\tests\win32_noactivate_restore_probe.cpp(648,18): warning C4456: “flags”的声明隐藏了上一个本地声明 [C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\GODOT-NOACTIVATE-GEOMETRY-1\implementation_static\build\win32_noactivate_restore_probe.vcxproj]
+      C:\Users\timoz\.codex\worktrees\shell-window-transition-406\vit-daw-frontend\VitShell\tests\win32_noactivate_restore_probe.cpp(556,11):
+      参见“flags”的声明
+  
