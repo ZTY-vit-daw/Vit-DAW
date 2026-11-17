@@ -4,7 +4,7 @@
 
 ## 范围和实现文件
 
-- 主仓已有3脚本加主管批准的第4脚本`ui_entry_smoke.ps1`可选即时守卫，默认off。产品UI不改。主管已把389/395候验+装置0a6dfcf5集成到`C:/Users/timoz/.codex/worktrees/entry-final-validation/Vit_DAW`（branch codex/entry-final-validation），接续实际基线2f45c5f1、status净；旧converge-entry worktree不再写。
+- 主仓已有3脚本加主管批准的第4脚本`ui_entry_smoke.ps1`可选即时守卫，默认off。产品UI不改。主管已把389/395候验+装置0a6dfcf5集成到`C:/Users/timoz/.codex/worktrees/entry-final-validation/Vit_DAW`（branch codex/entry-final-validation）；接续期间主管又合入395compact修复699ef067，最终装置f551d32e以699ef067为parent，status净。正式被测组合以最新HEAD记录，不用旧2f45基线。旧converge-entry worktree不再写。
 - 402-B前端唯一worktree=`C:/Users/timoz/.codex/worktrees/godot-entry-396/vit-daw-frontend`，领取HEAD=`0017bba55c7f2c69fcd0dd5cb1c9b11430b1282a`，领取status/diff为空，AGENTS.md不存在。仅3生产gd；已独立commit1301345。主管之后水合spectrum_data.exr（tracked pointer与源SHA70736DAF…F1EF一致）与extension三DLL，无junction；已知EXR hydration M不入提交。C++不改。
 - 权威协议：前端`VitShell/tests/README.md`及`tools/README-vitshell-readiness.md`。`workspace_ready`仅代表生产dock同步_ready完毕+真实首snapshot入ProjectRepository并广播project_loaded，不声称插件/音频/分析完成。
 

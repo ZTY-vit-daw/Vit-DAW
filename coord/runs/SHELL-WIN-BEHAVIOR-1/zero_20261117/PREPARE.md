@@ -1,6 +1,6 @@
 # 391组合装置 / 402-B 零栈准备回执
 
-- 主仓接续`entry-final-validation`，实际基线2f45c5f1、status净；产品含主管候验389/395组合，未由执行侧改App/launcher或gallery。旧执行树不再写。
+- 主仓接续`entry-final-validation`时2f45c5f1、status净；期间主管合入395compact修复699ef067，最终装置提交f551d32e的parent为699ef067。正式候验组合以最新HEAD为准。产品含主管候验389/395，未由执行侧改App/launcher或gallery。旧执行树不再写。
 - 402-B前端独立commit1301345（从0017bba5干净领取）：3个生产gd，真实load失败/真实repo副本拒绝/共享延迟门/实际exit17，显式smoke门+direct+nonce+白名单，默认空零行为。tracked EXR M仅主管验证水合资产，未纳提交。
 - 391准备0a6dfcf5已由主管merge到组合；本接续仅4个既有脚本：full ps1/CDP/wrapper/C旧入口可选guard。默认开关off保留既有行为；C只加guard不改389断言。wrapper允许本run独立kernel/agent PID且路径匹配本worktree，长import后每次spawn前重fetch/净空；无主机输入。
 - `node --check scripts/vitshell_full_smoke_cdp.mjs` exit0。
