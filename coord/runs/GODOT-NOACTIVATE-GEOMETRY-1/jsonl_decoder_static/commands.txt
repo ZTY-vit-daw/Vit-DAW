@@ -1,0 +1,7 @@
+cmake -S "C:/Users/timoz/.codex/worktrees/shell-window-transition-406/vit-daw-frontend/VitShell/tests" -B "C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\GODOT-NOACTIVATE-GEOMETRY-1\jsonl_decoder_static\build" -G "Visual Studio 18 2026" -A x64
+configure_exit=0
+build_exit=0
+"C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\GODOT-NOACTIVATE-GEOMETRY-1\jsonl_decoder_static\build\Release\win32_noactivate_restore_probe.exe" --geometry-selftest "C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW\coord\runs\GODOT-NOACTIVATE-GEOMETRY-1\jsonl_decoder_static\geometry_selftest.jsonl" (windowless only)
+geometry_jsonl_selftest_exit=0
+actual_observer_schema_static_compare_exit=1
+actual_observer_schema_final_compare_exit=0

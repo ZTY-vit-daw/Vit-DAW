@@ -1,0 +1,12 @@
+[
+  {
+    "Algorithm": "SHA256",
+    "Hash": "878E06B345097DBB3C821B66391FCBF634BB8BF50737A94184D23A65B449A2F9",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\shell-window-transition-406\\vit-daw-frontend\\VitShell\\tests\\win32_noactivate_restore_probe.cpp"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "473F5486E977ED5CF108527F273130BC30BCE9C25B99EF96A2D92B6F6F92FB52",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-NOACTIVATE-GEOMETRY-1\\jsonl_decoder_static\\build\\Release\\win32_noactivate_restore_probe.exe"
+  }
+]

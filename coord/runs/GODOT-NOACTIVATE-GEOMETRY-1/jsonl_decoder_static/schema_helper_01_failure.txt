@@ -1,0 +1,1 @@
+Initial schema audit helper exit1: JSONDecodeError at column52 because test harness did not substitute the actual formatter %lu PID token. Native decoder test remained41/41; corrected audit helper expands %lu as well. Original helper file retained.

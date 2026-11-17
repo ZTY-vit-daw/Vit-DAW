@@ -1,0 +1,78 @@
+diff --git a/VitShell/tests/win32_noactivate_restore_probe.cpp b/VitShell/tests/win32_noactivate_restore_probe.cpp
+index e2150b9..b8b9dce 100644
+--- a/VitShell/tests/win32_noactivate_restore_probe.cpp
++++ b/VitShell/tests/win32_noactivate_restore_probe.cpp
+@@ -410,6 +410,73 @@ static int geometrySelftest(const std::wstring& output) {
+     records=valid;records[3].state.focus=200;test("native_focus_received",base,records,"native_activation");
+     records=valid;records[7].failures=1;test("late_error_cannot_be_erased",base,records,"native_failure");
+     plan=base;plan.mutations[4].end=52;test("first_transition_after_api_return",plan,valid,"first_transition_outside_api_interval");
++    // Exercise the real file decoder, not just the already-decoded vector.
++    // Match observer write_record's field/nesting schema; keep each fixture next
++    // to this run's output, never in a source directory or an earlier run.
++    const auto fixtureDirectory=std::filesystem::path(output).parent_path()/
++        (std::filesystem::path(output).stem().wstring()+L"_decoder_"+std::to_wstring(GetCurrentProcessId()));
++    std::error_code fixtureError;
++    bool fresh=std::filesystem::create_directory(fixtureDirectory,fixtureError);
++    auto encode=[](const NativeRecord& r){
++        const auto& s=r.state;std::ostringstream out;
++        out<<"{\"kind\":\"native_message\",\"nonce\":\"geometry405\",\"pid\":"<<s.pid
++            <<",\"seq\":"<<r.seq<<",\"tick64\":10,\"qpc\":"<<r.qpc<<",\"unix_ms\":10"
++            <<",\"phase\":"<<r.phase<<",\"message\":"<<r.message<<",\"tid\":"<<r.tid
++            <<",\"hwnd\":"<<r.hwnd<<",\"generation\":"<<r.generation<<",\"depth\":"<<r.depth<<",\"failures\":"<<r.failures
++            <<",\"wparam\":0,\"lparam\":0,\"windowpos\":{\"insert_after\":"<<r.insert_after
++            <<",\"x\":"<<r.x<<",\"y\":"<<r.y<<",\"cx\":"<<r.cx<<",\"cy\":"<<r.cy<<",\"flags\":"<<r.pos_flags<<'}'
++            <<",\"style_change\":[0,0],\"dpi_suggested\":[0,0,0,0],\"valid\":"<<s.valid
++            <<",\"native_pid\":"<<s.pid<<",\"native_tid\":"<<s.tid<<",\"visible\":"<<s.visible<<",\"iconic\":"<<s.iconic<<",\"zoomed\":"<<s.zoomed
++            <<",\"style\":0,\"exstyle\":"<<s.exstyle<<",\"dpi\":"<<s.dpi<<",\"dpi_context\":-2,\"thread_dpi_context\":-2"
++            <<",\"window_awareness\":"<<s.window_awareness<<",\"thread_awareness\":"<<s.thread_awareness<<",\"thread_window_context_equal\":"<<s.thread_window_context_equal
++            <<",\"rect_ok\":"<<s.rect_ok<<",\"rect\":"<<rectJSON(s.rect)<<",\"client_ok\":1,\"client\":[0,0,1900,1000]"
++            <<",\"placement_ok\":"<<s.placement_ok<<",\"show_cmd\":1,\"normal_rect\":"<<rectJSON(s.normal)
++            <<",\"foreground\":"<<s.foreground<<",\"focus\":"<<s.focus<<",\"active\":0,\"previous\":"<<s.previous<<",\"next\":0}";
++        return out.str();
++    };
++    std::vector<std::string> schema;
++    schema.push_back("{\"kind\":\"safe_armed\",\"nonce\":\"geometry405\",\"seq_boundary\":0,\"ok\":true}");
++    for(const auto& r:valid)schema.push_back(encode(r));
++    schema.push_back("{\"kind\":\"drain_end\",\"nonce\":\"geometry405\",\"seq_boundary\":8,\"ok\":true}");
++    auto fileTest=[&](const char* name,const GeometryPlan& p,const std::vector<std::string>& lines,bool complete,const char* expected){
++        const auto path=fixtureDirectory/(std::string(name)+".jsonl");
++        std::ofstream fixture; if(fresh)fixture.open(path,std::ios::binary);
++        if(fixture){for(const auto& row:lines)fixture<<row<<'\n';fixture.close();}
++        bool fileOK=fresh&&static_cast<bool>(fixture);
++        const char* reason=fileOK?readGeometryTrace(p,path.wstring(),"geometry405",complete):"selftest_fixture_write_failed";
++        bool pass=fileOK&&(expected?reason&&std::string(reason)==expected:!reason);
++        ++checks;if(!pass)++failures;
++        log("geometry_jsonl_selftest",std::string(",\"case\":\"")+name+"\",\"pass\":"+std::to_string(pass)+",\"require_complete\":"+std::to_string(complete)+",\"reason\":\""+(reason?reason:"accepted")+"\"");
++    };
++    auto replace=[](std::string& row,const std::string& from,const std::string& to){auto offset=row.find(from);if(offset!=std::string::npos)row.replace(offset,from.size(),to);};
++    fileTest("jsonl_observer_schema_final_roundtrip",base,schema,true,nullptr);
++    fileTest("jsonl_observer_schema_prefix_roundtrip",base,schema,false,nullptr);
++    auto lines=schema;lines.push_back("{\"kind\":\"native_message\"");
++    fileTest("jsonl_prefix_partial_after_drain",base,lines,false,nullptr);
++    fileTest("jsonl_final_partial_rejected",base,lines,true,"native_partial_record");
++    lines=schema;auto uncommitted=valid[1];uncommitted.seq=9;uncommitted.qpc=66;lines.push_back(encode(uncommitted));
++    fileTest("jsonl_prefix_ignores_records_beyond_drain",base,lines,false,nullptr);
++    fileTest("jsonl_final_uncommitted_tail_rejected",base,lines,true,"native_drain_boundary_missing");
++    lines=schema;replace(lines[4],"\"valid\":1,","");
++    fileTest("jsonl_missing_boolean",base,lines,true,"native_boolean_field_missing");
++    lines=schema;replace(lines[4],"\"dpi\":168,","");
++    fileTest("jsonl_missing_dpi",base,lines,true,"native_coordinate_domain_changed");
++    lines=schema;replace(lines[4],"\"thread_awareness\":1,","");
++    fileTest("jsonl_missing_dpi_awareness",base,lines,true,"native_coordinate_domain_changed");
++    lines=schema;replace(lines[4],"geometry405","wrong_nonce");
++    fileTest("jsonl_nonce_mismatch",base,lines,true,"native_nonce_mismatch");
++    lines=schema;replace(lines[4],"\"seq\":4,","\"seq\":40,");
++    fileTest("jsonl_sequence_gap",base,lines,true,"native_seq_or_clock_gap");
++    lines=schema;replace(lines.back(),"\"seq_boundary\":8,","\"seq_boundary\":7,");
++    fileTest("jsonl_final_drain_boundary_mismatch",base,lines,true,"native_drain_boundary_missing");
++    lines=schema;lines.pop_back();
++    fileTest("jsonl_missing_drain",base,lines,true,"native_drain_boundary_missing");
++    lines=schema;replace(lines[3],"\"cx\":1920,","\"cx\":425,");
++    fileTest("jsonl_nested_windowpos_size_decoded",base,lines,true,"changing_after_size_wrong");
++    lines=schema;replace(lines[4],"\"flags\":0}","\"flags\":1024}");
++    fileTest("jsonl_nested_flags_nosend_decoded",base,lines,true,"nosendchanging");
++    lines=schema;replace(lines[3],"\"flags\":64}","\"flags\":67}");replace(lines[3],"\"normal_rect\":[0,0,1920,1040]","\"normal_rect\":[0,0,425,311]");
++    fileTest("jsonl_nested_flags_and_normal_rect_decoded",base,lines,true,"restoring_placement_unproven");
+     log("geometry_selftest_result",",\"cases\":"+std::to_string(checks)+",\"failures\":"+std::to_string(failures)+",\"windows_created\":0");logFile.close();return failures?1:0;
+ }
+ static NativeIdentity readIdentity(HWND h) {
