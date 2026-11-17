@@ -203,4 +203,4 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 399 | SCORE-CLIP-STRIP-1 | todo（依397/398，clip时间小条） |
 | 400 | SCORE-DRAFT-CONTRACT-1 | todo（只读契约，工程包草稿库前提未成立） |
 | 401 | LAUNCHER-RECENTS-READ-1 | doing（388必要只读接缝，同owner独立提交；GET不经LLM/不物化工作区） |
-| 402 | SHELL-WORKSPACE-READY-1 | todo（394取证必要接缝：生产装配+首份工程快照回执，配对失败/超时） |
+| 402 | SHELL-WORKSPACE-READY-1 | doing（/root/window391，Sol/xhigh；394取证必要接缝：生产装配+首份工程快照回执，配对失败/超时） |

@@ -16,3 +16,9 @@
 
 ### 观测面扩域（394-B，主管2026-11-17）
 为保留旧chain_detail纯文本契约，B独立提交授权status_server.h/.cpp新增可选window_state schema vitshell.window_state.v1+main.cpp一处reader接线（3文件）；A原4文件独立可构建。reader在HTTP服务锁外调用，mutex快照元数据并即时只读查询foreground/z/style；不在HTTP线程改窗口。旧detail不改、无窗null/unknown、schema不声称ready。原生焦点临时位在scene_accepted/failed/timeout/exit/shutdown释放；runtime验证候主管放行。
+
+## 零栈回执与主管复核（2026-11-17）
+
+- 执行提交：A=b778f1c5908abca342de9d3e277f1915e24358db；B=e9006de7bdae4803c1a5baf1c288f0c992414bc4，前端分支codex/shell-win-native-394已推。
+- 原生build exit0、独立测试目录ctest 2/2 exit0；主管审实际diff（临时noactivate/无topmost/终态释放/旧退出pid校验/HTTP fresh只读观测/旧detail保留），亲复跑build与正确测试目录2/2均exit0。首次误用build根ctest报告No tests were found，已改window-tests目录亲证，不将空运行算验证。
+- 技术面待真栈；未合入前端main。单元/构建不证Godot显示时序与真实焦点；402/395集成后再终验。旧wrapper覆盖STARTUPINFO风险待真实运行。

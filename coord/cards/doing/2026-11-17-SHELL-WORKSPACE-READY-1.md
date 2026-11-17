@@ -9,3 +9,9 @@
 - 测试卫生：原fixture复制，recents启动前快照、finally还原且哈希亲证，独立run目录；跑前写次数/失败分类/预算/止损。
 - 停止：需内核改动/大规模场景重构/无法可靠关联本次launch则先报锚点；无GUI/computer-use。
 - 领取/回执/验收待回填。
+
+## 领取（2026-11-17）
+
+- owner=/root/window391（Sol/xhigh，PC），394零栈完成后接力；不承担自身最终验收。
+- 分支codex/shell-workspace-ready-402；worktree=C:/Users/timoz/.codex/worktrees/godot-entry-396/vit-daw-frontend；HEAD=e9006de7（394A/B待真栈，不当最终PASS），初始status/diff空。
+- 主仓基线e416de6e；本领取提交成功推main核对owner后可实现；仅gd≤3生产文件，CPP不动，真实栈未放行。

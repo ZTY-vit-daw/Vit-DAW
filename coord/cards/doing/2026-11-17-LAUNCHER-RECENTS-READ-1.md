@@ -10,3 +10,8 @@
 - 领取基线779477ea（main已至bb10c48b，差异仅协调文件）；领取提交同步共享main核对owner后才实现本卡。真栈仍候主管放行。
 - 停止：existing helper强制物化/需改authority或预算→证据上交；同断点连败2次不原样重跑。
 - 回执/验收待回填。
+
+## 401 零栈回执与主管复核（2026-11-17）
+
+- b91a8ad9 @codex/converge-entry-388；3生产文件+2测试+原始日志，Go build/chat全包、API7项/前端713项执行侧exit0。
+- 主管亲读handler/API与反例，亲复跑go test ./internal/chat -run '^TestLauncherRecentProjects' -count=1 exit0（0.096s）；未将单测当端测，388真实栈GET/往返证明仍欠。
