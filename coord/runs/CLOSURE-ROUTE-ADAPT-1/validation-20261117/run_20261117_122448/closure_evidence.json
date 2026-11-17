@@ -1,0 +1,211 @@
+{
+  "evidence": {
+    "closure_mode": "diagnostic",
+    "diagnostic_exercised": true,
+    "closure_id": "audio_closure_52bc586f5c974643",
+    "phase": "fs2_capacity_assessed",
+    "settlement_reason": null,
+    "task_state": "observation_in_progress",
+    "runtime_identity_matched": true,
+    "response_slice": {
+      "slice_id": "slice_d69bf18249ec8571",
+      "run_id": "run_e907924040ca1b4a",
+      "sequence": 1,
+      "max_turns": 8,
+      "max_tool_calls": 6,
+      "turns_used": 8,
+      "tool_calls_used": 2,
+      "status": "waiting_continuation",
+      "started_at": "2026-11-17T12:25:13.1895141+08:00",
+      "ended_at": "2026-11-17T12:25:53.7316271+08:00"
+    },
+    "all_run_slices": [
+      {
+        "slice_id": "slice_d69bf18249ec8571",
+        "run_id": "run_e907924040ca1b4a",
+        "sequence": 1,
+        "max_turns": 8,
+        "max_tool_calls": 6,
+        "turns_used": 8,
+        "tool_calls_used": 2,
+        "status": "waiting_continuation",
+        "started_at": "2026-11-17T12:25:13.1895141+08:00",
+        "ended_at": "2026-11-17T12:25:53.7316271+08:00"
+      }
+    ],
+    "base_budget_observed": true,
+    "max_turns_stop": true,
+    "budget_evidence_boundary": "GET /agent/runtime/status task.run.slices; absent or mismatched identity is unverified"
+  },
+  "closure": {
+    "action_attempts": 0,
+    "actionability": "unknown",
+    "closure_id": "audio_closure_52bc586f5c974643",
+    "contract_id": "contract_task_b89327fcda48d404",
+    "conversation_id": "edu_transform_smoke_20261117_122507",
+    "created_at": "2026-11-17T04:25:13.1422936Z",
+    "events": [
+      {
+        "closure_id": "audio_closure_52bc586f5c974643",
+        "data": {
+          "ContractID": "contract_task_b89327fcda48d404",
+          "ConversationID": "edu_transform_smoke_20261117_122507",
+          "GoalID": "goal_679ca09246791eed",
+          "Mode": "diagnostic",
+          "OriginalIntent": "当前工程里有一条 MIDI 片段（clip_id=1010，共 42 个音符，是一段 C 大调旋律）。请调用工具 midi.analyze_transformations 分析这条片段里的变换关系：参数 clip_id 用 \"1010\"，key 传 {\"tonic\": 0, \"mode\": \"major\"}，range_beats / min_match_notes / transformations 都不用传（用默认值，分析全曲）。分析完成后把检出的每种关系（repeat / sequence 等）简要列给我。",
+          "Policy": {
+            "max_action_attempts": 1,
+            "max_closure_rounds": 6,
+            "max_duty_observations": 8,
+            "max_model_protocol_repairs": 1,
+            "max_no_progress_rounds": 2,
+            "max_rollback_attempts": 1,
+            "max_unique_observation_sets": 4
+          },
+          "ProjectRevision": "2",
+          "ProjectUUID": "vitproj_198969ba17ec4aa1a55604ade50c111b",
+          "RunID": "run_e907924040ca1b4a",
+          "Scope": {
+            "id": "vitproj_198969ba17ec4aa1a55604ade50c111b",
+            "kind": "project"
+          },
+          "TaskID": "task_b89327fcda48d404",
+          "TaskState": "observation_in_progress",
+          "TaskStateRevision": 1
+        },
+        "event_id": "audio_closure_52bc586f5c974643:1",
+        "occurred_at": "2026-11-17T04:25:13.1422936Z",
+        "sequence": 1,
+        "type": "closure_started"
+      },
+      {
+        "closure_id": "audio_closure_52bc586f5c974643",
+        "data": {
+          "round": 1
+        },
+        "event_id": "audio_closure_52bc586f5c974643:2",
+        "occurred_at": "2026-11-17T04:25:13.1529436Z",
+        "sequence": 2,
+        "type": "round_started"
+      },
+      {
+        "closure_id": "audio_closure_52bc586f5c974643",
+        "data": {
+          "from": "reasoning",
+          "guard": {
+            "admission_valid": false,
+            "capacity_assessed": false,
+            "continue_once_remaining": false,
+            "dimension_closed": false,
+            "frontier_established": false,
+            "gate_passed": false,
+            "project_bound": false,
+            "queue_non_empty": false,
+            "scan_usable": false,
+            "target_evidence": false
+          },
+          "guard_passed": true,
+          "reason": "fs entry",
+          "to": "fs0_semantic_entry"
+        },
+        "event_id": "audio_closure_52bc586f5c974643:3",
+        "occurred_at": "2026-11-17T04:25:13.1649811Z",
+        "sequence": 3,
+        "type": "phase_transition"
+      },
+      {
+        "closure_id": "audio_closure_52bc586f5c974643",
+        "data": {
+          "from": "fs0_semantic_entry",
+          "guard": {
+            "admission_valid": false,
+            "capacity_assessed": false,
+            "continue_once_remaining": true,
+            "dimension_closed": false,
+            "frontier_established": false,
+            "gate_passed": false,
+            "project_bound": true,
+            "queue_non_empty": true,
+            "scan_usable": false,
+            "target_evidence": false
+          },
+          "guard_passed": true,
+          "reason": "derived from closure evidence",
+          "to": "fs1_project_bound"
+        },
+        "event_id": "audio_closure_52bc586f5c974643:4",
+        "occurred_at": "2026-11-17T04:25:13.1649811Z",
+        "sequence": 4,
+        "type": "phase_transition"
+      },
+      {
+        "closure_id": "audio_closure_52bc586f5c974643",
+        "data": {
+          "from": "fs1_project_bound",
+          "guard": {
+            "admission_valid": false,
+            "capacity_assessed": true,
+            "continue_once_remaining": true,
+            "dimension_closed": false,
+            "frontier_established": false,
+            "gate_passed": false,
+            "project_bound": true,
+            "queue_non_empty": true,
+            "scan_usable": false,
+            "target_evidence": false
+          },
+          "guard_passed": true,
+          "reason": "derived from closure evidence",
+          "to": "fs2_capacity_assessed"
+        },
+        "event_id": "audio_closure_52bc586f5c974643:5",
+        "occurred_at": "2026-11-17T04:25:53.7456279Z",
+        "sequence": 5,
+        "type": "phase_transition"
+      },
+      {
+        "closure_id": "audio_closure_52bc586f5c974643",
+        "data": {
+          "progress": false
+        },
+        "event_id": "audio_closure_52bc586f5c974643:6",
+        "occurred_at": "2026-11-17T04:25:53.7456279Z",
+        "sequence": 6,
+        "type": "round_completed"
+      }
+    ],
+    "goal_id": "goal_679ca09246791eed",
+    "hypothesis_frontier": {},
+    "mode": "diagnostic",
+    "model_protocol_repairs": 0,
+    "no_progress_streak": 1,
+    "original_intent": "当前工程里有一条 MIDI 片段（clip_id=1010，共 42 个音符，是一段 C 大调旋律）。请调用工具 midi.analyze_transformations 分析这条片段里的变换关系：参数 clip_id 用 \"1010\"，key 传 {\"tonic\": 0, \"mode\": \"major\"}，range_beats / min_match_notes / transformations 都不用传（用默认值，分析全曲）。分析完成后把检出的每种关系（repeat / sequence 等）简要列给我。",
+    "phase": "fs2_capacity_assessed",
+    "policy": {
+      "max_action_attempts": 1,
+      "max_closure_rounds": 6,
+      "max_duty_observations": 8,
+      "max_model_protocol_repairs": 1,
+      "max_no_progress_rounds": 2,
+      "max_rollback_attempts": 1,
+      "max_unique_observation_sets": 4
+    },
+    "project_revision": "2",
+    "project_uuid": "vitproj_198969ba17ec4aa1a55604ade50c111b",
+    "revision": 6,
+    "rollback_attempts": 0,
+    "round_had_progress": false,
+    "round_in_progress": false,
+    "rounds_started": 1,
+    "run_id": "run_e907924040ca1b4a",
+    "schema_version": "minimal_audio_closure.v1",
+    "scope": {
+      "id": "vitproj_198969ba17ec4aa1a55604ade50c111b",
+      "kind": "project"
+    },
+    "task_id": "task_b89327fcda48d404",
+    "task_state": "observation_in_progress",
+    "task_state_revision": 1,
+    "updated_at": "2026-11-17T04:25:53.7456279Z"
+  }
+}

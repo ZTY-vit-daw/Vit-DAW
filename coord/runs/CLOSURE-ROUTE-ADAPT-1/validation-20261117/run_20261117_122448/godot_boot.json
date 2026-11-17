@@ -1,0 +1,10 @@
+﻿{
+    "project":  "C:\\Users\\timoz\\.codex\\worktrees\\godot-runtime-388\\vit-daw-frontend",
+    "frontend_head":  "d05043e11a79452b9155a89f3405668994eafdcb",
+    "pid":  12776,
+    "frontend_status":  [
+                            " M textures/spectrum_data.exr"
+                        ],
+    "boot_log":  "C:\\Users\\timoz\\.codex\\worktrees\\closure-validation-271\\Vit_DAW\\coord\\runs\\CLOSURE-ROUTE-ADAPT-1\\validation-20261117\\run_20261117_122448\\logs\\godot_closure_271.log",
+    "executable":  "D:\\Godot\\Godot_v4.6.1-stable_win64_console.exe"
+}

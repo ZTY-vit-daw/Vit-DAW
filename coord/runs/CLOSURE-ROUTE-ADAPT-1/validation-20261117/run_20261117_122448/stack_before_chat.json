@@ -1,0 +1,14 @@
+﻿{
+    "agent":  {
+                  "path":  "C:\\Users\\timoz\\.codex\\worktrees\\closure-validation-271\\Vit_DAW\\agent\\bin\\VitAgent.exe",
+                  "pid":  29260,
+                  "sha256":  "A5151A0631C72A667DDDE0463629D72BBA955ECFF668153C7E33997A397EB1B7"
+              },
+    "checked_at":  "2026-11-17T12:25:07.5699713+08:00",
+    "godot_pid":  12776,
+    "kernel":  {
+                   "path":  "C:\\Users\\timoz\\.codex\\worktrees\\closure-validation-271\\Vit_DAW\\VitApp\\build\\VitApp_artefacts\\Release\\VitApp.exe",
+                   "pid":  16856,
+                   "sha256":  "A59473614152882B21433DCEE684F8B13AE0BD5B632A97CD5E2C8765BB18348E"
+               }
+}

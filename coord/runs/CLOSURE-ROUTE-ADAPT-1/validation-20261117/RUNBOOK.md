@@ -92,3 +92,12 @@ $code271 = $LASTEXITCODE
 
 - build通过后guard因误要求前导斜杠而拒绝真实资源首条，outer exit1；真实共享格式为时间后直接接占用marker。原始d1/console/recents/fixture hash均保留；源资源f83cca4f字节快照保留resource_f83cca4f_raw.txt。进程/TCP/UDP亲核0，recents还原及亲核807226F4一致。属于装置断言格式错误，不是产品断言或模型随机环境中断。
 - 修正仅移除marker前想象斜杠，并新增启动守卫原始资源落盘。PS5.1离线测试从本次真实f83cca4f首条UTF8快照取行，配对验证owner271通过、替换owner388拒绝、替换release marker拒绝及外来进程拒绝，exit0。原始测试文件C:/Users/timoz/AppData/Local/Temp/vit271-guard-a98c14844b7f413ea02818798d83d393.ps1。新run沿用冻结场景和全部预算，不continue、不改话术。
+
+### 修守卫后新run（启动前）
+
+- HEAD=9c43de42，未变Go或话术。完整命令：powershell -NoProfile -ExecutionPolicy Bypass -File C:/Users/timoz/.codex/worktrees/closure-validation-271/Vit_DAW/scripts/dev_agent_smoke.ps1 -RepoRoot C:/Users/timoz/.codex/worktrees/closure-validation-271/Vit_DAW -StartKernel -KernelExe C:/Users/timoz/.codex/worktrees/closure-validation-271/Vit_DAW/VitApp/build/VitApp_artefacts/Release/VitApp.exe -RestartAgent -StartUI -GodotProjectRoot C:/Users/timoz/.codex/worktrees/godot-runtime-388/vit-daw-frontend -GodotExe D:/Godot/Godot_v4.6.1-stable_win64_console.exe -NoChatSmoke -NoStripSilenceSmoke -ClosureDiagnosticValidation -RunArtifactsDir C:\Users\timoz\.codex\worktrees\closure-validation-271\Vit_DAW\coord\runs\CLOSURE-ROUTE-ADAPT-1\validation-20261117\run_20261117_122448
+
+### 正式轮终态
+
+- 唯一模型场景run122448：outer1/py6 budget_exceeded，9calls超过冻结8；diagnostic自然命中，实际slice8turns/6calls，只有read_notes/read_clip_data，目标分析未执行、golden无result不可评。未continue、未追跑。
+- 原finally读UTF8摘要未指定编码而失败，原d1缺失；已离线重建且明确标注，原console和exit保留。修summary/telemetry UTF8读取并捕获解码异常，本次真实中文摘要本地finally两案exit0；只装置QA，无新栈/LLM。详见READOUT.md和run内offline_supplement/original_report_absence/owner_post_teardown。

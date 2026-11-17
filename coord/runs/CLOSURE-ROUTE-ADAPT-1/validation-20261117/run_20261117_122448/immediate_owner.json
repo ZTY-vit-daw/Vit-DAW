@@ -1,0 +1,5 @@
+﻿{
+    "origin_main":  "01b389f63e736a6dc67edddb7975df37e2404ed9",
+    "fetched_at":  "2026-11-17T12:24:57.4524777+08:00",
+    "latest":  "- 2026-11-17 12:18 +0800 占用 / **271 CLOSURE-ROUTE-ADAPT-1 独立诊断闭包验证**：owner=Codex /root/closure271（Sol/high，PC），worktree C:/Users/timoz/.codex/worktrees/closure-validation-271/Vit_DAW，分支codex/closure-validation-271（装置fb424394+跑前guard修订待owner记录；生产预算修复cf22db7f已在main）。独立kernel=A59473614152882B…48E复制至该worktree VitApp/build/VitApp_artefacts/Release/VitApp.exe，Settings72F0F511…EDFBB8；稳定前端C:/Users/timoz/.codex/worktrees/godot-runtime-388/vit-daw-frontend @d05043e1（无394/402，不证焦点）。端口5555/5556/7878/UDP4445（其他Vit相关口守卫全查），不启VspHub（SPAWN_RUNTIME不得true）。RUNBOOK跑前冻结1个含LLM场景、自然diagnostic命中/四身份slice预算\u003e1/既有golden，not_exercised不追跑，账面≤8调用/input250k/output16k（非硬熔断），环境原证据至多1重建；recents快照/finally hash/fixture源不变/独立run。主管12:15亲核进程/TCP/UDP全0，owner启前再次fetch远端并在build后即时≤60s核净空。其他流不得启Godot/真实栈；结束亲证全零+recents还原后交主管释放。"
+}

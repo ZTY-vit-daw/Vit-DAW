@@ -1,0 +1,681 @@
+{
+  "authority_mode": "manual_confirmation",
+  "capability_routes": [
+    {
+      "capacity_assessment": {
+        "schema_version": "free_state_capacity_assessment.v1",
+        "authority": "product_runtime",
+        "observed_facts": {
+          "project_uuid": "vitproj_198969ba17ec4aa1a55604ade50c111b",
+          "project_revision": "2",
+          "track_count": 1,
+          "active_audio_track_count": 1,
+          "duration_seconds": 26,
+          "plugin_count": 2,
+          "automation_lane_count": 0,
+          "track_group_count": 0,
+          "routing_edge_count": 0,
+          "relationship_breadth": 0,
+          "request_scope": "project_context",
+          "task_history_available": false,
+          "evidence_refs": [
+            "project.state:vitproj_198969ba17ec4aa1a55604ade50c111b:2"
+          ]
+        },
+        "complexity_factors": [
+          {
+            "code": "large_track_set",
+            "observed": 1,
+            "weight": 25,
+            "triggered": false,
+            "reason": "twenty or more user tracks expand whole-project coverage"
+          },
+          {
+            "code": "long_timeline",
+            "observed": 26,
+            "weight": 15,
+            "triggered": false,
+            "reason": "five minutes or more increases observation span"
+          },
+          {
+            "code": "dense_processing_graph",
+            "observed": 2,
+            "weight": 20,
+            "triggered": false,
+            "reason": "forty or more processors increase context pressure"
+          },
+          {
+            "code": "dense_routing_graph",
+            "observed": 0,
+            "weight": 20,
+            "triggered": false,
+            "reason": "routing and grouping relationships require project-wide coordination"
+          },
+          {
+            "code": "automation_heavy",
+            "observed": 0,
+            "weight": 15,
+            "triggered": false,
+            "reason": "automation breadth increases cross-stage state"
+          }
+        ],
+        "capacity_score": 0,
+        "capacity_level": "within_free_state",
+        "selected_capability": "free_state",
+        "reason_codes": [
+          "small_or_moderate_project"
+        ],
+        "confidence": 0.94,
+        "project_revision": "2",
+        "observed_at": "2026-11-17T04:25:13.1098085Z"
+      },
+      "controller": "minimal_audio_closure",
+      "conversation_id": "edu_transform_smoke_20261117_122507",
+      "created_at": "2026-11-17T04:25:13.1098085Z",
+      "goal_id": "goal_679ca09246791eed",
+      "original_intent": "当前工程里有一条 MIDI 片段（clip_id=1010，共 42 个音符，是一段 C 大调旋律）。请调用工具 midi.analyze_transformations 分析这条片段里的变换关系：参数 clip_id 用 \"1010\"，key 传 {\"tonic\": 0, \"mode\": \"major\"}，range_beats / min_match_notes / transformations 都不用传（用默认值，分析全曲）。分析完成后把检出的每种关系（repeat / sequence 等）简要列给我。",
+      "project_revision": "2",
+      "run_id": "run_e907924040ca1b4a",
+      "schema_version": "capability_route_decision.v1",
+      "semantic_entry": {
+        "confidence": 0.68,
+        "control_mode": "observe_only",
+        "reason": "product runtime selected free_state after project structure observation (score=0, reasons=small_or_moderate_project)",
+        "route": "observation",
+        "schema_version": "semantic_entry_decision.v1",
+        "target_scope": "project_context",
+        "user_authorization": "observe_only"
+      },
+      "task_id": "task_b89327fcda48d404",
+      "updated_at": "2026-11-17T04:25:13.1098085Z"
+    }
+  ],
+  "checked_at": "2026-11-17T12:25:53.8524366+08:00",
+  "checkout_blocked": false,
+  "continuations": [
+    {
+      "attempt": 0,
+      "capacity_assessment": {
+        "schema_version": "free_state_capacity_assessment.v1",
+        "authority": "product_runtime",
+        "observed_facts": {
+          "project_uuid": "vitproj_198969ba17ec4aa1a55604ade50c111b",
+          "project_revision": "2",
+          "track_count": 1,
+          "active_audio_track_count": 1,
+          "duration_seconds": 26,
+          "plugin_count": 2,
+          "automation_lane_count": 0,
+          "track_group_count": 0,
+          "routing_edge_count": 0,
+          "relationship_breadth": 0,
+          "request_scope": "project_context",
+          "task_history_available": false,
+          "evidence_refs": [
+            "project.state:vitproj_198969ba17ec4aa1a55604ade50c111b:2"
+          ]
+        },
+        "complexity_factors": [
+          {
+            "code": "large_track_set",
+            "observed": 1,
+            "weight": 25,
+            "triggered": false,
+            "reason": "twenty or more user tracks expand whole-project coverage"
+          },
+          {
+            "code": "long_timeline",
+            "observed": 26,
+            "weight": 15,
+            "triggered": false,
+            "reason": "five minutes or more increases observation span"
+          },
+          {
+            "code": "dense_processing_graph",
+            "observed": 2,
+            "weight": 20,
+            "triggered": false,
+            "reason": "forty or more processors increase context pressure"
+          },
+          {
+            "code": "dense_routing_graph",
+            "observed": 0,
+            "weight": 20,
+            "triggered": false,
+            "reason": "routing and grouping relationships require project-wide coordination"
+          },
+          {
+            "code": "automation_heavy",
+            "observed": 0,
+            "weight": 15,
+            "triggered": false,
+            "reason": "automation breadth increases cross-stage state"
+          }
+        ],
+        "capacity_score": 0,
+        "capacity_level": "within_free_state",
+        "selected_capability": "free_state",
+        "reason_codes": [
+          "small_or_moderate_project"
+        ],
+        "confidence": 0.94,
+        "project_revision": "2",
+        "observed_at": "2026-11-17T04:25:13.1098085Z"
+      },
+      "continuation_id": "cont_1e7c8a2b1792171c2bed5018",
+      "conversation_id": "edu_transform_smoke_20261117_122507",
+      "goal_id": "goal_679ca09246791eed",
+      "original_intent": "当前工程里有一条 MIDI 片段（clip_id=1010，共 42 个音符，是一段 C 大调旋律）。请调用工具 midi.analyze_transformations 分析这条片段里的变换关系：参数 clip_id 用 \"1010\"，key 传 {\"tonic\": 0, \"mode\": \"major\"}，range_beats / min_match_notes / transformations 都不用传（用默认值，分析全曲）。分析完成后把检出的每种关系（repeat / sequence 等）简要列给我。",
+      "project_path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261117_122452\\agent_drafts\\draft_20261117T042505_dac8ee23\\Unsaved.vit",
+      "project_revision": "2",
+      "project_session_id": "session_20261117T042506_320d819c",
+      "project_uuid": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb",
+      "run_id": "run_e907924040ca1b4a",
+      "slice_id": "slice_d69bf18249ec8571",
+      "status": "pending",
+      "task_contract": {
+        "schema_version": "vit.task_semantic_state.v1",
+        "contract_id": "contract_task_b89327fcda48d404",
+        "task_id": "task_b89327fcda48d404",
+        "goal_id": "goal_679ca09246791eed",
+        "run_id": "run_e907924040ca1b4a",
+        "conversation_id": "edu_transform_smoke_20261117_122507",
+        "original_intent": "当前工程里有一条 MIDI 片段（clip_id=1010，共 42 个音符，是一段 C 大调旋律）。请调用工具 midi.analyze_transformations 分析这条片段里的变换关系：参数 clip_id 用 \"1010\"，key 传 {\"tonic\": 0, \"mode\": \"major\"}，range_beats / min_match_notes / transformations 都不用传（用默认值，分析全曲）。分析完成后把检出的每种关系（repeat / sequence 等）简要列给我。",
+        "kind": "diagnostic",
+        "scope": {
+          "kind": "project",
+          "id": "vitproj_198969ba17ec4aa1a55604ade50c111b"
+        },
+        "temporary": true,
+        "target_discovery": "agent_observation",
+        "authorization_boundary": "observe_and_propose_only",
+        "completion_criteria": [
+          "return an evidence-backed bounded diagnosis or no_candidate_found",
+          "a bounded improvement proposal may settle without project mutation"
+        ],
+        "evidence_requirements": [
+          "exact observation or audit receipt references",
+          "project revision matching the evaluated evidence",
+          "explicit limitations for every bounded conclusion"
+        ],
+        "project_uuid": "vitproj_198969ba17ec4aa1a55604ade50c111b",
+        "project_revision": "2",
+        "created_at": "2026-11-17T04:25:13.1422936Z"
+      },
+      "task_id": "task_b89327fcda48d404",
+      "task_semantic_state": {
+        "schema_version": "vit.task_semantic_state.v1",
+        "state": "observation_in_progress",
+        "revision": 1,
+        "contract_id": "contract_task_b89327fcda48d404",
+        "project_uuid": "vitproj_198969ba17ec4aa1a55604ade50c111b",
+        "project_revision": "2",
+        "transition_reason": "task contract admitted",
+        "terminal": false,
+        "history": [
+          {
+            "revision": 1,
+            "event": "observation_started",
+            "to": "observation_in_progress",
+            "reason": "task contract admitted",
+            "project_revision": "2",
+            "occurred_at": "2026-11-17T04:25:13.1422936Z"
+          }
+        ],
+        "updated_at": "2026-11-17T04:25:13.1422936Z"
+      },
+      "task_state": "observation_in_progress",
+      "task_state_revision": 1,
+      "turn_id": "turn_ab7982d26c955be7",
+      "updated_at": "2026-11-17T04:25:53.7596311Z"
+    }
+  ],
+  "current_project": {
+    "path": "C:\\Users\\timoz\\.codex\\worktrees\\closure-validation-271\\Vit_DAW\\coord\\runs\\CLOSURE-ROUTE-ADAPT-1\\validation-20261117\\run_20261117_122448\\edu_transform_fixture_project.vit",
+    "uuid": "vitproj_198969ba17ec4aa1a55604ade50c111b"
+  },
+  "goal": {
+    "goal_id": "goal_679ca09246791eed",
+    "run_id": "run_e907924040ca1b4a",
+    "task": {
+      "task_id": "task_b89327fcda48d404",
+      "goal_id": "goal_679ca09246791eed",
+      "conversation_id": "edu_transform_smoke_20261117_122507",
+      "original_intent": "当前工程里有一条 MIDI 片段（clip_id=1010，共 42 个音符，是一段 C 大调旋律）。请调用工具 midi.analyze_transformations 分析这条片段里的变换关系：参数 clip_id 用 \"1010\"，key 传 {\"tonic\": 0, \"mode\": \"major\"}，range_beats / min_match_notes / transformations 都不用传（用默认值，分析全曲）。分析完成后把检出的每种关系（repeat / sequence 等）简要列给我。",
+      "status": "waiting_continuation",
+      "contract": {
+        "schema_version": "vit.task_semantic_state.v1",
+        "contract_id": "contract_task_b89327fcda48d404",
+        "task_id": "task_b89327fcda48d404",
+        "goal_id": "goal_679ca09246791eed",
+        "run_id": "run_e907924040ca1b4a",
+        "conversation_id": "edu_transform_smoke_20261117_122507",
+        "original_intent": "当前工程里有一条 MIDI 片段（clip_id=1010，共 42 个音符，是一段 C 大调旋律）。请调用工具 midi.analyze_transformations 分析这条片段里的变换关系：参数 clip_id 用 \"1010\"，key 传 {\"tonic\": 0, \"mode\": \"major\"}，range_beats / min_match_notes / transformations 都不用传（用默认值，分析全曲）。分析完成后把检出的每种关系（repeat / sequence 等）简要列给我。",
+        "kind": "diagnostic",
+        "scope": {
+          "kind": "project",
+          "id": "vitproj_198969ba17ec4aa1a55604ade50c111b"
+        },
+        "temporary": true,
+        "target_discovery": "agent_observation",
+        "authorization_boundary": "observe_and_propose_only",
+        "completion_criteria": [
+          "return an evidence-backed bounded diagnosis or no_candidate_found",
+          "a bounded improvement proposal may settle without project mutation"
+        ],
+        "evidence_requirements": [
+          "exact observation or audit receipt references",
+          "project revision matching the evaluated evidence",
+          "explicit limitations for every bounded conclusion"
+        ],
+        "project_uuid": "vitproj_198969ba17ec4aa1a55604ade50c111b",
+        "project_revision": "2",
+        "created_at": "2026-11-17T04:25:13.1422936Z"
+      },
+      "semantic_state": {
+        "schema_version": "vit.task_semantic_state.v1",
+        "state": "observation_in_progress",
+        "revision": 1,
+        "contract_id": "contract_task_b89327fcda48d404",
+        "project_uuid": "vitproj_198969ba17ec4aa1a55604ade50c111b",
+        "project_revision": "2",
+        "transition_reason": "task contract admitted",
+        "terminal": false,
+        "history": [
+          {
+            "revision": 1,
+            "event": "observation_started",
+            "to": "observation_in_progress",
+            "reason": "task contract admitted",
+            "project_revision": "2",
+            "occurred_at": "2026-11-17T04:25:13.1422936Z"
+          }
+        ],
+        "updated_at": "2026-11-17T04:25:13.1422936Z"
+      },
+      "run": {
+        "run_id": "run_e907924040ca1b4a",
+        "task_id": "task_b89327fcda48d404",
+        "current_slice_id": "slice_d69bf18249ec8571",
+        "next_slice": 2,
+        "next_turn": 2,
+        "slices": [
+          {
+            "slice_id": "slice_d69bf18249ec8571",
+            "run_id": "run_e907924040ca1b4a",
+            "sequence": 1,
+            "max_turns": 8,
+            "max_tool_calls": 6,
+            "turns_used": 8,
+            "tool_calls_used": 2,
+            "status": "waiting_continuation",
+            "started_at": "2026-11-17T12:25:13.1895141+08:00",
+            "ended_at": "2026-11-17T12:25:53.7316271+08:00"
+          }
+        ],
+        "turns": [
+          {
+            "turn_id": "turn_ab7982d26c955be7",
+            "slice_id": "slice_d69bf18249ec8571",
+            "run_id": "run_e907924040ca1b4a",
+            "sequence": 1,
+            "source": "user",
+            "status": "waiting_continue",
+            "started_at": "2026-11-17T12:25:13.1895141+08:00",
+            "ended_at": "2026-11-17T12:25:53.7316271+08:00"
+          }
+        ]
+      },
+      "created_at": "2026-11-17T12:25:08.0802255+08:00",
+      "updated_at": "2026-11-17T12:25:53.8449364+08:00"
+    },
+    "status": "waiting_continue",
+    "summary": "当前工程里有一条 MIDI 片段（clip_id=1010，共 42 个音符，是一段 C 大调旋律）。请调用工具 midi.analyze_transformations 分析这条片段里的变换关系：参数 clip_id 用 \"1010\"，key 传 {\"tonic\": 0, \"mode\": \"major\"}，range_beats / min_match_notes / transformations 都不用传（用默认值，分析全曲）。分析完成后把检出的每种关系（repeat / sequence 等）简要列给我。",
+    "created_at": "2026-11-17T12:25:08.0802255+08:00",
+    "updated_at": "2026-11-17T12:25:53.8449364+08:00",
+    "cancel_requested": false,
+    "last_checkpoint": "before_message_loop_model"
+  },
+  "kernel": {
+    "connected": true,
+    "endpoint": "tcp://127.0.0.1:5555",
+    "latency_ms": 2,
+    "message": "pong",
+    "reply_status": "ok",
+    "status": "online"
+  },
+  "note_sessions": [],
+  "pid": 29260,
+  "service": "VitAgent",
+  "shadow": {
+    "delta_seq_gaps": 0,
+    "graph_revision": null,
+    "initialized": true,
+    "last_delta_seq": 113,
+    "project_path": "C:\\Users\\timoz\\.codex\\worktrees\\closure-validation-271\\Vit_DAW\\coord\\runs\\CLOSURE-ROUTE-ADAPT-1\\validation-20261117\\run_20261117_122448\\edu_transform_fixture_project.vit",
+    "track_count": 1,
+    "user_track_count": 1
+  },
+  "status": "ok",
+  "task": {
+    "task_id": "task_b89327fcda48d404",
+    "goal_id": "goal_679ca09246791eed",
+    "conversation_id": "edu_transform_smoke_20261117_122507",
+    "original_intent": "当前工程里有一条 MIDI 片段（clip_id=1010，共 42 个音符，是一段 C 大调旋律）。请调用工具 midi.analyze_transformations 分析这条片段里的变换关系：参数 clip_id 用 \"1010\"，key 传 {\"tonic\": 0, \"mode\": \"major\"}，range_beats / min_match_notes / transformations 都不用传（用默认值，分析全曲）。分析完成后把检出的每种关系（repeat / sequence 等）简要列给我。",
+    "status": "waiting_continuation",
+    "contract": {
+      "schema_version": "vit.task_semantic_state.v1",
+      "contract_id": "contract_task_b89327fcda48d404",
+      "task_id": "task_b89327fcda48d404",
+      "goal_id": "goal_679ca09246791eed",
+      "run_id": "run_e907924040ca1b4a",
+      "conversation_id": "edu_transform_smoke_20261117_122507",
+      "original_intent": "当前工程里有一条 MIDI 片段（clip_id=1010，共 42 个音符，是一段 C 大调旋律）。请调用工具 midi.analyze_transformations 分析这条片段里的变换关系：参数 clip_id 用 \"1010\"，key 传 {\"tonic\": 0, \"mode\": \"major\"}，range_beats / min_match_notes / transformations 都不用传（用默认值，分析全曲）。分析完成后把检出的每种关系（repeat / sequence 等）简要列给我。",
+      "kind": "diagnostic",
+      "scope": {
+        "kind": "project",
+        "id": "vitproj_198969ba17ec4aa1a55604ade50c111b"
+      },
+      "temporary": true,
+      "target_discovery": "agent_observation",
+      "authorization_boundary": "observe_and_propose_only",
+      "completion_criteria": [
+        "return an evidence-backed bounded diagnosis or no_candidate_found",
+        "a bounded improvement proposal may settle without project mutation"
+      ],
+      "evidence_requirements": [
+        "exact observation or audit receipt references",
+        "project revision matching the evaluated evidence",
+        "explicit limitations for every bounded conclusion"
+      ],
+      "project_uuid": "vitproj_198969ba17ec4aa1a55604ade50c111b",
+      "project_revision": "2",
+      "created_at": "2026-11-17T04:25:13.1422936Z"
+    },
+    "semantic_state": {
+      "schema_version": "vit.task_semantic_state.v1",
+      "state": "observation_in_progress",
+      "revision": 1,
+      "contract_id": "contract_task_b89327fcda48d404",
+      "project_uuid": "vitproj_198969ba17ec4aa1a55604ade50c111b",
+      "project_revision": "2",
+      "transition_reason": "task contract admitted",
+      "terminal": false,
+      "history": [
+        {
+          "revision": 1,
+          "event": "observation_started",
+          "to": "observation_in_progress",
+          "reason": "task contract admitted",
+          "project_revision": "2",
+          "occurred_at": "2026-11-17T04:25:13.1422936Z"
+        }
+      ],
+      "updated_at": "2026-11-17T04:25:13.1422936Z"
+    },
+    "run": {
+      "run_id": "run_e907924040ca1b4a",
+      "task_id": "task_b89327fcda48d404",
+      "current_slice_id": "slice_d69bf18249ec8571",
+      "next_slice": 2,
+      "next_turn": 2,
+      "slices": [
+        {
+          "slice_id": "slice_d69bf18249ec8571",
+          "run_id": "run_e907924040ca1b4a",
+          "sequence": 1,
+          "max_turns": 8,
+          "max_tool_calls": 6,
+          "turns_used": 8,
+          "tool_calls_used": 2,
+          "status": "waiting_continuation",
+          "started_at": "2026-11-17T12:25:13.1895141+08:00",
+          "ended_at": "2026-11-17T12:25:53.7316271+08:00"
+        }
+      ],
+      "turns": [
+        {
+          "turn_id": "turn_ab7982d26c955be7",
+          "slice_id": "slice_d69bf18249ec8571",
+          "run_id": "run_e907924040ca1b4a",
+          "sequence": 1,
+          "source": "user",
+          "status": "waiting_continue",
+          "started_at": "2026-11-17T12:25:13.1895141+08:00",
+          "ended_at": "2026-11-17T12:25:53.7316271+08:00"
+        }
+      ]
+    },
+    "created_at": "2026-11-17T12:25:08.0802255+08:00",
+    "updated_at": "2026-11-17T12:25:53.8449364+08:00"
+  },
+  "task_contract": {
+    "schema_version": "vit.task_semantic_state.v1",
+    "contract_id": "contract_task_b89327fcda48d404",
+    "task_id": "task_b89327fcda48d404",
+    "goal_id": "goal_679ca09246791eed",
+    "run_id": "run_e907924040ca1b4a",
+    "conversation_id": "edu_transform_smoke_20261117_122507",
+    "original_intent": "当前工程里有一条 MIDI 片段（clip_id=1010，共 42 个音符，是一段 C 大调旋律）。请调用工具 midi.analyze_transformations 分析这条片段里的变换关系：参数 clip_id 用 \"1010\"，key 传 {\"tonic\": 0, \"mode\": \"major\"}，range_beats / min_match_notes / transformations 都不用传（用默认值，分析全曲）。分析完成后把检出的每种关系（repeat / sequence 等）简要列给我。",
+    "kind": "diagnostic",
+    "scope": {
+      "kind": "project",
+      "id": "vitproj_198969ba17ec4aa1a55604ade50c111b"
+    },
+    "temporary": true,
+    "target_discovery": "agent_observation",
+    "authorization_boundary": "observe_and_propose_only",
+    "completion_criteria": [
+      "return an evidence-backed bounded diagnosis or no_candidate_found",
+      "a bounded improvement proposal may settle without project mutation"
+    ],
+    "evidence_requirements": [
+      "exact observation or audit receipt references",
+      "project revision matching the evaluated evidence",
+      "explicit limitations for every bounded conclusion"
+    ],
+    "project_uuid": "vitproj_198969ba17ec4aa1a55604ade50c111b",
+    "project_revision": "2",
+    "created_at": "2026-11-17T04:25:13.1422936Z"
+  },
+  "task_semantic_state": {
+    "schema_version": "vit.task_semantic_state.v1",
+    "state": "observation_in_progress",
+    "revision": 1,
+    "contract_id": "contract_task_b89327fcda48d404",
+    "project_uuid": "vitproj_198969ba17ec4aa1a55604ade50c111b",
+    "project_revision": "2",
+    "transition_reason": "task contract admitted",
+    "terminal": false,
+    "history": [
+      {
+        "revision": 1,
+        "event": "observation_started",
+        "to": "observation_in_progress",
+        "reason": "task contract admitted",
+        "project_revision": "2",
+        "occurred_at": "2026-11-17T04:25:13.1422936Z"
+      }
+    ],
+    "updated_at": "2026-11-17T04:25:13.1422936Z"
+  },
+  "task_state": "observation_in_progress",
+  "task_state_revision": 1,
+  "task_trajectory": {
+    "capability_route": {
+      "capacity_assessment": {
+        "schema_version": "free_state_capacity_assessment.v1",
+        "authority": "product_runtime",
+        "observed_facts": {
+          "project_uuid": "vitproj_198969ba17ec4aa1a55604ade50c111b",
+          "project_revision": "2",
+          "track_count": 1,
+          "active_audio_track_count": 1,
+          "duration_seconds": 26,
+          "plugin_count": 2,
+          "automation_lane_count": 0,
+          "track_group_count": 0,
+          "routing_edge_count": 0,
+          "relationship_breadth": 0,
+          "request_scope": "project_context",
+          "task_history_available": false,
+          "evidence_refs": [
+            "project.state:vitproj_198969ba17ec4aa1a55604ade50c111b:2"
+          ]
+        },
+        "complexity_factors": [
+          {
+            "code": "large_track_set",
+            "observed": 1,
+            "weight": 25,
+            "triggered": false,
+            "reason": "twenty or more user tracks expand whole-project coverage"
+          },
+          {
+            "code": "long_timeline",
+            "observed": 26,
+            "weight": 15,
+            "triggered": false,
+            "reason": "five minutes or more increases observation span"
+          },
+          {
+            "code": "dense_processing_graph",
+            "observed": 2,
+            "weight": 20,
+            "triggered": false,
+            "reason": "forty or more processors increase context pressure"
+          },
+          {
+            "code": "dense_routing_graph",
+            "observed": 0,
+            "weight": 20,
+            "triggered": false,
+            "reason": "routing and grouping relationships require project-wide coordination"
+          },
+          {
+            "code": "automation_heavy",
+            "observed": 0,
+            "weight": 15,
+            "triggered": false,
+            "reason": "automation breadth increases cross-stage state"
+          }
+        ],
+        "capacity_score": 0,
+        "capacity_level": "within_free_state",
+        "selected_capability": "free_state",
+        "reason_codes": [
+          "small_or_moderate_project"
+        ],
+        "confidence": 0.94,
+        "project_revision": "2",
+        "observed_at": "2026-11-17T04:25:13.1098085Z"
+      },
+      "controller": "minimal_audio_closure",
+      "conversation_id": "edu_transform_smoke_20261117_122507",
+      "created_at": "2026-11-17T04:25:13.1098085Z",
+      "goal_id": "goal_679ca09246791eed",
+      "original_intent": "当前工程里有一条 MIDI 片段（clip_id=1010，共 42 个音符，是一段 C 大调旋律）。请调用工具 midi.analyze_transformations 分析这条片段里的变换关系：参数 clip_id 用 \"1010\"，key 传 {\"tonic\": 0, \"mode\": \"major\"}，range_beats / min_match_notes / transformations 都不用传（用默认值，分析全曲）。分析完成后把检出的每种关系（repeat / sequence 等）简要列给我。",
+      "project_revision": "2",
+      "run_id": "run_e907924040ca1b4a",
+      "schema_version": "capability_route_decision.v1",
+      "semantic_entry": {
+        "confidence": 0.68,
+        "control_mode": "observe_only",
+        "reason": "product runtime selected free_state after project structure observation (score=0, reasons=small_or_moderate_project)",
+        "route": "observation",
+        "schema_version": "semantic_entry_decision.v1",
+        "target_scope": "project_context",
+        "user_authorization": "observe_only"
+      },
+      "task_id": "task_b89327fcda48d404",
+      "updated_at": "2026-11-17T04:25:13.1098085Z"
+    },
+    "continuation": {
+      "attempt": 0,
+      "continuation_id": "cont_1e7c8a2b1792171c2bed5018",
+      "slice_id": "slice_d69bf18249ec8571",
+      "status": "pending",
+      "turn_id": "turn_ab7982d26c955be7",
+      "updated_at": "2026-11-17T04:25:53.7596311Z"
+    },
+    "run": {
+      "current_slice_id": "slice_d69bf18249ec8571",
+      "current_turn_id": "",
+      "run_id": "run_e907924040ca1b4a",
+      "slices": [
+        {
+          "slice_id": "slice_d69bf18249ec8571",
+          "run_id": "run_e907924040ca1b4a",
+          "sequence": 1,
+          "max_turns": 8,
+          "max_tool_calls": 6,
+          "turns_used": 8,
+          "tool_calls_used": 2,
+          "status": "waiting_continuation",
+          "started_at": "2026-11-17T12:25:13.1895141+08:00",
+          "ended_at": "2026-11-17T12:25:53.7316271+08:00"
+        }
+      ],
+      "turns": [
+        {
+          "turn_id": "turn_ab7982d26c955be7",
+          "slice_id": "slice_d69bf18249ec8571",
+          "run_id": "run_e907924040ca1b4a",
+          "sequence": 1,
+          "source": "user",
+          "status": "waiting_continue",
+          "started_at": "2026-11-17T12:25:13.1895141+08:00",
+          "ended_at": "2026-11-17T12:25:53.7316271+08:00"
+        }
+      ]
+    },
+    "schema_version": "vit.task_runtime_trajectory.v1",
+    "semantic": {
+      "contract": {
+        "contract_id": "contract_task_b89327fcda48d404",
+        "kind": "diagnostic",
+        "scope": {
+          "kind": "project",
+          "id": "vitproj_198969ba17ec4aa1a55604ade50c111b"
+        },
+        "temporary": true
+      },
+      "evidence_refs": null,
+      "project_revision": "2",
+      "revision": 1,
+      "state": "observation_in_progress",
+      "summary": "",
+      "terminal": false,
+      "transition_reason": "task contract admitted",
+      "updated_at": "2026-11-17T04:25:13.1422936Z"
+    },
+    "task": {
+      "conversation_id": "edu_transform_smoke_20261117_122507",
+      "created_at": "2026-11-17T12:25:08.0802255+08:00",
+      "goal_id": "goal_679ca09246791eed",
+      "goal_status": "waiting_continue",
+      "original_intent": "当前工程里有一条 MIDI 片段（clip_id=1010，共 42 个音符，是一段 C 大调旋律）。请调用工具 midi.analyze_transformations 分析这条片段里的变换关系：参数 clip_id 用 \"1010\"，key 传 {\"tonic\": 0, \"mode\": \"major\"}，range_beats / min_match_notes / transformations 都不用传（用默认值，分析全曲）。分析完成后把检出的每种关系（repeat / sequence 等）简要列给我。",
+      "run_id": "run_e907924040ca1b4a",
+      "status": "waiting_continuation",
+      "task_id": "task_b89327fcda48d404",
+      "updated_at": "2026-11-17T12:25:53.8449364+08:00"
+    },
+    "transitions": [
+      {
+        "candidate_id": "",
+        "event": "observation_started",
+        "evidence_refs": null,
+        "experiment_id": "",
+        "from": "",
+        "occurred_at": "2026-11-17T04:25:13.1422936Z",
+        "pending_interaction": null,
+        "project_revision": "2",
+        "reason": "task contract admitted",
+        "revision": 1,
+        "stale_for_current_revision": false,
+        "summary": "",
+        "to": "observation_in_progress"
+      }
+    ]
+  }
+}

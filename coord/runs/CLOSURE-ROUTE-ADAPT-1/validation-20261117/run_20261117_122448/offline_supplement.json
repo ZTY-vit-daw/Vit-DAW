@@ -1,0 +1,64 @@
+{
+  "evaluation_kind": "offline_supplement_from_saved_raw_response_only",
+  "performed_at": "2026-11-17T04:28:33.325731+00:00",
+  "source_response_sha256": "BFF678E2DFD785EF11F15025D0A00D94A306A8A8C4F94D4C43EA21AE8BB03C47",
+  "source_summary_sha256": "0522EB0E93A7390DBDF3CCD096F03091C7C96B4B65990E8E1D23AC653E5CAC73",
+  "natural_diagnostic": true,
+  "runtime_evidence": {
+    "closure_mode": "diagnostic",
+    "diagnostic_exercised": true,
+    "closure_id": "audio_closure_52bc586f5c974643",
+    "phase": "fs2_capacity_assessed",
+    "settlement_reason": null,
+    "task_state": "observation_in_progress",
+    "runtime_identity_matched": true,
+    "response_slice": {
+      "slice_id": "slice_d69bf18249ec8571",
+      "run_id": "run_e907924040ca1b4a",
+      "sequence": 1,
+      "max_turns": 8,
+      "max_tool_calls": 6,
+      "turns_used": 8,
+      "tool_calls_used": 2,
+      "status": "waiting_continuation",
+      "started_at": "2026-11-17T12:25:13.1895141+08:00",
+      "ended_at": "2026-11-17T12:25:53.7316271+08:00"
+    },
+    "all_run_slices": [
+      {
+        "slice_id": "slice_d69bf18249ec8571",
+        "run_id": "run_e907924040ca1b4a",
+        "sequence": 1,
+        "max_turns": 8,
+        "max_tool_calls": 6,
+        "turns_used": 8,
+        "tool_calls_used": 2,
+        "status": "waiting_continuation",
+        "started_at": "2026-11-17T12:25:13.1895141+08:00",
+        "ended_at": "2026-11-17T12:25:53.7316271+08:00"
+      }
+    ],
+    "base_budget_observed": true,
+    "max_turns_stop": true,
+    "budget_evidence_boundary": "GET /agent/runtime/status task.run.slices; absent or mismatched identity is unverified"
+  },
+  "executed_tools": [
+    "midi.read_notes",
+    "midi.read_clip_data"
+  ],
+  "target_analysis_tool_executed": false,
+  "golden": {
+    "status": "not_evaluable_no_analyze_result",
+    "passed": false,
+    "note": "No target tool result exists; neither historical direct-invoke nor fixture readback can stand in for current golden."
+  },
+  "message_equals_historical_same_shape": true,
+  "final_billing": {
+    "calls": 9,
+    "input_tokens": 153716,
+    "output_tokens": 6741,
+    "cached_input_tokens": 76800
+  },
+  "final_verdict": "budget_exceeded",
+  "no_rerun_no_continue": true
+}

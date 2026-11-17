@@ -1,0 +1,8 @@
+{
+  "checked_before_reconstruction": true,
+  "original_d1_report_existed": false,
+  "original_outer_exit": 1,
+  "original_python_exit": 6,
+  "reporting_failure": "PS5.1 Get-Content summary used default ANSI decoding; ConvertFrom-Json failed after process teardown and recents restore, before d1 write. Original console preserved.",
+  "console_sha256": "8C74F46EB17138210147DD6633A86548DCAC651CD88268B63EBDBB277221871D"
+}

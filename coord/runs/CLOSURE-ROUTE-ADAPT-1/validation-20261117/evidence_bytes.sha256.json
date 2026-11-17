@@ -1,0 +1,5 @@
+{
+  "file": "evidence_bytes.zip",
+  "sha256": "609708312B36FD5318E1F3DEB1BD647CB865188E46C24BAE088CD7D17C1643BB",
+  "note": "Exact on-disk evidence bytes; Git text checkout may normalize line endings. Runtime projects/history/cache excluded. ZIP validates manifest hashes for included files."
+}

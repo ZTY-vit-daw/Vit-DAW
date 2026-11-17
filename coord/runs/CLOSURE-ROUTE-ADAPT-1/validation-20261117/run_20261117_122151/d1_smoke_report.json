@@ -1,0 +1,77 @@
+﻿{
+    "diff_stat_before":  [
+                             " VitApp/Workspace/Settings/Settings.xml             | 8693 ++++++++++----------",
+                             " .../validation-20261117/RUNBOOK.md                 |    8 +",
+                             " 2 files changed, 4356 insertions(+), 4345 deletions(-)"
+                         ],
+    "recents":  {
+                    "verified":  true,
+                    "before":  "807226F4AF3FC85C2B99BFD2FB827C1583E7C991826BDE5F0B4344A6DC13E353",
+                    "after":  "807226F4AF3FC85C2B99BFD2FB827C1583E7C991826BDE5F0B4344A6DC13E353"
+                },
+    "finished_at":  "2026-11-17T12:22:19.4743755+08:00",
+    "source_fixture_before":  "947E4D00886F146F7DB082215BC8A69E1727A41D5EA339FA064DEE814E0D521C",
+    "head":  "e79740dc8564f5426ad2ec3cbd7f4f75af866f4e",
+    "final_billing":  {
+                          "output_tokens":  0,
+                          "max_calls":  8,
+                          "accounting_only":  true,
+                          "input_tokens":  0,
+                          "max_output_tokens":  16000,
+                          "completed_calls":  0,
+                          "max_input_tokens":  250000
+                      },
+    "started_at":  "2026-11-17T12:21:54.6093498+08:00",
+    "parameters":  {
+                       "RepoRoot":  "C:/Users/timoz/.codex/worktrees/closure-validation-271/Vit_DAW",
+                       "StartKernel":  {
+                                           "IsPresent":  true
+                                       },
+                       "KernelExe":  "C:/Users/timoz/.codex/worktrees/closure-validation-271/Vit_DAW/VitApp/build/VitApp_artefacts/Release/VitApp.exe",
+                       "RestartAgent":  {
+                                            "IsPresent":  true
+                                        },
+                       "StartUI":  {
+                                       "IsPresent":  true
+                                   },
+                       "GodotProjectRoot":  "C:/Users/timoz/.codex/worktrees/godot-runtime-388/vit-daw-frontend",
+                       "GodotExe":  "D:/Godot/Godot_v4.6.1-stable_win64_console.exe",
+                       "NoChatSmoke":  {
+                                           "IsPresent":  true
+                                       },
+                       "NoStripSilenceSmoke":  {
+                                                   "IsPresent":  true
+                                               },
+                       "ClosureDiagnosticValidation":  {
+                                                           "IsPresent":  true
+                                                       },
+                       "RunArtifactsDir":  "C:\\Users\\timoz\\.codex\\worktrees\\closure-validation-271\\Vit_DAW\\coord\\runs\\CLOSURE-ROUTE-ADAPT-1\\validation-20261117\\run_20261117_122151"
+                   },
+    "fixture_generator_before":  "881356FC0DDD99CC85619490E84D2024435C057B301EF1F16D3832B5CD60E6AF",
+    "result":  "unclassified_failure",
+    "source_fixture_after":  "947E4D00886F146F7DB082215BC8A69E1727A41D5EA339FA064DEE814E0D521C",
+    "status_before":  [
+                          " M VitApp/Workspace/Settings/Settings.xml",
+                          " M coord/runs/CLOSURE-ROUTE-ADAPT-1/validation-20261117/RUNBOOK.md",
+                          "?? coord/runs/CLOSURE-ROUTE-ADAPT-1/validation-20261117/run_20261117_122151/"
+                      ],
+    "fixture_generator_after":  "881356FC0DDD99CC85619490E84D2024435C057B301EF1F16D3832B5CD60E6AF",
+    "error":  "271 latest shared runtime record does not grant occupied owner /root/closure271",
+    "run_id":  "run_20261117_122151",
+    "exit_code":  1,
+    "teardown":  {
+                     "processes":  [
+
+                                   ],
+                     "tcp":  [
+
+                             ],
+                     "udp":  [
+
+                             ]
+                 },
+    "cleanup_errors":  [
+
+                       ],
+    "card":  "271"
+}

@@ -1,0 +1,47 @@
+{
+  "origin": "post-run offline artifact hashing; no runtime started",
+  "files": [
+    {
+      "path": "console_ps1.txt",
+      "bytes": 2827,
+      "sha256": "63095445D78512C1542870493403792D4942CEAC62673716DEDBF07860FAB3AB",
+      "runtime_state_kept_local": false
+    },
+    {
+      "path": "d1_smoke_report.json",
+      "bytes": 4115,
+      "sha256": "134E2AA542390539C2A26E6DDF87FBDEA14D513E3C12724BA793B581F8E08FE4",
+      "runtime_state_kept_local": false
+    },
+    {
+      "path": "default_project.xml",
+      "bytes": 11609,
+      "sha256": "4E899FB6ECA33A0FAD5003030FB884A169634765FC89C3C15FA7E6FC6E10B571",
+      "runtime_state_kept_local": true
+    },
+    {
+      "path": "gui_project_isolation.json",
+      "bytes": 644,
+      "sha256": "AC1BA91864593FB6849B06B1AF5F6D3F7CA2FF454D44BA784DBBE7133E5B7779",
+      "runtime_state_kept_local": false
+    },
+    {
+      "path": "recents.before.json",
+      "bytes": 1037,
+      "sha256": "807226F4AF3FC85C2B99BFD2FB827C1583E7C991826BDE5F0B4344A6DC13E353",
+      "runtime_state_kept_local": false
+    },
+    {
+      "path": "recents.before.meta.json",
+      "bytes": 203,
+      "sha256": "5CC7FA15E39DDDC3067965D0C806B8EB1830C85C64933C0B84FE50ECA5E938FA",
+      "runtime_state_kept_local": false
+    },
+    {
+      "path": "resource_f83cca4f_raw.txt",
+      "bytes": 553117,
+      "sha256": "15DC3C791102BEE2ED5582776A8F1855FD3DD240384DDE09ACE1D68E073BA751",
+      "runtime_state_kept_local": false
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "conversation_id": "edu_transform_smoke_20261117_122507",
+  "message": "当前工程里有一条 MIDI 片段（clip_id=1010，共 42 个音符，是一段 C 大调旋律）。请调用工具 midi.analyze_transformations 分析这条片段里的变换关系：参数 clip_id 用 \"1010\"，key 传 {\"tonic\": 0, \"mode\": \"major\"}，range_beats / min_match_notes / transformations 都不用传（用默认值，分析全曲）。分析完成后把检出的每种关系（repeat / sequence 等）简要列给我。",
+  "context": {
+    "agent_mode": "chat"
+  }
+}

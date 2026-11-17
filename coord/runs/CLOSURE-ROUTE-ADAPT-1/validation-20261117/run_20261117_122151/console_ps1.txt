@@ -1,0 +1,37 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20261117122154
+Username: ZTY\timoz
+RunAs User: ZTY\timoz
+Configuration Name: 
+Machine: ZTY (Microsoft Windows NT 10.0.26300.0)
+Host Application: C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:/Users/timoz/.codex/worktrees/closure-validation-271/Vit_DAW/scripts/dev_agent_smoke.ps1 -RepoRoot C:/Users/timoz/.codex/worktrees/closure-validation-271/Vit_DAW -StartKernel -KernelExe C:/Users/timoz/.codex/worktrees/closure-validation-271/Vit_DAW/VitApp/build/VitApp_artefacts/Release/VitApp.exe -RestartAgent -StartUI -GodotProjectRoot C:/Users/timoz/.codex/worktrees/godot-runtime-388/vit-daw-frontend -GodotExe D:/Godot/Godot_v4.6.1-stable_win64_console.exe -NoChatSmoke -NoStripSilenceSmoke -ClosureDiagnosticValidation -RunArtifactsDir C:\Users\timoz\.codex\worktrees\closure-validation-271\Vit_DAW\coord\runs\CLOSURE-ROUTE-ADAPT-1\validation-20261117\run_20261117_122151
+Process ID: 5948
+PSVersion: 5.1.26100.9818
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.9818
+BuildVersion: 10.0.26100.9818
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+ok: draft root isolation: source=default VIT_HISTORY_DRAFT_ROOT=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261117_122155\agent_drafts
+
+ok: GUI leg project isolation: VIT_PROJECT_XML=C:\Users\timoz\.codex\worktrees\closure-validation-271\Vit_DAW\coord\runs\CLOSURE-ROUTE-ADAPT-1\validation-20261117\run_20261117_122151\default_project.xml (git-clean run-dir copy; deployed default_project.xml stays untouched)
+ok: edu transform telemetry capture: telemetry=C:\Users\timoz\.codex\worktrees\closure-validation-271\Vit_DAW\coord\runs\CLOSURE-ROUTE-ADAPT-1\validation-20261117\run_20261117_122151\logs\agent_llm_telemetry.jsonl prompt_render=C:\Users\timoz\.codex\worktrees\closure-validation-271\Vit_DAW\coord\runs\CLOSURE-ROUTE-ADAPT-1\validation-20261117\run_20261117_122151\logs\agent_prompt_render.jsonl
+
+== VitAgent dev smoke
+repo: C:\Users\timoz\.codex\worktrees\closure-validation-271\Vit_DAW
+agent http: http://127.0.0.1:7878
+
+== Build VitAgent
+
+ok: build passed: C:\Users\timoz\.codex\worktrees\closure-validation-271\Vit_DAW\agent\bin\VitAgent.dev-smoke.exe
+PS>TerminatingError(): "271 latest shared runtime record does not grant occupied owner /root/closure271"
+>> TerminatingError(): "271 latest shared runtime record does not grant occupied owner /root/closure271"
+warn: 271 stopped: 271 latest shared runtime record does not grant occupied owner /root/closure271
+**********************
+Windows PowerShell transcript end
+End time: 20261117122219
+**********************

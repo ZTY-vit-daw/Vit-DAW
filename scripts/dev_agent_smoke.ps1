@@ -1386,7 +1386,7 @@ if ($ClosureDiagnosticValidation -and -not $ClosureDiagnosticChild) {
         $closureCleanupErrors = @()
         $closureOwnedFile = Join-Path $closureRun "owned_processes.jsonl"
         if (Test-Path -LiteralPath $closureOwnedFile) {
-            foreach ($closureOwnedLine in (Get-Content -LiteralPath $closureOwnedFile)) {
+            foreach ($closureOwnedLine in (Get-Content -LiteralPath $closureOwnedFile -Encoding UTF8)) {
                 try {
                     $closureOwned = $closureOwnedLine | ConvertFrom-Json
                     $closureProc = Get-Process -Id $closureOwned.pid -ErrorAction SilentlyContinue
@@ -1421,9 +1421,12 @@ if ($ClosureDiagnosticValidation -and -not $ClosureDiagnosticChild) {
         if ($closureReport.fixture_generator_after -ne $closureDriverHash) { $closureCleanupErrors += "fixture generator changed" }
         $closureSummary = Join-Path $closureRun "edu_transform_summary.json"
         if (Test-Path -LiteralPath $closureSummary) {
-            $closureReport.scenario = Get-Content -LiteralPath $closureSummary -Raw | ConvertFrom-Json
-            $closureScenarioClass = Get-OptionalProperty -Object $closureReport.scenario -Name "exit_class"
-            if ($closureScenarioClass -and ($closureScenarioClass -ne "pass" -or $closureExit -eq 0)) { $closureReport.result = $closureScenarioClass }
+            try {
+                $closureReport.scenario = Get-Content -LiteralPath $closureSummary -Raw -Encoding UTF8 | ConvertFrom-Json
+                $closureScenarioClass = Get-OptionalProperty -Object $closureReport.scenario -Name "exit_class"
+                if ($closureScenarioClass -and ($closureScenarioClass -ne "pass" -or $closureExit -eq 0)) { $closureReport.result = $closureScenarioClass }
+            }
+            catch { $closureCleanupErrors += ("scenario summary decoding failed: " + $_.Exception.Message) }
         }
         $closureKernelLogDir = Join-Path (Split-Path -Parent $KernelExe) "Workspace\Logs"
         $closureKernelLogs = @(Get-ChildItem -LiteralPath $closureKernelLogDir -Filter "VitHeadlessServer*.log" -ErrorAction SilentlyContinue |
@@ -1437,7 +1440,7 @@ if ($ClosureDiagnosticValidation -and -not $ClosureDiagnosticChild) {
         $closureTelemetry = Join-Path $closureRun "logs\agent_llm_telemetry.jsonl"
         $closureCalls = 0; $closureInput = 0L; $closureOutput = 0L
         if (Test-Path -LiteralPath $closureTelemetry) {
-            foreach ($closureLine in (Get-Content -LiteralPath $closureTelemetry)) {
+            foreach ($closureLine in (Get-Content -LiteralPath $closureTelemetry -Encoding UTF8)) {
                 if (-not $closureLine.Trim()) { continue }
                 try {
                     $closureRow = $closureLine | ConvertFrom-Json
