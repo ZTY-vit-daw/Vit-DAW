@@ -15,3 +15,11 @@
 - owner=/root/window391（Sol/xhigh，PC），394零栈完成后接力；不承担自身最终验收。
 - 分支codex/shell-workspace-ready-402；worktree=C:/Users/timoz/.codex/worktrees/godot-entry-396/vit-daw-frontend；HEAD=e9006de7（394A/B待真栈，不当最终PASS），初始status/diff空。
 - 主仓基线e416de6e；本领取提交成功推main核对owner后可实现；仅gd≤3生产文件，CPP不动，真实栈未放行。
+
+## 402-B 真栈失败注入接缝交接（2026-11-17）
+
+- 原owner/root/window391已提交402 b1f94066与394-C/D并保留干净组合树；主管核HEAD0017bba5、status空（396另已cherry-pick）。本卡后续生产/验收owner显式转/root/entry388（Sol/high，PC），原owner继续395，不再改402域。
+- worktree=C:/Users/timoz/.codex/worktrees/godot-entry-396/vit-daw-frontend，分支codex/shell-workspace-ready-402；只现3gd领域加白名单VIT_SMOKE_SHELL_READINESS_SCENARIO门控：scene_failed真实场景加载失败、snapshot_failed真实首快照拒绝、delay_snapshot延迟真实应用供ready/timeout、exit_before_ready实际退出。默认空零行为，子进程env注入/清理，真实触发日志含launch_id/instance，禁止主仓伪造POST失败替代真实Godot链。
+- 402-B独立commit；391验收装置在既有vitshell_full_smoke.ps1/cdp.mjs/run_entry_management_acceptance.ps1三脚本独立commit，原owner/main已无未提交实现不叠未知diff。
+- 矩阵跑前成文：成功/场景失败/快照失败/确定超时/退出各一腿；错误/上轮nonce在真实延迟成功窗配对（rejected、不结束本轮，后实际ready）；无百分比/假文件音频步骤。最终组合主旅程、395真实消费、只读焦点/z/guard取证，后续Godot用户手测仍单列。
+- 当前栈271 owner，402-B只能静态准备，禁止Godot解析/import/服务/端口操作；主管后续统一放行组合runtime。

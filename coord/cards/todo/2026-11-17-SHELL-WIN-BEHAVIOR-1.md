@@ -15,3 +15,7 @@
 
 ## 2026-11-17 拆卡
 本卡改为父卡，不直接领取；执行子卡394 SHELL-WIN-NATIVE-1与395 SHELL-WIN-PRESENTATION-1。先394原生层，395候388验收与394协议确定，父卡需两子卡+综合真栈证据后收口。
+
+## 父391组合验收装置（2026-11-17）
+
+/root/entry388在自身主仓执行分支准备现有vitshell_full_smoke/cdp/wrapper三脚本WindowBehaviorChecks默认off；owner与CardId参数化、沿早退卫生包装；原生焦点/ready与395消费按独立run可复核，不能用388稳定前端run代替。402-B白名单失败注入已显式交接，C++不可扩域。当前271占栈，仅静态准备。
