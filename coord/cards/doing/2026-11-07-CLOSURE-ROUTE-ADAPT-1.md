@@ -63,3 +63,11 @@
 
 - （主管回填）
 - **实现腿验收（2026-11-07 凌晨，主管）：pass（轻验，终验待验证腿）**——结构性判据红线遵守（Mode 字段+fail-closed 回钳制）+三面 verbatim 零影响+测试意图修订按授权兑现（改名+5 场景钉+修订依据注明）；chat/agentloop 全绿+定向 7 面 PASS+主管交叉复跑 ok；gofmt CRLF 假阳性 LF 副本检测法聪明（避免 diff 污染）。验证腿搭后续真栈 run 便车。
+
+## 2026-11-17 验证腿显式交接
+
+- 主管已只读核对原实现worktree D:/Vit_DAW_wt_271impl：HEAD=cf22db7f、status/diff空，原实现已是共享main祖先；原worktree不改、不删除。执行进程/端口于今日388启栈前亲核为空。
+- 验证腿owner转交新子代理/root/closure271（Sol/high，PC），只做现有实现真实验证装置与取证，不接管原实现生产修改。新worktree创建待工具回填，旧owner不再拥有本验证腿；生产改动若必要先报主管锚点，不自行扩域。
+- 当前PC栈owner为/root/entry388，271仅零栈准备。复用scripts/edu_transform_smoke.py与dev_agent_smoke.ps1体系，可加明确271模式/观测断言；最多2脚本，不另建测试框架。旧276未通过的第三次重跑禁令不被本卡掩盖：这是271已修预算版本的独立验证，明确旧/新代码hash和判据。
+- 成功至少=真实三件套在场、自然生产路由closure.mode=diagnostic被实证、midi分析工具真实执行且既有golden结果成立、未在单轮max_turns旧断点停泊。若生产路由未走diagnostic则记not_exercised而非PASS；no_candidate/capability_blocked/assertion/崩溃/环境中断分开。不能用单元测试或无关388 UI旅程代终验。
+- 跑前必须RUNBOOK写次数/LLM计费调用上限/成功与非命中/失败分类/止损；本次只准备，不授启栈权。原始日志、prompt/telemetry不泄漏密钥，fixture独立复制与recents强制哈希还原。
