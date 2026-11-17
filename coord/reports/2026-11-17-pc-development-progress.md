@@ -36,3 +36,8 @@
 - R1 formal_01在PS5 native stderr处理装置失败，窗口0/6，原错误与退出1保留；主管审helper修正并亲跑0/7，另登记R2预算5d1fd728。
 - R2 formal_02自窗6/6 exit0，SW_RESTORE激活对照两条件成立，两非激活API各两条件恢复normal/保FG；主管全6原始序列+额外激活消息/哈希/末态复核通过。主仓45f08186/20697fa7与前端4243d57仅测试装置及证据，未纳失败生产候选。
 - 阶段A通过不证Godot。403阶段B只放行同GUI引擎+全新最小隔离项目≤2进程，观察恢复和Godot模式同步；不启完整工程，不修改生产，不解锁391/395/手测。当前资源仍403唯一owner。
+
+## 403阶段B止损与404（15:08 +0800）
+
+- B1 generated scene BOM→parse失败；B2无BOM场景正常ready，但观察器按首个unowned HWND误选同PID helper。两个B都未调用恢复API，未证Godot恢复。两轮按各自预算停，原工件与原字节ZIP已合main，403 blocked。
+- 404只修探针的engine nonce/PID/native HWND精确关联+逐窗证据，先无窗反例与源码复核，不原样重跑B。用户产品面/394失败候选/手测均不放行；栈主管亲核全零并释放。

@@ -50,3 +50,9 @@
 - 唯一修正f9792767只将三文件写入换成UTF8Encoding(false)，主管核静态首字节63/5B/65无BOM；并未实证只剩该问题。原B1项目/log/证据831fe811和原字节ZIP保留。完整配置log可用，未独立重定向stdout/stderr为明确边界；本轮以该log+原生WinEvent+engine observer为依据，不声称标准流全覆盖。
 - 现在单独放行B2，主f9792767/前端bb2a401保持已审代码，不再改probe/runner；新RUNBOOK-B2和新phase_b_02目录，≤2新Godot child/15分钟，条件与阶段B完全相同，任何异常立即停，零补跑。只有安全startup/ready前提成立后恢复才可证API语义。若再失败，应收口403可证/不可证并另拆取证缺口，不进行第三B候选。
 - 主管本次核全部进程/端口0、recents一致；每次启动前仍按远端owner/≤60秒净空。执行提交原始工件/原字节ZIP与报告，禁止把新生成修正文件覆盖B1。B2成功也只支持独立Godot最小项目，仍不授权生产修订或用户手测。
+
+### 阶段B收口：coverage不足，403停止（15:08 +0800）
+
+- B2主f9792767/前端bb2a401，runner1/probe20，child10448；engine ready同nonce/PID、主HWND2034330、mode1/1/focus0，原生误选同PID隐藏helper4656690，seq31 rawSHOW属于2034330，seq34错误target4656690，seq35 coverage_insufficient。主管亲读原JSONL/engine嵌入与原报告核实；无hide/restore API调用，不归候选失败。
+- 403阶段A通过保持；阶段B两预算均停止，不做第三B候选。B1/B2原字节及证据已main cdc06f16/c623b68b，相关未通过装置代码留执行branch，不纳产品main。主管核全进程/端口0与recents一致。精确观察器缺陷另拆404，不直接发产品修法。
+- 领取owner结束本卡写入，无在飞进程；403 blocked等待404精确HWND观测及Godot恢复证据，再由主管裁定整卡。裁定见`coord/rulings/2026-11-17-WIN32-NOACTIVATE-RESTORE-FORENSICS-1-blocked.md`。
