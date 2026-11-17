@@ -8,4 +8,4 @@
 
 卫生：六份快照（recents、Godot默认log、两个root Settings.xml/default_project.xml）before/after hash一致；fixture前后`AC0CE2E81C12E6F10E3D691CF062CD3E568365C274F12F2B963694AE3B48B41D`；recents`807226F4AF3FC85C2B99BFD2FB827C1583E7C991826BDE5F0B4344A6DC13E353`；13:07:09 owner亲核Vit进程/TCP7878,7879,8787,5555,5556,9333/UDP4445全零。构建agent SHA`1E6925CDF7481D90CCC2581BE6BA86BA3F89C98EC8A4C9899EA77449BBE6DCAC`。
 
-工件：`device/artifacts/ui_entry_smoke_report.json`、`device/stdout.log`、`device/hygiene.json`、`teardown_owner.json`及wrapper run原始目录。失败分类无；此次唯一C有效run exit0。此腿不解锁normal后续matrix。
+工件：`device/artifacts/ui_entry_smoke_report.json`、run根目录`stdout.log`/`hygiene.json`/`teardown_owner.json`及完整wrapper run ZIP。失败分类无；此次唯一C有效run exit0。此腿不解锁normal后续matrix。
