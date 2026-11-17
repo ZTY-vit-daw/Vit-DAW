@@ -7,3 +7,11 @@
 - 预期执行域：前端原`VitShell/tests/win32_noactivate_restore_probe.cpp`、必要主仓现`scripts/vitshell_smoke.ps1`；隔离project/observer只run内生成；不动生产GD/UI/manager，独立worktree可复用已结束403/404树但需新owner领取记录+基线status/diff。当前模型建议Sol/high；无Astra常规调用。
 - 先交静态方案与冻结次数/判据/失败分类/止损，主管审后再登记资源并运行；本卡未默认授新窗口启动。原则最多两前台条件各1进程、任何异常停、无补跑；精确HWND、原生WinEvent与engine mode、首次noniconic/show时geometry/z证据、≥2s保持、原始ZIP与hash/recents/全零继续。
 - 成功只解锁另行生产修订，仍不替真实产品bootstrap/工程ready/395/完整矩阵。发现DPI/placement域外需求先报告，禁止通过放宽geometry或首显门槛凑通过。
+
+## 领取与首段授权（2026-11-17 17:31 +0800）
+
+- 用户本轮询问进展及是否可以继续，主管核对无新产品裁决事项后继续既有授权范围。owner=`/root/restore403`（GPT-6.1 Sol/high，PC），403/404已收口停写，现显式转405；验收=主管/root。
+- 沿用独立执行树：主仓`C:/Users/timoz/.codex/worktrees/win32-restore-403/Vit_DAW`、前端`C:/Users/timoz/.codex/worktrees/win32-restore-403-fe/vit-daw-frontend`，branch均`codex/win32-restore-forensics-403`。主HEAD3b8a71d4、前端HEADcdf1924；tracked status/diff为空，主仅4个已知隔离shader cache目录untracked，保留不动不入库。共享main领取基线73a7f409；远端领取成功并重读owner后开工。
+- 首段只读方案：核官方Win32/Godot源码、DPI上下文与placement坐标、当前探针与失败候选的geometry准备；不运行Godot/probe窗口、不改任何代码或旧工件。允许报告工件仅`coord/runs/GODOT-NOACTIVATE-GEOMETRY-1/PLAN.md`及必要官方引用快照。
+- 回执短：单一候选API顺序、可证与待证、具体文件域、冻结≤2场景判据/分类/止损、可能需要用户裁决的产品语义（有则列，无则明确无）。先主管审方案，再决定代码与新runtime，不默认为已授启窗。
+- 当前真实栈亲核全零且空闲，本段不预留栈，不授接管其他进程；不复跑E/E2，不操控他人窗口，不CUA/输入/截图，不改manager/生产GD/UI。

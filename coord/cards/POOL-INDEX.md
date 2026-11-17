@@ -207,4 +207,4 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 
 | 403 | WIN32-NOACTIVATE-RESTORE-FORENSICS-1 | done 主管取证PASS（自窗6/6+404补独立Godot2/2；非产品修复，普通大窗geometry/z→405） |
 | 404 | GODOT-MAIN-HWND-OBSERVATION-1 | done 主管取证PASS（精确主HWND+23纯关联/14门禁反例+实际Godot两条件0；测试装置合入，不含失败产品候选） |
-| 405 | GODOT-NOACTIVATE-GEOMETRY-1 | todo 已确认（单一普通大窗geometry/z最小取证；先静态方案，运行另冻结，不直接改产品） |
+| 405 | GODOT-NOACTIVATE-GEOMETRY-1 | doing（/root/restore403 Sol/high；先只读geometry/z/DPI静态方案，不启窗，方案审后再授权代码与runtime） |

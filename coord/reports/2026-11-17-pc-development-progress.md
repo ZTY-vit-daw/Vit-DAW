@@ -48,3 +48,7 @@
 - 新404 R2 formal_02两条件各1child，runner/wrapper0，精确engine HWND与native lifecycle一致；SW_SHOWNOACTIVATE后mode0约62/63ms同步，63/64样本≥2s、rawFG0。主管亲解析原始序列/全部127样本与ZIP/sourcehash、末态全零/recents一致；403/404取证PASS收口。
 - 仅测试装置/原证据合入：主仓至9cfc24db，前端至2d92d55（基于d05043e，未合E/E2产品代码）。原失败全保留，独立树/缓存不删除。
 - 405已发todo：补首次ordinary大窗工作区geometry/z准备。最小probe native rect425×311并未证产品目标几何，不能直接将API塞manager。先静态方案再限定最小取证；391/394/395/402仍blocked，397/J1-J3/271/352状态不变，用户手测未放行。资源已释放，无在飞子代理。
+
+## 继续405静态方案（17:31 +0800）
+
+用户问进展与是否可继续，主管核实时main/owner/文件域/进程端口；403/404结论不变，无需用户新增产品裁决。405现正式领取/root/restore403，仅只读几何/z/DPI方案，不启任何窗口、资源仍空闲。方案交主管后再决定代码/限次运行，不把新取证直接插入产品。
