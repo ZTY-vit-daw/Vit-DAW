@@ -98,7 +98,9 @@ param(
     [string]$RunRoot = "",
     [switch]$SkipBuild,
     [switch]$SkipFailureLegs,
-    [switch]$SkipLegacyLegs
+    [switch]$SkipLegacyLegs,
+    # 388/401 opt-in: management/settings/real GET + local zero-LLM interval.
+    [switch]$EntryManagementChecks
 )
 
 $ErrorActionPreference = "Stop"
@@ -412,6 +414,7 @@ $runMeta = [ordered]@{
     skip_build = [bool]$SkipBuild
     skip_failure_legs = [bool]$SkipFailureLegs
     skip_legacy_legs = [bool]$SkipLegacyLegs
+    entry_management_checks = [bool]$EntryManagementChecks
 }
 
 $recentsFile = Join-Path $env:APPDATA "Vit-DAW/global_project_config.json"
@@ -785,7 +788,13 @@ for ($round = 1; $round -le $Rounds; $round++) {
         # ---- R-L0: cold start with process-level zero-Godot asserts ----
         Write-Step "R$round L0: cold start (zero Godot assert pre+post ready)"
         $roundMeta.recents_seeded_sha256 = Seed-S4Recents -FixturePath $fixtureA
-        $p = Start-VitShell -OutLog "r${round}_bridge.log" -ExtraArgs @("--smoke-file-dialog", $fixtureA, "--smoke-file-dialog-b", $fixtureB) -ExtraEnv @{ VIT_AGENT_LLM_BASE_URL = "http://127.0.0.1:1" }
+        $roundEnv = @{ VIT_AGENT_LLM_BASE_URL = "http://127.0.0.1:1" }
+        if ($EntryManagementChecks) {
+            # Dedicated telemetry, never inherit off/disabled or pollute a shared file.
+            $roundTelemetry = Join-Path $RunRoot "r${round}_agent_llm_telemetry.jsonl"
+            $roundEnv.VIT_AGENT_LLM_TELEMETRY_PATH = $roundTelemetry
+        }
+        $p = Start-VitShell -OutLog "r${round}_bridge.log" -ExtraArgs @("--smoke-file-dialog", $fixtureA, "--smoke-file-dialog-b", $fixtureB) -ExtraEnv $roundEnv
         Assert-ZeroGodot -When "immediately after VitShell spawn"
         $roundMeta.vitshell_pid = $p.Id
         Start-Sleep -Seconds 3
@@ -802,6 +811,13 @@ for ($round = 1; $round -le $Rounds; $round++) {
         $roundMeta.no_reload_sentinel = $ldata.sentinel
         $roundMeta.greeting_text = $ldata.greeting_text
         $roundMeta.recents_count = $ldata.recents_count
+        if ($EntryManagementChecks) {
+            $recentsRead = Get-HttpJson -Url "http://127.0.0.1:$AgentPort/agent/launcher/recent-projects" -TimeoutSec 45
+            $recentsRead.body | Out-File (Join-Path $RunRoot "r${round}_recent_projects_startup.json") -Encoding utf8
+            if (-not $recentsRead.ok) { throw "R$round startup recent-projects GET failed" }
+            $recentBody = $recentsRead.body | ConvertFrom-Json
+            if ($recentBody.status -ne "ok" -or @($recentBody.project_result_cards).Count -lt 1) { throw "R$round startup recent-projects missing seeded cards" }
+        }
         Write-Ok ("R$round launcher data: greeting=" + $ldata.greeting_text.Substring(0, [Math]::Min(40, $ldata.greeting_text.Length)) + "... recents=" + $ldata.recents_count)
 
         # ---- R-L1b: SHELL-4 kernel online at launcher stage ----
@@ -949,6 +965,45 @@ for ($round = 1; $round -le $Rounds; $round++) {
         if ($projReady.context_name -notmatch "fixture_a") { throw "R$round project context name unexpected: $($projReady.context_name)" }
         $roundMeta.project_context_name = $projReady.context_name
         Write-Ok ("R$round project surface ready (context=" + $projReady.context_name + ", source=" + $projReady.context_source + ")")
+
+        # 388 insertion point: after real open and before any intentional L3 chat.
+        # 394/402 window-behavior sampling belongs BEFORE open, not this segment.
+        if ($EntryManagementChecks) {
+            Write-Step "R$round L2m: management/settings/GET, lifecycle unchanged, zero local LLM"
+            $beforeStatusHttp = Get-HttpJson -Url $StatusUrl
+            $beforeStateHttp = Get-HttpJson -Url "http://127.0.0.1:$AgentPort/agent/state"
+            if (-not $beforeStatusHttp.ok -or -not $beforeStateHttp.ok) { throw "management before snapshots unreachable" }
+            $beforeStatus = $beforeStatusHttp.body | ConvertFrom-Json
+            $beforeState = $beforeStateHttp.body | ConvertFrom-Json
+            $runtimePidsBefore = @(Get-Process -Name VitApp,VspHub -ErrorAction Stop | Select-Object -ExpandProperty Id | Sort-Object)
+            [byte[]]$telemetryBefore = @()
+            if (Test-Path -LiteralPath $roundTelemetry) { $telemetryBefore = [System.IO.File]::ReadAllBytes($roundTelemetry) }
+            [System.IO.File]::WriteAllBytes((Join-Path $RunRoot "r${round}_management_telemetry_before.jsonl"), [byte[]]$telemetryBefore)
+            $beforeStatusHttp.body | Out-File (Join-Path $RunRoot "r${round}_management_status_before.json") -Encoding utf8
+            $beforeStateHttp.body | Out-File (Join-Path $RunRoot "r${round}_management_state_before.json") -Encoding utf8
+            $management = Invoke-CdpPhase -Phase "management-roundtrip" -OutFile "r${round}_cdp_management.json"
+            $afterStatusHttp = Get-HttpJson -Url $StatusUrl
+            $afterStateHttp = Get-HttpJson -Url "http://127.0.0.1:$AgentPort/agent/state"
+            if (-not $afterStatusHttp.ok -or -not $afterStateHttp.ok) { throw "management after snapshots unreachable" }
+            $afterStatus = $afterStatusHttp.body | ConvertFrom-Json
+            $afterState = $afterStateHttp.body | ConvertFrom-Json
+            $afterStatusHttp.body | Out-File (Join-Path $RunRoot "r${round}_management_status_after.json") -Encoding utf8
+            $afterStateHttp.body | Out-File (Join-Path $RunRoot "r${round}_management_state_after.json") -Encoding utf8
+            foreach ($field in @("agent_pid", "godot_pid", "launch_count", "window_hwnd", "current_url")) {
+                if ($null -eq $beforeStatus.$field -or $null -eq $afterStatus.$field) { throw "management status field unavailable: $field" }
+                if ($beforeStatus.$field -ne $afterStatus.$field) { throw "management changed $field" }
+            }
+            if (-not $afterStatus.godot_running) { throw "management closed DAW" }
+            $runtimePidsAfter = @(Get-Process -Name VitApp,VspHub -ErrorAction Stop | Select-Object -ExpandProperty Id | Sort-Object)
+            if (($runtimePidsBefore -join ',') -ne ($runtimePidsAfter -join ',')) { throw "management restarted kernel/hub" }
+            if ([string]::IsNullOrWhiteSpace("$($beforeState.current_project.path)") -or $beforeState.current_project.path -ne $afterState.current_project.path -or $beforeState.current_project.uuid -ne $afterState.current_project.uuid) { throw "management changed project binding" }
+            [byte[]]$telemetryAfter = @()
+            if (Test-Path -LiteralPath $roundTelemetry) { $telemetryAfter = [System.IO.File]::ReadAllBytes($roundTelemetry) }
+            [System.IO.File]::WriteAllBytes((Join-Path $RunRoot "r${round}_management_telemetry_after.jsonl"), [byte[]]$telemetryAfter)
+            if ([Convert]::ToBase64String([byte[]]$telemetryBefore) -ne [Convert]::ToBase64String([byte[]]$telemetryAfter)) { throw "management produced LLM telemetry (local interval must be zero)" }
+            Copy-Item $agentLog (Join-Path $RunRoot "r${round}_management_agent_log.txt") -Force
+            $roundMeta.management = @{ ok = $true; sentinel = $management.sentinel; unchanged_pids = $runtimePidsAfter; telemetry_added = 0; main_frame_navigations = $management.main_frame_navigations; native_navigate_count = "unavailable in d05043e status schema; HWND/url/sentinel plus mainframe event count asserted"; error_surface = "synthetic GET503 only, real GET also passed" }
+        }
 
         # ---- R-L3: in-project REAL chat roundtrip (SHELL-3 new leg) ----
         Write-Step "R$round L3: in-project chat roundtrip (composer -> /agent/chat -> thread frames)"

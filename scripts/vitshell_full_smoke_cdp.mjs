@@ -109,6 +109,97 @@ try {
 
   const url = page.url();
   switch (phase) {
+    case "management-roundtrip": {
+      // 388/401 optional phase: no chat, config save, native window control, or
+      // lifecycle operation. Kernel/PID/telemetry interval checked by ps1.
+      const sentinel = await readSentinel(page);
+      const input = page.locator("[data-project-composer] input, [data-project-composer] textarea");
+      await input.waitFor({ state: "visible", timeout: 45000 });
+      const previousInput = await input.inputValue();
+      const marker = "management smoke unsent input";
+      const screenshots = [];
+      const requests = [];
+      let mainFrameNavigations = 0;
+      const onNavigation = (frame) => { if (frame === page.mainFrame()) mainFrameNavigations++; };
+      const onRequest = (request) => requests.push({ path: new URL(request.url()).pathname, method: request.method() });
+      page.on("request", onRequest);
+      page.on("framenavigated", onNavigation);
+      const recentPattern = "**/agent/launcher/recent-projects";
+      const readRecent = () => page.evaluate(async () => {
+        const response = await fetch("/agent/launcher/recent-projects");
+        return { status: response.status, body: await response.json() };
+      });
+      const assertSettings = async (selector) => {
+        const button = page.locator(selector);
+        const atBottomLeft = await button.evaluate((el) => { const r = el.getBoundingClientRect(); return r.x < innerWidth / 3 && r.bottom > innerHeight - 80 && r.bottom <= innerHeight; });
+        if (!atBottomLeft) throw new Error(`settings not bottom left: ${selector}`);
+        await button.click();
+        await page.locator("[data-entry-settings][open] .settings-page").waitFor({ state: "visible" });
+        await page.locator("[data-entry-settings] .settings-body").waitFor({ state: "visible" });
+        await page.keyboard.press("Escape");
+        if (!await button.evaluate((el) => document.activeElement === el)) throw new Error("settings focus not returned");
+      };
+      const openManagement = async () => {
+        await page.locator("[data-project-view-launcher]").click();
+        await page.locator('[data-launcher-mode="project-management"]').waitFor({ state: "visible" });
+      };
+      try {
+        await assertSettings("[data-project-settings]");
+        await input.fill(marker);
+        const contextName = await page.locator("[data-project-context-name]").getAttribute("data-project-context-name");
+        await openManagement();
+        await page.locator('[data-launcher-drawer][data-drawer-state="ready"] [data-launcher-recent-open]').first().waitFor({ state: "visible", timeout: 45000 });
+        await page.locator('[data-launcher-root][data-launcher-state="ready"]').waitFor({ state: "visible", timeout: 45000 });
+        if (!await page.locator("[data-launcher-new]").isEnabled() || !await page.locator("[data-launcher-choose-file]").isEnabled()) throw new Error("management new/open unavailable");
+        const activeName = (await page.locator("[data-launcher-active-project-name]").innerText()).trim();
+        if (!contextName || activeName !== contextName) throw new Error("management active project name mismatch");
+        if (await page.locator("[data-launcher-input], [data-launcher-suggestion]").count()) throw new Error("management exposes current-project chat through launcher");
+        await assertSettings("[data-launcher-settings]");
+        const recent = await readRecent();
+        if (recent.status !== 200 || recent.body.status !== "ok" || !Array.isArray(recent.body.project_result_cards) || recent.body.project_result_cards.length < 1) throw new Error("real recent GET did not return seeded cards");
+        const healthy = recent.body.project_result_cards.find((card) => card.exists === true && card.file_path?.includes("fixture_a"));
+        if (!healthy || !healthy.launcher_directive?.requires_governance) throw new Error("fixture_a governed recent card missing");
+        const method = await page.evaluate(async () => { const response = await fetch("/agent/launcher/recent-projects", { method: "POST" }); return response.status; });
+        if (method !== 405) throw new Error("recent POST not rejected");
+        const cancelGovernedRequest = async () => {
+          const cancel = page.locator("[data-launcher-governance-cancel]").last();
+          await cancel.waitFor({ state: "visible", timeout: 30000 });
+          await cancel.click();
+          await page.locator('[data-launcher-bridge-exec-state="canceled"]').waitFor({ state: "visible", timeout: 30000 });
+        };
+        await page.locator("[data-launcher-new]").click();
+        await cancelGovernedRequest();
+        await page.locator("[data-launcher-choose-file]").click();
+        await cancelGovernedRequest();
+        await page.locator(`[data-launcher-recent-open=${JSON.stringify(healthy.id)}]`).click();
+        await cancelGovernedRequest();
+        if (outPath) { const screenshot = outPath + ".management.png"; await page.screenshot({ path: screenshot }); screenshots.push(screenshot); }
+        await page.locator("[data-launcher-return-project]").click();
+        if (await input.inputValue() !== marker) throw new Error("project input lost during management roundtrip");
+        // Synthetic failure injection tests presentation ONLY. Real GET above
+        // is independently required; do not claim a real kernel failure here.
+        await page.route(recentPattern, (route) => route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ status: "error", kernel_unavailable: true, error: "synthetic failure injection: recent GET503" }) }));
+        await openManagement();
+        await page.locator("[data-launcher-drawer-error]").waitFor({ state: "visible", timeout: 30000 });
+        if (await page.locator("[data-launcher-drawer-empty]").count()) throw new Error("GET503 rendered as empty recents");
+        await page.unroute(recentPattern);
+        await page.locator("[data-launcher-drawer-retry]").click();
+        await page.locator('[data-launcher-drawer][data-drawer-state="ready"] [data-launcher-recent-open]').first().waitFor({ state: "visible", timeout: 45000 });
+        await page.locator("[data-launcher-return-project]").click();
+        await input.fill(previousInput);
+        if (await readSentinel(page) !== sentinel || !sentinel) throw new Error("management reloaded page");
+        if (mainFrameNavigations !== 0) throw new Error("management navigated main frame");
+        if (requests.some((request) => request.path === "/agent/chat" || request.path === "/agent/config" && request.method !== "GET")) throw new Error("management sent chat/config mutation");
+        const verdict = { phase, ok: true, url, sentinel, main_frame_navigations: mainFrameNavigations, context_name: contextName, real_get: recent, method_rejected: method, synthetic_failure_injection: "GET503 presentation only", screenshots, requests };
+        if (outPath) writeFileSync(outPath, JSON.stringify(verdict, null, 2));
+        console.log("CDP_OK " + JSON.stringify(verdict));
+      } finally {
+        page.off("request", onRequest);
+        page.off("framenavigated", onNavigation);
+        await page.unroute(recentPattern);
+      }
+      break;
+    }
     case "probe-launcher": {
       const root = page.locator("[data-launcher-root]");
       await root.waitFor({ state: "visible", timeout: 30000 });
