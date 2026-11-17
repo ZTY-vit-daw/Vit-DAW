@@ -46,3 +46,9 @@
 主管review指出GD fire-and-forget bootstrap与terminal两个HTTP可乱序，fixed202不证明UI prepared；批准E同一安全提交6生产文件（原5+start_page.gd仅await begin）。begin等bootstrap POST完成后只读status核同directPID/hidden_boot_state prepared/guardactive，失败停止后续create/open；native早ready拒绝仍保留，不能把提交顺序当barrier。此为明确必要单行跨函数接缝例外，避免不安全中间提交。
 
 显示顺序先在hidden时styleNOACTIVATE+z behind+workarea，再SetWindowPos SHOWWINDOW|NOACTIVATE同次指定z显现，禁止先show后退。源码/Win32文档仍不替真栈，隐藏后currentmode不要求1（WM_WINDOWPOSCHANGED会更新），验证feature初始effective mode1避免误拒。E-OBS另紧邻≤3原生文件保原WinEvent目标/时间/guard区间，先记事实再策略动作，不将dedup快照冒称原始事件。
+
+## E/OBS零栈交付与主管复核（2026-11-17）
+
+- 独立前端分支codex/shell-first-focus-394已推：c5d391deaf684317813a8c4179dd29a09447f17d（E安全6生产文件）、f81477b8cde121a29fde3012569a07fef6814ecd（OBS≤3原生）、1b3c1d566632f6a49273f009473fde2807b256b5（区间seq小补）。主管亲读实现与报告、ls-remote核远端同HEAD，并独立复跑ctest5/5 exit0；执行侧build0/GD隔离21/21 0。
+- raw schema window_state.win_event_log.v1：有界128、last_seq/dropped/truncated、guard_started/released seq+ticks，原event HWND/PID/thread/DWORDtime和receive64tick先记再策略；丢失/晚开始不能当零事件。event时间回绕由collector按received重构epoch，不把dedup当前态当原事件。
+- 交接：原owner/root/window391源码停写；/root/entry388仅接管该树构建/运行验证，唯一已知M为主管按LFS SHA70736DAF…水合纹理，不纳代码。主仓collector改动仍现有4scripts；E真实首显未证，最多2候选诊断后同断点停，不先合前端main。
