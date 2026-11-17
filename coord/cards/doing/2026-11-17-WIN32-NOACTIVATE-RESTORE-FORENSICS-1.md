@@ -31,3 +31,15 @@
 - 本次单独授R2：先落新的`RUNBOOK-R2.md`，新目录`formal_02`，同三API×两前台条件≤6场景、每场景新进程1次，最长20分钟；无环境/装置补跑，不修改既有判据，不覆盖R1。沿原candidate/coverage/probe/environment/not_exercised分类；两candidate失败停止，任何装置/观测/控制异常立即停止。此次不是复跑E/E2，仍不启动Godot或产品栈。
 - R2只运行上述已审代码，若须改probe/runner先停止报告；前端baseline=ac3866c、主仓baseline=8cca7d9c，启动前fetch远端owner与即时净空。主管已再次核进程/全部端口零、recents维持807226F4…13E353。
 - 收尾先提交报告与原始工件（排除build目录/二进制/缓存；按具体路径加入），保留所有失败，再短回执。协调卡/资源由主管统一更新；本授权成功同步main并重读后可执行R2，Godot仍需之后证据关口。
+
+### 阶段A验收与阶段B隔离Godot授权（14:37 +0800）
+
+- 自有窗口6/6通过，主管全6原始序列定向重解析+激活消息交叉核查+哈希与末态亲证；裁定`coord/rulings/2026-11-17-WIN32-NOACTIVATE-RESTORE-FORENSICS-1-phase-a-pass.md`。自窗三文件已合main，不纳失败E/E2产品代码。403仍doing。
+- 阶段B只隔离Godot恢复/模式同步，仍非真实工程/产品栈。owner、两worktree/branch不变；允许仅扩原probe.cpp与原vitshell_smoke.ps1取证腿（CMake必要接线可用），不触生产manager/GD/UI。最小Godot project/scene/观察脚本只生成在全新run隔离目录，不加载前端生产工程/autoload/插件/extension，不起kernel/agent/HTTP/用户工程。
+- 采用同版本实际GUI Godot binary，记录来源/版本证据/SHA；不能用console wrapper。先静态核候选E2使用的具体路径/启动设置与Godot源码锚点，保留差异。子进程用显式CreateProcess/STARTUPINFO记录；不凭启动参数宣称首次hidden，原生hook须在spawn前安装，按exact child PID/HWND归属观测，ready关联nonce/PID证明初show之后。禁止注入/跨进程subclass/全局输入hook。
+- 本阶段唯一恢复候选=ShowWindow(SW_SHOWNOACTIVATE)，不做SW_RESTORE产品修法、不追加placement矩阵。最多2个正式Godot子进程，synthetic守卫前台和自然external各1次，独立run；无环境/装置补跑。自然前提缺失not_exercised不强造；首个失败/coverage缺口/崩溃/前台丢失立即停剩余场景，不改代码追跑。准备及运行≤30分钟，先落RUNBOOK-B冻结完整命令/成功条件/分类/止损，再配置构建。
+- 前置最小项目初始mode=minimized、no_focus=false、不启TOPMOST，参数/生成项目入工件；ready后先亲证safe iconic且本child从未FG，再受控hide、临时NOACTIVATE/自身层级准备、候选API一次恢复。若startup抢FG，归startup_path_fail并停止，不把它误归API恢复失败或再纠正冲销。首次show前后native事实与Godot观察分开记录。
+- 观测：原始child相关WinEvent全区间与连续性证据、Win32 visible/iconic/style/placement/geometry/FG，以及Godot自身Window/DisplayServer mode、focus通知与resize/readiness日志同nonce/PID时序。跨进程无WndProc原始WM通道须显式声明，不能伪称自窗WM已覆盖Godot。Godot脚本只观察、不runtime改mode或做恢复，以隔离引擎后续同步。
+- 候选通过须恢复可见normal/non-iconic/nonTOPMOST/正几何，零child FG，守卫或外部FG保持，Godot mode跟随normal且至少连续2秒不改回minimized；原生与引擎读数冲突/时序缺口如实失败或coverage不足。只可证最小Godot路径，不证完整产品的工程打开/大窗z/ready/395UI。根据结果再发生产修订，不能直接修manager。
+- 同一资源独占；启动前fetch重读owner及≤60秒即时净空，长build后再查；启动/清理仅本次exact child handle，结束全部Godot/probe/Vit进程和端口全零；用户recents启动前快照保全、finally核哈希（不启动kernel、原则不产生写入），fixture零使用。
+- 回执仍短；提交两repo代码与原始工件，完整日志留盘。补阶段A原始字节ZIP/哈希（排除build/二进制，不删展开件），避免Git换行规范化丢原字节。若实现不能在原3文件域安全完成，先回只读方案与阻塞，不扩域。
