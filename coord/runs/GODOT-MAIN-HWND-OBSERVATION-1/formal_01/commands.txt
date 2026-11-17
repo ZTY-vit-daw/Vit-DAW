@@ -1,0 +1,2 @@
+git -C "C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW" fetch origin main; exit=0
+git -C "C:\Users\timoz\.codex\worktrees\win32-restore-403\Vit_DAW" fetch origin main; exit=0

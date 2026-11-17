@@ -1,0 +1,12 @@
+﻿{
+    "card":  "403",
+    "run_id":  "formal_01",
+    "started":  "2026-11-17T07:17:41.4711310Z",
+    "finished":  "2026-11-17T07:17:54.8118882Z",
+    "exit":  1,
+    "recents_unchanged":  true,
+    "scenarios":  [
+
+                  ],
+    "boundary":  "Isolated minimal Godot only; raw child WinEvent plus engine observations, no child WndProc or product acceptance"
+}

@@ -1,0 +1,110 @@
+[
+  {
+    "Hash": "4F6CDBF1495A540EC4F90CE74B76C18D462BBC00B10AE3E590FA34568677C8F1",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-MAIN-HWND-OBSERVATION-1\\formal_01\\after_teardown.fetch.log"
+  },
+  {
+    "Hash": "1F6BF1A7076FE0E3B2B9E7A7EF50389FF18E8102A309740FCEFF89EEBA791D67",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-MAIN-HWND-OBSERVATION-1\\formal_01\\after_teardown.resource.txt"
+  },
+  {
+    "Hash": "4F6CDBF1495A540EC4F90CE74B76C18D462BBC00B10AE3E590FA34568677C8F1",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-MAIN-HWND-OBSERVATION-1\\formal_01\\before_build.fetch.log"
+  },
+  {
+    "Hash": "1F6BF1A7076FE0E3B2B9E7A7EF50389FF18E8102A309740FCEFF89EEBA791D67",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-MAIN-HWND-OBSERVATION-1\\formal_01\\before_build.resource.txt"
+  },
+  {
+    "Hash": "B5F2DF8D691D4136950608807AC8CE10F9ABB298667BD8156F7919EA4ED5CD48",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-MAIN-HWND-OBSERVATION-1\\formal_01\\commands.txt"
+  },
+  {
+    "Hash": "45B1EA393BD45411D44CC4FF11A0E259F0B6696DEF71BAB2B6E6B302ADBE381B",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-MAIN-HWND-OBSERVATION-1\\formal_01\\failure.txt"
+  },
+  {
+    "Hash": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-MAIN-HWND-OBSERVATION-1\\formal_01\\frontend.diff.txt"
+  },
+  {
+    "Hash": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-MAIN-HWND-OBSERVATION-1\\formal_01\\frontend.diffstat.txt"
+  },
+  {
+    "Hash": "1E3BCA5A3421194416AD7D61C0538793CAB482D953AE6E9432698249AF4E971A",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-MAIN-HWND-OBSERVATION-1\\formal_01\\frontend.head.txt"
+  },
+  {
+    "Hash": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-MAIN-HWND-OBSERVATION-1\\formal_01\\frontend.status.txt"
+  },
+  {
+    "Hash": "0454D56DCEB174880BAD7DE5C12845CDF8A1626D90FBA7197B1B4344F08BDCB9",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-MAIN-HWND-OBSERVATION-1\\formal_01\\godot_binary_hash.json"
+  },
+  {
+    "Hash": "1D4BC9F302A1D02E11B9C23A04F0122E905B5A515D385369DBAD76A145B9C830",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-MAIN-HWND-OBSERVATION-1\\formal_01\\godot_version_resource.json"
+  },
+  {
+    "Hash": "1D7320F9F5A69F145909E48D5088D5A79AE160E7F24EBE9E4B60722B9929083A",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-MAIN-HWND-OBSERVATION-1\\formal_01\\independent_after_teardown.json"
+  },
+  {
+    "Hash": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-MAIN-HWND-OBSERVATION-1\\formal_01\\main.diff.txt"
+  },
+  {
+    "Hash": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-MAIN-HWND-OBSERVATION-1\\formal_01\\main.diffstat.txt"
+  },
+  {
+    "Hash": "5FC2C6AEF2D0CA96D3CE1EF37DE1926D0B7267F693F4CCC835FDB7AADC680711",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-MAIN-HWND-OBSERVATION-1\\formal_01\\main.head.txt"
+  },
+  {
+    "Hash": "60F67A5EEB7C5956271E4A061D442A1F98338A918E1E05569CB397AB7C61655B",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-MAIN-HWND-OBSERVATION-1\\formal_01\\main.status.txt"
+  },
+  {
+    "Hash": "CF580E1C635DA57DD1BF441448004A132313C7249387D13DFA4593226692A213",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-MAIN-HWND-OBSERVATION-1\\formal_01\\no_code_changes.txt"
+  },
+  {
+    "Hash": "3FC83DF140E1A0785D32B08EFB40841F8690EE547DC779F9401391197047D23E",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-MAIN-HWND-OBSERVATION-1\\formal_01\\recents.after.sha256"
+  },
+  {
+    "Hash": "807226F4AF3FC85C2B99BFD2FB827C1583E7C991826BDE5F0B4344A6DC13E353",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-MAIN-HWND-OBSERVATION-1\\formal_01\\recents.before.json"
+  },
+  {
+    "Hash": "3FC83DF140E1A0785D32B08EFB40841F8690EE547DC779F9401391197047D23E",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-MAIN-HWND-OBSERVATION-1\\formal_01\\recents.before.sha256"
+  },
+  {
+    "Hash": "E5C70ED6F57C3D7C4F2C6D2BF44D6394B49180B5C0528FCFC81A23C74EE32B4E",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-MAIN-HWND-OBSERVATION-1\\formal_01\\report.json"
+  },
+  {
+    "Hash": "B90FA522E754C2752A613065FFF016007909C0DD1DCC98FF37D96C06DF66FD67",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-MAIN-HWND-OBSERVATION-1\\formal_01\\source_hashes.json"
+  },
+  {
+    "Hash": "86BC0D834A67F910B43F002145258C134DE52B639528C9CF88F0F1645A57A105",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-MAIN-HWND-OBSERVATION-1\\formal_01\\teardown.failure.txt"
+  },
+  {
+    "Hash": "962D8D2A22EF26D804FA217C0672FF6377FC546C2C3BF4854B5D17F49110289E",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-MAIN-HWND-OBSERVATION-1\\RUNBOOK-404.md"
+  },
+  {
+    "Hash": "5E868F181673AF203F4F291420BB18E8CABC21505E7FA694A2C5172A3D8A2004",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-MAIN-HWND-OBSERVATION-1\\formal_01.wrapper_exit.txt"
+  },
+  {
+    "Hash": "93CAF8D8BA3E39B0E07E16A6EC2757C040100B5BA5C1523D263982084CD51C3D",
+    "Path": "C:\\Users\\timoz\\.codex\\worktrees\\win32-restore-403\\Vit_DAW\\coord\\runs\\GODOT-MAIN-HWND-OBSERVATION-1\\REPORT-runtime-R1.md"
+  }
+]
