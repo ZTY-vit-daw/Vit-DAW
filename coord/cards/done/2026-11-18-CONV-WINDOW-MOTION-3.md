@@ -20,3 +20,9 @@
 ## 说明
 
 - 800ms 已超出常规 200–500ms 区间，用户明确要求先试；只作为试验值，后续可按手测回调 token。
+
+## 回执与验收（2026-11-18 晚，试验值）
+
+- commit `4d9190d2`；主管亲跑 755 测/build/RWP 126 检查 0 失败；合入 main `4dee0d62`；dist=`FA293DB3…`。
+- `--v5-conv-motion-rail`=800ms（仅左栏内容）；其余 430 值不变。
+- 裁定：[rulings/2026-11-18-CONV-WINDOW-MOTION-3-pass.md](../../rulings/2026-11-18-CONV-WINDOW-MOTION-3-pass.md) PASS；候手测回调。

@@ -71,3 +71,8 @@
 
 - 主检出 `agent/webui/dist/index.html` 重建，新 SHA256=`1F517BCC3A0608D93BCA60F80DFAAFD75337948A4DB61D21E8DBB91AA1CE2C29`。
 - 动效：右侧层 480ms（+40ms 错峰）/左栏 320ms/内容体 420ms；token 化；reduced-motion 全关。
+
+## 更新（2026-11-18 22:12，431 左栏 800ms 试验值）
+
+- 主检出 `agent/webui/dist/index.html` 重建，新 SHA256=`FA293DB3B8713F05F27D531F82B5FF7063244F94681CDC9769B402C01397304E`。
+- 左栏内容过渡 800ms（试验）；右侧 layer 480ms+40ms、内容体 420ms 不变。
