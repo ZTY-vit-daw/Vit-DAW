@@ -144,6 +144,10 @@ try {
   check("rail head owns the only Vit brand in rail mode", await page.locator("[data-entry-rail] [data-entry-rail-brand]").count() === 1 && (await page.locator("[data-entry-rail] [data-entry-rail-brand]").innerText()).trim() === "Vit" && await page.locator("[data-launcher-titlebar] .v5-launcher-titlebar-brand").count() === 0);
   const railFootIdentity = await page.evaluateHandle(() => document.querySelector("[data-entry-rail-foot]"));
   check("rail footer is persistent with settings and an avatar slot", await page.locator("[data-entry-rail] [data-entry-rail-foot] [data-entry-rail-settings]").count() === 1 && await page.locator("[data-entry-rail] [data-entry-rail-foot] [data-entry-rail-avatar]").count() === 1);
+  // SHELL-SETTINGS-DUP-1（426）：live entry 唯一设置入口 = 左栏 footer。旧 converged
+  // launcher 抽屉设置（data-launcher-settings）与 project footer 设置（data-project-settings）
+  // 在 live entry 下不再渲染（不传 onOpenSettings），此处守住唯一性。
+  check("live entry exposes exactly one settings entry on the launcher surface", await page.locator("[data-entry-rail-foot] [data-entry-rail-settings]").count() === 1 && await page.locator("[data-launcher-settings]").count() === 0 && await page.locator("[data-project-settings]").count() === 0);
   check("rail footer stays pinned to the rail bottom on the launcher surface", await page.locator("[data-entry-rail-foot]").evaluate(element => {
     const foot = element.getBoundingClientRect();
     const rail = element.closest("[data-entry-rail]").getBoundingClientRect();
@@ -254,6 +258,8 @@ try {
   check("current branch is highlighted and marked in the conversation tree", await page.locator('[data-conversation-branch="main"][data-conversation-branch-active="true"]').count() === 1 && await page.locator('[data-conversation-branch="main"] [data-conversation-branch-current]').count() === 1 && await page.locator('[data-conversation-branch="feature-x"][data-conversation-branch-active="false"]').count() === 1);
   check("project surface rail no longer renders the startup project list", await page.locator("[data-entry-rail] [data-launcher-projects]").count() === 0 && (await page.locator("[data-entry-rail] [data-entry-rail-title]").innerText()).trim() === "对话流");
   check("rail footer survives the launcher→project surface switch as the same node", await page.evaluate(node => node === document.querySelector("[data-entry-rail-foot]"), railFootIdentity) && await page.locator("[data-entry-rail-foot] [data-entry-rail-settings]").count() === 1);
+  // SHELL-SETTINGS-DUP-1（426）：工程面对话窗下不得再有重复设置按钮（用户手测缺陷）。
+  check("project surface has no duplicated settings button outside the rail footer", await page.locator("[data-project-settings]").count() === 0 && await page.locator("[data-launcher-settings]").count() === 0 && await page.locator("[data-entry-rail-settings]").count() === 1 && await page.locator("[data-entry-rail-foot] [data-entry-rail-settings]").count() === 1);
   check("rail expansion state survives the surface switch", await page.locator("[data-window-sidebar-toggle]").getAttribute("aria-expanded") === "true");
 
   // CONV-RAIL-1（418）：点击非当前分支 = 只读预览（消息路径 + composer 蒙版 + 继续卡），
@@ -383,7 +389,7 @@ try {
   await postResult(fileRequest, "failed", "文件选择失败（render fixture）");
   await feedback().locator('[data-loading-phase="failed"]').waitFor();
   check("file-dialog failure never retries an unrelated previous directive", await feedback().locator("[data-loading-retry]").count() === 0);
-  await page.locator("[data-launcher-settings]").click();
+  await page.locator("[data-entry-rail-settings]").click();
   await page.locator("[data-entry-settings][open]").waitFor();
   await page.keyboard.press("Escape");
   await page.locator("[data-launcher-return-project]").click();
