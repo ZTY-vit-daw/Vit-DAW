@@ -1,0 +1,30 @@
+﻿{
+    "phase":  "ready",
+    "error":  "",
+    "vitshell_pid":  9460,
+    "window_hwnd":  "15992326",
+    "window_title":  "Vit",
+    "agent_pid":  12328,
+    "agent_running":  true,
+    "agent_url":  "http://127.0.0.1:7878",
+    "agent_exe":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\shell414-combo-56df2c72\\runtime\\agent\\bin\\VitAgent.exe",
+    "agent_cwd":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\shell414-combo-56df2c72\\runtime\\agent",
+    "current_url":  "http://127.0.0.1:7878/app/?surface=launcher",
+    "document_ready":  "complete",
+    "navigation_loading":  false,
+    "started_at_utc":  "2026-11-18T10:44:40Z",
+    "surface":  "launcher",
+    "chain_state":  "opened",
+    "chain_detail":  "scene_accepted: res://vit_dock/scenes/VitDockRoot.tscn",
+    "godot_pid":  22384,
+    "godot_running":  true,
+    "godot_exe":  "D:/Godot/Godot_v4.6.1-stable_win64.exe",
+    "godot_project_dir":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\shell414-combo-56df2c72\\frontend",
+    "launch_count":  1,
+    "window_state":  {
+                         "schema":  "vitshell.window_state.v1",
+                         "foreground":  "shell",
+                         "daw_hwnd":  "788084",
+                         "observed_at_tick_ms":  199246640
+                     }
+}

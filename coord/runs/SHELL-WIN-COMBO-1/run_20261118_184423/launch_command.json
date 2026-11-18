@@ -1,0 +1,27 @@
+﻿{
+    "arguments":  [
+                      "--agent-exe",
+                      "C:\\Users\\timoz\\AppData\\Local\\Temp\\shell414-combo-56df2c72\\runtime\\agent\\bin\\VitAgent.exe",
+                      "--dev-root",
+                      "C:\\Users\\timoz\\AppData\\Local\\Temp\\shell414-combo-56df2c72\\runtime",
+                      "--agent-url",
+                      "http://127.0.0.1:7878",
+                      "--agent-http-addr",
+                      "127.0.0.1:7878",
+                      "--url",
+                      "http://127.0.0.1:7878/app/?surface=launcher",
+                      "--status-port",
+                      "7879",
+                      "--godot-exe",
+                      "D:/Godot/Godot_v4.6.1-stable_win64.exe",
+                      "--godot-project-dir",
+                      "C:\\Users\\timoz\\AppData\\Local\\Temp\\shell414-combo-56df2c72\\frontend",
+                      "--smoke-file-dialog",
+                      "D:\\Vit_DAW\\coord\\runs\\SHELL-WIN-COMBO-1\\run_20261118_184423\\fixture_a.vit",
+                      "--bridge-log",
+                      "D:\\Vit_DAW\\coord\\runs\\SHELL-WIN-COMBO-1\\run_20261118_184423\\bridge.log"
+                  ],
+    "exe":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\shell414-combo-56df2c72\\host\\VitShell.exe",
+    "cwd":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\shell414-combo-56df2c72\\runtime",
+    "command":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\shell414-combo-56df2c72\\host\\VitShell.exe --agent-exe \"C:\\Users\\timoz\\AppData\\Local\\Temp\\shell414-combo-56df2c72\\runtime\\agent\\bin\\VitAgent.exe\" --dev-root \"C:\\Users\\timoz\\AppData\\Local\\Temp\\shell414-combo-56df2c72\\runtime\" --agent-url \"http://127.0.0.1:7878\" --agent-http-addr \"127.0.0.1:7878\" --url \"http://127.0.0.1:7878/app/?surface=launcher\" --status-port \"7879\" --godot-exe \"D:/Godot/Godot_v4.6.1-stable_win64.exe\" --godot-project-dir \"C:\\Users\\timoz\\AppData\\Local\\Temp\\shell414-combo-56df2c72\\frontend\" --smoke-file-dialog \"D:\\Vit_DAW\\coord\\runs\\SHELL-WIN-COMBO-1\\run_20261118_184423\\fixture_a.vit\" --bridge-log \"D:\\Vit_DAW\\coord\\runs\\SHELL-WIN-COMBO-1\\run_20261118_184423\\bridge.log\""
+}

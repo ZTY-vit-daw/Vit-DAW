@@ -1,0 +1,23 @@
+﻿[
+    {
+        "ProcessId":  12328,
+        "Name":  "VitAgent.exe",
+        "ExecutablePath":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\shell414-combo-56df2c72\\runtime\\agent\\bin\\VitAgent.exe",
+        "CreationDate":  "2026-11-18T10:44:40.7593660Z",
+        "ParentProcessId":  9460
+    },
+    {
+        "ProcessId":  24468,
+        "Name":  "VspHub.exe",
+        "ExecutablePath":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\shell414-combo-56df2c72\\runtime\\agent\\bin\\VspHub.exe",
+        "CreationDate":  "2026-11-18T10:44:41.1930980Z",
+        "ParentProcessId":  12328
+    },
+    {
+        "ProcessId":  23912,
+        "Name":  "VitApp.exe",
+        "ExecutablePath":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\shell414-combo-56df2c72\\runtime\\VitApp\\build\\VitApp_artefacts\\Release\\VitApp.exe",
+        "CreationDate":  "2026-11-18T10:44:41.8552070Z",
+        "ParentProcessId":  12328
+    }
+]

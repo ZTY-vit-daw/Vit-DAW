@@ -1,0 +1,14 @@
+{
+  "classification": "PASS",
+  "reason": "defined native, message-interval and polling assertions passed",
+  "coverage": "Native first-show + optional correction; own-thread WM_ACTIVATE/WM_SETFOCUS only during message_interval; polling before open through stable. Poll gaps and rendered frames are not covered. No whole-open-interval zero-activation claim.",
+  "initial_below_reference": true,
+  "correction_attempted": false,
+  "message_interval": {
+    "start_tick_ms": 199243312,
+    "end_tick_ms": 199246187,
+    "activate_count": 0,
+    "setfocus_count": 0
+  },
+  "sample_count": 734
+}
