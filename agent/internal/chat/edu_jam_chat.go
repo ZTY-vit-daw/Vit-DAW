@@ -33,11 +33,14 @@ import (
 	"path/filepath"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
 
 	"vit-daw-agent/internal/edu"
+	"vit-daw-agent/internal/legamedesign"
+	"vit-daw-agent/internal/projectpackage"
 	"vit-daw-agent/internal/trajectory"
 )
 
@@ -68,7 +71,7 @@ type eduJamSession struct {
 	TurnsSinceAdvance int                 `json:"turns_since_advance"`
 	EventLog          []edu.ObservedEvent `json:"event_log"`
 	// EventsConsumed 是已被推进检查消费的事件窗口锚点（EventLog 下标）。
-	EventsConsumed int `json:"events_consumed"`
+	EventsConsumed int    `json:"events_consumed"`
 	EnteredAt      string `json:"entered_at,omitempty"`
 	EndedAt        string `json:"ended_at,omitempty"`
 	EndReason      string `json:"end_reason,omitempty"`
@@ -98,12 +101,14 @@ var (
 		"检查一下": true, "检查下": true, "判定": true, "判定一下": true, "乐局判定": true,
 		"edu_jam check": true,
 	}
-	eduJamStatusWords   = []string{"现在第几关", "乐局状态", "乐局进度", "乐局进行到哪了", "第几关了", "edu_jam status"}
-	eduJamConfirmWords  = map[string]bool{"确认收尾": true, "确认结算": true, "确认完成": true, "确认导出": true, "edu_jam confirm": true}
-	eduJamDirectExport  = map[string]bool{"直接导出": true, "导出吧": true, "edu_jam export": true}
+	eduJamStatusWords  = []string{"现在第几关", "乐局状态", "乐局进度", "乐局进行到哪了", "第几关了", "edu_jam status"}
+	eduJamConfirmWords = map[string]bool{"确认收尾": true, "确认结算": true, "确认完成": true, "确认导出": true, "edu_jam confirm": true}
+	eduJamDirectExport = map[string]bool{"直接导出": true, "导出吧": true, "edu_jam export": true}
 	eduJamEventPattern = regexp.MustCompile(`^(?:乐局事件|edu_jam\s+event)\s+([a-z_]+)(?:[\s:：]+([A-Za-z0-9_\-]+))?$`)
 	eduJamLevelIDRegex = regexp.MustCompile(`^[A-Za-z0-9_\-]+$`)
-	eduJamLevelAliases = map[string]string{"小星星": eduJamDefaultLevelID, "twinkle": eduJamDefaultLevelID, "《小星星》": eduJamDefaultLevelID}
+	// eduJamImportPattern 是 M1 导入命令词形（设计源 YAML→编译装配进包）。
+	eduJamImportPattern = regexp.MustCompile(`^(?:导入乐局设计源|导入乐局|edu_jam\s+import)\s*[:：]?\s*(.+)$`)
+	eduJamLevelAliases  = map[string]string{"小星星": eduJamDefaultLevelID, "twinkle": eduJamDefaultLevelID, "《小星星》": eduJamDefaultLevelID}
 )
 
 // parseEduJamCommand 识别乐局面命令词形；返回面名与参数。
@@ -111,6 +116,9 @@ func parseEduJamCommand(text string) (face string, levelHint, eventName, eventKe
 	trimmed := strings.TrimSpace(text)
 	if trimmed == "" {
 		return "", "", "", "", false, false
+	}
+	if m := eduJamImportPattern.FindStringSubmatch(trimmed); m != nil {
+		return "import", strings.TrimSpace(m[1]), "", "", false, true
 	}
 	if m := eduJamEnterPattern.FindStringSubmatch(trimmed); m != nil {
 		hint := strings.TrimSpace(m[1])
@@ -164,13 +172,13 @@ func (s *Server) handleEduJamChat(ctx context.Context, conversationID, mode, tex
 	if goal, due := eduJamPullbackGoal(session, card); due {
 		if chatContext != nil {
 			chatContext[eduJamPullbackContextKey] = map[string]any{
-				"schema_version":        eduJamSessionSchemaVersion,
-				"level_id":              card.ID,
-				"node_id":               eduJamCurrentNodeID(session, card),
-				"goal":                  goal,
-				"pullback_after_turns":  card.Guidance.PullbackAfterTurns,
-				"injected_at":           time.Now().UTC().Format(time.RFC3339),
-				"render_note":           "人格渲染层占位：注入原始目标文本（EDU-LEVEL-RUNTIME-B v0）",
+				"schema_version":       eduJamSessionSchemaVersion,
+				"level_id":             card.ID,
+				"node_id":              eduJamCurrentNodeID(session, card),
+				"goal":                 goal,
+				"pullback_after_turns": card.Guidance.PullbackAfterTurns,
+				"injected_at":          time.Now().UTC().Format(time.RFC3339),
+				"render_note":          "人格渲染层占位：注入原始目标文本（EDU-LEVEL-RUNTIME-B v0）",
 			}
 		}
 		session.TurnsSinceAdvance = 0
@@ -186,6 +194,8 @@ func (s *Server) serveEduJamCommand(ctx context.Context, conversationID, mode, f
 	switch face {
 	case "enter":
 		return s.eduJamEnter(ctx, conversationID, mode, levelHint)
+	case "import":
+		return s.eduJamImportDesign(conversationID, mode, levelHint)
 	case "status":
 		return s.eduJamStatusReply(conversationID, mode)
 	case "check":
@@ -220,7 +230,7 @@ func (s *Server) eduJamEnter(ctx context.Context, conversationID, mode, levelHin
 		return base, true
 	}
 	levelID := eduJamResolveLevelID(levelHint)
-	card, err := loadEduJamLevelCard(levelID)
+	card, err := s.eduJamEnterCard(levelID)
 	if err != nil {
 		// 产品式文案（LEGAME-DIR-1 / 设计稿 §2.1-5）：三级目录都解析不出可用卡时
 		// 不向用户暴露 env 名/内部路径；机器可读细节走 base.Error 与日志（布位腿
@@ -251,6 +261,9 @@ func (s *Server) eduJamEnter(ctx context.Context, conversationID, mode, levelHin
 		}
 		return base, true
 	}
+	if strings.TrimSpace(projectUUID) != "" && card != nil {
+		eduJamProjectCardCache.Store(strings.ToLower(strings.TrimSpace(projectUUID)), card)
+	}
 	nodeIDs := make([]string, 0, len(card.Nodes))
 	for _, n := range card.Nodes {
 		nodeIDs = append(nodeIDs, n.ID)
@@ -265,14 +278,14 @@ func (s *Server) eduJamEnter(ctx context.Context, conversationID, mode, levelHin
 		return base, true
 	}
 	session := eduJamSession{
-		SchemaVersion: eduJamSessionSchemaVersion,
-		LevelID:       card.ID,
+		SchemaVersion:  eduJamSessionSchemaVersion,
+		LevelID:        card.ID,
 		ConversationID: conversationID,
-		ProjectUUID:   projectUUID,
-		Jam:           jam,
-		Status:        eduJamStatusActive,
-		EventLog:      []edu.ObservedEvent{},
-		EnteredAt:     now,
+		ProjectUUID:    projectUUID,
+		Jam:            jam,
+		Status:         eduJamStatusActive,
+		EventLog:       []edu.ObservedEvent{},
+		EnteredAt:      now,
 	}
 	s.storeEduJamSession(session)
 	s.persistCurrentProjectWorkspace()
@@ -318,7 +331,7 @@ func (s *Server) eduJamStatusReply(conversationID, mode string) (ChatResponse, b
 }
 
 func (s *Server) eduJamRenderStatus(session eduJamSession) string {
-	card, err := loadEduJamLevelCard(session.LevelID)
+	card, err := s.eduJamSessionCard(session)
 	if err != nil {
 		return fmt.Sprintf("乐局 %s（状态 %s）：乐局卡当前不可加载，状态以事件表为准（节点 %d 个，事件 %d 条）。",
 			session.LevelID, session.Status, len(session.Jam.Nodes), len(session.Jam.Events))
@@ -423,7 +436,7 @@ func (s *Server) eduJamAdvance(ctx context.Context, conversationID, mode string)
 		base.WorkflowData = s.eduJamWorkflowData(session, nil)
 		return base, true
 	}
-	card, err := loadEduJamLevelCard(session.LevelID)
+	card, err := s.eduJamSessionCard(session)
 	if err != nil {
 		base.Reply = "乐局卡当前不可加载（fail-closed，不盲判）：" + err.Error()
 		base.GoalStatus = "failed"
@@ -673,7 +686,7 @@ func (s *Server) eduJamConfirmClosure(ctx context.Context, conversationID, mode 
 		base.WorkflowData = s.eduJamWorkflowData(session, nil)
 		return base, true
 	}
-	card, err := loadEduJamLevelCard(session.LevelID)
+	card, err := s.eduJamSessionCard(session)
 	if err != nil {
 		base.Reply = "乐局卡当前不可加载（fail-closed）：" + err.Error()
 		base.GoalStatus = "failed"
@@ -727,7 +740,7 @@ func (s *Server) eduJamExit(ctx context.Context, conversationID, mode string) (C
 		base.WorkflowData = s.eduJamWorkflowData(session, nil)
 		return base, true
 	}
-	card, cardErr := loadEduJamLevelCard(session.LevelID)
+	card, cardErr := s.eduJamSessionCard(session)
 	now := time.Now().UTC().Format(time.RFC3339)
 	session.Status = eduJamStatusExited
 	session.EndedAt = now
@@ -759,17 +772,17 @@ func (s *Server) emitEduJamTerminalEvent(conversationID string, session eduJamSe
 		}
 	}
 	evt := trajectory.Event{
-		Type:            trajectory.EventSettled,
-		ConversationID:  conversationID,
-		ItemID:          "edu_jam:" + session.LevelID,
-		Title:           "乐局终局：" + card.Title,
-		Body:            fmt.Sprintf("%s · %s（%s）", card.Title, eduJamStatusLabel(session.Status), session.EndReason),
+		Type:           trajectory.EventSettled,
+		ConversationID: conversationID,
+		ItemID:         "edu_jam:" + session.LevelID,
+		Title:          "乐局终局：" + card.Title,
+		Body:           fmt.Sprintf("%s · %s（%s）", card.Title, eduJamStatusLabel(session.Status), session.EndReason),
 		Payload: trajectory.Payload{
-			TurnID:          "edu_jam:" + session.LevelID,
-			Status:          status,
-			Terminal:        true,
+			TurnID:           "edu_jam:" + session.LevelID,
+			Status:           status,
+			Terminal:         true,
 			TransitionReason: session.EndReason,
-			Summary:         fmt.Sprintf("nodes_done=%d/%d events=%d", done, len(card.Nodes), len(session.EventLog)),
+			Summary:          fmt.Sprintf("nodes_done=%d/%d events=%d", done, len(card.Nodes), len(session.EventLog)),
 			Details: map[string]any{
 				"level_id": session.LevelID, "end_reason": session.EndReason,
 				"nodes_done": done, "nodes_total": len(card.Nodes),
@@ -832,9 +845,9 @@ func (s *Server) observeEduJam(ctx context.Context, card *edu.LevelCard) (edu.Ob
 		return edu.Observation{}, nil, fmt.Errorf("get_project_state not ok: %s", eduJamKernelReplyError(state))
 	}
 	obs := edu.Observation{
-		At:             time.Now().UTC().Format(time.RFC3339),
-		Slots:          map[string][]edu.Note{},
-		TrackNonEmpty:  map[string]bool{},
+		At:            time.Now().UTC().Format(time.RFC3339),
+		Slots:         map[string][]edu.Note{},
+		TrackNonEmpty: map[string]bool{},
 	}
 	// tempo_set 观察口径：music_context 披露 tempo 已被设置（tempo_setting_count>=1
 	// 且 tempo 可用）。注意内核把初始默认 tempo 也计 1（276 烟测实证）——对 n2 这类
@@ -999,7 +1012,7 @@ func (s *Server) eduJamActiveSessionCard(conversationID string) (eduJamSession, 
 	if !ok || eduJamSessionTerminal(session) || session.Status == eduJamStatusAwaitingClosure {
 		return eduJamSession{}, nil, false
 	}
-	card, err := loadEduJamLevelCard(session.LevelID)
+	card, err := s.eduJamSessionCard(session)
 	if err != nil {
 		if s.logger != nil {
 			s.logger.Warn("[edu-jam] pullback accounting skipped (level card unavailable): %v", err)
@@ -1102,32 +1115,54 @@ const (
 )
 
 type legameBinding struct {
-	SchemaVersion        string  `json:"schema_version"`
-	LevelID              string  `json:"level_id"`
+	SchemaVersion string `json:"schema_version"`
+	LevelID       string `json:"level_id"`
+	// ProjectUUID 是绑定归属工程身份（新写入必填；旧文件缺省=按路径回退兼容）。
+	ProjectUUID          string  `json:"project_uuid,omitempty"`
 	BoundAt              string  `json:"bound_at"`
 	BoundSource          string  `json:"bound_source"`
 	OpenedAt             *string `json:"opened_at"`
 	OpenedConversationID *string `json:"opened_conversation_id"`
 }
 
-// legameBindingPath 工程旁 sidecar 路径（projectPath=.vit 工程文件路径；binding
-// 落工程所在目录的 .vit_agent/ 下，与 projectstore.AgentDirName 同域）。
+// ---- binding 路径（H3 修复：project UUID 目录隔离）----
+
+// legameBindingPath 旧版父目录路径（兼容旧调用/旧布位脚本与既有单测；
+// UUID 缺省时使用）。新写入一律走 legameBindingPathForProject。
 func legameBindingPath(projectPath string) string {
-	projectPath = strings.TrimSpace(projectPath)
-	if projectPath == "" {
-		return ""
-	}
-	return filepath.Join(filepath.Dir(filepath.Clean(projectPath)), legameBindingDirname, legameBindingFilename)
+	return projectpackage.LegameLegacyBindingPath(projectPath)
 }
 
-// loadLegameBinding 读取 binding（fail-closed：缺文件/读失败/schema 未知/level id
-// 非法 → 视同无 binding，普通工程零差异；不写日志——每轮 chat 都会探测，普通工程
-// 的「无 binding」是常态而非事件）。
-func loadLegameBinding(projectPath string) (legameBinding, bool) {
-	path := legameBindingPath(projectPath)
-	if path == "" {
-		return legameBinding{}, false
+// legameBindingPathForProject 按 project UUID 目录隔离的 binding 路径：
+// <工程目录>/.vit_agent/<project uuid>/legame_binding.json（与 projectstore.Agent
+// root 同域），修复旧父目录静态推导导致同目录 A/B 两工程串同一个 binding。
+func legameBindingPathForProject(projectPath, projectUUID string) string {
+	return projectpackage.LegameBindingPath(projectPath, projectUUID)
+}
+
+// legameBindingCandidates 读 binding 的候选路径：UUID 目录优先，旧父目录兜底
+// （旧布位脚本兼容；旧格式无工程身份，故仅当 UUID 目录缺失时回退）。
+func legameBindingCandidates(projectPath, projectUUID string) []string {
+	paths := make([]string, 0, 2)
+	if path := legameBindingPathForProject(projectPath, projectUUID); path != "" {
+		paths = append(paths, path)
 	}
+	if legacy := legameBindingPath(projectPath); legacy != "" {
+		duplicate := false
+		for _, path := range paths {
+			if strings.EqualFold(path, legacy) {
+				duplicate = true
+				break
+			}
+		}
+		if !duplicate {
+			paths = append(paths, legacy)
+		}
+	}
+	return paths
+}
+
+func readLegameBindingFile(path string) (legameBinding, bool) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return legameBinding{}, false
@@ -1145,16 +1180,72 @@ func loadLegameBinding(projectPath string) (legameBinding, bool) {
 	return binding, true
 }
 
-// writeLegameBindingOpened 回写开场标记（agent 对 binding 的唯一写面：只填
-// opened_at/opened_conversation_id，不动绑定本体；temp+rename 原子落盘）。
+// loadLegameBinding 旧入口（仅 legacy 父目录；单测/兼容）。
+func loadLegameBinding(projectPath string) (legameBinding, bool) {
+	binding, _, ok := loadLegameBindingForProject(projectPath, "")
+	return binding, ok
+}
+
+// loadLegameBindingForProject 按 UUID 候选序读取 binding，返回命中的具体路径
+// （开场标记回写必须写回读到的同一 path，避免新旧格式分叉）。
+func loadLegameBindingForProject(projectPath, projectUUID string) (legameBinding, string, bool) {
+	uuid := strings.TrimSpace(projectUUID)
+	for _, path := range legameBindingCandidates(projectPath, projectUUID) {
+		binding, ok := readLegameBindingFile(path)
+		if !ok {
+			continue
+		}
+		// 新格式带工程身份：与当前工程不符的绑定拒绝（防跨工程误用）。
+		if uuid != "" && strings.TrimSpace(binding.ProjectUUID) != "" && !strings.EqualFold(binding.ProjectUUID, uuid) {
+			continue
+		}
+		return binding, path, true
+	}
+	return legameBinding{}, "", false
+}
+
+// writeLegameBindingOpened 旧入口（legacy 路径回写；单测/兼容）。
 func writeLegameBindingOpened(projectPath string, binding legameBinding, conversationID string) error {
-	path := legameBindingPath(projectPath)
+	return writeLegameBindingOpenedAt(legameBindingPath(projectPath), binding, conversationID)
+}
+
+// writeLegameBindingOpenedAt 回写开场标记（agent 对 binding 的唯一写面：只填
+// opened_at/opened_conversation_id，不动绑定本体；temp+rename 原子落盘）。
+func writeLegameBindingOpenedAt(path string, binding legameBinding, conversationID string) error {
 	if path == "" {
-		return fmt.Errorf("legame binding: empty project path")
+		return fmt.Errorf("legame binding: empty binding path")
 	}
 	now := time.Now().UTC().Format(time.RFC3339)
 	binding.OpenedAt = &now
 	binding.OpenedConversationID = &conversationID
+	data, err := json.MarshalIndent(binding, "", "  ")
+	if err != nil {
+		return err
+	}
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return err
+	}
+	temp := path + ".tmp"
+	if err := os.WriteFile(temp, data, 0o644); err != nil {
+		return err
+	}
+	if err := os.Rename(temp, path); err != nil {
+		_ = os.Remove(temp)
+		return err
+	}
+	return nil
+}
+
+// writeLegameBindingForProject 写新绑定（UUID 目录；M1 导入/布位脚本入口）。
+// UUID 缺失时回退 legacy 父目录（兼容旧调用），并如实返回写入路径。
+func writeLegameBindingForProject(projectPath, projectUUID string, binding legameBinding) error {
+	path := legameBindingPathForProject(projectPath, projectUUID)
+	if path == "" {
+		return fmt.Errorf("legame binding: empty project path")
+	}
+	if uuid := strings.TrimSpace(projectUUID); uuid != "" {
+		binding.ProjectUUID = uuid
+	}
 	data, err := json.MarshalIndent(binding, "", "  ")
 	if err != nil {
 		return err
@@ -1203,7 +1294,7 @@ func (s *Server) eduJamProjectActiveSession(projectUUID string) (eduJamSession, 
 	if !found {
 		return eduJamSession{}, nil, false
 	}
-	card, err := loadEduJamLevelCard(best.LevelID)
+	card, err := s.eduJamSessionCard(best)
 	if err != nil {
 		return eduJamSession{}, nil, false
 	}
@@ -1301,7 +1392,7 @@ func (s *Server) eduJamAutoIntroCheckpoint(ctx context.Context, conversationID, 
 	if projectPath == "" || served {
 		return ChatResponse{}, false
 	}
-	binding, ok := loadLegameBinding(projectPath)
+	binding, bindingPath, ok := loadLegameBindingForProject(projectPath, projectUUID)
 	if !ok {
 		return ChatResponse{}, false // 普通工程：零行为差异
 	}
@@ -1324,7 +1415,7 @@ func (s *Server) eduJamAutoIntroCheckpoint(ctx context.Context, conversationID, 
 		}
 		return ChatResponse{}, false
 	}
-	if err := writeLegameBindingOpened(projectPath, binding, conversationID); err != nil {
+	if err := writeLegameBindingOpenedAt(bindingPath, binding, conversationID); err != nil {
 		// 开场已在本会话发生（session 已落盘）；回写失败只影响跨进程的
 		// opened_at 标记——活跃局在场仍会挡住二次开场，如实告警不回滚。
 		if s.logger != nil {
@@ -1344,7 +1435,7 @@ func (s *Server) eduJamWorkflowData(session eduJamSession, extra map[string]any)
 		"status":         session.Status,
 	}
 	if nodeID := func() string {
-		if card, err := loadEduJamLevelCard(session.LevelID); err == nil {
+		if card, err := s.eduJamSessionCard(session); err == nil {
 			return eduJamCurrentNodeID(session, card)
 		}
 		return ""
@@ -1359,7 +1450,26 @@ func (s *Server) eduJamWorkflowData(session eduJamSession, extra map[string]any)
 
 // ---- 乐局卡装载（进程内缓存：restore 每 tick 重放不做磁盘重读）----
 
-var eduJamCardCache sync.Map // levelID -> *edu.LevelCard
+// 进程内卡缓存（restore 每 tick 重放不做磁盘重读）。**禁用 level_id 单键**
+// （H3：同一 level id 的不同编译版本会互相串版本/串工程）：
+// 缓存键=卡文件路径 + manifest 四元组键（424 §6.5）/legacy 内容 sha；
+// path 缓存同时核对 mtime+size，revise 覆盖后自然失效。
+type eduJamCachedCard struct {
+	modTime time.Time
+	size    int64
+	card    *edu.LevelCard
+}
+
+var eduJamCardPathCache sync.Map // abs card path -> eduJamCachedCard
+
+// eduJamCardKeyCache 以 424 四元组 manifest 键（§6.5）/legacy 内容 sha 为键缓存卡本体：
+// 同一 level id 的不同编译版本/不同工程各得不同键，不与 level_id 单键互相覆盖。
+var eduJamCardKeyCache sync.Map // cache key -> *edu.LevelCard
+// eduJamCardCache 是旧 level_id 单键缓存句柄：仅保留给既有测试的清理钩子，
+// 不再参与装载决策（装载权威=eduJamCardPathCache，内容/manifest 四元组键）。
+var eduJamCardCache sync.Map
+
+// ---- 乐局卡装载（三级目录 legacy 卡 + 项目包编译卡）----
 
 // eduJamLevelsDir 三级解析乐局卡根目录（LEGAME-DIR-1 / 313 设计稿 §2.1，产品式
 // 手测 v2 硬前置——用户手测路径零 env 零终端，违例一根因收口）：
@@ -1399,19 +1509,85 @@ func eduJamResolveLevelID(hint string) string {
 	return hint
 }
 
-func loadEduJamLevelCard(levelID string) (*edu.LevelCard, error) {
+// eduJamLevelCardPath 解析 legacy levels 目录卡文件路径（<levels>/<id>/level.yaml）。
+func eduJamLevelCardPath(levelID string) (string, error) {
 	if !eduJamLevelIDRegex.MatchString(levelID) {
-		return nil, fmt.Errorf("edu/jam: illegal level id %q", levelID)
+		return "", fmt.Errorf("edu/jam: illegal level id %q", levelID)
 	}
-	if cached, ok := eduJamCardCache.Load(levelID); ok {
-		return cached.(*edu.LevelCard), nil
-	}
-	card, err := edu.LoadLevelCard(filepath.Join(eduJamLevelsDir(), levelID, "level.yaml"))
+	return filepath.Join(eduJamLevelsDir(), levelID, "level.yaml"), nil
+}
+
+// loadEduJamLevelCard 装载 legacy levels 目录卡（内容/manifest 键缓存，禁 level_id 单键）。
+func loadEduJamLevelCard(levelID string) (*edu.LevelCard, error) {
+	path, err := eduJamLevelCardPath(levelID)
 	if err != nil {
 		return nil, err
 	}
-	eduJamCardCache.Store(levelID, card)
+	return loadEduJamCardFile(path)
+}
+
+// loadEduJamCardFile 装载一张卡文件（path 级 mtime 缓存 + 内容/四元组键校验）。
+// legamedesign.LoadCompiledCard 内含现行校验门 + 资产 sha 对账 + manifest 自洽
+// （手改 compiled 卡/键变化 fail-closed，不返回旧卡）。
+func loadEduJamCardFile(path string) (*edu.LevelCard, error) {
+	info, err := os.Stat(path)
+	if err != nil {
+		return nil, err
+	}
+	if cached, ok := eduJamCardPathCache.Load(path); ok {
+		entry := cached.(eduJamCachedCard)
+		if entry.modTime.Equal(info.ModTime()) && entry.size == info.Size() {
+			return entry.card, nil
+		}
+	}
+	loaded, cacheKey, err := legamedesign.LoadCompiledCard(path)
+	if err != nil {
+		return nil, err
+	}
+	card := loaded
+	if cached, ok := eduJamCardKeyCache.Load(cacheKey); ok {
+		card = cached.(*edu.LevelCard)
+	} else {
+		eduJamCardKeyCache.Store(cacheKey, loaded)
+	}
+	eduJamCardPathCache.Store(path, eduJamCachedCard{modTime: info.ModTime(), size: info.Size(), card: card})
 	return card, nil
+}
+
+// eduJamProjectCardCache 是项目包编译卡的进程内缓存：键=project UUID
+// （卡本体由 424 四元组 manifest 决定版本；调用点在装配/进入工程时刷新）。
+var eduJamProjectCardCache sync.Map // project UUID(lower) -> *edu.LevelCard
+
+// eduJamSessionCard 解析会话对应卡：项目包乐局工程（R2 元数据启用）优先，
+// 普通工程回退 legacy levels 目录。项目包卡装配失败→fail-closed 返回错误，
+// 不静默切到别的卡版本。
+func (s *Server) eduJamSessionCard(session eduJamSession) (*edu.LevelCard, error) {
+	uuid := strings.TrimSpace(session.ProjectUUID)
+	if uuid != "" {
+		key := strings.ToLower(uuid)
+		if cached, ok := eduJamProjectCardCache.Load(key); ok {
+			return cached.(*edu.LevelCard), nil
+		}
+		s.mu.Lock()
+		projectPath := strings.TrimSpace(s.activeWorkspacePath)
+		activeUUID := strings.TrimSpace(s.activeWorkspaceUUID)
+		s.mu.Unlock()
+		if projectPath != "" && strings.EqualFold(activeUUID, uuid) {
+			result, _, err := projectpackage.LoadLegameCard(projectPath, uuid)
+			if err != nil {
+				// 乐局工程已启用但装配不可用：不回退到别版本卡（fail-closed）。
+				return nil, err
+			}
+			if result != nil && result.Enabled && result.Card != nil {
+				eduJamProjectCardCache.Store(key, result.Card)
+				if result.CacheKeyID != "" {
+					eduJamCardKeyCache.Store(result.CacheKeyID, result.Card)
+				}
+				return result.Card, nil
+			}
+		}
+	}
+	return s.eduJamSessionCard(session)
 }
 
 // ---- restore（fail-closed：逐会话校验，坏会话丢弃计数 + Warn 留痕）----
@@ -1428,13 +1604,16 @@ func (s *Server) restoreEduJamSessionsLocked(restored map[string]eduJamSession) 
 			bad = true
 		}
 		if !bad {
-			if _, err := loadEduJamLevelCard(session.LevelID); err != nil {
+			if _, err := s.eduJamSessionCard(session); err != nil {
 				bad = true
 			}
 		}
 		if !bad {
 			if blob, err := json.Marshal(session.Jam); err == nil {
-				if _, _, err := edu.RestoreJamState(blob, mustEduJamCard(session.LevelID)); err != nil {
+				card, cardErr := s.eduJamSessionCard(session)
+				if cardErr != nil {
+					bad = true
+				} else if _, _, err := edu.RestoreJamState(blob, card); err != nil {
 					bad = true
 				}
 			} else {
@@ -1453,18 +1632,207 @@ func (s *Server) restoreEduJamSessionsLocked(restored map[string]eduJamSession) 
 	return clean
 }
 
-func mustEduJamCard(levelID string) *edu.LevelCard {
-	card, err := loadEduJamLevelCard(levelID)
-	if err != nil {
-		return nil // restore 视坏卡会话为坏（上一行已校验，此处仅防御）
-	}
-	return card
-}
-
 func eduJamSessionStatusValid(status string) bool {
 	switch status {
 	case eduJamStatusActive, eduJamStatusAwaitingClosure, eduJamStatusCompleted, eduJamStatusExited:
 		return true
 	}
 	return false
+}
+
+// ---- M1 导入命令面（设计源 YAML 导入→编译→装配进包→写 UUID binding）----
+
+// eduJamEnterCard 解析进入乐局时的卡：项目包乐局工程（R2 元数据启用）优先用
+// 编译卡（424 四元组 manifest 版本），普通工程回退 legacy levels 目录卡。
+// 项目包元数据启用但装配失败 → 返回错误（fail-closed，不静默换卡版本）。
+func (s *Server) eduJamEnterCard(levelID string) (*edu.LevelCard, error) {
+	s.mu.Lock()
+	projectPath := strings.TrimSpace(s.activeWorkspacePath)
+	projectUUID := strings.TrimSpace(s.activeWorkspaceUUID)
+	s.mu.Unlock()
+	if projectPath != "" {
+		result, _, err := projectpackage.LoadLegameCard(projectPath, projectUUID)
+		if err != nil {
+			return nil, fmt.Errorf("乐局工程卡装配失败（fail-closed）: %w", err)
+		}
+		if result != nil && result.Enabled && result.Card != nil {
+			if projectUUID != "" {
+				eduJamProjectCardCache.Store(strings.ToLower(projectUUID), result.Card)
+			}
+			if result.CacheKeyID != "" {
+				eduJamCardKeyCache.Store(result.CacheKeyID, result.Card)
+			}
+			return result.Card, nil
+		}
+	}
+	return loadEduJamLevelCard(levelID)
+}
+
+// parseEduJamImportArgs 解析导入参数：尾部 tempo=/turns=/calls= 覆盖参数，
+// 其余部分为设计源路径（支持含空格的路径，可用双引号包裹）。
+func parseEduJamImportArgs(args string) (sourceDir, designFile string, overrides legamedesign.CompileOverrides, err error) {
+	fields := strings.Fields(strings.TrimSpace(args))
+	if len(fields) == 0 {
+		return "", "", overrides, fmt.Errorf("缺少设计源路径")
+	}
+	keep := make([]string, 0, len(fields))
+	for _, field := range fields {
+		lower := strings.ToLower(field)
+		switch {
+		case strings.HasPrefix(lower, "tempo="):
+			value, parseErr := strconv.ParseFloat(strings.TrimSpace(field[len("tempo="):]), 64)
+			if parseErr != nil || !(value > 0) {
+				return "", "", overrides, fmt.Errorf("tempo 覆盖参数非法: %q", field)
+			}
+			overrides.TempoBPM = &value
+		case strings.HasPrefix(lower, "turns="):
+			value, parseErr := strconv.Atoi(strings.TrimSpace(field[len("turns="):]))
+			if parseErr != nil || value < 1 {
+				return "", "", overrides, fmt.Errorf("turns 覆盖参数非法: %q", field)
+			}
+			overrides.MaxTurns = &value
+		case strings.HasPrefix(lower, "calls="):
+			value, parseErr := strconv.Atoi(strings.TrimSpace(field[len("calls="):]))
+			if parseErr != nil || value < 1 {
+				return "", "", overrides, fmt.Errorf("calls 覆盖参数非法: %q", field)
+			}
+			overrides.MaxLLMCalls = &value
+		default:
+			keep = append(keep, field)
+		}
+	}
+	source := strings.TrimSpace(strings.Join(keep, " "))
+	source = strings.Trim(source, string(rune(34)))
+	if source == "" {
+		return "", "", overrides, fmt.Errorf("缺少设计源路径")
+	}
+	info, statErr := os.Stat(source)
+	if statErr != nil {
+		return "", "", overrides, fmt.Errorf("设计源路径不存在: %s", source)
+	}
+	if info.IsDir() {
+		return source, "", overrides, nil
+	}
+	return filepath.Dir(source), filepath.Base(source), overrides, nil
+}
+
+// eduJamImportDesign 是 M1 导入命令处理器：解析/编译 E 级诊断如实回执，
+// 成功=装配进包+写 UUID binding（自动开场随后可用）；失败不写启用元数据/绑定。
+func (s *Server) eduJamImportDesign(conversationID, mode, args string) (ChatResponse, bool) {
+	base := s.eduJamBaseResponse(conversationID, mode)
+	sourceDir, designFile, overrides, parseErr := parseEduJamImportArgs(args)
+	if parseErr != nil {
+		base.Reply = "导入乐局设计源用法：导入乐局设计源 <设计源目录或 YAML 路径> [tempo=80] [turns=60] [calls=120]\n" + parseErr.Error()
+		base.GoalStatus = "failed"
+		base.StopReason = "edu_jam_legame_import_usage"
+		base.Error = parseErr.Error()
+		return base, true
+	}
+	if session, ok := s.eduJamSessionFor(conversationID); ok && !eduJamSessionTerminal(session) {
+		base.Reply = "当前会话已有进行中的乐局；导入会切换到新卡，请先「结束乐局」再导入。"
+		base.GoalStatus = "failed"
+		base.StopReason = "edu_jam_legame_import_rejected_active"
+		return base, true
+	}
+	ctx := context.Background()
+	projectUUID, gateReason := s.eduJamEnsureWorkspaceActivation(ctx)
+	if gateReason != "" {
+		base.Reply = "工程还没打开好，稍等再导入乐局设计源（" + eduJamGateReasonText(gateReason) + "）。"
+		base.GoalStatus = "failed"
+		base.StopReason = "edu_jam_workspace_activation_incomplete"
+		base.Error = "workspace activation incomplete: " + gateReason
+		return base, true
+	}
+	s.mu.Lock()
+	projectPath := strings.TrimSpace(s.activeWorkspacePath)
+	s.mu.Unlock()
+	if projectPath == "" {
+		base.Reply = "暂时读不到当前工程路径，导入未执行。"
+		base.GoalStatus = "failed"
+		base.StopReason = "edu_jam_workspace_path_unavailable"
+		return base, true
+	}
+	result, report, importErr := projectpackage.ImportLegameDesign(projectpackage.LegameImportOptions{
+		ProjectPath: projectPath,
+		ProjectUUID: projectUUID,
+		SourceDir:   sourceDir,
+		DesignFile:  designFile,
+		Overrides:   overrides,
+	})
+	base.WorkflowData = map[string]any{
+		"schema_version": eduJamSessionSchemaVersion,
+		"diagnostics":    eduJamDiagnosticsData(report),
+	}
+	if importErr != nil {
+		base.Reply = "乐局设计源导入失败（fail-closed，项目包未启用乐局）：\n" + eduJamDiagnosticsDigest(report) + "\n" + importErr.Error()
+		base.GoalStatus = "failed"
+		base.StopReason = "edu_jam_legame_import_failed"
+		base.Error = importErr.Error()
+		return base, true
+	}
+	binding := legameBinding{
+		SchemaVersion: legameBindingSchemaVersion,
+		LevelID:       result.CardID,
+		ProjectUUID:   projectUUID,
+		BoundAt:       time.Now().UTC().Format(time.RFC3339),
+		BoundSource:   "m1_import",
+	}
+	if bindingErr := writeLegameBindingForProject(projectPath, projectUUID, binding); bindingErr != nil {
+		base.Reply = fmt.Sprintf("乐局设计源已编译装配（卡 id：%s），但 binding 落盘失败：%v\n手动「开始乐局」仍可用；自动开场待修复后重试。", result.CardID, bindingErr)
+		base.GoalStatus = "completed"
+		base.StopReason = "edu_jam_legame_imported_binding_failed"
+		base.Error = bindingErr.Error()
+	} else {
+		base.Reply = fmt.Sprintf("乐局设计源已导入并编译装配：\n- 卡 id：%s\n- 设计源：%s\n- 编译卡：%s\n- W 诊断 %d 条 / I 提示 %d 条（待备料/降级清单见 compile manifest）\n下一句普通对话将自动开场（或说「开始乐局」）。",
+			result.CardID, result.DesignRel, result.CardRel, result.Warnings, result.Infos)
+		base.GoalStatus = "completed"
+		base.StopReason = "edu_jam_legame_imported"
+	}
+	base.WorkflowData["level_id"] = result.CardID
+	base.WorkflowData["card_id"] = result.CardID
+	base.WorkflowData["design"] = result.DesignRel
+	base.WorkflowData["card"] = result.CardRel
+	base.WorkflowData["manifest"] = result.ManifestRel
+	base.WorkflowData["warnings"] = result.Warnings
+	base.WorkflowData["infos"] = result.Infos
+	base.WorkflowData["binding"] = legameBindingPathForProject(projectPath, projectUUID)
+	eduJamProjectCardCache.Delete(strings.ToLower(strings.TrimSpace(projectUUID)))
+	return base, true
+}
+
+// eduJamDiagnosticsData 把编译/校验诊断转成 workflow_data 可审计结构（E 优先）。
+func eduJamDiagnosticsData(report *legamedesign.Report) map[string]any {
+	data := map[string]any{"errors": []any{}, "warnings": 0, "infos": 0}
+	if report == nil {
+		return data
+	}
+	errors, warnings, infos := report.Counts()
+	items := make([]any, 0, errors)
+	for _, diag := range report.Errors() {
+		items = append(items, map[string]any{"rule": diag.Rule, "path": diag.Path, "message": diag.Message})
+	}
+	data["errors"] = items
+	data["warnings"] = warnings
+	data["infos"] = infos
+	return data
+}
+
+// eduJamDiagnosticsDigest 把 E 诊断压成可读回执（最多 8 条，禁止静默失败）。
+func eduJamDiagnosticsDigest(report *legamedesign.Report) string {
+	if report == nil {
+		return "（无诊断）"
+	}
+	errors, warnings, infos := report.Counts()
+	if errors == 0 {
+		return fmt.Sprintf("W 诊断 %d 条 / I 提示 %d 条", warnings, infos)
+	}
+	parts := make([]string, 0, errors)
+	for index, diag := range report.Errors() {
+		if index >= 8 {
+			parts = append(parts, fmt.Sprintf("……另有 %d 条 E 诊断（见 compile manifest/日志）", errors-8))
+			break
+		}
+		parts = append(parts, "E ["+diag.Rule+"] "+diag.Path+" "+diag.Message)
+	}
+	return strings.Join(parts, "\n")
 }

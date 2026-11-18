@@ -47,6 +47,9 @@ type Manifest struct {
 	AcousticPackages  int         `json:"acoustic_package_count"`
 	MixboardSessions  int         `json:"mixboard_session_count"`
 	MediaEntries      int         `json:"media_entry_count"`
+	// Legame 是乐局启用元数据镜像（R2 判定点：项目包元数据控制启用；
+	// 旧包无该段=普通工程，不编译不注入）。权威副本=包根 legame.json。
+	Legame *LegameMetadata `json:"legame,omitempty"`
 }
 
 type Prepared struct {
@@ -155,6 +158,10 @@ func Prepare(opts PrepareOptions) (Prepared, error) {
 	if err := writeObservationIndex(packageDir, opts.ProjectUUID); err != nil {
 		return Prepared{}, err
 	}
+	carriedLegame, err := carryLegameIntoPrepare(packageDir, opts.ProjectPath, opts.ProjectUUID)
+	if err != nil {
+		return Prepared{}, err
+	}
 
 	now := time.Now().UTC()
 	manifest := Manifest{
@@ -164,6 +171,7 @@ func Prepare(opts PrepareOptions) (Prepared, error) {
 		GenerationID: opts.GenerationID, SaveKind: opts.SaveKind, PackageMode: "prepared",
 		CreatedAt: now, UpdatedAt: now, AcousticPackages: acousticCount,
 		MixboardSessions: mixboardSessions, MediaEntries: len(mediaEntries),
+		Legame: carriedLegame,
 	}
 	if err := writeManifest(packageDir, manifest); err != nil {
 		return Prepared{}, err
