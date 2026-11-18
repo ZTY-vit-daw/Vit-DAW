@@ -198,7 +198,7 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 
 - 2026-11-17协调说明：384重复todo快照保留至archive，doing为权威；390物理归位doing，既有owner未变。当前PC主管Codex /root，子代理自主执行授权见decisions/2026-11-17-autonomous-subagent-execution.md。
 
-| 397 | SCORE-BINDING-SAFE-1 | doing（零栈 c6991e18 已推；主管复核+真实栈批次准备中：lead/score397stack；真栈待主管合入后授权） |
+| 397 | SCORE-BINDING-SAFE-1 | **done PASS**（零栈 717+集成 733；真栈 attempt2 33/33 exit 0，run_20261118_202521；收口 e882267e→main aa3e9b47；S2/S3/S4 边界；[裁定](../rulings/2026-11-18-SCORE-BINDING-SAFE-1-pass.md)） |
 | 398 | SCORE-GUI-FOLLOW-1 | todo（依397，GUI真实选择装配/反向回读） |
 | 399 | SCORE-CLIP-STRIP-1 | todo（依397/398，clip时间小条） |
 | 400 | SCORE-DRAFT-CONTRACT-1 | todo（只读契约，工程包草稿库前提未成立） |
@@ -232,6 +232,7 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 
 - 目标链：410/411/412 并发零栈 → 413 重建 → 414 单次真栈组合 → 391 手测放行。409 RULING 不重开；395/402 原 blocked 卡待本批收口后归档/收口。
 - 交接记录：[decisions/2026-11-18-pc-supervisor-handoff-planA.md](../decisions/2026-11-18-pc-supervisor-handoff-planA.md)。
+
 
 
 

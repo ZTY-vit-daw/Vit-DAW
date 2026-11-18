@@ -38,3 +38,10 @@
 - FAIL：`J2-non120-clip-grid-snapped` / `J1-score-panel-from-project-journey` 两条旧期望仍等 `10.75/上取整`；本 run 模板已是 384 修正资产（clip 8 拍@80bpm），内核/桥按正确几何披露，故子类=`smoke_expectation_stale`（装置判据陈旧），非产品/非 env。
 - 卫生：recents 哈希 807226F4… 五段一致（快照/还原后/teardown 后）；TEARDOWN_ALL_ZERO（Vit 进程/TCP 六口/UDP 4445=0）；栈位已释放（main 记录）。
 - 处置：只修订 J1/J2 两条过期期望（保留 J2 安全三断言/J1 其余旅程断言），修订后单次第二次正式轮；不改产品/不原样重跑。
+
+## 终验收口（2026-11-18 晚）
+
+- 真栈 attempt1 31/33（两条旧期望过期）→ 修订 `e882267e`（仅 J1/J2 两条，保留安全断言）→ attempt2 `run_20261118_202521` **33/33 PASS exit 0**；主管复核 summary/console/recents/teardown/端口全 0。
+- 证据合入 main `aa3e9b47`；栈位已释放登记。
+- 边界：S2/S3/S4 未进真栈断言；E2E-WEBUI-1 owner 需在 agent 实跑面复跑；用户手测按既有节点。
+- 裁定：[rulings/2026-11-18-SCORE-BINDING-SAFE-1-pass.md](../../rulings/2026-11-18-SCORE-BINDING-SAFE-1-pass.md) PASS。
