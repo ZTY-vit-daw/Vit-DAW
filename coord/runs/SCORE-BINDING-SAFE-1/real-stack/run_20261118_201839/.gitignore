@@ -1,0 +1,6 @@
+kernel_runtime/
+*.wav
+.vit_derived/
+.vit_history/
+.vit_agent/
+lesson_project.xml

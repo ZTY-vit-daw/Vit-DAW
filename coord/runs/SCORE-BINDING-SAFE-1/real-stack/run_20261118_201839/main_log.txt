@@ -1,0 +1,2 @@
+﻿b4029366 coord(397): reserve one real-stack berth for score binding acceptance
+8972c5a5 merge(397): safe score binding (5 prod files) + E2E score adaptation + real-stack S1 assertions
