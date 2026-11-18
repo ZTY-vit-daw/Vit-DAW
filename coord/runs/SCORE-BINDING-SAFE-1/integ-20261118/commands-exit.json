@@ -1,0 +1,45 @@
+{
+  "schema": "score397_integ_commands.v1",
+  "worktree": "C:/Users/timoz/.codex/worktrees/pc397-merge/Vit_DAW",
+  "branch": "codex/score-binding-397-integ",
+  "base_merge_commit": "df0e134b8c85f76d37a77c26880d8be14f66e3a6",
+  "date": "2026-11-18",
+  "commands": [
+    {
+      "command": "npm ci",
+      "cwd": "agent/webui",
+      "exit": 0,
+      "note": "added 170 packages"
+    },
+    {
+      "command": "npm run test",
+      "cwd": "agent/webui",
+      "exit": 0,
+      "note": "61 files / 733 tests passed; no unhandled error; log logs/full-vitest.log.gz"
+    },
+    {
+      "command": "npm run build",
+      "cwd": "agent/webui",
+      "exit": 0,
+      "note": "tsc --noEmit 0 errors + vite build; dist/index.html sha256 7F3C0270...F9178"
+    },
+    {
+      "command": "node --check scripts/score_workbench_smoke.mjs",
+      "cwd": "repo root",
+      "exit": 0,
+      "note": "S1 additions"
+    },
+    {
+      "command": "node --check scripts/webui_rendered_dom_smoke.mjs",
+      "cwd": "repo root",
+      "exit": 0,
+      "note": "397 score-section adaptation"
+    },
+    {
+      "command": "node _tmp397_binding_probe.mjs (deleted temp probe)",
+      "cwd": "agent/webui",
+      "exit": 0,
+      "note": "zero-stack Vite+Chromium+HTTP-fixture probe; 2/2 variants PASS; report probe/score-section-probe-report.json"
+    }
+  ]
+}

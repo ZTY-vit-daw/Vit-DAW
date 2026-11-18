@@ -1,0 +1,37 @@
+{
+  "schema": "score397_s1e_probe.v1",
+  "boundary": "zero-stack: Vite bundle + Chromium + HTTP fixtures; no agent/kernel",
+  "variants": {
+    "withProjectNoTracks": {
+      "bindingRoot": true,
+      "trackRail": true,
+      "implicitRoot": 0,
+      "editorSurface": 0,
+      "applyAffordance": 0,
+      "refreshButton": 1,
+      "refreshHonest": true,
+      "railText": "轨道\n刷新\n\n工程中还没有轨道",
+      "emptyText": "选择左侧轨道，开始编辑 MIDI 片段",
+      "bindingAlert": "",
+      "honestNoTarget": true,
+      "pageErrors": [],
+      "pass": true
+    },
+    "withoutProject": {
+      "bindingRoot": true,
+      "trackRail": true,
+      "implicitRoot": 0,
+      "editorSurface": 0,
+      "applyAffordance": 0,
+      "refreshButton": 1,
+      "refreshHonest": true,
+      "railText": "轨道\n刷新",
+      "emptyText": "选择左侧轨道，开始编辑 MIDI 片段",
+      "bindingAlert": "轨道读取失败：工程身份不可得，请重新打开工程后刷新轨道。写入已锁定，请刷新重试。",
+      "honestNoTarget": true,
+      "pageErrors": [],
+      "pass": true
+    }
+  },
+  "pass": true
+}

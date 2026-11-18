@@ -1,0 +1,330 @@
+﻿diff --git a/scripts/score_workbench_smoke.mjs b/scripts/score_workbench_smoke.mjs
+index 63aaffdb..9f793c49 100644
+--- a/scripts/score_workbench_smoke.mjs
++++ b/scripts/score_workbench_smoke.mjs
+@@ -579,6 +579,50 @@ async function main() {
+   const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+   const page = await context.newPage();
+ 
++  // 397 S1: capture the production apply payload at the network layer so the
++  // UI binding identity can be compared with the ACTUAL write target (the same
++  // target the kernel readback below is made against). This is an observation
++  // of the real `/agent/invoke` request, not a test backdoor.
++  const applyRequests = [];
++  page.on("request", (request) => {
++    if (!request.url().endsWith("/agent/invoke")) return;
++    let payload = null;
++    try {
++      payload = request.postDataJSON();
++    } catch {
++      return;
++    }
++    if (!payload || payload.tool !== "apply_midi_note_patch") return;
++    const applied = payload.args || {};
++    applyRequests.push({
++      track_id: String(applied.track_id ?? ""),
++      clip_id: String(applied.clip_id ?? ""),
++      time_unit: String(applied.time_unit ?? ""),
++      confirmed: payload.confirmed === true
++    });
++  });
++  const scoreProjectKey = (state) => String((((state || {}).project) || {}).project_path || "").replace(/\\/g, "/");
++  const assertUiBinding = async (label, expectedProjectKey, expectedTrackID, expectedClipID, rootCountBefore) => {
++    const loadedRaw = await page.getAttribute("[data-score-root]", "data-score-loaded-target");
++    const selectedClip = (await page.getAttribute("[data-score-root]", "data-score-clip-id")) || "";
++    const writeReady = (await page.getAttribute("[data-score-root]", "data-score-write-ready")) || "";
++    let loaded = null;
++    try {
++      loaded = JSON.parse(loadedRaw || "null");
++    } catch {
++      loaded = null;
++    }
++    const expected = [expectedProjectKey, String(expectedTrackID), String(expectedClipID)];
++    return assert(
++      "S1-ui-binding-" + label,
++      rootCountBefore === 0 && expectedProjectKey !== "" && Array.isArray(loaded) && loaded.length === 3 &&
++        loaded[0] === expected[0] && String(loaded[1]) === expected[1] && String(loaded[2]) === expected[2] &&
++        selectedClip === expected[2] && writeReady === "true",
++      "expected " + JSON.stringify(expected) + " loaded=" + String(loadedRaw).slice(0, 160) +
++        " selected=" + selectedClip + " write-ready=" + writeReady + " root-before=" + rootCountBefore
++    );
++  };
++
+   const openScorePanel = async (phaseName, targetClipID) => {
+     const wanted = targetClipID || clipID;
+     await page.goto(args.agentHttp + "/app/", { waitUntil: "domcontentloaded" });
+@@ -587,6 +631,9 @@ async function main() {
+     if ((await tab.count()) !== 1) throw new Error("score tab missing on " + phaseName);
+     await tab.click();
+     await page.waitForSelector("[data-score-binding-root]", { timeout: 15000 });
++    // 397 S1 precondition: the panel must not mount a target before an explicit
++    // track/clip selection (no implicit auto-load target).
++    const rootBefore = await page.locator("[data-score-root]").count();
+     const bindingState = await fetch(args.agentHttp + "/agent/ui/state").then((reply) => reply.json());
+     const targetTrack = (bindingState.tracks || []).find((track) => (track.clips || []).some((clip) => String(clip.clip_id ?? clip.id) === wanted));
+     if (!targetTrack) throw new Error("target track missing on " + phaseName);
+@@ -603,7 +650,12 @@ async function main() {
+       await page.selectOption('[data-score-clip-select]', wanted);
+     }
+     await page.waitForSelector("[data-score-root]", { timeout: 15000 });
++    await page.waitForSelector('[data-score-write-ready="true"]', { timeout: 15000 });
+     await page.waitForTimeout(1800); // clip 选择 -> 桥重建 -> 回读装载
++    // 397 S1: UI-declared binding identity must equal the target used below for
++    // the kernel readback (project key + track + clip), and no implicit target
++    // may exist before the explicit selection.
++    await assertUiBinding(phaseName, scoreProjectKey(bindingState), targetTrack.track_id ?? targetTrack.id, wanted, rootBefore);
+   };
+   const domModel = async () => JSON.parse(await page.getAttribute("[data-score-root]", "data-score-model"));
+   const rootAttr = async (name) => (await page.getAttribute("[data-score-root]", name)) || "";
+@@ -681,6 +733,13 @@ async function main() {
+     assert("A5-saved-only-after-verify", applyState === "saved" && (await rootAttr("data-score-dirty")) === "false",
+       "applyState=" + applyState + " (bridge already verified readback before surfacing saved)");
+ 
++    // 397 S1: the ACTUAL production write payload must target exactly the UI
++    // bound track/clip -- the same ids used for the kernel readback above.
++    assert("S1-apply-target",
++      applyRequests.length === 1 && applyRequests[0].track_id === trackID && applyRequests[0].clip_id === clipID &&
++        applyRequests[0].time_unit === "beats" && applyRequests[0].confirmed === true,
++      "apply payload " + JSON.stringify(applyRequests) + " vs kernel readback target " + JSON.stringify({ track_id: trackID, clip_id: clipID }));
++
+     // A2 step 2: after apply the DOM model is the kernel readback (same ids)
+     const model2 = await domModel();
+     const kernelIDs2 = kernelNotes1.map((n) => n.id).sort();
+@@ -987,6 +1046,7 @@ async function main() {
+     }
+     await journeyTab.click();
+     await page.waitForSelector("[data-score-binding-root]", { timeout: 15000 });
++    const journeyRootBefore = await page.locator("[data-score-root]").count(); // 397: no implicit target
+     await page.waitForSelector(".score-track-item", { timeout: 10000 });
+     const journeyTrackButtons = page.locator(".score-track-item");
+     const journeyTrackIndex = await journeyTrackButtons.evaluateAll((items, id) => items.findIndex((node) => node.getAttribute("data-score-track-id") === id), melodyTrackID);
+@@ -998,7 +1058,10 @@ async function main() {
+       await page.selectOption('[data-score-clip-select]', melodyClipID);
+     }
+     await page.waitForSelector("[data-score-root]", { timeout: 15000 });
++    await page.waitForSelector('[data-score-write-ready="true"]', { timeout: 15000 });
+     await page.waitForTimeout(1800); // clip select -> bridge rebuild -> reload
++    const journeyState = await fetch(args.agentHttp + "/agent/ui/state").then((reply) => reply.json());
++    await assertUiBinding("J1-journey", scoreProjectKey(journeyState), melodyTrackID, melodyClipID, journeyRootBefore);
+     const journeyStatus = await rootAttr("data-score-status");
+     await page.screenshot({ path: join(args.screenshotDir, "j1_score_panel_from_project.png") });
+     assert("J1-score-panel-from-project-journey",
+diff --git a/scripts/webui_rendered_dom_smoke.mjs b/scripts/webui_rendered_dom_smoke.mjs
+index 087edefb..c8d53cf5 100644
+--- a/scripts/webui_rendered_dom_smoke.mjs
++++ b/scripts/webui_rendered_dom_smoke.mjs
+@@ -5097,16 +5097,20 @@ async function main() {
+ 
+   // ------------------------------------------------------ SCORE-WORKBENCH-1
+   // Score workbench rendered-surface pass (SCORE-WORKBENCH-1 M5, DG3 section 5.1
+-  // threshold-1 extension): real browser, real bundle, real pointer pipeline.
+-  // The agent in this harness runs WITHOUT a kernel, so the mount auto-load must
+-  // fail honest (visible load-failure status while the local 2/4 model stays
+-  // editable) -- that fail-honest shape is asserted, not avoided. The
+-  // kernel-backed write/read-back round-trip is covered by the DG1-A berth leg
+-  // (scripts/score_workbench_smoke.mjs under dev_agent_smoke.ps1).
++  // threshold-1 extension): real browser, real bundle. 397 SCORE-BINDING-SAFE-1
++  // made the score editor TARGET-EXPLICIT: it mounts only after a track/clip is
++  // selected in the left rail, and never auto-loads. This harness runs a real
++  // agent WITHOUT a kernel, so /agent/ui/state exposes no MIDI clip target; the
++  // honest rendered shape is now the binding container + track rail + explicit
++  // no-target copy (NOT an implicitly mounted editor). S1e/S2e/S3e migrate the
++  // retired pre-397 S1-S7 shape; the panel edit/apply/discard/cursor surface is
++  // covered by agent/webui/src/scoreworkbench/render-smoke.mjs (real bundle,
++  // fixture target, 11 assertions) and by the DG1-A berth leg
++  // (scripts/score_workbench_smoke.mjs, A1-A8).
+   report.score_workbench_source =
+-    "real interactions on the rendered surface: score tab click, symbol clicks through the real " +
+-    "pointer pipeline (coordinates derived from data-score-tick-rows anchors), local edit buffer " +
+-    "assertions via data-score-model; kernel absent => fail-honest load state is part of the gate";
++    "real interactions on the rendered surface: score tab click, binding container + track rail render, " +
++    "explicit no-target fail-honest state (no implicit editor target), refresh stays honest; " +
++    "target-bound editor gestures are covered by scoreworkbench/render-smoke.mjs + DG1-A berth";
+   {
+     const context = await browser.newContext({ viewport });
+     await installReplay(context, { strictConversation: true });
+@@ -5114,10 +5118,10 @@ async function main() {
+     await page.goto(agentBase + "/app/", { waitUntil: "domcontentloaded" });
+     await page.waitForTimeout(2500);
+ 
+-    const sample = { tabCount: 0, kernelTag: "", loadStatus: "", svgCount: 0, tickRowsRaw: "", afterPlace: null, afterSecondPlace: null, applyState: "", applyStatus: "", afterDiscard: null, cursorWhenLocal: "" };
++    const sample = { tabCount: 0, bindingRoot: false, trackRail: false, trackItemCount: 0, implicitRoot: 0, editorSurface: 0, applyAffordance: 0, emptyState: "", honestState: false, refreshHonest: false };
+     const scoreFailures = [];
+     const scoreNotes = [];
+-    const modelOf = async () => JSON.parse(await page.getAttribute("[data-score-root]", "data-score-model"));
++    const textOf = async (selector) => (await page.locator(selector).count()) === 0 ? "" : (await page.locator(selector).first().innerText());
+ 
+     const tabButton = page.locator('[data-workbench-tab="score"]');
+     sample.tabCount = await tabButton.count();
+@@ -5125,111 +5129,73 @@ async function main() {
+       scoreFailures.push("S0 score tab missing (data-workbench-tab=score count=" + sample.tabCount + ")");
+     } else {
+       await tabButton.click();
+-      await page.waitForSelector("[data-score-root]", { timeout: 15000 });
+-      await page.waitForTimeout(600);
+-
+-      // S1: panel mounted; kernel bridge present (agent bridge) but no kernel in
+-      // this harness => mount load must fail honest and stay visible.
+-      sample.kernelTag = (await page.getAttribute("[data-score-root]", "data-score-kernel")) || "";
+-      sample.loadStatus = (await page.getAttribute("[data-score-root]", "data-score-status")) || "";
+-      if (sample.kernelTag !== "connected") {
+-        scoreFailures.push("S1 kernel tag expected connected (agent bridge wired), got '" + sample.kernelTag + "'");
++      // 397: the editor is target-explicit, so the explicit wait is the binding
++      // container. Waiting for [data-score-root] here was the retired pre-397
++      // auto-load contract (cross-card regression found in the 397 independent
++      // review: this smoke would time out on the merged branch).
++      await page.waitForSelector("[data-score-binding-root]", { timeout: 15000 });
++      await page.waitForTimeout(900); // catalog fetch + first 1s poll settle
++      const scoreState = await getJSON("/agent/ui/state").catch(() => null);
++      const scoreProjectPath = String(((scoreState || {}).project || {}).project_path || "");
++      const scoreTracks = Array.isArray((scoreState || {}).tracks) ? scoreState.tracks : [];
++      const scoreMidiTracks = scoreTracks.filter((track) => (Array.isArray(track.clips) ? track.clips : []).some((clip) => String(clip.clip_type || "").toLowerCase() === "midi"));
++      sample.bindingRoot = (await page.locator("[data-score-binding-root]").count()) === 1;
++      sample.trackRail = (await page.locator(".score-track-list").count()) === 1;
++      sample.trackItemCount = await page.locator(".score-track-item").count();
++      sample.implicitRoot = await page.locator("[data-score-root]").count();
++      sample.editorSurface = (await page.locator("[data-score-svg]").count()) + (await page.locator("[data-score-overlay]").count());
++      sample.applyAffordance = await page.locator("[data-score-apply]").count();
++      const railText = await textOf(".score-track-list");
++      const bindingAlert = await textOf(".score-binding-message[role='alert']");
++      const emptyText = await textOf("[data-score-binding-empty]");
++      sample.emptyState = (railText + " | " + emptyText + " | " + bindingAlert).slice(0, 400);
++
++      // S1e (migrates old S1 "panel mounted + kernelTag connected + honest load
++      // failure"): after 397 the surface must FAIL CLOSED when no target is
++      // explicitly selected -- the binding container renders, but no editor,
++      // apply affordance or implicit target may exist. The original intent was
++      // "never fake a loaded/editable kernel state"; that intent is now carried
++      // by the stricter no-implicit-target assertion.
++      if (!sample.bindingRoot) {
++        scoreFailures.push("S1e score binding container missing (data-score-binding-root count != 1)");
+       }
+-      if (!sample.loadStatus.includes("装载失败")) {
+-        scoreFailures.push("S1 fail-honest load state not visible without a kernel (status='" + sample.loadStatus.slice(0, 80) + "')");
++      if (sample.implicitRoot !== 0 || sample.editorSurface !== 0 || sample.applyAffordance !== 0) {
++        scoreFailures.push("S1e implicit editing target without explicit selection (data-score-root=" + sample.implicitRoot + " editorSurface=" + sample.editorSurface + " apply=" + sample.applyAffordance + "); the pre-397 auto-load contract must stay retired");
+       }
+ 
+-      // S2: local default model renders (2/4, one measure of rests -> svg present).
+-      sample.svgCount = await page.locator("[data-score-svg] svg").count();
+-      if (sample.svgCount < 1) {
+-        scoreFailures.push("S2 score svg did not render (count=" + sample.svgCount + ")");
++      // S2e (migrates old S2 "local 2/4 default model renders"): without a bound
++      // target the app must show the explicit no-target copy (or the honest
++      // project-identity error when the agent exposes no project path) instead
++      // of the unbound local paper. The paper itself is still asserted against
++      // a real fixture target by scoreworkbench/render-smoke.mjs.
++      const honestNoTarget =
++        (scoreProjectPath !== "" && (emptyText.includes("选择左侧轨道") || railText.includes("还没有轨道"))) ||
++        (scoreProjectPath === "" && (bindingAlert.includes("工程身份不可得") || bindingAlert.includes("轨道读取失败")));
++      if (!honestNoTarget) {
++        scoreFailures.push("S2e honest no-target state missing (project_path='" + scoreProjectPath.slice(0, 80) + "' tracks=" + scoreTracks.length + " midiTracks=" + scoreMidiTracks.length + " empty='" + emptyText.slice(0, 100) + "' rail='" + railText.slice(0, 100) + "' alert='" + bindingAlert.slice(0, 100) + "')");
+       }
+-      const localModel = await modelOf();
+-      if (localModel.timeSignature.numerator !== 2 || localModel.notes.length !== 0) {
+-        scoreFailures.push("S2 local default model expected empty 2/4, got " + JSON.stringify(localModel.timeSignature) + " notes=" + localModel.notes.length);
++      if (!sample.trackRail) {
++        scoreFailures.push("S2e score track rail missing from the rendered binding container");
+       }
+ 
+-      // S3: place a note at the beat-1 rest cell through the real pointer pipeline.
+-      sample.tickRowsRaw = (await page.getAttribute("[data-score-svg]", "data-score-tick-rows")) || "";
+-      const parseRows = (raw) => {
+-        const rows = new Map();
+-        for (const part of raw.split(";")) {
+-          const m = /^m([0-9]+):(.*)$/.exec(part);
+-          if (!m) continue;
+-          rows.set(Number(m[1]), m[2].split(",").map((pair) => pair.split("@").map(Number)).filter((pair) => pair.length === 2 && Number.isFinite(pair[0]) && Number.isFinite(pair[1])));
+-        }
+-        return rows;
+-      };
+-      const overlayBox = await page.locator("[data-score-overlay]").boundingBox();
+-      const clickSymbol = async (tick) => {
+-        const rows = parseRows((await page.getAttribute("[data-score-svg]", "data-score-tick-rows")) || "");
+-        const row = rows.get(0) || [];
+-        const point = row.find(([t]) => t === tick);
+-        if (!point || !overlayBox) throw new Error("no anchor for tick " + tick);
+-        await page.mouse.click(overlayBox.x + point[1] + 1, overlayBox.y + 4 + 20);
+-        await page.waitForTimeout(400);
+-      };
+-      await clickSymbol(4); // beat 1.0 (eighth rest cell in the default 2/4 measure)
+-      sample.afterPlace = await modelOf();
+-      if (sample.afterPlace.notes.length !== 1) {
+-        scoreFailures.push("S3 note placement did not reach the model (notes=" + sample.afterPlace.notes.length + ")");
+-      } else {
+-        const placed = sample.afterPlace.notes[0];
+-        if (placed.startBeats !== 1 || placed.lengthBeats !== 0.5) {
+-          scoreFailures.push("S3 placed note shape mismatch: " + JSON.stringify(placed));
+-        }
++      // S3e (migrates old S3-S7: real-pointer placement / duration palette /
++      // apply failure / discard / cursor): those assertions need a bound target
++      // and are therefore NOT applicable in this zero-track harness -- they are
++      // covered verbatim by scoreworkbench/render-smoke.mjs (fixture target,
++      // pointer placement + apply target) and by the DG1-A berth A1-A6 (real
++      // kernel edit -> apply -> readback -> discard baseline). Here we assert
++      // the no-target surface stays honest across an explicit refresh instead
++      // of dead-ending on a fabricated editor.
++      await page.click("[data-score-refresh]");
++      await page.waitForTimeout(500);
++      sample.refreshHonest = (await page.locator("[data-score-root]").count()) === 0 && (await page.locator("[data-score-binding-root]").count()) === 1;
++      if (!sample.refreshHonest) {
++        scoreFailures.push("S3e refresh from the no-target state must not fabricate an editing target");
+       }
+-
+-      // S4: switch duration to quarter, place a second note at beat 1.5 cell.
+-      await page.click('[data-score-dur="4"]');
+-      await page.waitForTimeout(200);
+-      await clickSymbol(6);
+-      sample.afterSecondPlace = await modelOf();
+-      const second = sample.afterSecondPlace.notes.find((note) => note.startBeats === 1.5);
+-      if (!second || second.lengthBeats !== 1) {
+-        scoreFailures.push("S4 duration palette + second placement failed: " + JSON.stringify(sample.afterSecondPlace.notes));
+-      }
+-      if ((await page.getAttribute("[data-score-root]", "data-score-dirty")) !== "true") {
+-        scoreFailures.push("S4 dirty flag not set after edits");
+-      }
+-
+-      // S5: apply without a kernel must fail honest (no fake saved state).
+-      await page.click('[data-score-apply]');
+-      await page.waitForTimeout(300);
+-      const confirmCount = await page.locator("[data-score-confirm]").count();
+-      if (confirmCount !== 1) {
+-        scoreFailures.push("S5 confirm dialog did not open (count=" + confirmCount + ")");
+-      } else {
+-        await page.click("[data-score-confirm-apply]");
+-        await page.waitForTimeout(600);
+-        sample.applyState = (await page.getAttribute("[data-score-root]", "data-score-apply-state")) || "";
+-        sample.applyStatus = (await page.getAttribute("[data-score-root]", "data-score-status")) || "";
+-        if (sample.applyState !== "error") {
+-          scoreFailures.push("S5 apply without kernel must end in error state, got '" + sample.applyState + "'");
+-        }
+-        if (!sample.applyStatus.includes("未连接内核") && !sample.applyStatus.includes("装载失败") && !sample.applyStatus.includes("写入失败")) {
+-          scoreFailures.push("S5 apply failure not surfaced honestly (status='" + sample.applyStatus.slice(0, 80) + "')");
+-        }
+-        if ((await page.getAttribute("[data-score-root]", "data-score-dirty")) !== "true") {
+-          scoreFailures.push("S5 buffer must be kept after failed apply");
+-        }
+-      }
+-
+-      // S6: discard reverts to the baseline model.
+-      await page.click("[data-score-discard]");
+-      await page.waitForTimeout(400);
+-      sample.afterDiscard = await modelOf();
+-      if (sample.afterDiscard.notes.length !== 0) {
+-        scoreFailures.push("S6 discard did not revert (notes=" + sample.afterDiscard.notes.length + ")");
+-      }
+-
+-      // S7: no cursor without a kernel snapshot (single-tempo fail-honest, M4).
+-      sample.cursorWhenLocal = (await page.getAttribute("[data-score-root]", "data-score-cursor-beat")) || "";
+-      if (sample.cursorWhenLocal !== "") {
+-        scoreFailures.push("S7 cursor must stay hidden without a kernel snapshot, beat='" + sample.cursorWhenLocal + "'");
+-      }
+-      scoreNotes.push("tick rows: " + sample.tickRowsRaw);
+-    }
++      sample.honestState = honestNoTarget;
++      scoreNotes.push("S1e/S2e/S3e migrate the retired pre-397 S1-S7 shape: 397 makes the editor target-explicit, so the zero-track/no-kernel harness now asserts the honest no-target surface (fail-closed) instead of the auto-loaded panel");
++      scoreNotes.push("panel edit/apply/discard/cursor coverage: agent/webui/src/scoreworkbench/render-smoke.mjs (fixture target) + scripts/score_workbench_smoke.mjs DG1-A A1-A8 (real kernel); not silently dropped");
++      scoreNotes.push("ui state: project_path=" + (scoreProjectPath || "(empty)") + " tracks=" + scoreTracks.length + " midiTracks=" + scoreMidiTracks.length);    }
+     await context.close();
+     report.score_workbench = sample;
+     record("score-panel-S", { failures: scoreFailures, notes: scoreNotes });
