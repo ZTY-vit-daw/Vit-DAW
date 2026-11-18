@@ -1,0 +1,7 @@
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+ERROR: Parent node is busy setting up children, `add_child()` failed. Consider using `add_child.call_deferred(child)` instead.
+   at: add_child (scene/main/node.cpp:1709)
+   GDScript backtrace (most recent call first):
+       [0] _ready (res://start.gd:8)
+HELPER_NOT_IN_TREE

@@ -1,0 +1,45 @@
+适用于 .NET Framework MSBuild 版本 18.4.0+6e61e96ac
+
+C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Microsoft\VC\v180\Microsoft.CppBuild.targets(561,5): warning MSB8029: 中间目录或输出目录无法驻留在临时目录下，因为这可能会导致增量生成出现问题。 [C:\Users\timoz\AppData\Local\Temp\shell409-pass2-74205e3384f340d586e988ab403c4ed9\build\ZERO_CHECK.vcxproj]
+C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Microsoft\VC\v180\Microsoft.CppBuild.targets(561,5): warning MSB8029: 中间目录或输出目录无法驻留在临时目录下，因为这可能会导致增量生成出现问题。 [C:\Users\timoz\AppData\Local\Temp\shell409-pass2-74205e3384f340d586e988ab403c4ed9\build\VitShell.vcxproj]
+  godot_manager.cpp
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.50.35717\include\xutility(4924,18): warning C4244: “=”: 从“const wchar_t”转换到“char”，可能丢失数据 [C:\Users\timoz\AppData\Local\Temp\shell409-pass2-74205e3384f340d586e988ab403c4ed9\build\VitShell.vcxproj]
+  (编译源文件“../../../../../.codex/worktrees/shell-win-zproduct-409/vit-daw-frontend/VitShell/godot_manager.cpp”)
+      C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.50.35717\include\xutility(4924,18):
+      模板实例化上下文(最早的实例化上下文)为
+          C:\Users\timoz\.codex\worktrees\shell-win-zproduct-409\vit-daw-frontend\VitShell\godot_manager.cpp(129,59):
+          查看对正在编译的函数 模板 实例化“std::basic_string<char,std::char_traits<char>,std::allocator<char>>::basic_string<std::_String_const_iterator<std::_String_val<std::_Simple_types<_Elem>>>,0>(_Iter,_Iter,const _Alloc &)”的引用
+          with
+          [
+              _Elem=wchar_t,
+              _Iter=std::_String_const_iterator<std::_String_val<std::_Simple_types<wchar_t>>>,
+              _Alloc=std::allocator<char>
+          ]
+              C:\Users\timoz\.codex\worktrees\shell-win-zproduct-409\vit-daw-frontend\VitShell\godot_manager.cpp(129,20):
+              请参阅 "vitshell::GodotManager::Start" 中对 "std::basic_string<char,std::char_traits<char>,std::allocator<char>>::basic_string" 的第一个引用
+          C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.50.35717\include\xstring(862,17):
+          查看对正在编译的函数 模板 实例化“void std::basic_string<char,std::char_traits<char>,std::allocator<char>>::_Construct_from_iter<const wchar_t*,const wchar_t*,_Size_type>(_Iter,const _Sent,_Size)”的引用
+          with
+          [
+              _Size_type=unsigned __int64,
+              _Iter=const wchar_t *,
+              _Sent=const wchar_t *,
+              _Size=unsigned __int64
+          ]
+          C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.50.35717\include\xstring(1018,18):
+          查看对正在编译的函数 模板 实例化“_OutIt *std::_Copy_n_unchecked4<const wchar_t*,_Size,char*>(_InIt,_SizeTy,_OutIt)”的引用
+          with
+          [
+              _OutIt=char *,
+              _Size=unsigned __int64,
+              _InIt=const wchar_t *,
+              _SizeTy=unsigned __int64
+          ]
+  
+  VitShell.vcxproj -> C:\Users\timoz\AppData\Local\Temp\shell409-pass2-74205e3384f340d586e988ab403c4ed9\build\Release\VitShell.exe
+  Copying WebView2Loader.dll next to VitShell.exe
+适用于 .NET Framework MSBuild 版本 18.4.0+6e61e96ac
+
+C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Microsoft\VC\v180\Microsoft.CppBuild.targets(561,5): warning MSB8029: 中间目录或输出目录无法驻留在临时目录下，因为这可能会导致增量生成出现问题。 [C:\Users\timoz\AppData\Local\Temp\shell409-pass2-74205e3384f340d586e988ab403c4ed9\build\ZERO_CHECK.vcxproj]
+C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Microsoft\VC\v180\Microsoft.CppBuild.targets(561,5): warning MSB8029: 中间目录或输出目录无法驻留在临时目录下，因为这可能会导致增量生成出现问题。 [C:\Users\timoz\AppData\Local\Temp\shell409-pass2-74205e3384f340d586e988ab403c4ed9\build\shell_window_guard_test.vcxproj]
+  shell_window_guard_test.vcxproj -> C:\Users\timoz\AppData\Local\Temp\shell409-pass2-74205e3384f340d586e988ab403c4ed9\build\Release\shell_window_guard_test.exe
