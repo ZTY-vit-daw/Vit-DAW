@@ -27,8 +27,8 @@ import { GRID_PER_BEAT, serializeModel, type ScoreModel } from "./model";
 import { hitTest, renderScoreInto, type RenderResult } from "./render";
 import { cursorPosition, playheadClipBeats } from "./cursor";
 import { createNoKernelBridge, type ScoreClipSnapshot, type ScoreKernelBridgeFactory } from "./kernel";
+import { scoreTargetKey, type ScoreTarget, type ScoreSessionState } from "./binding";
 import { fetchUIState } from "../lib/api";
-import type { JsonRecord } from "../types";
 import "./scoreworkbench.css";
 
 function firstFinite(...values: unknown[]): number | null {
@@ -62,7 +62,15 @@ const PITCH_OPTIONS = [
 
 type Selection = { kernelId: string; tick: number } | null;
 
-export type ClipOption = { clipID: string; trackID: string; label: string };
+type ScorePanelProps = {
+  initialModel: ScoreModel;
+  clipLengthBeats?: number;
+  kernelFactory?: ScoreKernelBridgeFactory | null;
+  target?: ScoreTarget | null;
+  targetValid?: boolean;
+  validateTarget?: (target: ScoreTarget) => Promise<boolean>;
+  onSessionChange?: (state: ScoreSessionState) => void;
+};
 
 // SCORE-ENTRY-REACH-1 (D4) 渲染期错误边界：ModelError/渲染异常不再卸载整面板
 //（377 实证：buildApplyPatch useMemo 渲染期抛 grid_misaligned → 无边界 → 整树
@@ -106,11 +114,7 @@ export class ScorePanelErrorBoundary extends Component<
   }
 }
 
-export function ScoreWorkbenchPanel(props: {
-  initialModel: ScoreModel;
-  clipLengthBeats?: number;
-  kernelFactory?: ScoreKernelBridgeFactory | null;
-}) {
+export function ScoreWorkbenchPanel(props: ScorePanelProps) {
   return (
     <ScorePanelErrorBoundary>
       <ScorePanelBody {...props} />
@@ -121,19 +125,19 @@ export function ScoreWorkbenchPanel(props: {
 function ScorePanelBody({
   initialModel,
   clipLengthBeats: fallbackClipLengthBeats = 8,
-  kernelFactory
-}: {
-  initialModel: ScoreModel;
-  clipLengthBeats?: number;
-  kernelFactory?: ScoreKernelBridgeFactory | null;
-}) {
-  // clip 选择（多 clip 工程=常态）：shadow 轨表列出 clip；单 clip 自动选中，
-  // 多 clip 显式选择（不自动猜目标——错 clip 写入比多一步选择更糟）。
-  const [clipOptions, setClipOptions] = useState<ClipOption[]>([]);
-  const [clipID, setClipID] = useState("");
+  kernelFactory,
+  target = null,
+  targetValid = true,
+  validateTarget,
+  onSessionChange
+}: ScorePanelProps) {
+  const targetKey = scoreTargetKey(target);
+  const clipID = target?.clipID ?? "";
   const activeKernel = useMemo(
-    () => (kernelFactory ? kernelFactory({ clipID: clipID || undefined }) : null),
-    [kernelFactory, clipID]
+    () => (kernelFactory && target ? kernelFactory({ clipID: target.clipID, trackID: target.trackID }) : null),
+    // Display names do not rebind the editor or discard its working buffer.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [kernelFactory, targetKey]
   );
   const [buffer, setBuffer] = useState<EditBuffer>(() => createEditBuffer(initialModel));
   const [mode, setMode] = useState<"note" | "rest">("note");
@@ -144,84 +148,72 @@ function ScorePanelBody({
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [applyState, setApplyState] = useState<"idle" | "busy" | "saved" | "error">("idle");
   const [snapshot, setSnapshot] = useState<ScoreClipSnapshot | null>(null);
+  const [loadedKey, setLoadedKey] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [retry, setRetry] = useState(0);
+  const generation = useRef(0);
+  const applying = useRef(false);
+  const live = useRef({ targetKey, targetValid });
+  live.current = { targetKey, targetValid };
+  const ready = !!activeKernel && targetValid && loadedKey === targetKey && !!targetKey;
+  const editingLocked = !!kernelFactory && (!ready || loading || applyState === "busy");
   const [clipLengthBeats, setClipLengthBeats] = useState(fallbackClipLengthBeats);
   // M4 随谱游标：playhead 秒轮询（/agent/ui/state ui_context 白名单键）+单 tempo 门内换算。
   const [playheadSeconds, setPlayheadSeconds] = useState<number | null>(null);
   const [transportPlaying, setTransportPlaying] = useState(false);
 
-  // M5：clip 清单（shadow 轨表）——单 clip 自动选中；失败显形不阻塞本地编辑。
+  // 397: only a successful reload binds the buffer to this explicit target.
+  // Invalidating a target preserves edits for inspection but revokes all writes.
   useEffect(() => {
-    if (!kernelFactory) {
+    const token = ++generation.current;
+    setLoadedKey("");
+    setSnapshot(null);
+    setConfirmOpen(false);
+    setLoading(false);
+    applying.current = false;
+    setApplyState("idle");
+    if (!activeKernel || !target || !targetValid) return;
+    if (bufferDirty(buffer)) {
+      setStatus("本地修改已保留；请先放弃修改，再重新装载片段");
       return;
     }
-    let cancelled = false;
-    fetchUIState()
-      .then((state) => {
-        if (cancelled) {
-          return;
+    const current = () => generation.current === token && live.current.targetKey === targetKey && live.current.targetValid;
+    setLoading(true);
+    setStatus("正在装载所选片段…");
+    void (async () => {
+      try {
+        if (validateTarget && !(await validateTarget(target))) throw new Error("工程或片段已变化，请重新选择");
+        if (!current()) return;
+        const result = await activeKernel.reload();
+        if (!current()) return;
+        if (result.ok && result.value) {
+          if (validateTarget && !(await validateTarget(target))) throw new Error("装载期间工程或片段已变化，请重新选择");
+          if (!current()) return;
+          setBuffer(createEditBuffer(result.value.model));
+          setSnapshot(result.value);
+          setLoadedKey(targetKey);
+          setApplyState("idle");
+          setClipLengthBeats(result.value.clipLengthBeats);
+          // D4（SCORE-ENTRY-REACH-1）：raw 网格值不一致=clip 尾被桥面网格化，显形披露。
+          const raw = result.value.clipLengthBeatsRaw;
+          const gridNote =
+            raw !== undefined && Math.abs(raw - result.value.clipLengthBeats) > 1e-9
+              ? `，clip 拍长 ${raw.toFixed(4)} 非网格已上取整`
+              : "";
+          setStatus(`已从内核装载（${result.value.timeSignatureLabel} @ ${result.value.tempoBPM}bpm，clip ${result.value.clipLengthBeats} 拍${gridNote}）`);
+        } else {
+          setStatus(`内核装载失败：${result.ok ? "空模型" : result.error}`);
         }
-        const tracks = Array.isArray(state.tracks) ? state.tracks : [];
-        const options: ClipOption[] = [];
-        tracks.forEach((track, trackIndex) => {
-          const trackID = String((track as JsonRecord).track_id ?? (track as JsonRecord).id ?? "");
-          const trackName = String((track as JsonRecord).name ?? `轨 ${trackIndex + 1}`);
-          const clips = Array.isArray((track as JsonRecord).clips) ? ((track as JsonRecord).clips as JsonRecord[]) : [];
-          clips.forEach((clip, clipIndex) => {
-            const id = String(clip.clip_id ?? clip.id ?? "");
-            if (!id) {
-              return;
-            }
-            const clipName = String(clip.name ?? `clip ${clipIndex + 1}`);
-            options.push({ clipID: id, trackID, label: `${trackName} · ${clipName}` });
-          });
-        });
-        setClipOptions(options);
-        if (options.length === 1) {
-          setClipID(options[0].clipID);
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setStatus("clip 清单不可得（agent 状态面不可达）——本地编辑仍可用");
-        }
-      });
-    return () => {
-      cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [kernelFactory]);
-
-  // M3：agent 桥在场时（含换 clip 重建桥）即回读装载（fail-honest——失败显形，
-  // 保留本地模型不假成功；clip 未选时桥带空 clipID，harness 多 clip 拒绝=提示选择）。
-  useEffect(() => {
-    if (!activeKernel || activeKernel.kind !== "agent") {
-      return;
-    }
-    let cancelled = false;
-    activeKernel.reload().then((result) => {
-      if (cancelled) {
-        return;
+      } catch (failure) {
+        if (current()) setStatus(`内核装载失败：${failure instanceof Error ? failure.message : String(failure)}`);
+      } finally {
+        if (current()) setLoading(false);
       }
-      if (result.ok && result.value) {
-        setBuffer(createEditBuffer(result.value.model));
-        setSnapshot(result.value);
-        setClipLengthBeats(result.value.clipLengthBeats);
-        // D4（SCORE-ENTRY-REACH-1）：raw 网格值不一致=clip 尾被桥面网格化，显形披露。
-        const raw = result.value.clipLengthBeatsRaw;
-        const gridNote =
-          raw !== undefined && Math.abs(raw - result.value.clipLengthBeats) > 1e-9
-            ? `，clip 拍长 ${raw.toFixed(4)} 非网格已上取整`
-            : "";
-        setStatus(`已从内核装载（${result.value.timeSignatureLabel} @ ${result.value.tempoBPM}bpm，clip ${result.value.clipLengthBeats} 拍${gridNote}）`);
-      } else {
-        setStatus(`内核装载失败：${result.ok ? "空模型" : result.error}`);
-      }
-    });
-    return () => {
-      cancelled = true;
-    };
+    })();
+    return () => { generation.current++; };
+    // target names are labels; identity and validation govern this effect.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeKernel]);
+  }, [activeKernel, targetKey, targetValid, validateTarget, retry]);
 
   const svgHostRef = useRef<HTMLDivElement | null>(null);
   const overlayRef = useRef<HTMLDivElement | null>(null);
@@ -229,6 +221,9 @@ function ScorePanelBody({
   const dragRef = useRef<{ kernelId: string; lengthTicks: number; grabTick: number; pointerId: number } | null>(null);
 
   const dirty = bufferDirty(buffer);
+  useEffect(() => {
+    onSessionChange?.({ dirty, busy: loading || applyState === "busy", loaded: ready });
+  }, [dirty, loading, applyState, ready, onSessionChange]);
   const diff = useMemo(() => bufferDiffSummary(buffer), [buffer]);
   const notation = useMemo(() => deriveNotation(buffer.working), [buffer.working]);
   const selectedNote = selection ? buffer.working.notes.find((note) => note.id === selection.kernelId) ?? null : null;
@@ -294,6 +289,7 @@ function ScorePanelBody({
 
   const onOverlayPointerDown = useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {
+      if (editingLocked) return;
       const result = renderResultRef.current;
       if (!result || !overlayRef.current) {
         return;
@@ -330,7 +326,7 @@ function ScorePanelBody({
       setBuffer((current) => placeNote(current, pitch, hit.tick, duration));
       setStatus(`放置音符 @ ${hit.tick / GRID_PER_BEAT} 拍`);
     },
-    [buffer.working, duration, localOffset, mode, pitch]
+    [buffer.working, duration, localOffset, mode, pitch, editingLocked]
   );
 
   const onOverlayPointerMove = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
@@ -359,6 +355,7 @@ function ScorePanelBody({
     (event: React.PointerEvent<HTMLDivElement>) => {
       const drag = dragRef.current;
       dragRef.current = null;
+      if (editingLocked) return;
       const result = renderResultRef.current;
       if (!drag || !result || !overlayRef.current) {
         return;
@@ -380,7 +377,7 @@ function ScorePanelBody({
       setBuffer((current) => dragNote(current, drag.kernelId, newStart));
       setStatus(`移动 ${drag.kernelId} → ${newStart / GRID_PER_BEAT} 拍`);
     },
-    [buffer.working, localOffset]
+    [buffer.working, localOffset, editingLocked]
   );
 
   const onToggleDot = useCallback(() => {
@@ -451,40 +448,62 @@ function ScorePanelBody({
   }, [selection]);
 
   const onDiscard = useCallback(() => {
+    if (applying.current || loading) return;
     setBuffer(createEditBuffer(buffer.base));
     setSelection(null);
     setConfirmOpen(false);
     setApplyState("idle");
     setStatus("已放弃本地修改（回到基线）");
-  }, [buffer.base]);
+    if (!ready) setRetry((value) => value + 1);
+  }, [buffer.base, loading, ready]);
 
   const applyPatch = useMemo(() => buildApplyPatch(buffer, clipLengthBeats), [buffer, clipLengthBeats]);
 
   const onConfirmApply = useCallback(async () => {
-    if (!activeKernel) {
-      setStatus("未连接内核（本地模式）：apply 需真实 agent 栈");
+    if (applying.current) return;
+    if (!activeKernel || !target || !ready || loading) {
+      setStatus(kernelFactory ? "尚未成功装载当前片段，无法写入；请重新选择或装载" : "未连接内核（本地模式）：apply 需真实 agent 栈");
       setApplyState("error");
       return;
     }
+    const token = generation.current;
+    const current = () => generation.current === token && live.current.targetKey === targetKey && live.current.targetValid;
+    applying.current = true;
     setApplyState("busy");
-    // M3：applyPatch 内部已完成 回读+验证（A5：比对一致才返回 ok；桥即真栈链）。
-    const applied = await activeKernel.applyPatch(applyPatch);
-    if (!applied.ok) {
-      setStatus(`写入失败：${applied.error}`);
-      setApplyState("error");
-      // 失败也关确认框：错误已在状态行显形，缓冲保留可继续编辑或放弃
-      // （渲染面烟测实证：留开的模态会遮挡后续操作）。
+    try {
+      if (validateTarget && !(await validateTarget(target))) throw new Error("工程或片段已变化，未执行写入");
+      if (!current()) return;
+      // M3：applyPatch 内部已完成 回读+验证（A5：比对一致才返回 ok；桥即真栈链）。
+      const applied = await activeKernel.applyPatch(applyPatch);
+      if (!current()) return;
+      if (!applied.ok) {
+        setStatus(`写入失败：${applied.error}`);
+        setApplyState("error");
+        // 失败也关确认框：错误已在状态行显形，缓冲保留可继续编辑或放弃
+        // （渲染面烟测实证：留开的模态会遮挡后续操作）。
+        setConfirmOpen(false);
+        return;
+      }
+      if (validateTarget && !(await validateTarget(target))) throw new Error("写入后工程或片段已变化，请重新装载核对结果");
+      if (!current()) return;
+      setBuffer(createEditBuffer(applied.value.model));
+      setSnapshot(applied.value);
+      setClipLengthBeats(applied.value.clipLengthBeats);
+      setStatus("已写入内核并回读验证一致（已保存）");
+      setApplyState("saved");
       setConfirmOpen(false);
-      return;
+      setSelection(null);
+    } catch (failure) {
+      if (current()) {
+        setStatus(`写入未确认：${failure instanceof Error ? failure.message : String(failure)}`);
+        setLoadedKey("");
+        setApplyState("error");
+        setConfirmOpen(false);
+      }
+    } finally {
+      if (current()) applying.current = false;
     }
-    setBuffer(createEditBuffer(applied.value.model));
-    setSnapshot(applied.value);
-    setClipLengthBeats(applied.value.clipLengthBeats);
-    setStatus("已写入内核并回读验证一致（已保存）");
-    setApplyState("saved");
-    setConfirmOpen(false);
-    setSelection(null);
-  }, [activeKernel, applyPatch]);
+  }, [activeKernel, applyPatch, target, targetKey, ready, loading, validateTarget, kernelFactory]);
 
   const kernelTag = kernelFactory ? "connected" : "local";
 
@@ -499,21 +518,8 @@ function ScorePanelBody({
       : null;
 
   return (
-    <div className="score-workbench" data-score-root data-score-mode={mode} data-score-duration={duration} data-score-dirty={dirty ? "true" : "false"} data-score-kernel={kernelTag} data-score-note-count={buffer.working.notes.length} data-score-selection={selection?.kernelId ?? ""} data-score-status={status} data-score-apply-state={applyState} data-score-model={serializeModel(buffer.working)} data-score-timesig={snapshot?.timeSignatureLabel ?? "local-2/4"} data-score-tempo={snapshot ? String(snapshot.tempoBPM) : ""} data-score-clip-start-seconds={snapshot?.clipStartSeconds ?? ""} data-score-cursor-beat={cursor ? cursor.beat.toFixed(3) : ""} data-score-cursor-playing={transportPlaying ? "true" : "false"} data-score-clip-id={clipID}>
-      <div className="score-toolbar">
-        {kernelFactory && (
-          <label className="score-tool score-clip">
-            Clip
-            <select data-score-clip-select value={clipID} onChange={(event) => setClipID(event.currentTarget.value)}>
-              <option value="">（选择 clip）</option>
-              {clipOptions.map((option) => (
-                <option key={option.clipID} value={option.clipID}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-        )}
+    <div className="score-workbench" data-score-root data-score-mode={mode} data-score-duration={duration} data-score-dirty={dirty ? "true" : "false"} data-score-kernel={kernelTag} data-score-note-count={buffer.working.notes.length} data-score-selection={selection?.kernelId ?? ""} data-score-status={status} data-score-apply-state={applyState} data-score-model={serializeModel(buffer.working)} data-score-timesig={snapshot?.timeSignatureLabel ?? "local-2/4"} data-score-tempo={snapshot ? String(snapshot.tempoBPM) : ""} data-score-clip-start-seconds={snapshot?.clipStartSeconds ?? ""} data-score-cursor-beat={cursor ? cursor.beat.toFixed(3) : ""} data-score-cursor-playing={transportPlaying ? "true" : "false"} data-score-clip-id={clipID} data-score-loaded-target={loadedKey} data-score-write-ready={ready ? "true" : "false"}>
+      <fieldset className="score-toolbar" disabled={editingLocked} aria-label="谱面编辑工具">
         <div className="score-tool-group" role="group" aria-label="输入模式">
           <button type="button" className={`score-tool ${mode === "note" ? "active" : ""}`} data-score-mode-note onClick={() => setMode("note")}>
             音符
@@ -553,7 +559,7 @@ function ScorePanelBody({
             删除
           </button>
         </div>
-      </div>
+      </fieldset>
       <div className="score-stage">
         <div className="score-svg-host" ref={svgHostRef} data-score-svg />
         {cursor && (
@@ -568,6 +574,7 @@ function ScorePanelBody({
           className="score-overlay"
           ref={overlayRef}
           data-score-overlay
+          aria-disabled={editingLocked}
           onPointerDown={onOverlayPointerDown}
           onPointerMove={onOverlayPointerMove}
           onPointerUp={onOverlayPointerUp}
@@ -578,17 +585,18 @@ function ScorePanelBody({
           {status}
         </span>
         <span className="score-diff" data-score-diff={dirty ? "true" : "false"}>
-          {dirty ? `未保存：+${diff.added} -${diff.removed} ~${diff.changed}` : "与内核一致"}
+          {dirty ? `未保存：+${diff.added} -${diff.removed} ~${diff.changed}` : ready ? "与内核一致" : kernelFactory ? "尚未装载当前片段" : "本地模型"}
         </span>
       </div>
       <div className="score-actions">
-        <button type="button" className="score-tool secondary" data-score-discard onClick={onDiscard} disabled={!dirty}>
+        <button type="button" className="score-tool secondary" data-score-discard onClick={onDiscard} disabled={!dirty || loading || applyState === "busy"}>
           放弃修改
         </button>
-        <button type="button" className="score-tool primary" data-score-apply onClick={() => setConfirmOpen(true)} disabled={!dirty}>
+        <button type="button" className="score-tool primary" data-score-apply onClick={() => setConfirmOpen(true)} disabled={!dirty || (!!kernelFactory && !ready) || loading || applyState === "busy"}>
           写入内核…
         </button>
       </div>
+      {kernelFactory && !ready && targetValid && !loading && !dirty && <button type="button" className="score-tool secondary" data-score-reload onClick={() => setRetry((value) => value + 1)}>重新装载片段</button>}
       {confirmOpen && (
         <div className="score-confirm" data-score-confirm role="dialog" aria-label="写入确认">
           <p>
@@ -596,7 +604,7 @@ function ScorePanelBody({
             基线 +{diff.added} -{diff.removed} ~{diff.changed}）。此操作经治理确认链单次执行。
           </p>
           <div className="score-confirm-buttons">
-            <button type="button" className="score-tool secondary" data-score-cancel-apply onClick={() => setConfirmOpen(false)}>
+            <button type="button" className="score-tool secondary" data-score-cancel-apply onClick={() => setConfirmOpen(false)} disabled={applyState === "busy"}>
               取消
             </button>
             <button type="button" className="score-tool primary" data-score-confirm-apply onClick={() => void onConfirmApply()} disabled={applyState === "busy"}>

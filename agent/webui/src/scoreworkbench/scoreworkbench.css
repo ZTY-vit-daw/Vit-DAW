@@ -14,6 +14,10 @@
   flex-wrap: wrap;
   gap: 6px;
   align-items: center;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
 }
 
 .score-tool-group {
@@ -165,4 +169,38 @@
   margin: 0;
   opacity: 0.85;
   word-break: break-all;
+}
+
+/* 397: keep the established score paper and blue selection; identity is a
+   persistent track spine, separate from the notation and its editing tools. */
+.score-track-workbench {
+  display: grid;
+  grid-template-columns: minmax(104px, 23%) minmax(0, 1fr);
+  position: relative;
+  min-height: 240px;
+  font-size: 13px;
+}
+.score-track-list { border-right: 1px solid rgba(127, 127, 127, .3); padding: 8px; }
+.score-track-list-heading { display: flex; align-items: center; justify-content: space-between; gap: 4px; margin-bottom: 8px; flex-wrap: wrap; }
+.score-track-item { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; width: 100%; margin: 0 0 5px; padding: 9px 8px; color: inherit; background: transparent; border: 1px solid transparent; border-left: 3px solid transparent; border-radius: 5px; font: inherit; text-align: left; overflow-wrap: anywhere; cursor: pointer; }
+.score-track-item small { font-size: 12px; opacity: .8; }
+.score-track-item:hover:not(:disabled) { background: rgba(127, 127, 127, .12); }
+.score-track-item[aria-pressed="true"] { background: rgba(96, 165, 250, .15); border-left-color: #60a5fa; }
+.score-track-item:disabled { cursor: wait; opacity: .65; }
+.score-track-editor { min-width: 0; }
+.score-binding-heading { display: flex; flex-direction: column; gap: 4px; padding: 12px 10px; border-bottom: 1px solid rgba(127, 127, 127, .25); overflow-wrap: anywhere; }
+.score-binding-heading small, .score-binding-heading span { font-size: 12px; opacity: .8; }
+.score-binding-heading strong { font-size: 14px; }
+.score-binding-message { margin: 8px 10px; line-height: 1.6; overflow-wrap: anywhere; }
+.score-binding-empty { padding: 24px 12px; margin: 0; line-height: 1.7; }
+.score-clip-picker { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 10px; }
+.score-clip-picker select { min-width: 0; max-width: 100%; padding: 5px; font: inherit; color: inherit; background: transparent; border: 1px solid rgba(127, 127, 127, .5); border-radius: 6px; }
+.score-binding-switch { position: absolute; inset: 0; z-index: 8; display: flex; flex-direction: column; justify-content: center; padding: 20px; border-radius: 8px; background: rgba(15, 18, 24, .97); color: #f1f5f9; line-height: 1.7; }
+.score-binding-switch p { overflow-wrap: anywhere; }
+.score-track-workbench button:focus-visible, .score-track-workbench select:focus-visible { outline: 2px solid #60a5fa; outline-offset: 2px; }
+.score-overlay[aria-disabled="true"] { cursor: default; }
+@media (max-width: 480px) {
+  .score-track-workbench { grid-template-columns: 104px minmax(0, 1fr); }
+  .score-track-list { padding: 5px; }
+  .score-binding-switch .score-confirm-buttons { flex-wrap: wrap; }
 }
