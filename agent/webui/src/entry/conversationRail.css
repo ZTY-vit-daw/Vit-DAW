@@ -283,3 +283,176 @@
     transition: none;
   }
 }
+/* ---------- CONV-RAIL-CROSS-1（421，B2b）：其它工作树分组 + 工作区级其他分支 ---------- */
+
+/* 当前工作树头部的当前分支行（与分组头同族）。 */
+.v5-conversation-worktree-branch {
+  font-size: 13px;
+  color: var(--v5-ui-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 其它工作树分组：折叠头 = 名称/路径/当前分支；展开体 = 懒加载分支列表。 */
+.v5-conversation-worktree-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 0 0 auto;
+  min-height: 0;
+  padding: 2px;
+  border: 1px solid transparent;
+  border-radius: var(--v5-radius-control);
+}
+
+.v5-conversation-worktree-group[data-conversation-worktree-group-expanded="true"] {
+  border-color: var(--v5-ui-border);
+  background: var(--v5-ui-plate);
+}
+
+.v5-conversation-worktree-toggle {
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr);
+  grid-template-areas:
+    "chevron label"
+    ". path"
+    ". branch";
+  gap: 2px 6px;
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid transparent;
+  border-radius: var(--v5-radius-control);
+  background: transparent;
+  color: var(--v5-ui-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.v5-conversation-worktree-toggle:hover {
+  background: var(--v5-read-bg);
+  border-color: var(--v5-ui-border);
+}
+
+.v5-conversation-worktree-chevron {
+  grid-area: chevron;
+  align-self: start;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--v5-ui-muted);
+}
+
+.v5-conversation-worktree-toggle [data-conversation-worktree-group-label] {
+  grid-area: label;
+}
+
+.v5-conversation-worktree-toggle [data-conversation-worktree-group-path] {
+  grid-area: path;
+}
+
+.v5-conversation-worktree-toggle [data-conversation-worktree-group-branch] {
+  grid-area: branch;
+}
+
+.v5-conversation-worktree-toggle .v5-conversation-worktree-label {
+  font-size: 13px;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.v5-conversation-worktree-toggle .v5-conversation-worktree-path,
+.v5-conversation-worktree-toggle .v5-conversation-worktree-branch {
+  font-size: 13px;
+  color: var(--v5-ui-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 展开体：分支列表右侧留出分组缩进（不与折叠头文字混排）。 */
+.v5-conversation-worktree-group > .v5-conversation-branches {
+  padding-left: 6px;
+}
+
+.v5-conversation-worktree-loading,
+.v5-conversation-worktree-error {
+  margin: 0;
+  padding: 4px 8px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--v5-ui-muted);
+}
+
+.v5-conversation-worktree-error {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+  color: var(--v5-ui-text);
+  background: var(--v5-warning-shell);
+  border: 1px solid var(--v5-warning-edge);
+  border-radius: 6px;
+}
+
+.v5-conversation-worktree-error-text {
+  font-size: 13px;
+  color: var(--v5-ui-text);
+  overflow-wrap: anywhere;
+}
+
+.v5-conversation-worktree-error .v5-btn {
+  min-height: 28px;
+}
+
+/* 工作区级「其他分支」组：只读（未归属任何工作树）。 */
+.v5-conversation-other-branches {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 0 0 auto;
+  min-height: 0;
+  padding: 2px;
+  border: 1px solid var(--v5-ui-border);
+  border-radius: var(--v5-radius-control);
+  background: var(--v5-ui-plate);
+}
+
+.v5-conversation-other-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 8px 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--v5-ui-text);
+}
+
+.v5-conversation-other-note {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--v5-ui-muted);
+}
+
+.v5-conversation-branch--other {
+  border-style: dashed;
+  border-color: var(--v5-ui-border);
+}
+
+/* 只读未归属分支的动作卡提示（不可继续）。 */
+.v5-project-preview-readonly-note {
+  font-size: 13px;
+  color: var(--v5-ui-muted);
+}
+.v5-conversation-worktree-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 8px 4px;
+}
+
+.v5-conversation-worktree-actions .v5-btn {
+  min-height: 28px;
+  font-size: 13px;
+}

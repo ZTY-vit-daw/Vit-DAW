@@ -13,8 +13,70 @@ const report = { scope: "real App + mocked HTTP/host; no real stack", checks: []
 // CONV-RAIL-1（418，B2a）render fixture：对话流左栏树/只读预览/继续/新对话全部走
 // mock HTTP（零真栈、零 agent）。/agent/ui/state 按下列状态动态投影；/agent/invoke
 // 记录真实请求参数（tool/args/confirmed/source/context）并按生产回执语义回执。
-const conversation = { activeBranch: "main", checkoutBlocked: false, createdBranches: [], noActiveNode: false };
+const conversation = {
+  activeBranch: "main",
+  checkoutBlocked: false,
+  createdBranches: [],
+  noActiveNode: false,
+  // CONV-RAIL-CROSS-1（421，B2b）mock 状态：其它工作树懒加载/组合缝动作的回执开关。
+  activeWorktree: "",
+  openedBetaNode: "",
+  statusFailGamma: false,
+  crossFail: false
+};
+const ROOT_PROJECT_PATH = "C:/fixture/alpha.vit";
+const BETA_PROJECT_PATH = "C:/fixture/worktrees/wt-beta/alpha_wt-beta.vit";
+const GAMMA_PROJECT_PATH = "C:/fixture/worktrees/wt-gamma/alpha_wt-gamma.vit";
+const worktreeRows = () => ([
+  { name: "wt-beta", path: "C:/fixture/worktrees/wt-beta", project_file_path: BETA_PROJECT_PATH, commit_id: "w1", origin_commit_id: "w1", worktree_head_commit_id: "w1" },
+  { name: "wt-gamma", path: "C:/fixture/worktrees/wt-gamma", project_file_path: GAMMA_PROJECT_PATH, commit_id: "g1", origin_commit_id: "g1", worktree_head_commit_id: "g1" }
+]);
 const conversationNode = (id, kind, text, branch, commitID, parentNodeID, createdAt) => ({ id, kind, text, text_preview: text, branch, commit_id: commitID, parent_node_id: parentNodeID, created_at: createdAt });
+// 其它工作树 version.status 投影：wt-beta（active_branch=shared，head=w1；shared ref head
+// 与 worktree head 不同 → 只有 active_branch 规则能归属它）。
+const betaStatusHistory = () => ({
+  project_path: BETA_PROJECT_PATH,
+  root_project_path: ROOT_PROJECT_PATH,
+  active_branch: "shared",
+  active_node_id: "n-beta-shared-vit",
+  active_worktree: "wt-beta",
+  detached: false,
+  head: "w1",
+  branches: { main: "b1", "beta-topic": "w1", shared: "s1" },
+  worktrees: [],
+  conversation_graph: {
+    project_path: BETA_PROJECT_PATH,
+    active_branch: "shared",
+    active_node_id: "n-beta-shared-vit",
+    nodes: [
+      conversationNode("n-beta-topic-ask", "ask", "在这个工作树里写新鼓组", "beta-topic", "w0", "", "2026-11-18T20:00:00"),
+      conversationNode("n-beta-topic-vit", "vit", "鼓组片段已写入工作树副本。", "beta-topic", "w1", "n-beta-topic-ask", "2026-11-18T20:01:00"),
+      conversationNode("n-beta-shared-ask", "ask", "把这段鼓组再压紧一点", "shared", "s0", "", "2026-11-18T20:02:00"),
+      conversationNode("n-beta-shared-vit", "vit", "已压紧。", "shared", "s1", "n-beta-shared-ask", "2026-11-18T20:03:00")
+    ]
+  }
+});
+// wt-gamma：首个 version.status 故意失败（重试成功后返回该投影）。
+const gammaStatusHistory = () => ({
+  project_path: GAMMA_PROJECT_PATH,
+  root_project_path: ROOT_PROJECT_PATH,
+  active_branch: "gamma-topic",
+  active_node_id: "n-gamma-vit",
+  active_worktree: "wt-gamma",
+  detached: false,
+  head: "g1",
+  branches: { main: "g2", "gamma-topic": "g1" },
+  worktrees: [],
+  conversation_graph: {
+    project_path: GAMMA_PROJECT_PATH,
+    active_branch: "gamma-topic",
+    active_node_id: "n-gamma-vit",
+    nodes: [
+      conversationNode("n-gamma-ask", "ask", "给 gamma 工作树加一条混响", "gamma-topic", "g0", "", "2026-11-18T20:10:00"),
+      conversationNode("n-gamma-vit", "vit", "混响已加到 gamma 副本。", "gamma-topic", "g1", "n-gamma-ask", "2026-11-18T20:11:00")
+    ]
+  }
+});
 const conversationHistory = () => {
   // 基础 fixture：main（4 条消息）+ 从 n-base-vit 分叉的 feature-x（2 条消息）；运行中
   // branch_create 出来的新分支追加 branch_marker（与 Go BranchCreate 写入一致）。
@@ -27,7 +89,9 @@ const conversationHistory = () => {
     conversationNode("n-fx-ask", "ask", "贝斯再加一点压缩", "feature-x", "f1", "n-fx-marker", "2026-11-18T19:11:00"),
     conversationNode("n-fx-vit", "vit", "贝斯压缩已加 2:1。", "feature-x", "f2", "n-fx-ask", "2026-11-18T19:12:00")
   ];
-  const branches = { main: "c4", "feature-x": "f2" };
+  // repo 级分支 refs：shared（在 beta 为 active）/beta-topic（head=beta head）/orphan
+  //（无任何归属）用于 421 分支归属过滤断言；对话节点仍只在本工作树 history 里。
+  const branches = { main: "c4", "feature-x": "f2", shared: "s1", "beta-topic": "w1", orphan: "z9" };
   conversation.createdBranches.forEach(created => {
     const commitID = created.commit_id || "c4";
     branches[created.name] = commitID;
@@ -39,6 +103,20 @@ const conversationHistory = () => {
     if (branch === "feature-x") return "n-fx-vit";
     return "n-main-vit";
   };
+  // CONV-RAIL-CROSS-1（421）：conversation_open 成功后当前工程切到 wt-beta 副本——
+  // ui state 变为该工作树 history + active_worktree=wt-beta，左栏当前组随之切换。
+  if (conversation.activeWorktree === "wt-beta") {
+    const beta = betaStatusHistory();
+    return {
+      ...beta,
+      project_path: BETA_PROJECT_PATH,
+      root_project_path: ROOT_PROJECT_PATH,
+      active_branch: conversation.activeBranch || beta.active_branch,
+      active_node_id: conversation.openedBetaNode || beta.active_node_id,
+      active_worktree: "wt-beta",
+      worktrees: worktreeRows()
+    };
+  }
   // SHELL-PROJECT-STREAM-FIX-1（427）：无活动节点但工程身份存在（project_path/branch/head）
   // 的工程态 fixture——用于证明【＋ 新对话】不再灰、branch_create 走当前 HEAD 分叉。
   if (conversation.noActiveNode) {
@@ -51,7 +129,7 @@ const conversationHistory = () => {
       detached: false,
       head: "c4",
       branches,
-      worktrees: [],
+      worktrees: worktreeRows(),
       conversation_graph: {
         project_path: "C:/fixture/alpha.vit",
         active_branch: conversation.activeBranch,
@@ -70,7 +148,7 @@ const conversationHistory = () => {
     detached: false,
     head: branches[conversation.activeBranch] || "c4",
     branches,
-    worktrees: [],
+    worktrees: worktreeRows(),
     conversation_graph: {
       project_path: "C:/fixture/alpha.vit",
       active_branch: conversation.activeBranch,
@@ -112,6 +190,47 @@ try {
           conversation.createdBranches.push(created);
           conversation.activeBranch = created.name;
           body = { status: "ok", result: { status: "ok", branch: created.name, checked_out_to: "C:/fixture/alpha.vit" } };
+        } else if (payload.tool === "version.status") {
+          // 421：其它工作树展开时的只读懒加载（不 checkout/不 open_project/不 reload）。
+          const projectPath = payload.args?.project_path || "";
+          if (projectPath === BETA_PROJECT_PATH) {
+            body = { status: "ok", result: betaStatusHistory() };
+          } else if (projectPath === GAMMA_PROJECT_PATH) {
+            body = conversation.statusFailGamma
+              ? { status: "error", error: "fixture status unavailable (wt-gamma)" }
+              : { status: "ok", result: gammaStatusHistory() };
+          } else {
+            body = { status: "ok", result: conversationHistory() };
+          }
+        } else if (payload.tool === "version.conversation_open") {
+          // 421：组合缝回执。失败路径如实披露 target_materialized/branch_warning；
+          // 成功路径把 ui state 切到目标工作树（active_worktree=wt-beta + 目标分支/节点）。
+          const targetPath = payload.args?.project_file_path || "";
+          if (conversation.crossFail) {
+            body = {
+              status: "error",
+              error: "kernel project reload failed after materializing the target worktree copy: fixture reload",
+              result: { status: "error", target_materialized: true, branch_warning: "fixture branch warning", kernel_reloaded: false, project_file_path: targetPath }
+            };
+          } else {
+            conversation.activeWorktree = "wt-beta";
+            conversation.activeBranch = payload.args?.branch || "shared";
+            conversation.openedBetaNode = payload.args?.node_id || "";
+            body = {
+              status: "ok",
+              result: {
+                status: "ok",
+                target_materialized: true,
+                same_worktree: false,
+                kernel_reloaded: true,
+                branch: conversation.activeBranch,
+                active_branch: conversation.activeBranch,
+                active_worktree: "wt-beta",
+                active_node_id: conversation.openedBetaNode,
+                project_file_path: targetPath
+              }
+            };
+          }
         } else {
           body = { status: "ok", result: {} };
         }
@@ -337,7 +456,7 @@ try {
   await page.locator("[data-conversation-new]").click();
   await page.waitForFunction(() => [...document.querySelectorAll("[data-conversation-branch]")].some(element => element.getAttribute("data-conversation-branch-active") === "true" && /^chat-/.test(element.getAttribute("data-conversation-branch") || "")));
   const newConversationInvokes = report.invokes.slice(invokesBeforeNew);
-  check("new conversation branches from the active node through version.branch_create", newConversationInvokes.length === 1 && newConversationInvokes[0]?.tool === "version.branch_create" && /^chat-\d{8}-\d{6}$/.test(newConversationInvokes[0]?.args?.name || "") && newConversationInvokes[0]?.args?.from_node_id === "n-fx-vit" && newConversationInvokes[0]?.args?.commit_id === "f2" && newConversationInvokes[0]?.args?.project_path === "C:/fixture/alpha.vit" && newConversationInvokes[0]?.confirmed === true);
+  check("new conversation branches from the active node through version.branch_create", newConversationInvokes.length === 1 && newConversationInvokes[0]?.tool === "version.branch_create" && /^chat-\d{8}-\d{6}(-\d+)?$/.test(newConversationInvokes[0]?.args?.name || "") && newConversationInvokes[0]?.args?.from_node_id === "n-fx-vit" && newConversationInvokes[0]?.args?.commit_id === "f2" && newConversationInvokes[0]?.args?.project_path === "C:/fixture/alpha.vit" && newConversationInvokes[0]?.confirmed === true);
   check("new conversation becomes the active stream titled as a fresh conversation", (await page.locator('[data-conversation-branch-active="true"] [data-conversation-branch-title]').innerText()).trim() === "新对话" && await page.locator("[data-conversation-branch]").count() === 3);
 
   // checkout_blocked（agent Turn 运行中）：新建/继续禁用并给出原因；解除后恢复。
@@ -385,7 +504,7 @@ try {
   await page.locator("[data-conversation-new]").click();
   await waitForInvokeCount(invokesBeforeHeadFallback + 1);
   const headFallbackInvoke = report.invokes.at(-1);
-  check("new conversation without an active node branches from the current HEAD (name only)", headFallbackInvoke?.tool === "version.branch_create" && /^chat-\d{8}-\d{6}$/.test(headFallbackInvoke?.args?.name || "") && headFallbackInvoke?.args?.from_node_id === undefined && headFallbackInvoke?.args?.commit_id === undefined && headFallbackInvoke?.args?.project_path === "C:/fixture/alpha.vit");
+  check("new conversation without an active node branches from the current HEAD (name only)", headFallbackInvoke?.tool === "version.branch_create" && /^chat-\d{8}-\d{6}(-\d+)?$/.test(headFallbackInvoke?.args?.name || "") && headFallbackInvoke?.args?.from_node_id === undefined && headFallbackInvoke?.args?.commit_id === undefined && headFallbackInvoke?.args?.project_path === "C:/fixture/alpha.vit");
   conversation.noActiveNode = false;
   await page.locator("[data-entry-rail-settings]").click();
   await page.locator("[data-entry-settings][open]").waitFor();
@@ -395,6 +514,108 @@ try {
   });
   await page.keyboard.press("Escape");
   check("new conversation re-enables the active-node hint once a node exists again", await page.locator("[data-conversation-new]").isEnabled() && (await page.locator("[data-conversation-new]").getAttribute("title") || "").includes("从当前对话的活动节点"));
+
+  // ===== CONV-RAIL-CROSS-1（421，B2b）：跨工作树只读浏览 + 组合缝动作 =====
+  const betaKey = BETA_PROJECT_PATH.toLowerCase();
+  const gammaKey = GAMMA_PROJECT_PATH.toLowerCase();
+  const betaGroupSelector = '[data-conversation-worktree-group-key="' + betaKey + '"]';
+  const gammaGroupSelector = '[data-conversation-worktree-group-key="' + gammaKey + '"]';
+  const writeTools = ["version.checkout", "version.conversation_open", "version.node_checkout", "version.worktree_checkout"];
+  const writeInvokeCount = () => report.invokes.filter(invoke => writeTools.includes(invoke.tool)).length;
+  const statusInvokeCount = () => report.invokes.filter(invoke => invoke.tool === "version.status").length;
+  const groupStatus = selector => page.locator(selector).getAttribute("data-conversation-worktree-group-status");
+  check("other worktrees render as collapsed groups with name, path and head", await page.locator("[data-conversation-worktree-group]").count() === 2
+    && await page.locator(betaGroupSelector).getAttribute("data-conversation-worktree-group-expanded") === "false"
+    && await groupStatus(betaGroupSelector) === "idle"
+    && (await page.locator(betaGroupSelector + " [data-conversation-worktree-group-label]").innerText()).trim() === "wt-beta"
+    && (await page.locator(betaGroupSelector + " [data-conversation-worktree-group-path]").innerText()).includes("wt-beta")
+    && (await page.locator(betaGroupSelector + " [data-conversation-worktree-group-branch]").innerText()).includes("head w1"));
+  check("unattributed repo branches stay read-only in the workspace other-branches group", await page.locator("[data-conversation-other-branch]").count() === 2
+    && await page.locator('[data-conversation-other-branch="shared"]').count() === 1
+    && await page.locator('[data-conversation-other-branch="orphan"]').count() === 1
+    && await page.locator('[data-conversation-branch="shared"]').count() === 0);
+  const statusBeforeBeta = statusInvokeCount();
+  await page.locator(betaGroupSelector + " [data-conversation-worktree-toggle]").click();
+  await page.locator(betaGroupSelector + " [data-conversation-worktree-loading]").waitFor();
+  check("expanding another worktree shows a loading state", await page.locator(betaGroupSelector + " [data-conversation-worktree-loading]").count() === 1 && await groupStatus(betaGroupSelector) === "loading");
+  await page.waitForFunction(selector => document.querySelector(selector)?.getAttribute("data-conversation-worktree-group-status") === "ready", betaGroupSelector);
+  const betaStatusInvoke = report.invokes[report.invokes.length - 1];
+  check("expanding a worktree lazy-loads version.status exactly once (read-only args)", statusInvokeCount() === statusBeforeBeta + 1 && betaStatusInvoke?.tool === "version.status" && betaStatusInvoke?.args?.project_path === BETA_PROJECT_PATH && betaStatusInvoke?.confirmed === false && betaStatusInvoke?.source === "ask_vit_webui_conversation");
+  check("loaded worktree branches render under its group and the shared branch moves there", await page.locator(betaGroupSelector + " [data-conversation-branch]").count() === 2
+    && await page.locator(betaGroupSelector + ' [data-conversation-branch="shared"]').count() === 1
+    && await page.locator(betaGroupSelector + ' [data-conversation-branch="beta-topic"]').count() === 1
+    && await page.locator('[data-conversation-other-branch="shared"]').count() === 0
+    && await page.locator('[data-conversation-other-branch="orphan"]').count() === 1
+    && await page.locator('[data-conversation-worktree][data-conversation-worktree-active="true"] [data-conversation-branch="shared"]').count() === 0);
+  check("every conversation branch appears in exactly one worktree group", await page.locator("[data-conversation-branch]").evaluateAll(elements => {
+    const names = elements.map(element => element.getAttribute("data-conversation-branch"));
+    return names.length > 0 && new Set(names).size === names.length;
+  }));
+  const statusAfterFirstLoad = statusInvokeCount();
+  await page.locator(betaGroupSelector + " [data-conversation-worktree-toggle]").click();
+  await page.waitForFunction(selector => document.querySelector(selector)?.getAttribute("data-conversation-worktree-group-expanded") === "false", betaGroupSelector);
+  await page.locator(betaGroupSelector + " [data-conversation-worktree-toggle]").click();
+  await page.waitForFunction(selector => document.querySelector(selector)?.getAttribute("data-conversation-worktree-group-status") === "ready", betaGroupSelector);
+  check("collapsing and re-expanding a worktree does not refetch its status", statusInvokeCount() === statusAfterFirstLoad);
+  await page.locator(betaGroupSelector + " [data-conversation-worktree-refresh]").click();
+  await page.waitForFunction(selector => document.querySelector(selector)?.getAttribute("data-conversation-worktree-group-status") === "loading", betaGroupSelector);
+  await page.waitForFunction(selector => document.querySelector(selector)?.getAttribute("data-conversation-worktree-group-status") === "ready", betaGroupSelector);
+  check("manual refresh explicitly reloads the worktree status", statusInvokeCount() === statusAfterFirstLoad + 1);
+  // 状态拉取失败 → 组内「无法读取」+ 重试；重试成功后分支出现。
+  conversation.statusFailGamma = true;
+  const statusBeforeGamma = statusInvokeCount();
+  await page.locator(gammaGroupSelector + " [data-conversation-worktree-toggle]").click();
+  await page.waitForFunction(selector => document.querySelector(selector)?.getAttribute("data-conversation-worktree-group-status") === "error", gammaGroupSelector);
+  check("status load failure shows an unreadable state with retry", (await page.locator(gammaGroupSelector + " [data-conversation-worktree-error]").innerText()).includes("无法读取") && await page.locator(gammaGroupSelector + " [data-conversation-worktree-retry]").count() === 1);
+  conversation.statusFailGamma = false;
+  await page.locator(gammaGroupSelector + " [data-conversation-worktree-retry]").click();
+  await page.waitForFunction(selector => document.querySelector(selector)?.getAttribute("data-conversation-worktree-group-status") === "ready", gammaGroupSelector);
+  check("retry after a status failure loads the worktree branches", await page.locator(gammaGroupSelector + ' [data-conversation-branch="gamma-topic"]').count() === 1 && statusInvokeCount() === statusBeforeGamma + 2);
+  // 只读预览：其它工作树分支 → 消息 + 蒙版 + 【打开此工作树并继续此对话】；零写调用。
+  const writesBeforeBrowsing = writeInvokeCount();
+  await page.locator(betaGroupSelector + ' [data-conversation-branch="beta-topic"]').click();
+  await page.locator("[data-project-preview]").waitFor();
+  const crossPreviewMessages = await page.locator("[data-project-preview-thread] [data-message-author]").evaluateAll(elements => elements.map(element => element.innerText.trim()));
+  check("browsing another worktree branch is read-only and triggers no write tool", await page.locator("[data-project-preview]").getAttribute("data-project-preview-kind") === "cross"
+    && await page.locator("[data-project-preview]").getAttribute("data-project-preview-worktree") === "wt-beta"
+    && crossPreviewMessages.length === 2 && crossPreviewMessages[0].includes("在这个工作树里写新鼓组")
+    && await page.locator("[data-project-composer-mask]").count() === 1 && await page.locator("[data-project-composer] input").isDisabled()
+    && writeInvokeCount() === writesBeforeBrowsing);
+  check("cross-worktree preview offers the open-worktree continue action", (await page.locator("[data-project-preview-continue]").innerText()).includes("打开此工作树并继续此对话") && await page.locator("[data-project-preview-continue]").getAttribute("data-project-preview-action") === "cross");
+  // checkout_blocked：跨工作树继续禁用并说明；解除后恢复。
+  conversation.checkoutBlocked = true;
+  await page.locator("[data-entry-rail-settings]").click();
+  await page.locator("[data-entry-settings][open]").waitFor();
+  await page.waitForFunction(() => Boolean(document.querySelector("[data-conversation-blocked]")));
+  await page.keyboard.press("Escape");
+  check("checkout_blocked disables the cross-worktree continue action with a reason", await page.locator("[data-project-preview-continue]").isDisabled() && await page.locator("[data-project-preview-blocked]").count() === 1 && await page.locator("[data-conversation-new]").isDisabled());
+  conversation.checkoutBlocked = false;
+  await page.locator("[data-entry-rail-settings]").click();
+  await page.locator("[data-entry-settings][open]").waitFor();
+  await page.waitForFunction(() => !document.querySelector("[data-conversation-blocked]"));
+  await page.keyboard.press("Escape");
+  check("cross-worktree continue re-enables after the turn stops", await page.locator("[data-project-preview-continue]").isEnabled());
+  // 跨工作树继续：confirm 文案 → version.conversation_open 实参 → 失败保留预览+披露 → 重试成功刷新高亮。
+  const dialogsBeforeCross = dialogMessages.length;
+  conversation.crossFail = true;
+  const openCallsBefore = report.invokes.filter(invoke => invoke.tool === "version.conversation_open").length;
+  await page.locator("[data-project-preview-continue]").click();
+  await page.waitForFunction(() => Boolean(document.querySelector("[data-project-preview-error]")));
+  const crossFailureText = await page.locator("[data-project-preview-error]").innerText();
+  check("cross-worktree continue confirms opening the worktree and its project state", dialogMessages.slice(dialogsBeforeCross).some(message => message.includes("打开工作树「wt-beta」并继续此对话") && message.includes("工程状态")));
+  check("failed cross-worktree continue keeps the preview and discloses target_materialized", crossFailureText.includes("kernel project reload failed") && crossFailureText.includes("目标副本已物化：是") && crossFailureText.includes("分支提示") && await page.locator("[data-project-preview]").count() === 1 && await page.locator("[data-project-preview-continue]").isEnabled() && report.invokes.filter(invoke => invoke.tool === "version.conversation_open").length === openCallsBefore + 1);
+  conversation.crossFail = false;
+  await page.locator("[data-project-preview-continue]").click();
+  await page.locator("[data-project-preview-busy]").waitFor();
+  check("cross-worktree continue shows loading and disables repeat clicks", await page.locator("[data-project-preview-continue]").isDisabled() && (await page.locator("[data-project-preview-busy]").innerText()).includes("正在打开工作树并切换工程状态"));
+  await page.waitForFunction(() => !document.querySelector("[data-project-preview]"));
+  const successOpenInvoke = report.invokes.filter(invoke => invoke.tool === "version.conversation_open").at(-1);
+  check("cross-worktree continue invokes version.conversation_open with worktree+branch+head node", successOpenInvoke?.args?.project_file_path === BETA_PROJECT_PATH && successOpenInvoke?.args?.branch === "beta-topic" && successOpenInvoke?.args?.node_id === "n-beta-topic-vit" && successOpenInvoke?.confirmed === true && successOpenInvoke?.source === "ask_vit_webui_conversation");
+  await page.waitForFunction(() => {
+    const label = document.querySelector('[data-conversation-worktree][data-conversation-worktree-active="true"] [data-conversation-worktree-label]');
+    return Boolean(label) && (label.textContent || "").includes("wt-beta");
+  });
+  check("successful cross-worktree open switches the rail to the new active worktree and branch", (await page.locator('[data-conversation-worktree][data-conversation-worktree-active="true"] [data-conversation-worktree-label]').innerText()).trim() === "wt-beta" && await page.locator('[data-conversation-branch="beta-topic"][data-conversation-branch-active="true"]').count() === 1 && await page.locator("[data-project-preview]").count() === 0 && !await page.locator("[data-project-composer] input").isDisabled());
   await settleMotion();
   const newTextContrast = await page.locator("[data-native-focus-hint], [data-window-launch-feedback] h3, [data-window-launch-feedback] p").evaluateAll(elements => {
     const rgb = color => (color.match(/[\d.]+/g) || []).map(Number);
