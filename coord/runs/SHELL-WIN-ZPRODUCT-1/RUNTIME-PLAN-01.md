@@ -72,3 +72,9 @@ Separately allow one external invocation `runtime_external_02` using the same fi
 External02 exited 3 before open: its natural foreground was the VitShell itself (PID5340). No product assertion failed; host exit 0, no teardown error, zero LLM, independent clearance and six hashes passed. The user is now instructed to switch naturally back to Edge after the next product window appears, using the already agreed foreground setup cooperation; assertions remain automated and no agent desktop control is used.
 
 Allow one external03 with the changed explicit foreground setup, 60-second read-only condition wait, same final script/product/owner, fresh `C:/Users/timoz/AppData/Local/Temp/shell409-product-stage9-6afacba69fb44d85be224cdfe5702f88` and its `frontend/`, fresh `runtime_external_03`. This is not another run against the same unfulfilled foreground setup. All criteria and stop limits remain; no automatic additional run.
+
+## Confirmed live external setup, 13:43 +08:00
+
+External03 remained not exercised and exited 3 before open; independent clearance and all six authority hashes passed. The user has now explicitly replied “现在开始，我保持 Codex 前台”. After the new host appears, the user will bring the existing Codex window back to foreground; no automated focus control is allowed.
+
+Authorize only one external04, final script/product hashes and supervisor owner unchanged, fresh `C:/Users/timoz/AppData/Local/Temp/shell409-product-stage10-583d6a6ead3647d8b110fa5306048a83`, its `frontend/`, fresh `runtime_external_04`, read-only natural-condition wait 60 seconds. Criteria, hygiene and stop limits remain unchanged; missing condition still exits 3 and no automatic further run follows.
