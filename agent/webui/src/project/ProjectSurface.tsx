@@ -93,12 +93,15 @@ import {
   conversationActiveNodeId,
   conversationBranchMessages,
   conversationHasProjectIdentity,
-  nextConversationBranchName
+  nextConversationBranchName,
+  type ConversationBranchTarget,
+  type ConversationWorktreeStatus,
+  type ConversationWorktreeStatusMap
 } from "../entry/conversationData";
 import { invokeAgent } from "../lib/api";
 import { buildHistoryInvokeContext, historyToolArgs } from "../history/tree";
 import { asRecord, textValue } from "../lib/util";
-import type { AgentUIState } from "../types";
+import type { AgentInvokeResponse, AgentUIState } from "../types";
 
 export interface ProjectFixtureOverrides {
   /** fixture 工程上下文（离线注入；source 必须为 "fixture"）。 */
@@ -191,6 +194,30 @@ function bridgeExecStateLabel(state: ProjectBridgeExecState["state"]): string {
     default:
       return "未完成";
   }
+}
+
+/**
+ * CONV-RAIL-CROSS-1（421）：version.conversation_open 失败文案——如实披露回执里的
+ * target_materialized（目标副本是否已物化）与 branch_warning，不静默、不美化失败。
+ */
+function conversationOpenFailureText(response: AgentInvokeResponse): string {
+  const result = asRecord(response.result);
+  const parts = [response.error || "打开工作树并继续对话失败。"];
+  const materialized = result.target_materialized;
+  if (materialized === true || materialized === false) {
+    parts.push(`目标副本已物化：${materialized ? "是" : "否"}`);
+  } else if (typeof materialized === "string" && materialized.trim()) {
+    parts.push(`目标副本物化状态：${materialized.trim()}`);
+  }
+  const branchWarning = textValue(result.branch_warning, "");
+  if (branchWarning) {
+    parts.push(`分支提示：${branchWarning}`);
+  }
+  const switchWarning = textValue(result.switch_autosave_warning, "");
+  if (switchWarning) {
+    parts.push(`切换前保存提示：${switchWarning}`);
+  }
+  return parts.join("；");
 }
 
 function TrajectoryItem({ view }: { view: TrajectoryView }) {
@@ -380,27 +407,98 @@ export function ProjectSurface({
   const serviceRef = useRef<ProjectService | null>(fixtureService);
   const contextRunRef = useRef(0);
 
-  // ── CONV-RAIL-1（418，B2a）：对话流左栏 + 只读预览 + 继续/新对话 ──
-  // 数据源=App 注入的 /agent/ui/state（project_history 对话图 + checkout_blocked）。
-  // 预览与动作一律不触碰 DAW：只有【继续此对话】（version.checkout）才重载工程状态。
+  // ── CONV-RAIL-1（418，B2a）/ CONV-RAIL-CROSS-1（421，B2b）：对话流左栏 + 只读预览 ──
+  // 数据源=App 注入的 /agent/ui/state（project_history 对话图 + checkout_blocked）；
+  // 其它工作树展开时懒加载 version.status（只读），缓存于本组件（跨 surface 切换不丢）。
+  // 浏览一律不写：当前工作树分支走 version.checkout，其它工作树走 version.conversation_open。
   const conversationHistory = asRecord(conversationUIState?.project_history);
   const conversationActiveBranch = conversationActiveBranchName(conversationHistory);
   const conversationActiveNode = conversationActiveNodeId(conversationHistory);
   const conversationCheckoutBlocked = Boolean(conversationUIState?.checkout_blocked);
-  const [previewBranch, setPreviewBranch] = useState<string | null>(null);
+  const [previewTarget, setPreviewTarget] = useState<ConversationBranchTarget | null>(null);
   const [conversationBusy, setConversationBusy] = useState(false);
   const [conversationError, setConversationError] = useState("");
+  const [expandedWorktreeKeys, setExpandedWorktreeKeys] = useState<string[]>([]);
+  const [worktreeStatus, setWorktreeStatus] = useState<ConversationWorktreeStatusMap>({});
+  const worktreeStatusRef = useRef<ConversationWorktreeStatusMap>({});
+  const worktreeRequestRef = useRef<Set<string>>(new Set());
+  const previewing = Boolean(previewTarget);
   const previewMessages = useMemo(
-    () => (previewBranch ? conversationBranchMessages(conversationHistory, previewBranch) : []),
-    [conversationHistory, previewBranch]
+    () => (previewTarget ? conversationBranchMessages(previewTarget.history, previewTarget.branch) : []),
+    [previewTarget]
   );
   // 离开工程面（切回管理视图）时清掉只读预览：下次进入工程面仍在当前对话。
   useEffect(() => {
     if (!active) {
-      setPreviewBranch(null);
+      setPreviewTarget(null);
       setConversationError("");
     }
   }, [active]);
+
+  const applyWorktreeStatus = useCallback((key: string, next: ConversationWorktreeStatus) => {
+    worktreeStatusRef.current = { ...worktreeStatusRef.current, [key]: next };
+    setWorktreeStatus(worktreeStatusRef.current);
+  }, []);
+
+  /**
+   * 懒加载其它工作树 version.status（只读，不 checkout/不 open_project/不重载 DAW）。
+   * 展开一次只取一次：已缓存或已失败时不自动重取（失败由用户显式点重试）；force=手动刷新。
+   */
+  const loadWorktreeStatus = useCallback(
+    async (key: string, projectFilePath: string, force = false) => {
+      if (!key || !projectFilePath || worktreeRequestRef.current.has(key)) {
+        return;
+      }
+      const current = worktreeStatusRef.current[key];
+      if (!force && (current?.history || current?.error)) {
+        return;
+      }
+      worktreeRequestRef.current.add(key);
+      applyWorktreeStatus(key, { loading: true, error: "", history: current?.history ?? null });
+      try {
+        const response = await invokeAgent({
+          tool: "version.status",
+          args: { project_path: projectFilePath },
+          confirmed: false,
+          source: "ask_vit_webui_conversation"
+        });
+        if (response.error || response.status === "error") {
+          throw new Error(response.error || "读取工作树历史失败。");
+        }
+        const result = asRecord(response.result ?? response.project_history);
+        applyWorktreeStatus(key, { loading: false, error: "", history: result });
+      } catch (error) {
+        applyWorktreeStatus(key, {
+          loading: false,
+          error: error instanceof Error ? error.message : "读取工作树历史失败。",
+          history: current?.history ?? null
+        });
+      } finally {
+        worktreeRequestRef.current.delete(key);
+      }
+    },
+    [applyWorktreeStatus]
+  );
+
+  const toggleWorktree = useCallback(
+    (key: string, projectFilePath: string) => {
+      setExpandedWorktreeKeys((previous) =>
+        previous.includes(key) ? previous.filter((item) => item !== key) : [...previous, key]
+      );
+      const current = worktreeStatusRef.current[key];
+      if (!current?.history && !current?.loading && !current?.error) {
+        void loadWorktreeStatus(key, projectFilePath);
+      }
+    },
+    [loadWorktreeStatus]
+  );
+
+  const refreshWorktree = useCallback(
+    (key: string, projectFilePath: string) => {
+      void loadWorktreeStatus(key, projectFilePath, true);
+    },
+    [loadWorktreeStatus]
+  );
 
   const refreshConversationState = useCallback(async () => {
     try {
@@ -411,55 +509,85 @@ export function ProjectSurface({
   }, [onRefreshConversationState]);
 
   const exitConversationPreview = useCallback(() => {
-    setPreviewBranch(null);
+    setPreviewTarget(null);
     setConversationError("");
   }, []);
 
   const selectConversationBranch = useCallback(
-    (branch: string) => {
+    (target: ConversationBranchTarget) => {
       setConversationError("");
-      // 点当前分支=清预览；点其它分支=只读预览（不调 checkout、不重载工程）。
-      setPreviewBranch(branch && branch !== conversationActiveBranch ? branch : null);
+      // 点当前分支=清预览；点其它分支（含其它工作树/未归属分支）=只读预览，
+      // 浏览本身不调任何写工具、不重载工程。
+      if (target.isActiveWorktree && target.branch === conversationActiveBranch) {
+        setPreviewTarget(null);
+        return;
+      }
+      setPreviewTarget(target);
     },
     [conversationActiveBranch]
   );
 
   const continueConversation = useCallback(
-    async (branch: string) => {
-      if (!branch || branch === conversationActiveBranch || conversationBusy) {
+    async (target: ConversationBranchTarget) => {
+      if (!target || conversationBusy) {
+        return;
+      }
+      if (target.isActiveWorktree && target.branch === conversationActiveBranch) {
         return;
       }
       if (conversationCheckoutBlocked) {
         setConversationError("Agent Turn 正在运行；请先 Stop Turn 再继续该对话。");
         return;
       }
-      // 继续=单次工程重载：先显式确认「将回到该对话对应的工程状态」。
-      if (
-        !window.confirm(
-          "继续此对话会回到该对话对应的工程状态（当前工程未保存的改动按既有自动保存语义处理）。是否继续？"
-        )
-      ) {
+      if (target.readOnly) {
+        setConversationError("该分支未归属任何可打开的工作树，仅支持只读浏览。");
+        return;
+      }
+      // 继续=单次工程重载；跨工作树=组合缝 version.conversation_open（一次 reload）。
+      // 先显式确认「将回到/打开该对话对应的工程状态」。
+      const confirmText = target.isActiveWorktree
+        ? "继续此对话会回到该对话对应的工程状态（当前工程未保存的改动按既有自动保存语义处理）。是否继续？"
+        : `打开工作树「${target.worktreeLabel}」并继续此对话？这会切换到该工作树对应的工程状态（当前工程未保存的改动按既有自动保存语义处理）。是否继续？`;
+      if (!window.confirm(confirmText)) {
         return;
       }
       setConversationBusy(true);
       setConversationError("");
       try {
-        const response = await invokeAgent({
-          tool: "version.checkout",
-          args: historyToolArgs(conversationHistory, { branch }),
-          confirmed: true,
-          source: "ask_vit_webui_conversation",
-          context: buildHistoryInvokeContext(conversationUIState ?? null, conversationHistory)
-        });
-        if (response.error || response.status === "error") {
-          throw new Error(response.error || "继续对话失败。");
+        if (target.isActiveWorktree) {
+          const response = await invokeAgent({
+            tool: "version.checkout",
+            args: historyToolArgs(conversationHistory, { branch: target.branch }),
+            confirmed: true,
+            source: "ask_vit_webui_conversation",
+            context: buildHistoryInvokeContext(conversationUIState ?? null, conversationHistory)
+          });
+          if (response.error || response.status === "error") {
+            throw new Error(response.error || "继续对话失败。");
+          }
+        } else {
+          // 组合缝：目标工作树副本 + 分支 + head 节点；agent 侧做校验/autosave/物化/
+          // 恰一次内核 reload。失败时回执仍披露 target_materialized/branch_warning。
+          const response = await invokeAgent({
+            tool: "version.conversation_open",
+            args: {
+              project_file_path: target.projectFilePath,
+              branch: target.branch,
+              node_id: target.headNodeId
+            },
+            confirmed: true,
+            source: "ask_vit_webui_conversation"
+          });
+          if (response.error || response.status === "error") {
+            throw new Error(conversationOpenFailureText(response));
+          }
         }
         // 先等 ui state 刷新到位再清预览：loading 期间仍保留「正在切换工程状态」的
         // 可读态，避免旧树/旧高亮短暂复现。
         await refreshConversationState();
-        setPreviewBranch(null);
+        setPreviewTarget(null);
       } catch (error) {
-        // 失败保留只读预览并显示原因；不自动重试（与 HistoryPane 同语义）。
+        // 失败保留只读预览并显示原因；不自动重试（重试=用户再次点击动作按钮）。
         setConversationError(error instanceof Error ? error.message : "继续对话失败。");
       } finally {
         setConversationBusy(false);
@@ -535,7 +663,7 @@ export function ProjectSurface({
         }
       }
       await refreshConversationState();
-      setPreviewBranch(null);
+      setPreviewTarget(null);
     } catch (error) {
       setConversationError(error instanceof Error ? error.message : "新建对话失败。");
     } finally {
@@ -721,7 +849,7 @@ export function ProjectSurface({
       const trimmed = text.trim();
       const service = serviceRef.current;
       // 只读预览期间输入被蒙版禁用：即使事件绕过 UI 也不得发送。
-      if (!trimmed || previewBranch || state.inputDisabled || state.replying || launchBusy || !service) return;
+      if (!trimmed || previewing || state.inputDisabled || state.replying || launchBusy || !service) return;
       dispatch({ type: "userSent", id: nextProjectItemID("msg-user"), text: trimmed });
       setInput("");
       dispatch({ type: "replyStarted" });
@@ -747,7 +875,7 @@ export function ProjectSurface({
         void refreshConversationState();
       }
     },
-    [state.inputDisabled, state.replying, launchBusy, executeDirective, previewBranch, refreshConversationState]
+    [state.inputDisabled, state.replying, launchBusy, executeDirective, previewing, refreshConversationState]
   );
 
   // 确认卡/建议入口要调 send：以 ref 解回调环（send 定义于桥执行块之后）。
@@ -780,39 +908,66 @@ export function ProjectSurface({
   const contextName = state.context?.name ?? "";
   const contextSource = state.context?.source ?? "none";
 
-  // CONV-RAIL-1（418，B2a）：工程面左栏内容 = 当前工作树对话流树（数据=App 注入的
-  // ui state）；点击非当前分支只进入只读预览，不调 checkout、不重载工程。
+  // CONV-RAIL-CROSS-1（421，B2b）：工程面左栏内容 = 工作区→工作树→分支对话流树
+  //（数据=App 注入的 ui state + 其它工作树 version.status 懒加载缓存）；点击任何
+  // 非当前分支只进入只读预览，不调 checkout/open_project、不重载工程。
   const conversationRailPortal =
     conversationLive && railHost
       ? createPortal(
           <ConversationRail
             uiState={conversationUIState ?? null}
-            previewBranch={previewBranch}
+            expandedWorktreeKeys={expandedWorktreeKeys}
+            worktreeStatus={worktreeStatus}
+            previewTarget={previewTarget ? { worktreeKey: previewTarget.worktreeKey, branch: previewTarget.branch } : null}
             checkoutBlocked={conversationCheckoutBlocked}
             busy={conversationBusy}
             error={conversationError}
             onSelectBranch={selectConversationBranch}
+            onToggleWorktree={toggleWorktree}
+            onRefreshWorktree={refreshWorktree}
             onNewConversation={() => void startNewConversation()}
           />,
           railHost
         )
       : null;
 
-  // CONV-RAIL-1（418，B2a）：只读预览内容——上方继续卡（确认/守卫/失败原因）+ 分支
-  // head 回溯 parent 链的消息路径（Message 组件只读渲染）。
-  const conversationPreview = previewBranch ? (
-    <div className="v5-project-preview" data-project-preview data-project-preview-branch={previewBranch}>
+  // CONV-RAIL-1（418，B2a）/ CONV-RAIL-CROSS-1（421，B2b）：只读预览内容——
+  // 上方动作卡（继续/打开此工作树并继续 + 确认/守卫/失败原因/重试）+ 分支 head
+  // 回溯 parent 链的消息路径（Message 组件只读渲染）。
+  const previewKind = previewTarget
+    ? previewTarget.readOnly
+      ? "readonly"
+      : previewTarget.isActiveWorktree
+        ? "current"
+        : "cross"
+    : "";
+  const conversationPreview = previewTarget ? (
+    <div
+      className="v5-project-preview"
+      data-project-preview
+      data-project-preview-branch={previewTarget.branch}
+      data-project-preview-worktree={previewTarget.worktreeLabel}
+      data-project-preview-kind={previewKind}
+    >
       <div className="v5-project-preview-card" data-project-preview-card>
         <div className="v5-project-preview-head">
           <span className="v5-project-preview-title" data-project-preview-title>
-            正在只读浏览历史对话
+            {previewKind === "current"
+              ? "正在只读浏览历史对话"
+              : previewKind === "cross"
+                ? `正在只读浏览「${previewTarget.worktreeLabel}」的历史对话`
+                : "正在只读浏览未归属分支"}
           </span>
           <span className="v5-project-preview-branch" data-project-preview-branch-name>
-            {previewBranch}
+            {previewKind === "current" ? previewTarget.branch : `${previewTarget.worktreeLabel} · ${previewTarget.branch}`}
           </span>
         </div>
         <p className="v5-project-preview-note" data-project-preview-note>
-          浏览历史对话不切换工程、不重载 DAW，输入已暂停。继续此对话会回到该对话对应的工程状态（当前工程未保存的改动按既有自动保存语义处理）。
+          {previewKind === "current"
+            ? "浏览历史对话不切换工程、不重载 DAW，输入已暂停。继续此对话会回到该对话对应的工程状态（当前工程未保存的改动按既有自动保存语义处理）。"
+            : previewKind === "cross"
+              ? "浏览其它工作树不切换工程、不重载 DAW，输入已暂停。打开此工作树并继续此对话会切换到该工作树的工程状态（当前工程未保存的改动按既有自动保存语义处理）。"
+              : "该分支未归属任何可打开的工作树，仅供只读浏览；输入已暂停。"}
         </p>
         {conversationError ? (
           <p className="v5-project-preview-error" data-project-preview-error>
@@ -820,15 +975,22 @@ export function ProjectSurface({
           </p>
         ) : null}
         <div className="v5-project-preview-actions" data-project-preview-actions>
-          <button
-            type="button"
-            className="v5-btn v5-btn--primary"
-            data-project-preview-continue
-            disabled={conversationBusy || conversationCheckoutBlocked}
-            onClick={() => void continueConversation(previewBranch)}
-          >
-            继续此对话
-          </button>
+          {previewKind === "readonly" ? (
+            <span className="v5-project-preview-readonly-note" data-project-preview-readonly-note>
+              未归属分支仅支持只读浏览
+            </span>
+          ) : (
+            <button
+              type="button"
+              className="v5-btn v5-btn--primary"
+              data-project-preview-continue
+              data-project-preview-action={previewKind}
+              disabled={conversationBusy || conversationCheckoutBlocked}
+              onClick={() => void continueConversation(previewTarget)}
+            >
+              {previewKind === "current" ? "继续此对话" : "打开此工作树并继续此对话"}
+            </button>
+          )}
           <button
             type="button"
             className="v5-btn v5-btn--secondary"
@@ -845,7 +1007,7 @@ export function ProjectSurface({
           ) : null}
           {conversationBusy ? (
             <span className="v5-project-preview-busy" data-project-preview-busy>
-              正在切换工程状态…
+              {previewKind === "current" ? "正在切换工程状态…" : "正在打开工作树并切换工程状态…"}
             </span>
           ) : null}
         </div>
@@ -1192,7 +1354,7 @@ export function ProjectSurface({
               <TextField
                 value={input}
                 placeholder={
-                  previewBranch
+                  previewing
                     ? "只读浏览中，返回当前对话后可继续输入"
                     : composerDisabled
                       ? "装载完成后可继续输入"
@@ -1200,15 +1362,15 @@ export function ProjectSurface({
                         ? "Vit 正在回复…"
                         : "告诉 Vit 下一步做什么"
                 }
-                disabled={composerDisabled || Boolean(previewBranch)}
+                disabled={composerDisabled || previewing}
                 disabledHint="返回当前对话后可继续输入"
                 busy={composerBusy}
                 onChange={setInput}
                 onSend={() => void send(input)}
                 onStop={stopReply}
               />
-              {/* B2a：只读预览时输入蒙版——禁用输入并保留「返回当前对话」入口。 */}
-              {previewBranch ? (
+              {/* B2a/B2b：只读预览时输入蒙版——禁用输入并保留「返回当前对话」入口。 */}
+              {previewTarget ? (
                 <div className="v5-project-composer-mask" data-project-composer-mask>
                   <span className="v5-project-composer-mask-text" data-project-composer-mask-text>
                     正在只读浏览历史对话，输入已暂停

@@ -260,36 +260,33 @@ export function formatConversationActivity(value: string): string {
   return `${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
+/** 单个分支行摘要（标题/副标/head 节点/活动时间；历史缺失时降级为「新对话」）。 */
+export function conversationBranchSummary(history: JsonRecord, branchName: string): ConversationBranchSummary {
+  const name = branchName.trim();
+  const headNode = name ? conversationBranchHeadNode(history, name) : null;
+  const updatedAt = headNode ? textValue(headNode.created_at, "") : "";
+  const active = Boolean(name) && name === conversationActiveBranchName(history);
+  const activity = active
+    ? "当前对话"
+    : updatedAt
+      ? `最近活动 ${formatConversationActivity(updatedAt)}`
+      : "暂无活动";
+  return {
+    name,
+    title: name ? conversationBranchTitle(history, name) : "新对话",
+    subtitle: `${name} · ${activity}`,
+    head: textValue(asRecord(history.branches)[name], "") || (headNode ? textValue(headNode.commit_id, "") : ""),
+    headNodeId: headNode ? textValue(headNode.id, "") : "",
+    updatedAt,
+    active,
+    nodeCount: name ? conversationNodes(history).filter((node) => textValue(node.branch, "") === name).length : 0,
+    previewAvailable: Boolean(headNode)
+  };
+}
+
 /** 左栏分支行（顺序=分支名排序；active 高亮只标当前活动分支）。 */
 export function conversationBranchRows(history: JsonRecord): ConversationBranchSummary[] {
-  const names = conversationBranchNames(history);
-  if (names.length === 0) {
-    return [];
-  }
-  const nodes = conversationNodes(history);
-  const activeBranch = conversationActiveBranchName(history);
-  const branches = asRecord(history.branches);
-  return names.map((name) => {
-    const headNode = conversationBranchHeadNode(history, name);
-    const updatedAt = headNode ? textValue(headNode.created_at, "") : "";
-    const active = name === activeBranch;
-    const activity = active
-      ? "当前对话"
-      : updatedAt
-        ? `最近活动 ${formatConversationActivity(updatedAt)}`
-        : "暂无活动";
-    return {
-      name,
-      title: conversationBranchTitle(history, name),
-      subtitle: `${name} · ${activity}`,
-      head: textValue(branches[name], "") || (headNode ? textValue(headNode.commit_id, "") : ""),
-      headNodeId: headNode ? textValue(headNode.id, "") : "",
-      updatedAt,
-      active,
-      nodeCount: nodes.filter((node) => textValue(node.branch, "") === name).length,
-      previewAvailable: Boolean(headNode)
-    };
-  });
+  return conversationBranchNames(history).map((name) => conversationBranchSummary(history, name));
 }
 
 /** 分支只读预览消息：head 节点回溯 parent 链，ask→user / vit→vit（其余节点跳过）。 */
@@ -372,6 +369,329 @@ export function conversationRailView(uiState: AgentUIState | null): Conversation
     hasProjectIdentity: conversationHasProjectIdentity(history),
     hasHistory: branches.length > 0
   };
+}
+
+/* ============================================================================
+ * CONV-RAIL-CROSS-1（421，B2b）：工作区 → 工作树 → 分支 树与分支归属
+ *
+ * 数据面：
+ * - 工作树清单 = historyWorktreeRows(history)（现有纯函数；行含 name/label/path/
+ *   project_file_path/head commit/active）。当前工作树的历史 = 当前 ui state；
+ *   其它工作树只在展开时经 version.status 懒加载（ProjectSurface 持有缓存态），
+ *   本层接收 statusByKey 纯数据。
+ * - 分支归属（同一分支只出现在一个工作树组，B2a 边界收口）优先级：
+ *   ① 该分支是某工作树的 active_branch（当前工作树优先，然后其它已加载/未加载行）；
+ *   ② 分支 head commit == 某工作树 head（唯一命中才归属，多个命中视为无法归属）；
+ *   ③ 已加载的其它工作树 conversation_graph 里存在该分支节点；
+ *   ④ 当前工作树 conversation_graph 里存在该分支节点（B2a 连续性）；
+ *   ⑤ 仍无法归属 → 工作区级「其他分支」组（只读，无继续动作）。
+ * - 预览/继续由渲染面料消费 branchTarget（含归属工作树、该工作树 history 与 head
+ *   节点 id）：当前工作树走 version.checkout，其它工作树走 version.conversation_open。
+ * ========================================================================== */
+
+/** 其它工作树懒加载状态（缓存于 ProjectSurface；rail 只读消费）。 */
+export interface ConversationWorktreeStatus {
+  loading?: boolean;
+  error?: string;
+  history?: JsonRecord | null;
+}
+
+export type ConversationWorktreeStatusMap = Record<string, ConversationWorktreeStatus>;
+
+/** 左栏可点的分支行 = 分支摘要 + 归属工作树 + 预览所需 history/head 节点。 */
+export interface ConversationBranchTarget extends ConversationBranchSummary {
+  /** 分支名（=name；继续/打开动作的 branch 实参直接用该字段）。 */
+  branch: string;
+  /** 归属工作树 key（工作区级「其他分支」为固定值 OTHER_BRANCHES_KEY）。 */
+  worktreeKey: string;
+  worktreeLabel: string;
+  projectFilePath: string;
+  /** 是否当前活动工作树（决定【继续此对话】vs【打开此工作树并继续此对话】）。 */
+  isActiveWorktree: boolean;
+  /** 工作区级未归属分支：只读浏览，无继续动作。 */
+  readOnly: boolean;
+  /** 该分支所属工作树的 history（只读预览回溯源；不触发任何写操作）。 */
+  history: JsonRecord;
+}
+
+/** 其它工作树分组行（折叠态也显示名称/路径/head/已知当前分支）。 */
+export interface ConversationWorktreeGroupView {
+  key: string;
+  name: string;
+  label: string;
+  path: string;
+  projectFilePath: string;
+  headCommitID: string;
+  active: boolean;
+  isRoot: boolean;
+  /** 该工作树当前分支（未懒加载时为空=未知，不伪造）。 */
+  currentBranch: string;
+  /** 是否已取到 version.status 历史。 */
+  loaded: boolean;
+  loading: boolean;
+  error: string;
+  branches: ConversationBranchTarget[];
+}
+
+/** 左栏跨工作树树视图。 */
+export interface ConversationRailGroupsView {
+  activeGroup: ConversationWorktreeGroupView | null;
+  otherGroups: ConversationWorktreeGroupView[];
+  /** 工作区级「其他分支」组（只读）。 */
+  otherBranches: ConversationBranchTarget[];
+  activeBranch: string;
+  activeNodeId: string;
+  /** 是否有工程身份（无活动节点时仍可「从当前工程状态新建对话」，427 语义）。 */
+  hasProjectIdentity: boolean;
+  hasHistory: boolean;
+}
+
+/** 工作区级「其他分支」的固定 key（不属于任何工作树）。 */
+export const OTHER_BRANCHES_KEY = "workspace:other-branches";
+
+function hasHistoryData(history: JsonRecord | null | undefined): history is JsonRecord {
+  return Boolean(history && Object.keys(history).length > 0);
+}
+
+function branchHasGraphNodes(history: JsonRecord, branchName: string): boolean {
+  return conversationNodes(history).some((node) => textValue(node.branch, "") === branchName);
+}
+
+function branchCommitRef(histories: JsonRecord[], branchName: string): string {
+  for (const history of histories) {
+    const head = textValue(asRecord(history.branches)[branchName], "");
+    if (head) {
+      return head;
+    }
+  }
+  return "";
+}
+
+/** 分支目标行：摘要优先取「有该分支节点」的工作树历史（保证标题/预览一致）。 */
+function branchTargetFor(
+  branchName: string,
+  histories: JsonRecord[],
+  fallback: JsonRecord,
+  worktreeKey: string,
+  worktreeLabel: string,
+  projectFilePath: string,
+  isActiveWorktree: boolean,
+  readOnly: boolean
+): ConversationBranchTarget {
+  const withNodes = histories.find((history) => branchHasGraphNodes(history, branchName)) ?? null;
+  const source = withNodes ?? histories[0] ?? fallback;
+  return {
+    ...conversationBranchSummary(source, branchName),
+    branch: branchName,
+    worktreeKey,
+    worktreeLabel,
+    projectFilePath,
+    isActiveWorktree,
+    readOnly,
+    history: source
+  };
+}
+
+/**
+ * 左栏跨工作树树视图：工作区 → 当前工作树组 + 其它工作树组（折叠/懒加载）+ 其他分支。
+ * 纯函数：不发起请求、不读写缓存；statusByKey 由 ProjectSurface 注入。
+ */
+export function conversationWorktreeGroups(
+  history: JsonRecord,
+  statusByKey: ConversationWorktreeStatusMap = {}
+): ConversationRailGroupsView {
+  const emptyView: ConversationRailGroupsView = {
+    activeGroup: null,
+    otherGroups: [],
+    otherBranches: [],
+    activeBranch: "",
+    activeNodeId: "",
+    hasProjectIdentity: false,
+    hasHistory: false
+  };
+  if (!hasHistoryData(history)) {
+    return emptyView;
+  }
+  const rows = historyWorktreeRows(history);
+  if (rows.length === 0) {
+    // 无 worktree 记录时的单工作树回退（B2a 同款；project_path 推导已在 conversationWorktree）。
+    const fallbackWorktree = conversationWorktree(history);
+    if (!fallbackWorktree) {
+      return emptyView;
+    }
+    const key = fallbackWorktree.projectFilePath.replace(/\\/g, "/").toLowerCase() || "main";
+    const branches = conversationBranchNames(history).map((name) =>
+      branchTargetFor(name, [history], history, key, fallbackWorktree.label, fallbackWorktree.projectFilePath, true, false)
+    );
+    const activeBranch = conversationActiveBranchName(history);
+    return {
+      activeGroup: {
+        key,
+        name: "",
+        label: fallbackWorktree.label,
+        path: fallbackWorktree.path,
+        projectFilePath: fallbackWorktree.projectFilePath,
+        headCommitID: textValue(history.head, ""),
+        active: true,
+        isRoot: true,
+        currentBranch: activeBranch,
+        loaded: true,
+        loading: false,
+        error: "",
+        branches
+      },
+      otherGroups: [],
+      otherBranches: [],
+      activeBranch,
+      activeNodeId: conversationActiveNodeId(history),
+      hasProjectIdentity: conversationHasProjectIdentity(history),
+      hasHistory: branches.length > 0
+    };
+  }
+  // 当前工作树行：historyWorktreeRows 的 active 标记缺省为 root(none)；再用
+  // project_path 兜底匹配（active_worktree 名称与 worktree 行不一致时不丢当前组）。
+  let activeRow = rows.find((row) => row.active) ?? null;
+  if (!activeRow) {
+    const currentProjectPath = textValue(history.project_path ?? history.current_project_path, "");
+    if (currentProjectPath) {
+      activeRow =
+        rows.find((row) => row.projectFilePath && row.projectFilePath.toLowerCase() === currentProjectPath.toLowerCase()) ??
+        null;
+    }
+  }
+  activeRow = activeRow ?? rows[0];
+  const orderedRows = [activeRow, ...rows.filter((row) => row !== activeRow)];
+  const activeKey = activeRow.key;
+  const known = new Map<string, JsonRecord>();
+  if (hasHistoryData(history)) {
+    known.set(activeKey, history);
+  }
+  orderedRows.forEach((row) => {
+    if (row.key === activeKey) {
+      return;
+    }
+    const status = statusByKey[row.key];
+    if (status?.history && hasHistoryData(status.history)) {
+      known.set(row.key, status.history);
+    }
+  });
+  const orderedHistories = orderedRows
+    .map((row) => known.get(row.key) ?? null)
+    .filter(hasHistoryData);
+  const names = Array.from(
+    new Set(orderedHistories.flatMap((item) => conversationBranchNames(item)))
+  ).sort((left, right) => left.localeCompare(right));
+  const heads = new Map<string, string>();
+  orderedRows.forEach((row) => {
+    const rowHistory = known.get(row.key) ?? null;
+    heads.set(row.key, textValue(rowHistory?.head, "") || row.commitID);
+  });
+  const branchOf = (rowKey: string): string => {
+    const rowHistory = known.get(rowKey);
+    return rowHistory ? conversationActiveBranchName(rowHistory) : "";
+  };
+  const activeBranch = conversationActiveBranchName(history);
+  // ① active_branch 所有者优先（当前工作树先，然后其它行）。
+  const owners = new Map<string, string>();
+  orderedRows.forEach((row) => {
+    const branch = branchOf(row.key);
+    if (branch && names.includes(branch) && !owners.has(branch)) {
+      owners.set(branch, row.key);
+    }
+  });
+  // ② head commit == 工作树 head（唯一命中才归属；多命中=无法归属）。
+  names.forEach((name) => {
+    if (owners.has(name)) {
+      return;
+    }
+    const head = branchCommitRef(orderedHistories, name);
+    if (!head) {
+      return;
+    }
+    const candidates = orderedRows.filter((row) => heads.get(row.key) === head);
+    if (candidates.length === 1) {
+      owners.set(name, candidates[0].key);
+    }
+  });
+  // ③ 已加载的其它工作树 conversation_graph 含该分支节点（对话确实发生在那棵工作树）。
+  names.forEach((name) => {
+    if (owners.has(name)) {
+      return;
+    }
+    const candidate = orderedRows.find((row) => {
+      if (row.key === activeKey) {
+        return false;
+      }
+      const rowHistory = known.get(row.key);
+      return Boolean(rowHistory && branchHasGraphNodes(rowHistory, name));
+    });
+    if (candidate) {
+      owners.set(name, candidate.key);
+    }
+  });
+  // ④ 当前工作树 conversation_graph 含该分支节点（B2a 连续性：仍在当前组）。
+  names.forEach((name) => {
+    if (!owners.has(name) && branchHasGraphNodes(history, name)) {
+      owners.set(name, activeKey);
+    }
+  });
+  const groupFor = (row: (typeof orderedRows)[number], isActive: boolean): ConversationWorktreeGroupView => {
+    const rowHistory = known.get(row.key) ?? null;
+    const status = statusByKey[row.key] ?? {};
+    const ownedNames = isActive || rowHistory ? names.filter((name) => owners.get(name) === row.key) : [];
+    const preferredHistories = rowHistory ? [rowHistory] : orderedHistories;
+    const branches = ownedNames.map((name) =>
+      branchTargetFor(name, preferredHistories, history, row.key, row.label || row.name || "工作树", row.projectFilePath, isActive, false)
+    );
+    return {
+      key: row.key,
+      name: row.name,
+      label: row.label || row.name || "工作树",
+      path: row.path,
+      projectFilePath: row.projectFilePath,
+      headCommitID: heads.get(row.key) ?? "",
+      active: isActive,
+      isRoot: row.isRoot,
+      currentBranch: isActive ? activeBranch : rowHistory ? conversationActiveBranchName(rowHistory) : "",
+      loaded: Boolean(rowHistory),
+      loading: Boolean(status.loading),
+      error: textValue(status.error, ""),
+      branches
+    };
+  };
+  const activeGroup = groupFor(activeRow, true);
+  const otherGroups = orderedRows
+    .filter((row) => row !== activeRow)
+    .map((row) => groupFor(row, false))
+    .sort((left, right) => left.label.localeCompare(right.label));
+  const otherBranches = names
+    .filter((name) => !owners.has(name))
+    .map((name) =>
+      branchTargetFor(name, orderedHistories, history, OTHER_BRANCHES_KEY, "其他分支", "", false, true)
+    );
+  return {
+    activeGroup,
+    otherGroups,
+    otherBranches,
+    activeBranch,
+    activeNodeId: conversationActiveNodeId(history),
+    hasProjectIdentity: conversationHasProjectIdentity(history),
+    hasHistory: Boolean(
+      activeGroup && (activeGroup.branches.length > 0 || otherGroups.length > 0 || otherBranches.length > 0)
+    )
+  };
+}
+
+/** 目标分支是否=当前活动工作树的当前分支（决定继续动作语义）。 */
+export function conversationTargetIsActiveBranch(
+  groups: ConversationRailGroupsView,
+  target: ConversationBranchTarget
+): boolean {
+  return Boolean(
+    groups.activeGroup &&
+      target.worktreeKey === groups.activeGroup.key &&
+      target.branch === groups.activeBranch
+  );
 }
 
 /**
