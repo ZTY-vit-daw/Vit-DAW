@@ -7,6 +7,7 @@
 - 2026-11-18 12:24 +08:00 显式执行交接：原 owner 第二段因 `gpt-6.2-sol` 渠道 503 退出并关闭，无第二段文件改动、未占栈。接替 owner=Codex `/root/01a1ece5-c755-7853-b14a-ee0e4058b636`（GPT-6.1 Sol/high，PC），沿用上述两个独立 worktree；主仓领取 HEAD `90b42269`、status/diffstat 空；前端 HEAD `2d92d55`、继承 16 路径未提交候选（9 tracked 路径 +163/-5，7 untracked）。本次只接续已授权准备范围，真实栈仍未放行。
 - 2026-11-18 12:51 +08:00 主管复核准备段及装置窄修，完整staged Godot4.6.1导入exit0零错误；按 [RUNTIME-PLAN-01.md](../../runs/SHELL-WIN-ZPRODUCT-1/RUNTIME-PLAN-01.md) 单次放行 shell 条件真实栈（以远端资源登记成功为门），external不随本次自动执行。尚无产品验收结论，391手测仍未放行。
 - 2026-11-18 12:56 +08:00 首次调用在启动前被装置lease解析误拒，script exit2；产品未启动，不构成产品失败/PASS。wrapper元数据退出-1另留证；主管已核净并释放预留，六份权威hash一致。当前仅修正门禁并补实际资源行正反例，未经重新登记不运行；候选16路径保留。
+- 2026-11-18 13:31 +08:00 external01已实际open/DOM/agent state通过，原脚本因日志落点缺失exit4（保留）；默认日志按本轮身份补证后，冻结分类器对首显/z/16DIP/消息区间及854poll判据PASS，无纠正、无观测到激活。仍非正式端侧PASS，shell条件未覆盖；正窄修日志捕获，用户已答应下一轮仅自然前台配合自动烟测。原run与补充判定在smoke worktree同名run目录，391手测未放行。
 
 - 池序409；P1；PC；发卡/验收=GLM 主管决策流（ZCode 会话）；派发确认=已确认（用户 2026-11-17 三项裁定〔路径/显示后纠正可接受/原生缝可进产品〕+当晚裁定 A，见 [decisions/2026-11-17-window-z-path-and-seam-ruling.md](../../decisions/2026-11-17-window-z-path-and-seam-ruling.md) 与 408 卡收口节）。
 - 前置：408 取证 PASS（同线程 CHANGING z 事务机制已证，工件主仓 9873eaf1/前端 e3e6374）；停机期焦点违约已裁定产品窗外 known behavior。
