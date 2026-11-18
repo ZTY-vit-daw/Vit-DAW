@@ -432,17 +432,18 @@
   background: var(--v5-ui-rail);
 }
 .v5-project-footer button { min-height: 36px; }
-/* ---- CONV-WINDOW-MOTION-1（429）：工程内对话流切换（分支预览/返回当前分支/继续后）
- * 只动 v5-project-thread 内容体：opacity 0→1 + translateY 7px、300ms（280–320ms）缓出；
+/* ---- CONV-WINDOW-MOTION-1/2（429/430）：工程内对话流切换（分支预览/返回当前分支/继续后）
+ * 只动 v5-project-thread 内容体：opacity 0→1 + translateY 7px、420ms
+ *（--v5-conv-motion-content，430 从 300ms 放慢）emphasized-decelerate 缓动；
  * titlebar/composer/窗口壳保持静止（不参与动画），纯 CSS 由线程模式属性驱动，
  * 不重播加载卡（内容体 DOM 不重建）。两个模式用不同动画名，模式切换即重播一次。 ---- */
 
 .v5-project-thread[data-project-thread-mode="live"] {
-  animation: v5-project-thread-live-enter 300ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  animation: v5-project-thread-live-enter var(--v5-conv-motion-content, 420ms) var(--v5-conv-motion-ease, cubic-bezier(0.05, 0.7, 0.1, 1));
 }
 
 .v5-project-thread[data-project-thread-mode="preview"] {
-  animation: v5-project-thread-preview-enter 300ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  animation: v5-project-thread-preview-enter var(--v5-conv-motion-content, 420ms) var(--v5-conv-motion-ease, cubic-bezier(0.05, 0.7, 0.1, 1));
 }
 
 @keyframes v5-project-thread-live-enter {

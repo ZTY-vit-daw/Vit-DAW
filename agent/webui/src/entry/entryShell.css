@@ -200,13 +200,14 @@
     transition: none;
   }
 }
-/* ---- CONV-WINDOW-MOTION-1（429）：左栏槽内容过渡（启动页工程列表 ↔ 工程对话流） ----
- * 240ms（220–260ms 区间）淡入 + 4px 轻移，与左栏收展 180ms 区分；门户内容在 surface
- * 切换时旧内容立即卸载、只有新内容挂载并播放一次入场——同一时刻只动新内容，无瞬切。 */
+/* ---- CONV-WINDOW-MOTION-1/2（429/430）：左栏槽内容过渡（启动页工程列表 ↔ 工程对话流） ----
+ * 320ms（--v5-conv-motion-rail，430 再从 240ms 放慢；与左栏收展 180ms 区分）；右侧
+ * surface 层另行延迟 40ms 入场，形成左右错峰、不同时动。门户内容在 surface 切换时
+ * 旧内容立即卸载、只有新内容挂载并播放一次入场——同一时刻只动新内容，无瞬切。 */
 
 .v5-entry-rail-slot > .v5-launcher-drawer,
 .v5-entry-rail-slot > .v5-conversation-rail {
-  animation: v5-entry-rail-content-enter 240ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  animation: v5-entry-rail-content-enter var(--v5-conv-motion-rail, 320ms) var(--v5-conv-motion-ease, cubic-bezier(0.05, 0.7, 0.1, 1));
 }
 
 @keyframes v5-entry-rail-content-enter {

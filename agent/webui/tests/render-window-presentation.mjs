@@ -277,14 +277,30 @@ try {
   // CONV-WINDOW-SHELL-1（428，A 方案）：右侧常驻窗口壳 + 流层节点身份（后续跨 surface 比对）。
   const windowShellIdentity = await page.evaluateHandle(() => document.querySelector("[data-conversation-window]"));
   check("conversation window shell hosts the live launcher stream layer", await page.locator("[data-conversation-window]").count() === 1 && await page.locator('[data-conversation-layer="launcher"][data-conversation-layer-active="true"]').evaluate(layer => !layer.hidden && !layer.inert && layer.getAttribute("aria-hidden") === "false"));
-  // CONV-WINDOW-MOTION-1（429）：左栏槽内容 240ms（220–260）淡入；launcher 流内容体
-  // 300ms（280–320）只动内容体，标题栏/窗口壳静止。
-  check("entry rail content animates 220–260ms when the surface content swaps", await page.locator("[data-entry-rail-slot] > .v5-launcher-drawer").evaluate(drawer => {
+  // CONV-WINDOW-MOTION-2（430）：动效值抽成 CSS 自定义属性（--v5-conv-motion-layer/rail/content
+  // + ease，一处可调）；左栏内容 320ms、launcher 内容体 420ms；右侧 surface 层 480ms 且
+  // 延迟 40ms 起（与左栏错峰，避免两侧同时动）。
+  check("conversation motion values are tokenized in CSS custom properties", await page.evaluate(() => {
+    const style = getComputedStyle(document.documentElement);
+    const normalize = value => (value || "").replace(/\s+/g, "");
+    return style.getPropertyValue("--v5-conv-motion-layer").trim() === "480ms"
+      && style.getPropertyValue("--v5-conv-motion-rail").trim() === "320ms"
+      && style.getPropertyValue("--v5-conv-motion-content").trim() === "420ms"
+      && normalize(style.getPropertyValue("--v5-conv-motion-ease")).includes("cubic-bezier(0.05,0.7,0.1,1)");
+  }));
+  check("entry rail content animates 320ms with the emphasized ease when the surface content swaps", await page.locator("[data-entry-rail-slot] > .v5-launcher-drawer").evaluate(drawer => {
     const style = getComputedStyle(drawer);
     const durationMs = style.animationDuration.endsWith("ms") ? Number.parseFloat(style.animationDuration) : Number.parseFloat(style.animationDuration) * 1000;
-    return style.animationName === "v5-entry-rail-content-enter" && Number.isFinite(durationMs) && durationMs >= 220 && durationMs <= 260;
+    return style.animationName === "v5-entry-rail-content-enter" && Math.abs(durationMs - 320) <= 1 && style.animationTimingFunction.replace(/\s+/g, "") === "cubic-bezier(0.05,0.7,0.1,1)";
   }));
-  check("launcher stream content animates only the content body (titlebar/shell stay static)", await page.evaluate(() => {
+  check("right surface layer starts 40ms after the rail content (staggered, not simultaneous)", await page.evaluate(() => {
+    const layer = document.querySelector('[data-conversation-layer][data-conversation-layer-active="true"]');
+    const railContent = document.querySelector("[data-entry-rail-slot] > .v5-launcher-drawer");
+    if (!layer || !railContent) return false;
+    const delayMs = style => (style.animationDelay.endsWith("ms") ? Number.parseFloat(style.animationDelay) : Number.parseFloat(style.animationDelay) * 1000);
+    return Math.abs(delayMs(getComputedStyle(layer)) - 40) <= 1 && delayMs(getComputedStyle(railContent)) === 0;
+  }));
+  check("launcher stream content animates only the content body (420ms, titlebar/shell stay static)", await page.evaluate(() => {
     const layer = document.querySelector('[data-conversation-layer="launcher"]');
     const main = layer?.querySelector(".v5-launcher-main");
     const item = layer?.querySelector(".v5-launcher-thread > *");
@@ -294,8 +310,9 @@ try {
     const durationMs = style => (style.animationDuration.endsWith("ms") ? Number.parseFloat(style.animationDuration) : Number.parseFloat(style.animationDuration) * 1000);
     const mainStyle = getComputedStyle(main);
     const itemStyle = getComputedStyle(item);
-    return durationMs(mainStyle) >= 280 && durationMs(mainStyle) <= 320
-      && durationMs(itemStyle) >= 280 && durationMs(itemStyle) <= 320
+    return Math.abs(durationMs(mainStyle) - 420) <= 1
+      && Math.abs(durationMs(itemStyle) - 420) <= 1
+      && mainStyle.animationTimingFunction.replace(/\s+/g, "") === "cubic-bezier(0.05,0.7,0.1,1)"
       && getComputedStyle(titlebar).animationName === "none"
       && getComputedStyle(shell).animationName === "none";
   }));
@@ -665,15 +682,21 @@ try {
   }
   await emit({ type: "vit_window_state", window_state: null });
   check("absent native state returns unknown", await page.locator("[data-project-root]").getAttribute("data-native-focus") === "unknown");
-  // CONV-WINDOW-MOTION-1（429）：右侧流层 340ms（320–360）缓出 cubic-bezier(0.22,0.61,0.36,1)；
-  // 工程 thread 内容体 300ms（280–320）只动内容体，窗口壳/titlebar/composer 静止；
+  // CONV-WINDOW-MOTION-2（430）：右侧流层 480ms + emphasized-decelerate（0.05,0.7,0.1,1）
+  // 且延迟 40ms；工程 thread 内容体 420ms 只动内容体，窗口壳/titlebar/composer 静止；
   // 分支预览/返回只触发内容体过渡（线程节点身份不变，无 JS 定时器）。
-  check("active project layer crossfade is 320–360ms with the eased-out curve", await page.locator('[data-conversation-layer="project"]').evaluate(layer => {
+  const EMPHASIZED_DECELERATE = "cubic-bezier(0.05,0.7,0.1,1)";
+  check("active project layer crossfade is 480ms with the emphasized-decelerate curve and 40ms delay", await page.locator('[data-conversation-layer="project"]').evaluate(layer => {
     const style = getComputedStyle(layer);
     const durationMs = style.animationDuration.endsWith("ms") ? Number.parseFloat(style.animationDuration) : Number.parseFloat(style.animationDuration) * 1000;
-    return style.animationName === "v5-conversation-layer-enter" && Number.isFinite(durationMs) && durationMs >= 320 && durationMs <= 360 && style.animationTimingFunction.replace(/\s+/g, "") === "cubic-bezier(0.22,0.61,0.36,1)";
+    const delayMs = style.animationDelay.endsWith("ms") ? Number.parseFloat(style.animationDelay) : Number.parseFloat(style.animationDelay) * 1000;
+    return style.animationName === "v5-conversation-layer-enter"
+      && Math.abs(durationMs - 480) <= 1
+      && style.animationTimingFunction.replace(/\s+/g, "") === "cubic-bezier(0.05,0.7,0.1,1)"
+      && Math.abs(delayMs - 40) <= 1
+      && style.animationFillMode === "backwards";
   }));
-  check("project thread content transition is 280–320ms on the content body only", await page.evaluate(() => {
+  check("project thread content transition is 420ms on the content body only", await page.evaluate(() => {
     const thread = document.querySelector("[data-project-thread]");
     const titlebar = document.querySelector("[data-project-titlebar]");
     const composerElement = document.querySelector("[data-project-composer]");
@@ -683,16 +706,16 @@ try {
     const durationMs = style.animationDuration.endsWith("ms") ? Number.parseFloat(style.animationDuration) : Number.parseFloat(style.animationDuration) * 1000;
     return thread.getAttribute("data-project-thread-mode") === "live"
       && style.animationName === "v5-project-thread-live-enter"
-      && durationMs >= 280 && durationMs <= 320
-      && style.animationTimingFunction.replace(/\s+/g, "") === "cubic-bezier(0.22,0.61,0.36,1)"
+      && Math.abs(durationMs - 420) <= 1
+      && style.animationTimingFunction.replace(/\s+/g, "") === "cubic-bezier(0.05,0.7,0.1,1)"
       && getComputedStyle(titlebar).animationName === "none"
       && getComputedStyle(composerElement).animationName === "none"
       && getComputedStyle(shell).animationName === "none";
   }));
-  check("entry rail conversation content also animates 220–260ms", await page.locator("[data-entry-rail-slot] > .v5-conversation-rail").evaluate(rail => {
+  check("entry rail conversation content also animates 320ms", await page.locator("[data-entry-rail-slot] > .v5-conversation-rail").evaluate(rail => {
     const style = getComputedStyle(rail);
     const durationMs = style.animationDuration.endsWith("ms") ? Number.parseFloat(style.animationDuration) : Number.parseFloat(style.animationDuration) * 1000;
-    return style.animationName === "v5-entry-rail-content-enter" && Number.isFinite(durationMs) && durationMs >= 220 && durationMs <= 260;
+    return style.animationName === "v5-entry-rail-content-enter" && Math.abs(durationMs - 320) <= 1;
   }));
   const projectThreadIdentity = await page.evaluateHandle(() => document.querySelector("[data-project-thread]"));
   // 当前活动分支是 beta-topic（421 跨工作树打开后），改用同工作树的非活动分支 shared
@@ -706,8 +729,8 @@ try {
     return node === thread
       && thread.getAttribute("data-project-thread-mode") === "preview"
       && style.animationName === "v5-project-thread-preview-enter"
-      && durationMs >= 280 && durationMs <= 320
-      && style.animationTimingFunction.replace(/\s+/g, "") === "cubic-bezier(0.22,0.61,0.36,1)"
+      && Math.abs(durationMs - 420) <= 1
+      && style.animationTimingFunction.replace(/\s+/g, "") === "cubic-bezier(0.05,0.7,0.1,1)"
       && getComputedStyle(document.querySelector("[data-project-titlebar]")).animationName === "none"
       && getComputedStyle(document.querySelector("[data-project-composer]")).animationName === "none"
       && getComputedStyle(document.querySelector("[data-conversation-window]")).animationName === "none";
@@ -759,10 +782,11 @@ try {
     && await page.locator('[data-conversation-layer="launcher"][data-conversation-layer-active="true"]').evaluate(layer => !layer.hidden && !layer.inert && layer.getAttribute("aria-hidden") === "false")
     && await page.locator('[data-conversation-layer="project"]').evaluate(layer => layer.hidden && layer.inert && layer.getAttribute("aria-hidden") === "true")
     && await page.evaluate(node => node === document.querySelector('[data-conversation-layer="project"]'), projectLayerIdentity));
-  check("active launcher layer plays the 320–360ms eased crossfade while the inactive layer does not", await page.locator('[data-conversation-layer="launcher"]').evaluate(layer => {
+  check("active launcher layer plays the 480ms emphasized-decelerate crossfade (40ms delay) while the inactive layer does not", await page.locator('[data-conversation-layer="launcher"]').evaluate(layer => {
     const style = getComputedStyle(layer);
     const durationMs = style.animationDuration.endsWith("ms") ? Number.parseFloat(style.animationDuration) : Number.parseFloat(style.animationDuration) * 1000;
-    return style.animationName === "v5-conversation-layer-enter" && Number.isFinite(durationMs) && durationMs >= 320 && durationMs <= 360 && style.animationTimingFunction.replace(/\s+/g, "") === "cubic-bezier(0.22,0.61,0.36,1)" && style.transformOrigin !== "";
+    const delayMs = style.animationDelay.endsWith("ms") ? Number.parseFloat(style.animationDelay) : Number.parseFloat(style.animationDelay) * 1000;
+    return style.animationName === "v5-conversation-layer-enter" && Math.abs(durationMs - 480) <= 1 && style.animationTimingFunction.replace(/\s+/g, "") === "cubic-bezier(0.05,0.7,0.1,1)" && Math.abs(delayMs - 40) <= 1 && style.transformOrigin !== "";
   }) && await page.locator('[data-conversation-layer="project"]').evaluate(layer => getComputedStyle(layer).animationName === "none"));
   // 429：无双影/重复 class——同一时刻只有 1 个可见层，active/inactive class 互斥各 1。
   check("only one stream layer is visible with exclusive active/inactive classes (no double image)", await page.evaluate(() => {
@@ -783,7 +807,8 @@ try {
     && await page.locator("[data-entry-rail] [data-launcher-projects]").count() === 1
     && await page.locator("[data-conversation-rail]").count() === 0);
   check("management sidebar preference survives remount and contains no invented chat list", await page.locator("[data-window-sidebar-toggle]").getAttribute("aria-expanded") === "true" && await page.locator("[data-window-sidebar-slot]").getAttribute("data-window-sidebar-slot") === "recents");
-  // 429：左栏槽切换后同一时刻只有新内容（launcher drawer），旧工程对话流已卸载且新内容带 240ms 入场。
+  // 429/430：左栏槽切换后同一时刻只有新内容（launcher drawer），旧工程对话流已卸载且
+  // 新内容带 320ms（--v5-conv-motion-rail）入场。
   check("entry rail slot holds only the newly mounted content after the swap", await page.locator("[data-entry-rail-slot]").evaluate(slot => {
     const direct = [...slot.children].filter(child => child.matches(".v5-launcher-drawer, .v5-conversation-rail"));
     const style = direct[0] ? getComputedStyle(direct[0]) : null;
@@ -791,7 +816,7 @@ try {
     return direct.length === 1
       && direct[0].matches(".v5-launcher-drawer")
       && slot.querySelectorAll(".v5-conversation-rail").length === 0
-      && durationMs >= 220 && durationMs <= 260;
+      && Math.abs(durationMs - 320) <= 1;
   }));
   await page.locator("[data-launcher-choose-file]").click();
   const fileRequest = await page.evaluate(() => window.__hostPosts.filter(p => p.type === "launcher_choose_file").at(-1).request_id);
