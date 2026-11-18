@@ -118,6 +118,9 @@ import { ConvergedLauncher } from "./launcher/ConvergedLauncher";
 // SHELL-ENTRY-RAIL-1（417）：live 入口壳层——窗口级常驻左栏（280px，可收起）+ 右主区。
 // 只在 launcher/project 两 surface 分支内包壳；full/main/workbench 原样走 MainApp。
 import { EntryShell } from "./entry/EntryShell";
+// CONV-WINDOW-SHELL-1（428，A 方案）：右侧对话窗口壳——launcher/project 作为持久挂载
+// 的两个流层叠放；surface 切换只切 active/hidden（不卸载），窗口壳与层 DOM 不重建。
+import { ConversationWindow } from "./entry/ConversationWindow";
 // UI-ENTRY-1：入口 surface 切换桥（宿主→React 单向 + React 取证回执）——进工程展开
 // DAW 时宿主通知 React 切 project surface，走内部 setState 零导航零重载（343 不变量）。
 import { postEntrySurfaceAck, subscribeEntrySurface } from "./launcher/entrySurfaceBridge";
@@ -498,6 +501,27 @@ function EntrySurfaceApp() {
   const [managedProject, setManagedProject] = useState<string | null>(() =>
     appSurface() === "project" ? "当前工程" : null
   );
+  // CONV-WINDOW-SHELL-1（428，A 方案）：右侧窗口两层 mounted 标记。
+  // launcher 层首次进入后保持挂载（隐藏而非卸载）；工程层由 managedProject/surface
+  // 决定挂载，管理视图 ↔ 工程面往返时保持挂载（窗口壳与两层 DOM 不重建）。
+  const [launcherLayerMounted, setLauncherLayerMounted] = useState(() => appSurface() === "launcher");
+  const projectLayerEverActiveRef = useRef(appSurface() === "project");
+  useEffect(() => {
+    if (surface === "launcher") {
+      setLauncherLayerMounted(true);
+      return;
+    }
+    if (surface !== "project") {
+      return;
+    }
+    if (!projectLayerEverActiveRef.current) {
+      // 首次从启动页进入工程：沿用 2026-11-15 用户裁定「进工程后启动台面整体卸载」
+      //（既有 REC-TAPE 真实入口守卫），这一次不保留 launcher 层；此后
+      // project ↔ launcher（管理视图）往返两层持久挂载、DOM 不重建（本卡目标）。
+      projectLayerEverActiveRef.current = true;
+      setLauncherLayerMounted(false);
+    }
+  }, [surface]);
   const [entrySettingsOpen, setEntrySettingsOpen] = useState(false);
   const [entryRuntime, setEntryRuntime] = useState<RuntimeStatusResponse | null>(null);
   const [entryUIState, setEntryUIState] = useState<AgentUIState | null>(null);
@@ -561,37 +585,51 @@ function EntrySurfaceApp() {
         onOpenSettings={() => setEntrySettingsOpen(true)}
       >
         <>
-          <div hidden={surface !== "launcher"} style={{ height: "100%" }}>
-            {surface === "launcher" ? (
-              <ConvergedLauncher
-                fill
-                activeProjectName={managedProject ?? undefined}
-                onReturnProject={managedProject ? () => {
-                  setSurface("project");
-                  postEntrySurfaceAck("project");
-                } : undefined}
-              />
-            ) : null}
-          </div>
-          {/* 管理视图只隐藏工程页，保留当前对话/输入；不关闭 DAW、不解绑工程。 */}
-          <div hidden={surface !== "project"} style={{ height: "100%" }}>
-            {managedProject || surface === "project" ? (
-              <ProjectLoadingGate>
-                <ProjectSurface
-                  fill
-                  active={surface === "project"}
-                  onOpenWorkbench={() => setSurface("workbench")}
-                  onViewLauncher={(name) => {
-                    setManagedProject(name || "当前工程");
-                    setSurface("launcher");
-                    postEntrySurfaceAck("launcher");
-                  }}
-                  conversationUIState={entryUIState}
-                  onRefreshConversationState={refreshEntryUIState}
-                />
-              </ProjectLoadingGate>
-            ) : null}
-          </div>
+          {/* CONV-WINDOW-SHELL-1（428，A 方案）：右侧常驻对话窗口壳。launcher/project
+              两层已挂载后只切 active/hidden（inert + aria-hidden），surface 切换/工程
+              打开/返回不重建窗口壳与层 DOM；滚动位置/输入草稿/加载卡状态随层保留。
+              左栏 EntryShell 节点在壳外，保持不变。 */}
+          <ConversationWindow
+            active={surface === "launcher" ? "launcher" : "project"}
+            layers={[
+              {
+                key: "launcher",
+                mounted: launcherLayerMounted,
+                children: (
+                  <ConvergedLauncher
+                    fill
+                    active={surface === "launcher"}
+                    activeProjectName={managedProject ?? undefined}
+                    onReturnProject={managedProject ? () => {
+                      setSurface("project");
+                      postEntrySurfaceAck("project");
+                    } : undefined}
+                  />
+                )
+              },
+              {
+                key: "project",
+                // 管理视图只隐藏工程层、保留当前对话/输入；不关闭 DAW、不解绑工程。
+                mounted: Boolean(managedProject) || surface === "project",
+                children: (
+                  <ProjectLoadingGate>
+                    <ProjectSurface
+                      fill
+                      active={surface === "project"}
+                      onOpenWorkbench={() => setSurface("workbench")}
+                      onViewLauncher={(name) => {
+                        setManagedProject(name || "当前工程");
+                        setSurface("launcher");
+                        postEntrySurfaceAck("launcher");
+                      }}
+                      conversationUIState={entryUIState}
+                      onRefreshConversationState={refreshEntryUIState}
+                    />
+                  </ProjectLoadingGate>
+                )
+              }
+            ]}
+          />
           <dialog
             ref={entrySettingsRef}
             className="v5-design v5-entry-settings"

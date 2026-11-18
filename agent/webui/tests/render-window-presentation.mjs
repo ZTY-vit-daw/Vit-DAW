@@ -274,6 +274,9 @@ try {
   await page.locator("[data-entry-rail]").waitFor();
   const railWidth = () => page.locator("[data-entry-rail]").evaluate(el => el.getBoundingClientRect().width);
   const railIdentity = await page.evaluateHandle(() => document.querySelector("[data-entry-rail]"));
+  // CONV-WINDOW-SHELL-1（428，A 方案）：右侧常驻窗口壳 + 流层节点身份（后续跨 surface 比对）。
+  const windowShellIdentity = await page.evaluateHandle(() => document.querySelector("[data-conversation-window]"));
+  check("conversation window shell hosts the live launcher stream layer", await page.locator("[data-conversation-window]").count() === 1 && await page.locator('[data-conversation-layer="launcher"][data-conversation-layer-active="true"]').evaluate(layer => !layer.hidden && !layer.inert && layer.getAttribute("aria-hidden") === "false"));
   check("live entry App mounts one window-level rail", await page.locator("[data-entry-rail]").count() === 1);
   check("entry rail is the 280px persistent left column", Math.round(await railWidth()) === 280);
   check("startup project list is portaled into the entry rail", await page.locator("[data-entry-rail] [data-launcher-projects]").count() === 1 && await page.locator("[data-entry-rail] [data-launcher-drawer]").count() === 1);
@@ -398,6 +401,8 @@ try {
   await page.locator("[data-project-titlebar] [data-native-focus-hint]").waitFor();
   check("observed DAW foreground changes only header feedback", await page.locator("[data-project-root]").getAttribute("data-native-focus") === "daw" && await feedback().getAttribute("data-window-launch-terminal") === "ready");
   check("same rail DOM node survives the launcher→project surface switch", await page.evaluate(node => node === document.querySelector("[data-entry-rail]"), railIdentity));
+  check("conversation window shell survives launcher→project as the same DOM node", await page.evaluate(node => node === document.querySelector("[data-conversation-window]"), windowShellIdentity) && await page.locator('[data-conversation-layer="project"][data-conversation-layer-active="true"]').evaluate(layer => !layer.hidden && !layer.inert && layer.getAttribute("aria-hidden") === "false"));
+  const projectLayerIdentity = await page.evaluateHandle(() => document.querySelector('[data-conversation-layer="project"]'));
   await page.locator("[data-entry-rail] [data-conversation-rail]").waitFor();
   // CONV-RAIL-1（418，B2a）：工程面左栏 = 当前工作树对话流树（数据=真实 /agent/ui/state
   // mock 投影；标题=首条有意义用户消息摘要、副标=分支名·最近活动、当前分支高亮）。
@@ -640,6 +645,17 @@ try {
   check("absent native state returns unknown", await page.locator("[data-project-root]").getAttribute("data-native-focus") === "unknown");
   const composer = page.locator("[data-project-composer] input");
   await composer.fill("保留的工程输入（render fixture）");
+  // 428：证明持久层的滚动位置保留——注入测试专用高内容占位（随后移除），把 project
+  // 线程滚到 140px；切回后断言 scrollTop 仍在 140。加载卡节点身份在切换前抓取
+  //（B2a/B2b 预览期间线程内容会条件让位，早先抓取的节点可能已被替换）。
+  await page.locator("[data-project-thread]").evaluate(thread => {
+    // flex 容器内必须禁用收缩（flex:0 0 + min-height），否则占位会被压回容器高。
+    thread.insertAdjacentHTML("beforeend", '<div data-test-scroll-spacer style="flex:0 0 1600px;min-height:1600px;height:1600px"></div>');
+    thread.scrollTop = 140;
+  });
+  const projectFeedbackIdentity = await page.evaluateHandle(() => document.querySelector('[data-conversation-layer="project"] [data-window-launch-feedback]'));
+  check("project loading card is mounted before the surface switch", Boolean(await page.evaluate(node => Boolean(node && node.isConnected), projectFeedbackIdentity)));
+  check("project thread is scrollable before the surface switch", await page.locator("[data-project-thread]").evaluate(thread => thread.scrollTop === 140 && thread.scrollHeight > thread.clientHeight));
   // SHELL-ENTRY-RAIL-1（417）：收展状态跨 surface 保持——工程面收起后切回启动页，
   // 同一条 rail 节点仍是收起态；再由左栏收起态浮动把手展开，恢复工程列表。
   await page.locator("[data-window-sidebar-toggle]").click();
@@ -660,6 +676,19 @@ try {
   await persistedPage.close();
   await page.locator("[data-project-view-launcher]").click();
   await page.locator('[data-launcher-mode="project-management"]').waitFor();
+  // 428：窗口壳不重建；launcher 层挂载并激活，project 层保持挂载（hidden+inert），
+  // 加载卡节点不重建、不重播。
+  check("conversation window shell survives the project→launcher switch as the same DOM node", await page.evaluate(node => node === document.querySelector("[data-conversation-window]"), windowShellIdentity));
+  check("both stream layers stay mounted across the project→launcher switch", await page.locator("[data-conversation-layer]").count() === 2
+    && await page.locator('[data-conversation-layer="launcher"][data-conversation-layer-active="true"]').evaluate(layer => !layer.hidden && !layer.inert && layer.getAttribute("aria-hidden") === "false")
+    && await page.locator('[data-conversation-layer="project"]').evaluate(layer => layer.hidden && layer.inert && layer.getAttribute("aria-hidden") === "true")
+    && await page.evaluate(node => node === document.querySelector('[data-conversation-layer="project"]'), projectLayerIdentity));
+  check("active launcher layer plays the 180–240ms crossfade while the inactive layer does not", await page.locator('[data-conversation-layer="launcher"]').evaluate(layer => {
+    const style = getComputedStyle(layer);
+    const durationMs = style.animationDuration.endsWith("ms") ? Number.parseFloat(style.animationDuration) : Number.parseFloat(style.animationDuration) * 1000;
+    return style.animationName === "v5-conversation-layer-enter" && Number.isFinite(durationMs) && durationMs >= 180 && durationMs <= 240 && style.transformOrigin !== "";
+  }) && await page.locator('[data-conversation-layer="project"]').evaluate(layer => getComputedStyle(layer).animationName === "none"));
+  check("project loading card stays mounted while its layer is hidden", await page.evaluate(node => node === document.querySelector('[data-conversation-layer="project"] [data-window-launch-feedback]'), projectFeedbackIdentity) && await page.locator('[data-conversation-layer="project"] [data-window-launch-feedback]').count() === 1);
   check("collapsed rail state survives the project→launcher return", await page.evaluate(node => node === document.querySelector("[data-entry-rail]"), railIdentity)
     && await page.locator("[data-window-sidebar-toggle]").getAttribute("aria-expanded") === "false"
     && Math.round(await railWidth()) === 0);
@@ -679,6 +708,22 @@ try {
   await page.keyboard.press("Escape");
   await page.locator("[data-launcher-return-project]").click();
   check("management/settings roundtrip preserves mounted project input", await composer.inputValue() === "保留的工程输入（render fixture）");
+  // 428：返回工程面——同一 project 层节点重新激活（launcher 层保持挂载 hidden），窗口壳
+  // 不变；滚动位置与加载卡状态随层保留（不重播）；左栏仍为同一节点。
+  check("returning to project reactivates the same stream layer and keeps the launcher layer mounted", await page.evaluate(node => node === document.querySelector('[data-conversation-layer="project"]'), projectLayerIdentity)
+    && await page.locator("[data-conversation-layer]").count() === 2
+    && await page.locator('[data-conversation-layer="project"]').evaluate(layer => !layer.hidden && !layer.inert && layer.getAttribute("aria-hidden") === "false")
+    && await page.locator('[data-conversation-layer="launcher"]').evaluate(layer => layer.hidden && layer.inert && layer.getAttribute("aria-hidden") === "true"));
+  check("conversation window shell and entry rail stay the same nodes after the full round trip", await page.evaluate(node => node === document.querySelector("[data-conversation-window]"), windowShellIdentity) && await page.evaluate(node => node === document.querySelector("[data-entry-rail]"), railIdentity));
+  check("project loading card is not replayed on returning to the project layer", await page.evaluate(node => node === document.querySelector('[data-conversation-layer="project"] [data-window-launch-feedback]'), projectFeedbackIdentity)
+    && await page.locator('[data-conversation-layer="project"] [data-window-launch-feedback]').count() === 1
+    && (await page.locator('[data-conversation-layer="project"] [data-window-launch-feedback]').getAttribute("data-window-launch-terminal")) !== "");
+  check("project thread scroll position survives the surface round trip", await page.locator("[data-project-thread]").evaluate(thread => Math.abs(thread.scrollTop - 140) <= 1));
+  await page.locator("[data-project-thread]").evaluate(thread => {
+    const spacer = thread.querySelector("[data-test-scroll-spacer]");
+    if (spacer) spacer.remove();
+    thread.scrollTop = 0;
+  });
   const uiStateGetsBeforeSend = report.requests.filter(request => request.path === "/agent/ui/state").length;
   await composer.fill("新建工程");
   await page.locator("[data-project-composer] button").click();
@@ -717,6 +762,7 @@ try {
   }));
   await page.emulateMedia({ reducedMotion: "reduce" });
   check("reduced motion disables receipt and busy step motion", await feedback().evaluate(el => getComputedStyle(el).animationName === "none" && [...el.querySelectorAll("*")].every(child => getComputedStyle(child).animationName === "none")));
+  check("reduced motion disables the conversation layer crossfade", await page.locator('[data-conversation-layer][data-conversation-layer-active="true"]').evaluate(layer => getComputedStyle(layer).animationName === "none"));
   await page.setViewportSize({ width: 1024, height: 680 });
   check("native minimum viewport has no horizontal overflow", await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
   await page.screenshot({ path: resolve(runRoot, "project-failed-reduced-motion.png") });
