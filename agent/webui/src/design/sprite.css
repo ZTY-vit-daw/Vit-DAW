@@ -76,11 +76,15 @@
   stroke-width: 2;
 }
 
-/* 状态环动效：待机 9s 慢转（虚线弧）、进行中 1.6s 快转（实线弧） */
+/* 状态环动效：待机 9s 慢转（虚线弧）、进行中 1.6s 快转（实线弧）。
+ * SHELL-RING-SPIN-FIX-1（416）：旋转轴心取元素几何中心（transform-origin:
+ * center → 50% 50%），16/20/24 三档均原地自转。旧值 12px 12px 是 24px 图标
+ * 坐标，只有 24px 档居中；16px 装载卡偏 4px、20px 偏 2px，呈现为绕轴环绕
+ * （用户手测 2026-11-18）。 */
 .v5-design .v5-ring--idle,
 .v5-design .v5-ring--busy {
   animation: v5-ring-spin var(--v5-spin-idle, 9s) linear infinite;
-  transform-origin: 12px 12px;
+  transform-origin: center;
 }
 
 .v5-design .v5-ring--busy {

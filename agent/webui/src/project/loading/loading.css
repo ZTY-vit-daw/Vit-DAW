@@ -101,16 +101,12 @@
 .v5-loading-chip .v5-icon {
   --v5-icon-bg: var(--v5-control-yellow);
   color: var(--v5-ui-text); /* 黄底上当前步骤图标用墨色（§4.2.1） */
-  animation: v5-loading-advance 1.2s steps(3, end) infinite;
-}
-
-@keyframes v5-loading-advance {
-  from {
-    transform: translateY(0);
-  }
-  to {
-    transform: translateY(-2px);
-  }
+  /*
+   * SHELL-RING-SPIN-FIX-1（416）：不在此覆盖 animation。旧 v5-loading-advance
+   * （translateY 步进）与 sprite.css 的 .v5-ring--busy（v5-ring-spin）争同一
+   * animation 属性——加载卡里 translateY 胜出，SPEC 的「进行中 1.6s 原地快转」
+   * 被挤掉、只剩上下漂浮。进行中动效统一由 v5-ring-spin 单一来源提供。
+   */
 }
 
 .v5-loading-done {
@@ -158,9 +154,6 @@
   outline-offset: 2px;
 }
 
-/* 动画弱化偏好：全局禁用（styles.css 全局规则同款；组件级兜底） */
-@media (prefers-reduced-motion: reduce) {
-  .v5-loading-chip .v5-icon {
-    animation: none;
-  }
-}
+/* 动画弱化偏好：本文件已无独立动画（SHELL-RING-SPIN-FIX-1/416 清理 translateY
+ * 覆盖后不再需要组件级兜底）；状态环的 reduced-motion 全局禁用见 sprite.css
+ * 的 .v5-ring--idle/.v5-ring--busy 规则。 */

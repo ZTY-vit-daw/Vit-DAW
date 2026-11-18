@@ -558,6 +558,46 @@ async function main() {
     failures.push(`MOTION: reduced-motion 下 busy 环仍在动 ${motion.anim}`);
   }
 
+  // ---- 4b. 状态环旋转轴心（SHELL-RING-SPIN-FIX-1/416） ----
+  // 16/20/24 三档样张的 transform-origin 必须落在自身几何中心（旧值 12px 12px 只在
+  // 24px 档居中，16px 偏 4px / 20px 偏 2px → 呈现为绕轴环绕）。本检查在
+  // reduced-motion 下同样有效（transform-origin 不受动画停转影响）。
+  const ringOrigins = await page.evaluate(() =>
+    [...document.querySelectorAll('[data-gallery="status-rings"] .v5-gal-ringcell > .v5-ring')].map((ring) => {
+      const cs = getComputedStyle(ring);
+      const size = { width: Number.parseFloat(cs.width), height: Number.parseFloat(cs.height) };
+      const [rawX, rawY] = cs.transformOrigin.split(" ");
+      const resolveAxis = (raw, length) =>
+        raw.endsWith("%") ? (Number.parseFloat(raw) / 100) * length : Number.parseFloat(raw);
+      return {
+        iconSize: ring.getAttribute("data-icon-size"),
+        transformOrigin: cs.transformOrigin,
+        offset: {
+          x: Number((resolveAxis(rawX, size.width) - size.width / 2).toFixed(3)),
+          y: Number((resolveAxis(rawY, size.height) - size.height / 2).toFixed(3)),
+        },
+      };
+    })
+  );
+  const ringSizes = [...new Set(ringOrigins.map((row) => row.iconSize))];
+  const ringOffCenter = ringOrigins.filter(
+    (row) => Math.abs(row.offset.x) > 0.01 || Math.abs(row.offset.y) > 0.01
+  );
+  if (ringOrigins.length === 0) {
+    failures.push("RING: 状态环三档样张缺失（防空过）");
+  } else if (
+    !["16", "20", "24"].every((size) => ringSizes.includes(size)) ||
+    ringOffCenter.length > 0
+  ) {
+    failures.push(
+      `RING: 状态环轴心偏离几何中心 ${JSON.stringify(ringOffCenter.length ? ringOffCenter.slice(0, 6) : ringOrigins.slice(0, 6))}`
+    );
+  } else {
+    notes.push(
+      `status-ring origins centered: ${[...new Set(ringOrigins.map((row) => `${row.iconSize}px→${row.transformOrigin}`))].join(", ")}`
+    );
+  }
+
   // ---- 5. 截图（1440×900 视口 + 全页） ----
   const viewportShot = resolve(screensDir, "gallery-viewport-1440x900.png");
   const fullShot = resolve(screensDir, "gallery-full.png");

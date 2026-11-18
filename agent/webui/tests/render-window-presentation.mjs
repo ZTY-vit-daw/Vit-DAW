@@ -98,6 +98,32 @@ try {
     const a = step.getBoundingClientRect(), b = thread.getBoundingClientRect();
     return a.top >= b.top - 1 && a.bottom <= b.bottom + 1;
   }));
+  // SHELL-RING-SPIN-FIX-1（416）：pending 装载卡的黄色状态环必须绕自身几何中心原地
+  // 自转。旧缺陷=transform-origin 固定 12px 12px（24px 图标坐标）+ loading chip 的
+  // translateY 覆盖 animation：16px 档轴心偏 4px → 绕轴环绕。以下为 computed-style 亲证。
+  const ringSpin = await feedback().evaluate(el => {
+    const ring = el.querySelector(".v5-loading-chip .v5-ring");
+    if (!ring) return { found: false };
+    const style = getComputedStyle(ring);
+    const matrix = style.transform === "none" ? null : new DOMMatrixReadOnly(style.transform);
+    return {
+      found: true,
+      size: Number(ring.getAttribute("data-icon-size")),
+      styleSize: { width: style.width, height: style.height },
+      animationName: style.animationName,
+      animationDuration: style.animationDuration,
+      animationIterationCount: style.animationIterationCount,
+      transformOrigin: style.transformOrigin,
+      transformBox: style.transformBox,
+      activeAnimations: ring.getAnimations().map(animation => animation.animationName),
+      matrix: matrix ? { a: Number(matrix.a.toFixed(3)), b: Number(matrix.b.toFixed(3)), c: Number(matrix.c.toFixed(3)), d: Number(matrix.d.toFixed(3)), e: Number(matrix.e.toFixed(3)), f: Number(matrix.f.toFixed(3)) } : null
+    };
+  });
+  report.ringSpin = ringSpin;
+  check("pending loading chip renders the 16px busy ring", ringSpin.found ? ringSpin.size === 16 && ringSpin.styleSize.width === "16px" && ringSpin.styleSize.height === "16px" : false);
+  check("pending chip ring keeps SPEC v5-ring-spin (busy 1.6s) and is not overridden", ringSpin.animationName === "v5-ring-spin" && ringSpin.animationDuration === "1.6s" && ringSpin.animationIterationCount === "infinite" && ringSpin.activeAnimations.length === 1 && ringSpin.activeAnimations[0] === "v5-ring-spin");
+  check("pending chip ring origin is its geometric center (16px => 8px 8px / 50% 50%)", ringSpin.transformOrigin === "8px 8px" && ringSpin.transformBox === "view-box");
+  check("no translateY chip override competes with ring spin", ringSpin.matrix !== null && Math.abs(ringSpin.matrix.e) < 0.01 && Math.abs(ringSpin.matrix.f) < 0.01 && Math.abs(Math.abs(ringSpin.matrix.a) - Math.abs(ringSpin.matrix.d)) < 0.01 && Math.abs(ringSpin.matrix.b + ringSpin.matrix.c) < 0.01);
   await settleMotion();
   await page.screenshot({ path: resolve(runRoot, "launcher-pending.png") });
   await progress(request, 7, "failed", { detail: "首份快照失败（render fixture）" });
@@ -211,5 +237,5 @@ try {
   writeFileSync(resolve(runRoot, "report.json"), JSON.stringify(report, null, 2));
   await browser?.close();
   await server?.close();
-  console.log(JSON.stringify({ runRoot, checks: report.checks.length, failed: report.checks.filter(c => !c.pass), error: report.failure }, null, 2));
+  console.log(JSON.stringify({ runRoot, checks: report.checks.length, failed: report.checks.filter(c => !c.pass), ringSpin: report.ringSpin, error: report.failure }, null, 2));
 }
