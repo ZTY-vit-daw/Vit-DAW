@@ -82,6 +82,22 @@ import "../components/components.css";
 import "./project.css";
 import { NativeFocusHint, WindowLaunchFeedback, isWindowLaunchBusy, useWindowPresentation } from "./loading/windowPresentation";
 import { useEntryRail } from "../entry/entryRail";
+// CONV-RAIL-1（418，B2a）：对话流左栏树 + 只读预览 + 继续/新对话。
+// 数据源=App 注入的 /agent/ui/state 投影；动作走生产缝 /agent/invoke（version.checkout /
+// version.branch_create），参数/上下文复用 history/tree 的 historyToolArgs /
+// buildHistoryInvokeContext（与 HistoryPane 同一套组装，避免第二套协议）。
+import { ConversationRail } from "../entry/ConversationRail";
+import {
+  conversationActiveBranchName,
+  conversationActiveNodeCommitID,
+  conversationActiveNodeId,
+  conversationBranchMessages,
+  nextConversationBranchName
+} from "../entry/conversationData";
+import { invokeAgent } from "../lib/api";
+import { buildHistoryInvokeContext, historyToolArgs } from "../history/tree";
+import { asRecord, textValue } from "../lib/util";
+import type { AgentUIState } from "../types";
 
 export interface ProjectFixtureOverrides {
   /** fixture 工程上下文（离线注入；source 必须为 "fixture"）。 */
@@ -112,6 +128,13 @@ export interface ProjectSurfaceProps {
   onOpenSettings?: () => void;
   /** 隐藏的工程页保留本地对话，但不消费工程管理视图的治理请求。 */
   active?: boolean;
+  /** CONV-RAIL-1（418）：live App 注入的 /agent/ui/state 投影（含 project_history
+   * 对话图 / checkout_blocked）。fixture/gallery/静态渲染不传 → 对话流左栏树与只读
+   * 预览不渲染，既有渲染树逐字不变。 */
+  conversationUIState?: AgentUIState | null;
+  /** CONV-RAIL-1（418）：动作成功后刷新对话流数据（App 重新 fetchUIState；不传=不刷新，
+   * 动作成功事实不受刷新失败影响）。 */
+  onRefreshConversationState?: () => void | Promise<unknown>;
 }
 
 /** 轨迹视图 → 344 StatusCard 三态映射（idle 由 surface 渲染为待机行）。 */
@@ -320,15 +343,24 @@ function MacroItem({
   );
 }
 
-export function ProjectSurface({ fixture, fill = false, onOpenWorkbench, onViewLauncher, onOpenSettings, active = true }: ProjectSurfaceProps) {
+export function ProjectSurface({
+  fixture,
+  fill = false,
+  onOpenWorkbench,
+  onViewLauncher,
+  onOpenSettings,
+  active = true,
+  conversationUIState,
+  onRefreshConversationState
+}: ProjectSurfaceProps) {
   const presentation = useWindowPresentation();
   const launchBusy = isWindowLaunchBusy(presentation.state);
-  // SHELL-ENTRY-RAIL-1（417）：工程面左栏占位——live 入口壳 rail context 在场且当前面=
-  // 工程面时 portal 到 data-entry-rail-slot（B1 只占位；B2 CHAT-STREAM-LIST-1 接对话流列表）。
-  // 无 context（fixture/gallery/静态渲染）= null → 渲染树与既有行为逐字不变。
+  // CONV-RAIL-1（418，B2a）：live 入口壳 rail context + App 注入的 ui state → 左栏对话流树。
+  // 无 context（fixture/gallery/静态渲染）或未注入数据 = 不渲染树 → 既有渲染树逐字不变。
   const entryRail = useEntryRail();
   const railHost = entryRail?.host ?? null;
-  const showRailPlaceholder = !fixture && Boolean(railHost) && entryRail?.surface === "project";
+  const conversationLive =
+    !fixture && Boolean(railHost) && entryRail?.surface === "project" && conversationUIState !== undefined;
   const fixtureService = fixture?.service ?? null;
   const [state, dispatch] = useReducer(
     (s: ProjectSurfaceState, e: ProjectEvent) => reduceProject(s, e),
@@ -346,6 +378,166 @@ export function ProjectSurface({ fixture, fill = false, onOpenWorkbench, onViewL
   const [notice, setNotice] = useState("");
   const serviceRef = useRef<ProjectService | null>(fixtureService);
   const contextRunRef = useRef(0);
+
+  // ── CONV-RAIL-1（418，B2a）：对话流左栏 + 只读预览 + 继续/新对话 ──
+  // 数据源=App 注入的 /agent/ui/state（project_history 对话图 + checkout_blocked）。
+  // 预览与动作一律不触碰 DAW：只有【继续此对话】（version.checkout）才重载工程状态。
+  const conversationHistory = asRecord(conversationUIState?.project_history);
+  const conversationActiveBranch = conversationActiveBranchName(conversationHistory);
+  const conversationActiveNode = conversationActiveNodeId(conversationHistory);
+  const conversationCheckoutBlocked = Boolean(conversationUIState?.checkout_blocked);
+  const [previewBranch, setPreviewBranch] = useState<string | null>(null);
+  const [conversationBusy, setConversationBusy] = useState(false);
+  const [conversationError, setConversationError] = useState("");
+  const previewMessages = useMemo(
+    () => (previewBranch ? conversationBranchMessages(conversationHistory, previewBranch) : []),
+    [conversationHistory, previewBranch]
+  );
+  // 离开工程面（切回管理视图）时清掉只读预览：下次进入工程面仍在当前对话。
+  useEffect(() => {
+    if (!active) {
+      setPreviewBranch(null);
+      setConversationError("");
+    }
+  }, [active]);
+
+  const refreshConversationState = useCallback(async () => {
+    try {
+      await onRefreshConversationState?.();
+    } catch {
+      // 刷新失败不改变动作成功的事实；左栏保持旧数据，用户可再次操作刷新。
+    }
+  }, [onRefreshConversationState]);
+
+  const exitConversationPreview = useCallback(() => {
+    setPreviewBranch(null);
+    setConversationError("");
+  }, []);
+
+  const selectConversationBranch = useCallback(
+    (branch: string) => {
+      setConversationError("");
+      // 点当前分支=清预览；点其它分支=只读预览（不调 checkout、不重载工程）。
+      setPreviewBranch(branch && branch !== conversationActiveBranch ? branch : null);
+    },
+    [conversationActiveBranch]
+  );
+
+  const continueConversation = useCallback(
+    async (branch: string) => {
+      if (!branch || branch === conversationActiveBranch || conversationBusy) {
+        return;
+      }
+      if (conversationCheckoutBlocked) {
+        setConversationError("Agent Turn 正在运行；请先 Stop Turn 再继续该对话。");
+        return;
+      }
+      // 继续=单次工程重载：先显式确认「将回到该对话对应的工程状态」。
+      if (
+        !window.confirm(
+          "继续此对话会回到该对话对应的工程状态（当前工程未保存的改动按既有自动保存语义处理）。是否继续？"
+        )
+      ) {
+        return;
+      }
+      setConversationBusy(true);
+      setConversationError("");
+      try {
+        const response = await invokeAgent({
+          tool: "version.checkout",
+          args: historyToolArgs(conversationHistory, { branch }),
+          confirmed: true,
+          source: "ask_vit_webui_conversation",
+          context: buildHistoryInvokeContext(conversationUIState ?? null, conversationHistory)
+        });
+        if (response.error || response.status === "error") {
+          throw new Error(response.error || "继续对话失败。");
+        }
+        // 先等 ui state 刷新到位再清预览：loading 期间仍保留「正在切换工程状态」的
+        // 可读态，避免旧树/旧高亮短暂复现。
+        await refreshConversationState();
+        setPreviewBranch(null);
+      } catch (error) {
+        // 失败保留只读预览并显示原因；不自动重试（与 HistoryPane 同语义）。
+        setConversationError(error instanceof Error ? error.message : "继续对话失败。");
+      } finally {
+        setConversationBusy(false);
+      }
+    },
+    [
+      conversationActiveBranch,
+      conversationBusy,
+      conversationCheckoutBlocked,
+      conversationHistory,
+      conversationUIState,
+      refreshConversationState
+    ]
+  );
+
+  const startNewConversation = useCallback(async () => {
+    if (conversationBusy) {
+      return;
+    }
+    if (conversationCheckoutBlocked) {
+      setConversationError("Agent Turn 正在运行；请先 Stop Turn 再新建对话。");
+      return;
+    }
+    if (!conversationActiveNode) {
+      setConversationError("当前对话还没有可用的活动节点，暂时不能新建对话。");
+      return;
+    }
+    // 新对话=从当前活动节点分叉（分支名确定性生成，避免与既有分支撞名）。
+    const name = nextConversationBranchName(Object.keys(asRecord(conversationHistory.branches)));
+    const commitID = conversationActiveNodeCommitID(conversationHistory);
+    setConversationBusy(true);
+    setConversationError("");
+    try {
+      const response = await invokeAgent({
+        tool: "version.branch_create",
+        args: historyToolArgs(conversationHistory, {
+          name,
+          from_node_id: conversationActiveNode,
+          ...(commitID ? { commit_id: commitID } : {})
+        }),
+        confirmed: true,
+        source: "ask_vit_webui_conversation",
+        context: buildHistoryInvokeContext(conversationUIState ?? null, conversationHistory)
+      });
+      if (response.error || response.status === "error") {
+        throw new Error(response.error || "新建对话失败。");
+      }
+      // 生产实现 version.branch_create 会物化并切到新分支（写 refs/HEAD + active_branch）；
+      // 若回执证明未自动 checkout，再补一次 checkout（卡面「若未自动 checkout 再补」）。
+      const created = asRecord(response.result);
+      const createdBranch = textValue(created.branch, "");
+      const checkedOutTo = textValue(created.checked_out_to, "");
+      if (!createdBranch || createdBranch !== name || !checkedOutTo) {
+        const checkout = await invokeAgent({
+          tool: "version.checkout",
+          args: historyToolArgs(conversationHistory, { branch: name }),
+          confirmed: true,
+          source: "ask_vit_webui_conversation",
+          context: buildHistoryInvokeContext(conversationUIState ?? null, conversationHistory)
+        });
+        if (checkout.error || checkout.status === "error") {
+          throw new Error(checkout.error || "新对话已创建，但切换工程状态失败。");
+        }
+      }
+      await refreshConversationState();
+      setPreviewBranch(null);
+    } catch (error) {
+      setConversationError(error instanceof Error ? error.message : "新建对话失败。");
+    } finally {
+      setConversationBusy(false);
+    }
+  }, [
+    conversationActiveNode,
+    conversationBusy,
+    conversationCheckoutBlocked,
+    conversationHistory,
+    conversationUIState,
+    refreshConversationState
+  ]);
 
   // ── SHELL-6：工程面交互链（桥执行 + 页内治理三键卡 + 确认承接卡）──
   const bridgeAvailable = useMemo(() => !fixture && isLauncherBridgeAvailable(), [fixture]);
@@ -513,7 +705,8 @@ export function ProjectSurface({ fixture, fill = false, onOpenWorkbench, onViewL
     async (text: string) => {
       const trimmed = text.trim();
       const service = serviceRef.current;
-      if (!trimmed || state.inputDisabled || state.replying || launchBusy || !service) return;
+      // 只读预览期间输入被蒙版禁用：即使事件绕过 UI 也不得发送。
+      if (!trimmed || previewBranch || state.inputDisabled || state.replying || launchBusy || !service) return;
       dispatch({ type: "userSent", id: nextProjectItemID("msg-user"), text: trimmed });
       setInput("");
       dispatch({ type: "replyStarted" });
@@ -536,7 +729,7 @@ export function ProjectSurface({ fixture, fill = false, onOpenWorkbench, onViewL
         dispatch({ type: "replySettled" });
       }
     },
-    [state.inputDisabled, state.replying, launchBusy, executeDirective]
+    [state.inputDisabled, state.replying, launchBusy, executeDirective, previewBranch]
   );
 
   // 确认卡/建议入口要调 send：以 ref 解回调环（send 定义于桥执行块之后）。
@@ -569,21 +762,91 @@ export function ProjectSurface({ fixture, fill = false, onOpenWorkbench, onViewL
   const contextName = state.context?.name ?? "";
   const contextSource = state.context?.source ?? "none";
 
-  // 工程面左栏内容（B1 占位）：标题「对话流」+ 空态说明；下一步接对话流列表。
-  const entryRailPlaceholder =
-    showRailPlaceholder && railHost
+  // CONV-RAIL-1（418，B2a）：工程面左栏内容 = 当前工作树对话流树（数据=App 注入的
+  // ui state）；点击非当前分支只进入只读预览，不调 checkout、不重载工程。
+  const conversationRailPortal =
+    conversationLive && railHost
       ? createPortal(
-          <section className="v5-entry-project-rail" data-entry-project-rail aria-label="对话流">
-            <div className="v5-entry-rail-section-head">
-              <span className="v5-entry-rail-section-title">对话流</span>
-            </div>
-            <p className="v5-entry-rail-empty" data-entry-project-rail-empty>
-              对话流列表将在下一步接入
-            </p>
-          </section>,
+          <ConversationRail
+            uiState={conversationUIState ?? null}
+            previewBranch={previewBranch}
+            checkoutBlocked={conversationCheckoutBlocked}
+            busy={conversationBusy}
+            error={conversationError}
+            onSelectBranch={selectConversationBranch}
+            onNewConversation={() => void startNewConversation()}
+          />,
           railHost
         )
       : null;
+
+  // CONV-RAIL-1（418，B2a）：只读预览内容——上方继续卡（确认/守卫/失败原因）+ 分支
+  // head 回溯 parent 链的消息路径（Message 组件只读渲染）。
+  const conversationPreview = previewBranch ? (
+    <div className="v5-project-preview" data-project-preview data-project-preview-branch={previewBranch}>
+      <div className="v5-project-preview-card" data-project-preview-card>
+        <div className="v5-project-preview-head">
+          <span className="v5-project-preview-title" data-project-preview-title>
+            正在只读浏览历史对话
+          </span>
+          <span className="v5-project-preview-branch" data-project-preview-branch-name>
+            {previewBranch}
+          </span>
+        </div>
+        <p className="v5-project-preview-note" data-project-preview-note>
+          浏览历史对话不切换工程、不重载 DAW，输入已暂停。继续此对话会回到该对话对应的工程状态（当前工程未保存的改动按既有自动保存语义处理）。
+        </p>
+        {conversationError ? (
+          <p className="v5-project-preview-error" data-project-preview-error>
+            {conversationError}
+          </p>
+        ) : null}
+        <div className="v5-project-preview-actions" data-project-preview-actions>
+          <button
+            type="button"
+            className="v5-btn v5-btn--primary"
+            data-project-preview-continue
+            disabled={conversationBusy || conversationCheckoutBlocked}
+            onClick={() => void continueConversation(previewBranch)}
+          >
+            继续此对话
+          </button>
+          <button
+            type="button"
+            className="v5-btn v5-btn--secondary"
+            data-project-preview-return
+            disabled={conversationBusy}
+            onClick={exitConversationPreview}
+          >
+            返回当前对话
+          </button>
+          {conversationCheckoutBlocked ? (
+            <span className="v5-project-preview-blocked" data-project-preview-blocked>
+              Agent Turn 正在运行；请先 Stop Turn 再继续。
+            </span>
+          ) : null}
+          {conversationBusy ? (
+            <span className="v5-project-preview-busy" data-project-preview-busy>
+              正在切换工程状态…
+            </span>
+          ) : null}
+        </div>
+      </div>
+      <div className="v5-project-preview-thread" data-project-preview-thread>
+        {previewMessages.length === 0 ? (
+          <p className="v5-project-preview-empty" data-project-preview-empty>
+            该对话流还没有可预览的消息。
+          </p>
+        ) : (
+          previewMessages.map((message) => (
+            <Message key={message.id} author={message.author}>
+              {message.text}
+            </Message>
+          ))
+        )}
+      </div>
+    </div>
+  ) : null;
 
   return (
     <div
@@ -595,7 +858,7 @@ export function ProjectSurface({ fixture, fill = false, onOpenWorkbench, onViewL
       data-fixture={fixture ? "project-surface" : undefined}
       data-native-focus={presentation.state.window?.foreground ?? "unknown"}
     >
-      {entryRailPlaceholder}
+      {conversationRailPortal}
       <div className={frameClass} data-project-frame>
         <header className="v5-project-titlebar" data-project-titlebar>
           <ProjectBadge size={20} />
@@ -637,6 +900,11 @@ export function ProjectSurface({ fixture, fill = false, onOpenWorkbench, onViewL
             </div>
           ) : null}
           <div className="v5-project-thread" data-project-thread data-scroll-intentional="thread">
+            {/* B2a：只读预览优先——浏览非当前对话流时整个线程切换为该分支路径消息，
+                实时线程/桥执行块暂时让位；返回或继续后恢复。 */}
+            {conversationPreview}
+            {conversationPreview ? null : (
+              <>
             {state.thread.map((item) => {
               if (item.kind === "message") {
                 return (
@@ -890,6 +1158,8 @@ export function ProjectSurface({ fixture, fill = false, onOpenWorkbench, onViewL
                 ) : null}
               </div>
             ) : null}
+              </>
+            )}
           </div>
           <form className="v5-project-composer" data-project-composer onSubmit={onSubmit}>
             <div
@@ -901,19 +1171,37 @@ export function ProjectSurface({ fixture, fill = false, onOpenWorkbench, onViewL
               <TextField
                 value={input}
                 placeholder={
-                  composerDisabled
-                    ? "装载完成后可继续输入"
-                    : composerBusy
-                      ? "Vit 正在回复…"
-                      : "告诉 Vit 下一步做什么"
+                  previewBranch
+                    ? "只读浏览中，返回当前对话后可继续输入"
+                    : composerDisabled
+                      ? "装载完成后可继续输入"
+                      : composerBusy
+                        ? "Vit 正在回复…"
+                        : "告诉 Vit 下一步做什么"
                 }
-                disabled={composerDisabled}
-                disabledHint="打开完成后可继续输入"
+                disabled={composerDisabled || Boolean(previewBranch)}
+                disabledHint="返回当前对话后可继续输入"
                 busy={composerBusy}
                 onChange={setInput}
                 onSend={() => void send(input)}
                 onStop={stopReply}
               />
+              {/* B2a：只读预览时输入蒙版——禁用输入并保留「返回当前对话」入口。 */}
+              {previewBranch ? (
+                <div className="v5-project-composer-mask" data-project-composer-mask>
+                  <span className="v5-project-composer-mask-text" data-project-composer-mask-text>
+                    正在只读浏览历史对话，输入已暂停
+                  </span>
+                  <button
+                    type="button"
+                    className="v5-btn v5-btn--secondary"
+                    data-project-composer-mask-return
+                    onClick={exitConversationPreview}
+                  >
+                    返回当前对话
+                  </button>
+                </div>
+              ) : null}
             </div>
           </form>
         </div>

@@ -8,6 +8,9 @@
  *
  * 纪律：不改 fixture/gallery 路径——本文件只服务 .v5-entry-* 与门户内容在左栏内的
  * 撑满归位；launcher/project 原有样式不动。
+ *
+ * CONV-RAIL-1（418，B2a）：B1 的工程面左栏占位样式已由真实对话流树
+ * （src/entry/conversationRail.css）取代；本文件新增左栏 footer（设置+头像槽）。
  */
 
 /* ---------- 壳层：横向两栏 ---------- */
@@ -116,36 +119,38 @@
   background: transparent;
 }
 
-/* ---------- 工程面左栏占位（B1：对话流列表下一步接入） ---------- */
+/* ---------- 左栏 footer：设置常驻入口 + 预留头像槽（B2a/418） ----------
+ * 固定在左栏底（aside 为 flex column，左栏体 slot 占满中间剩余高度），跨 surface
+ * 同一节点常驻；与左栏头同宽固定 280，收展过渡期间内容不回流（裁切由 aside 完成）。 */
 
-.v5-entry-project-rail {
+.v5-entry-rail-foot {
   display: flex;
-  flex-direction: column;
-  flex: 1 1 auto;
-  min-height: 0;
-  gap: 8px;
-  padding: 12px;
-  overflow-y: auto;
-}
-
-.v5-entry-rail-section-head {
-  display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: 8px;
+  flex: 0 0 48px;
+  height: 48px;
+  width: var(--v5-entry-rail-width);
+  min-width: var(--v5-entry-rail-width);
+  padding: 0 12px;
+  background: var(--v5-ui-plate);
+  border-top: 1px solid var(--v5-titlebar-rule);
 }
 
-.v5-entry-rail-section-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--v5-ui-text);
+.v5-entry-rail-settings {
+  flex: 0 0 auto;
+  min-height: 32px;
+  white-space: nowrap;
 }
 
-.v5-entry-rail-empty {
-  margin: 0;
-  font-size: 13px;
-  line-height: 1.5;
-  color: var(--v5-ui-muted);
+/* 预留头像槽：无账号体系，先占位（不发明用户身份/不画伪造头像）。 */
+.v5-entry-rail-avatar {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  border: 1px dashed var(--v5-ui-border);
+  border-radius: 50%;
+  background: var(--v5-read-bg);
 }
 
 /* ---------- 右主区：现有两个 hidden surface div 原样放入 ---------- */

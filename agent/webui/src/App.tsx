@@ -507,6 +507,22 @@ function EntrySurfaceApp() {
     if (entrySettingsOpen && dialog && !dialog.open) dialog.showModal();
     if (!entrySettingsOpen && dialog?.open) dialog.close();
   }, [entrySettingsOpen]);
+  // CONV-RAIL-1（418，B2a）：工程面左栏对话流树的数据源刷新入口。
+  // 进入工程面时取一次；动作（continue/new conversation）成功后由 ProjectSurface
+  // 回调再取一次——树/当前分支高亮以服务端回执后的 ui state 为准，不在前端伪造。
+  const refreshEntryUIState = useCallback(async () => {
+    try {
+      const next = await fetchUIState();
+      setEntryUIState(next);
+      return next;
+    } catch {
+      return null;
+    }
+  }, []);
+  useEffect(() => {
+    if (surface !== "project") return;
+    void refreshEntryUIState();
+  }, [surface, refreshEntryUIState]);
   useEffect(() => {
     if (!entrySettingsOpen) return;
     let current = true;
@@ -536,7 +552,10 @@ function EntrySurfaceApp() {
     // 节点不重建；收展状态在 WindowPresentationProvider），右主区内两个 hidden surface
     // div 原样放入（各自内容仍按 surface 挂载/隐藏，既有旅程不变）。
     return (
-      <EntryShell surface={surface === "launcher" ? "launcher" : "project"}>
+      <EntryShell
+        surface={surface === "launcher" ? "launcher" : "project"}
+        onOpenSettings={() => setEntrySettingsOpen(true)}
+      >
         <>
           <div hidden={surface !== "launcher"} style={{ height: "100%" }}>
             {surface === "launcher" ? (
@@ -565,6 +584,8 @@ function EntrySurfaceApp() {
                     postEntrySurfaceAck("launcher");
                   }}
                   onOpenSettings={() => setEntrySettingsOpen(true)}
+                  conversationUIState={entryUIState}
+                  onRefreshConversationState={refreshEntryUIState}
                 />
               </ProjectLoadingGate>
             ) : null}

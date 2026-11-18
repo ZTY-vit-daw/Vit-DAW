@@ -1109,7 +1109,10 @@ export function ConvergedLauncher({ fixture, fill = false, activeProjectName, on
     >
       <div className={frameClass} data-launcher-frame>
         <header className="v5-launcher-titlebar" data-launcher-titlebar>
-          <span className="v5-launcher-titlebar-brand">Vit</span>
+          {/* CONV-RAIL-1（418，B2a）：rail 模式下「Vit」品牌由 EntryShell 左栏头唯一承担，
+              启动页主标题栏不再重复同一品牌；非 rail（fixture/gallery/无壳层）保持原样。
+              工程面 titlebar 的既有锚点（ProjectBadge + 工程名）不动。 */}
+          {railMode ? null : <span className="v5-launcher-titlebar-brand">Vit</span>}
           {/* SHELL-ENTRY-RAIL-1：live rail 模式下旧收展按钮与焦点提示由 EntryShell 左栏头
               接管（收展状态仍=WindowPresentation.sidebarOpen；NativeFocusHint 不重复）。 */}
           {railMode ? null : (
