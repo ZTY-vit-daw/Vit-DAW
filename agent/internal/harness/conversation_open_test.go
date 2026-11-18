@@ -157,7 +157,7 @@ func TestConversationOpenSameWorktreeReloadsOnce(t *testing.T) {
 	h := New(nil, conversationOpenShadow(t, fixture.rootProject), nil)
 	h.kernel = kernel
 	resp, err := h.Invoke(context.Background(), InvokeRequest{
-		Tool:      "version.conversation.open",
+		Tool:      "version.conversation_open",
 		Args:      map[string]any{"name": "main", "node_id": fixture.rootNodeID, "branch": "main"},
 		Confirmed: true,
 		Source:    "test",
@@ -165,7 +165,7 @@ func TestConversationOpenSameWorktreeReloadsOnce(t *testing.T) {
 	if err != nil {
 		t.Fatalf("invoke: %v", err)
 	}
-	if resp.Status != "ok" || resp.Tool != "version.conversation.open" {
+	if resp.Status != "ok" || resp.Tool != "version.conversation_open" {
 		t.Fatalf("resp = %+v", resp)
 	}
 	if got := conversationOpenReadFile(t, fixture.rootProject); got != "root-one" {
@@ -217,7 +217,7 @@ func TestConversationOpenSameWorktreeNodeCheckoutReloadsOnce(t *testing.T) {
 	h := New(nil, conversationOpenShadow(t, fixture.rootProject), nil)
 	h.kernel = kernel
 	resp, err := h.Invoke(context.Background(), InvokeRequest{
-		Tool:      "version.conversation.open",
+		Tool:      "version.conversation_open",
 		Args:      map[string]any{"name": "main", "node_id": fixture.rootNodeID},
 		Confirmed: true,
 		Source:    "test",
@@ -254,7 +254,7 @@ func TestConversationOpenCrossWorktreeReloadsOnceWithAutosave(t *testing.T) {
 	h := New(nil, conversationOpenShadow(t, fixture.rootProject), nil)
 	h.kernel = kernel
 	resp, err := h.Invoke(context.Background(), InvokeRequest{
-		Tool:      "version.conversation.open",
+		Tool:      "version.conversation_open",
 		Args:      map[string]any{"project_file_path": fixture.worktreePath, "node_id": fixture.worktreeNodeID},
 		Confirmed: true,
 		Source:    "test",
@@ -327,7 +327,7 @@ func TestConversationOpenRejectsWhileTurnRunning(t *testing.T) {
 	h.kernel = kernel
 	goal := h.BeginGoal("running experiment")
 	resp, err := h.Invoke(context.Background(), InvokeRequest{
-		Tool:      "version.conversation.open",
+		Tool:      "version.conversation_open",
 		Args:      map[string]any{"name": "main", "node_id": "node-1"},
 		Confirmed: true,
 		GoalID:    goal.GoalID,
@@ -367,7 +367,7 @@ func TestConversationOpenRejectsUnknownWorktreeBranchAndNode(t *testing.T) {
 	}
 	for _, tc := range cases {
 		resp, err := h.Invoke(context.Background(), InvokeRequest{
-			Tool:      "version.conversation.open",
+			Tool:      "version.conversation_open",
 			Args:      tc.args,
 			Confirmed: true,
 			Source:    "test",
@@ -406,7 +406,7 @@ func TestConversationOpenReloadFailureIsExplicit(t *testing.T) {
 	h := New(nil, conversationOpenShadow(t, fixture.rootProject), nil)
 	h.kernel = kernel
 	resp, err := h.Invoke(context.Background(), InvokeRequest{
-		Tool:      "version.conversation.open",
+		Tool:      "version.conversation_open",
 		Args:      map[string]any{"name": "main", "node_id": fixture.rootNodeID, "branch": "main"},
 		Confirmed: true,
 		Source:    "test",
@@ -438,14 +438,14 @@ func TestConversationOpenReloadFailureIsExplicit(t *testing.T) {
 func TestConversationOpenIsCatalogedAsConfirmTool(t *testing.T) {
 	h := New(nil, nil, nil)
 	resp, err := h.Invoke(context.Background(), InvokeRequest{
-		Tool:   "version.conversation.open",
+		Tool:   "version.conversation_open",
 		Args:   map[string]any{"name": "main", "node_id": "node-1"},
 		Source: "test",
 	})
 	if err != nil {
 		t.Fatalf("invoke: %v", err)
 	}
-	if resp.Status != "needs_confirmation" || !resp.RequiresConfirmation || resp.Tool != "version.conversation.open" {
+	if resp.Status != "needs_confirmation" || !resp.RequiresConfirmation || resp.Tool != "version.conversation_open" {
 		t.Fatalf("catalog/confirmation gate = %+v", resp)
 	}
 	if resp.CommandName != "version_conversation_open" || resp.RiskLevel != "confirm" {

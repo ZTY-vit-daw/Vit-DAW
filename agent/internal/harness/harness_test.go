@@ -7524,7 +7524,7 @@ func TestInvokeCheckoutGuardCoversAllActiveProjectPlaneCheckouts(t *testing.T) {
 		{"version.checkout", map[string]any{"commit_id": "commit-1"}},
 		{"version.node_checkout", map[string]any{"node_id": "node-1"}},
 		{"version.worktree_checkout", map[string]any{"name": "worktree-1"}},
-		{"version.conversation.open", map[string]any{"name": "worktree-1", "node_id": "node-1"}},
+		{"version.conversation_open", map[string]any{"name": "worktree-1", "node_id": "node-1"}},
 	}
 	for _, tc := range cases {
 		resp, err := h.Invoke(context.Background(), InvokeRequest{Tool: tc.tool, Args: tc.args, Confirmed: true, GoalID: goal.GoalID, RunID: goal.RunID, Source: "test"})

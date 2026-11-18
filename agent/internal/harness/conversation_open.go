@@ -10,7 +10,7 @@ import (
 	"vit-daw-agent/internal/tools"
 )
 
-// CONV-OPEN-TOOL-1（池序 419）: version.conversation.open 组合缝。
+// CONV-OPEN-TOOL-1（池序 419）: version.conversation_open 组合缝。
 //
 // B2b 左栏【打开此工作树并继续此对话】只需要一次工程重载：本工具把一个
 // 「校验/守卫 → （跨工作树时复用既有的 switch autosave）→ 在目标工作树
@@ -32,7 +32,7 @@ import (
 //   - 内核 open_project 失败 → 返回带原因的 error；目标副本已物化的事实与
 //     refresh.warning 一并披露，不静默成功。
 func (h *Harness) conversationOpen(ctx context.Context, cmd map[string]any) (map[string]any, error) {
-	const toolName = "version.conversation.open"
+	const toolName = "version.conversation_open"
 	requestedNodeID := strings.TrimSpace(firstString(cmd, "node_id"))
 	targetName := strings.TrimSpace(firstString(cmd, "name"))
 	projectPathArg := strings.TrimSpace(firstString(cmd, "project_file_path"))
