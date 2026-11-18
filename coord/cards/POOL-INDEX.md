@@ -224,13 +224,14 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 414 | SHELL-WIN-COMBO-1 | **done PASS**（attempt03 hands-off：409 分类器 PASS + 395 呈现 PASS + chain_detail=workspace_ready；零 LLM/卫生还原；[裁定](../rulings/2026-11-18-SHELL-WIN-COMBO-1-pass.md)；run_20261118_190253） |
 | 415 | SHELL-WIN-STAGE-PARSE-FIX-1 | **done PASS**（主管复跑 ctest 3/3；真实链 workspace_ready 生效；8c2c2b44→前端 main 8c3801f；[裁定](../rulings/2026-11-18-SHELL-WIN-STAGE-PARSE-FIX-1-pass.md)） |
 | 416 | SHELL-RING-SPIN-FIX-1 | **done PASS**（加载卡状态环轴心居中/去 translateY 覆盖；主管复跑 722 测+35 渲染+全段 render；2160104f→主仓 main 88f4f163；[裁定](../rulings/2026-11-18-SHELL-RING-SPIN-FIX-1-pass.md)） |
-| 417 | SHELL-ENTRY-RAIL-1 | doing（lead/railb1；B1 入口壳层+常驻左栏+启动页工程列表迁入；主仓 worktree pc417-rail；零栈） |
-| 418 | CONV-RAIL-1 | todo 候 417（B2a：工作区→工作树→分支树+只读预览+输入蒙版+【继续此对话】） |
+| 417 | SHELL-ENTRY-RAIL-1 | **done PASS**（B1 壳层+常驻左栏；主管复跑 722 测+50 渲染检查+全段 render；d231d67e→main f529e3f2；[裁定](../rulings/2026-11-18-SHELL-ENTRY-RAIL-1-pass.md)） |
+| 418 | CONV-RAIL-1 | doing（lead/convrail418；当前工作树对话流树+只读预览+蒙版+继续/新对话+footer/持久化；主仓 worktree pc418-convrail；零栈） |
 | 419 | CONV-RAIL-CROSS-1 | todo 候 418（B2b：跨工作树只读浏览+【打开此工作树并继续此对话】+组合工具单次重载+真栈） |
 | 420 | MATERIAL-TRANSCRIBE-2 | doing（lead/materials420；批2-4 剩余 planned_transcription 转写；主仓 worktree pc420-materials；零栈） |
 
 - 目标链：410/411/412 并发零栈 → 413 重建 → 414 单次真栈组合 → 391 手测放行。409 RULING 不重开；395/402 原 blocked 卡待本批收口后归档/收口。
 - 交接记录：[decisions/2026-11-18-pc-supervisor-handoff-planA.md](../decisions/2026-11-18-pc-supervisor-handoff-planA.md)。
+
 
 
 

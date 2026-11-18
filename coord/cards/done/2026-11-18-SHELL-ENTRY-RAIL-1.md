@@ -27,3 +27,8 @@
 ## 停止与回执
 
 同确定性断点两次失败→停；需改 windowPresentation/协议/内核/agent→停报。回执：commit、文件、命令+exit、渲染断言原文、fixture/gallery 未回归证据、边界（零真栈）。
+
+## 回执与验收（2026-11-18 晚）
+
+- commit `d231d67e`；主管亲跑 722 测/build/RWP 50 检查 0 失败/test:render 全段 PASS；截图目检左栏结构成立。合入主仓 main `f529e3f2`。
+- 裁定：[rulings/2026-11-18-SHELL-ENTRY-RAIL-1-pass.md](../../rulings/2026-11-18-SHELL-ENTRY-RAIL-1-pass.md) PASS（结构面）；后续项（标题栏品牌去重/常驻 footer/收展持久化/对话流内容）转 B2a 418。
