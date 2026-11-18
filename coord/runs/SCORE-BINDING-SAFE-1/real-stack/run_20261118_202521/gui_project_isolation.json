@@ -1,0 +1,8 @@
+﻿{
+    "card":  "SMOKE-STACK-GUARD-1",
+    "source":  "git HEAD e882267ece6fca2147ad8a10d3f66684cf930e9e:VitApp/Workspace/default_project.xml",
+    "created_at":  "2026-11-18T20:25:30.5875532+08:00",
+    "marker_path":  "C:\\Users\\timoz\\.codex\\worktrees\\pc397-merge\\Vit_DAW\\coord\\runs\\SCORE-BINDING-SAFE-1\\real-stack\\run_20261118_202521\\gui_project_isolation.json",
+    "isolated_copy":  "C:\\Users\\timoz\\.codex\\worktrees\\pc397-merge\\Vit_DAW\\coord\\runs\\SCORE-BINDING-SAFE-1\\real-stack\\run_20261118_202521\\default_project.xml",
+    "mode":  "gui_leg_default_isolation"
+}

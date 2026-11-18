@@ -1,0 +1,48 @@
+[baker.lifecycle] release_track_mappings track_id=1002 note=track_key_only_clip_scoped_bakes_use_clip_id_key
+[baker.lifecycle] begin_gen key=1002 gen=1 retired_handles=0 retired_total=0 grace_ms=5000 active_keys=1
+[baker.lifecycle] release_track_mappings track_id=1003 note=track_key_only_clip_scoped_bakes_use_clip_id_key
+[baker.lifecycle] begin_gen key=1003 gen=1 retired_handles=0 retired_total=0 grace_ms=5000 active_keys=2
+[baker.lifecycle] release_track_mappings track_id=1004 note=track_key_only_clip_scoped_bakes_use_clip_id_key
+[baker.lifecycle] begin_gen key=1004 gen=1 retired_handles=0 retired_total=0 grace_ms=5000 active_keys=3
+[baker.lifecycle] release_track_mappings track_id=1005 note=track_key_only_clip_scoped_bakes_use_clip_id_key
+[baker.lifecycle] begin_gen key=1005 gen=1 retired_handles=0 retired_total=0 grace_ms=5000 active_keys=4
+[baker.lifecycle] release_track_mappings track_id=1006 note=track_key_only_clip_scoped_bakes_use_clip_id_key
+[baker.lifecycle] begin_gen key=1006 gen=1 retired_handles=0 retired_total=0 grace_ms=5000 active_keys=5
+[baker.lifecycle] release_track_mappings track_id=1007 note=track_key_only_clip_scoped_bakes_use_clip_id_key
+[baker.lifecycle] begin_gen key=1007 gen=1 retired_handles=0 retired_total=0 grace_ms=5000 active_keys=6
+[baker.lifecycle] release_track_mappings track_id=1012 note=track_key_only_clip_scoped_bakes_use_clip_id_key
+[baker.lifecycle] begin_gen key=1012 gen=1 retired_handles=0 retired_total=0 grace_ms=5000 active_keys=7
+[baker.lifecycle] release_track_mappings track_id=1017 note=track_key_only_clip_scoped_bakes_use_clip_id_key
+[baker.lifecycle] begin_gen key=1017 gen=1 retired_handles=0 retired_total=0 grace_ms=5000 active_keys=8
+[baker.lifecycle] release_track_mappings track_id=1022 note=track_key_only_clip_scoped_bakes_use_clip_id_key
+[baker.lifecycle] begin_gen key=1022 gen=1 retired_handles=0 retired_total=0 grace_ms=5000 active_keys=9
+[baker.lifecycle] release_track_mappings track_id=1027 note=track_key_only_clip_scoped_bakes_use_clip_id_key
+[baker.lifecycle] begin_gen key=1027 gen=1 retired_handles=0 retired_total=0 grace_ms=5000 active_keys=10
+[baker.lifecycle] release_track_mappings track_id=1032 note=track_key_only_clip_scoped_bakes_use_clip_id_key
+[baker.lifecycle] begin_gen key=1032 gen=1 retired_handles=0 retired_total=0 grace_ms=5000 active_keys=11
+[baker.lifecycle] release_track_mappings track_id=1039 note=track_key_only_clip_scoped_bakes_use_clip_id_key
+[baker.lifecycle] begin_gen key=1039 gen=1 retired_handles=0 retired_total=0 grace_ms=5000 active_keys=12
+[baker.lifecycle] release_track_mappings track_id=1002 note=track_key_only_clip_scoped_bakes_use_clip_id_key
+[baker.lifecycle] begin_gen key=1002 gen=2 retired_handles=0 retired_total=0 grace_ms=5000 active_keys=12
+[baker.lifecycle] release_track_mappings track_id=1003 note=track_key_only_clip_scoped_bakes_use_clip_id_key
+[baker.lifecycle] begin_gen key=1003 gen=2 retired_handles=0 retired_total=0 grace_ms=5000 active_keys=12
+[baker.lifecycle] release_track_mappings track_id=1004 note=track_key_only_clip_scoped_bakes_use_clip_id_key
+[baker.lifecycle] begin_gen key=1004 gen=2 retired_handles=0 retired_total=0 grace_ms=5000 active_keys=12
+[baker.lifecycle] release_track_mappings track_id=1005 note=track_key_only_clip_scoped_bakes_use_clip_id_key
+[baker.lifecycle] begin_gen key=1005 gen=2 retired_handles=0 retired_total=0 grace_ms=5000 active_keys=12
+[baker.lifecycle] release_track_mappings track_id=1006 note=track_key_only_clip_scoped_bakes_use_clip_id_key
+[baker.lifecycle] begin_gen key=1006 gen=2 retired_handles=0 retired_total=0 grace_ms=5000 active_keys=12
+[baker.lifecycle] release_track_mappings track_id=1007 note=track_key_only_clip_scoped_bakes_use_clip_id_key
+[baker.lifecycle] begin_gen key=1007 gen=2 retired_handles=0 retired_total=0 grace_ms=5000 active_keys=12
+[baker.lifecycle] release_track_mappings track_id=1012 note=track_key_only_clip_scoped_bakes_use_clip_id_key
+[baker.lifecycle] begin_gen key=1012 gen=2 retired_handles=0 retired_total=0 grace_ms=5000 active_keys=12
+[baker.lifecycle] release_track_mappings track_id=1017 note=track_key_only_clip_scoped_bakes_use_clip_id_key
+[baker.lifecycle] begin_gen key=1017 gen=2 retired_handles=0 retired_total=0 grace_ms=5000 active_keys=12
+[baker.lifecycle] release_track_mappings track_id=1022 note=track_key_only_clip_scoped_bakes_use_clip_id_key
+[baker.lifecycle] begin_gen key=1022 gen=2 retired_handles=0 retired_total=0 grace_ms=5000 active_keys=12
+[baker.lifecycle] release_track_mappings track_id=1027 note=track_key_only_clip_scoped_bakes_use_clip_id_key
+[baker.lifecycle] begin_gen key=1027 gen=2 retired_handles=0 retired_total=0 grace_ms=5000 active_keys=12
+[baker.lifecycle] release_track_mappings track_id=1032 note=track_key_only_clip_scoped_bakes_use_clip_id_key
+[baker.lifecycle] begin_gen key=1032 gen=2 retired_handles=0 retired_total=0 grace_ms=5000 active_keys=12
+[baker.lifecycle] release_track_mappings track_id=1039 note=track_key_only_clip_scoped_bakes_use_clip_id_key
+[baker.lifecycle] begin_gen key=1039 gen=2 retired_handles=0 retired_total=0 grace_ms=5000 active_keys=12
