@@ -1,0 +1,3 @@
+# PC-RUNTIME-STACK 释放行（拟，待主管登记；owner 受“不 push”约束未写 main）
+
+- 2026-11-18 20:26:24 +0800 释放 / **SCORE-BINDING-SAFE-1(397) 真栈第二次正式轮 PASS——33/33 断言全绿（exit 0）**：run_20261118_202521（候选 e882267e@codex/score-binding-397-integ；主仓 main 84ac6d9c；第一轮 run_20261118_201839 的 2 条旧期望已修订后通过）；命令=dev_agent_smoke.ps1 -StartKernel -RestartAgent -ScoreWorkbenchSmoke -NoChatSmoke（kernel A5947361/插件库 5ABF7D95/webui dist 7F3C0270/agent 6802D119）；S1 五断言+A1-A8+J1/J2/J3 全 PASS；J2/J1 修正后模板形态（2/4@80bpm clip 8 拍）通过；零 LLM；owner 亲拆 VitAgent 24472/VitApp 11688，**TEARDOWN_ALL_ZERO 20:26:24 亲证（Vit 系进程=0+TCP 7878/7879/8787/5555/5556/9333=0+UDP 4445=0）**；recents 五段哈希亲证一致 807226F4AF3F；工件 coord/runs/SCORE-BINDING-SAFE-1/real-stack/run_20261118_202521；**当前空闲**。

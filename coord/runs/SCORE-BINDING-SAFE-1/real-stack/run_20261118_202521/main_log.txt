@@ -1,0 +1,2 @@
+﻿84ac6d9c coord(397): record real-stack attempt 1 (stale expectations) and authorized fix
+9b172b07 coord(397): reserve second real-stack run after stale-expectation fix

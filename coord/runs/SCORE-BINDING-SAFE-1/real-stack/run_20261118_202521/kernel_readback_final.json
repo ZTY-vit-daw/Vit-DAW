@@ -1,0 +1,38 @@
+[
+  {
+    "id": "note_d554fd09b7ce438582631c2153ba0f15",
+    "pitch": 72,
+    "startBeats": 0,
+    "lengthBeats": 0.75
+  },
+  {
+    "id": "note_b4d0737ef04c4f24871e47f3552348fc",
+    "pitch": 67,
+    "startBeats": 0.75,
+    "lengthBeats": 0.25
+  },
+  {
+    "id": "note_a443c9fb280b4e8696e28d5c84e4acb4",
+    "pitch": 72,
+    "startBeats": 1,
+    "lengthBeats": 0.5
+  },
+  {
+    "id": "note_0e9cf1dde81e4df38e445f4662519d75",
+    "pitch": 71,
+    "startBeats": 1.5,
+    "lengthBeats": 0.5
+  },
+  {
+    "id": "note_34e5a5fa8a9943678f3085ce47db1ca4",
+    "pitch": 76,
+    "startBeats": 2.5,
+    "lengthBeats": 1
+  },
+  {
+    "id": "note_55975f3fd671416588c81b818236bdd8",
+    "pitch": 79,
+    "startBeats": 3.5,
+    "lengthBeats": 1
+  }
+]

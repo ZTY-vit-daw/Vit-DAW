@@ -1,0 +1,233 @@
+{
+  "schema_version": "score_workbench_smoke.v2-a7a8",
+  "card": "SCORE-DG1A-COMPLETE-1 (completes SCORE-WORKBENCH-1 DG1-A leg)",
+  "gate": "DG1-A (docs/STACKGATE_DG1_DG3_V1.md section 3.1)",
+  "leg_form": "berth (kernel + agent, real browser on /app/)",
+  "started_at": "2026-11-18T12:25:37.266Z",
+  "agent_http": "http://127.0.0.1:7878",
+  "kernel_zmq": "tcp://127.0.0.1:5555",
+  "kernel_sub": "tcp://127.0.0.1:5556",
+  "thresholds": {
+    "probe_max_abs_min": 0.01,
+    "wav_non_silent_peak": 500,
+    "wav_non_silent_rms": 20,
+    "wav_diff_max_min": 500
+  },
+  "assertions": {
+    "S1-ui-binding-P1": {
+      "pass": true,
+      "detail": ""
+    },
+    "A4-timesig-disclosed": {
+      "pass": true,
+      "detail": ""
+    },
+    "A1-load-equality": {
+      "pass": true,
+      "detail": ""
+    },
+    "A3-fixture-loaded": {
+      "pass": true,
+      "detail": ""
+    },
+    "A3-svg-glyphs": {
+      "pass": true,
+      "detail": ""
+    },
+    "A3-dotted": {
+      "pass": true,
+      "detail": ""
+    },
+    "A3-rest-window": {
+      "pass": true,
+      "detail": ""
+    },
+    "A3-syncopation": {
+      "pass": true,
+      "detail": ""
+    },
+    "A3-cross-bar-tie": {
+      "pass": true,
+      "detail": ""
+    },
+    "A2-id-binding": {
+      "pass": true,
+      "detail": ""
+    },
+    "A1-write-readback": {
+      "pass": true,
+      "detail": ""
+    },
+    "A5-saved-only-after-verify": {
+      "pass": true,
+      "detail": ""
+    },
+    "S1-apply-target": {
+      "pass": true,
+      "detail": ""
+    },
+    "A2-id-stable-edit-apply": {
+      "pass": true,
+      "detail": ""
+    },
+    "A6-reopen-readback": {
+      "pass": true,
+      "detail": ""
+    },
+    "A2-id-stable-reopen": {
+      "pass": true,
+      "detail": ""
+    },
+    "S1-ui-binding-P4-reopen": {
+      "pass": true,
+      "detail": ""
+    },
+    "A6-panel-reload": {
+      "pass": true,
+      "detail": ""
+    },
+    "A4-template-2-4-disclosed": {
+      "pass": true,
+      "detail": ""
+    },
+    "A7-edit-readback": {
+      "pass": true,
+      "detail": ""
+    },
+    "A7-probe-non-silent": {
+      "pass": true,
+      "detail": ""
+    },
+    "A8-edit-differential": {
+      "pass": true,
+      "detail": ""
+    },
+    "S1-ui-binding-P5-D4-regression": {
+      "pass": true,
+      "detail": ""
+    },
+    "J2-non120-panel-load": {
+      "pass": true,
+      "detail": ""
+    },
+    "J2-non120-clip-grid-snapped": {
+      "pass": true,
+      "detail": ""
+    },
+    "J2-non120-error-boundary-absent": {
+      "pass": true,
+      "detail": ""
+    },
+    "J1-project-surface-reachable": {
+      "pass": true,
+      "detail": ""
+    },
+    "J1-workbench-entry-present": {
+      "pass": true,
+      "detail": ""
+    },
+    "J1-workbench-surface-switched": {
+      "pass": true,
+      "detail": ""
+    },
+    "S1-ui-binding-J1-journey": {
+      "pass": true,
+      "detail": ""
+    },
+    "J1-score-panel-from-project-journey": {
+      "pass": true,
+      "detail": ""
+    },
+    "J3-return-button-present": {
+      "pass": true,
+      "detail": ""
+    },
+    "J3-return-to-project": {
+      "pass": true,
+      "detail": ""
+    }
+  },
+  "boundary": [],
+  "failure_class": "",
+  "notes": [
+    "D1（内核·锚点候查）：XML-boot 工程上会话内加轨再 save_project，新轨被丢出工程状态（attempt3/4 实证：track 1039+clip 1042 save 后消失；.vit-boot 不复现）。",
+    "D2（内核·锚点候查）：save_project 后 get_project_state 的 tracks[].clips[].clip_id 披露降级为 null 直至 open_project 重开（agent 面 clip 寻址随之失效；产品影响=谱面面板 save 后至重开间 clip 选择器失源——本腿 A6 用 save→open 序绕开）。",
+    "D3（装置面发现）：agent get_project_state（userVisibleState 消毒面）不披露 project_path/project.file_path——腿经 save_as 目标路径+--project-xml 双源。",
+    "P5 补记（377）：A7/A8 判据复用 373 DG1-B（scripts/src_template_smoke.py B2/B4 同参同阈）；音源=373 模板工程旋律轨 Surge XT（place-copy 进 run 目录，源只读+manifest sha256 对账）。",
+    "D4 处置（382 SCORE-ENTRY-REACH-1 已修+定性更正）：377 的「拍数恒等冒充秒」定性被 382 真栈取证推翻——内核命令面换算正确（forensic_zmq attempt5：insert_midi_clip beats8/6 回显 6.0s/4.5s@80bpm+读写一致+save→open 往返稳定）；真根因=373 手写模板 XML 的 MIDICLIP start/length 用拍数值（8.0=8 拍），tracktion loader 按秒直读（tracktion_Clip.cpp CachedValue<TimePosition> referTo 无换算）→80bpm 工程装载即 clip=8.0s=10.6667 拍。修复=①webui 渲染期错误边界（ScorePanelErrorBoundary，ModelError 不再整树卸载）②桥面网格化宽容（snapClipLengthToGrid 上取整+clipLengthBeatsRaw 披露，kernel.ts）。373 模板资产数值修正（length 8.0→6.0 等）=373 域越域，锚点上交主管裁量。",
+    "D4（377 域外产品缺陷·锚点上交，非 120bpm 工程谱面面板装载崩溃）：链=①内核 get_midi_clip_data 对 80bpm 工程 8 拍 clip 披露 length_seconds=8.0（拍数恒等冒充秒，真值 6.0s；VitApp/Source/Service/MidiService.cpp:1758-1768，time_unit='beats' 标签下 pos.getLength().inSeconds() 未按工程 tempo 换算）；②webui 桥按秒义换算 clipLengthBeats=8*80/60=10.6667（agent/webui/src/scoreworkbench/kernel.ts:131-140 readClipGeometry）；③面板 applyPatch useMemo 渲染期 beatsRoundedToTicks(10.6667) 抛 ModelError(grid_misaligned) 无错误边界→整面板卸载（ScoreWorkbenchPanel.tsx:401+model.ts:96-102）。120bpm 工程下 8*120/60=16 恰整数网格不触发（374 A1-A6 因此未暴露）。最小复现=open 373 模板工程→/app/ 谱面页签→选旋律 clip→[pageerror] score model error [grid_misaligned]: beats=10.666666666666666 not on grid→data-score-root 消失（run_dg1a_20261116_1936/screens/fatal.png+活栈诊断在卷）。本腿 A7/A8 编辑缝因此走 373 B4 逐字同款 agent/kernel tool face mutate_midi_notes（STACKGATE §3.0 装置锚认可缝），不扩修域外层。（382 注：段①的内核归因经取证更正见上条；编辑缝维持 373 B4 同款=卡面指定复用的判据形态，非 D4 阻断。）"
+  ],
+  "save_forensics": {
+    "enabled": false,
+    "faces": []
+  },
+  "finished_at": "2026-11-18T12:26:12.768Z",
+  "project_path_source": "leg save_as target (fixture.vit); fallback --project-xml=(none)",
+  "p5_template": {
+    "source": "C:\\Users\\timoz\\.codex\\worktrees\\pc397-merge\\Vit_DAW\\coord\\lesson-designs\\music-creation-unit2\\templates\\melody-drum-v1\\template.v1.xml",
+    "source_sha256": "aac8f5acb3355e6ecb18548b72d04db91538128e9acd09463ca9a6fa3b779900",
+    "copy": "C:\\Users\\timoz\\.codex\\worktrees\\pc397-merge\\Vit_DAW\\coord\\runs\\SCORE-BINDING-SAFE-1\\real-stack\\run_20261118_202521\\lesson_project.xml",
+    "copy_sha256": "aac8f5acb3355e6ecb18548b72d04db91538128e9acd09463ca9a6fa3b779900",
+    "manifest_id": "melody-drum-v1"
+  },
+  "p5_handles": {
+    "melody_track_id": "1110",
+    "melody_clip_id": "1111",
+    "melody_plugins": [
+      "Surge XT",
+      "Volume & Pan Plugin",
+      "Level Meter"
+    ]
+  },
+  "p5_edit_seam": "agent/kernel tool face mutate_midi_notes (373 DG1-B B4 verbatim); panel gesture seam kept as card-designated judgment shape (D4 load crash fixed by 382 -- see J2 assertions)",
+  "p5_music_context": {
+    "tempo_bpm": 80,
+    "tempo_setting_count": 1,
+    "time_sig_setting_count": 1,
+    "time_signature": "2/4",
+    "time_signature_denominator": 4,
+    "time_signature_numerator": 2
+  },
+  "p5_renders": {
+    "before": {
+      "completion": "render_done",
+      "job_id": "47898145b2ab48839443fc4738af063d",
+      "wav_bytes": 2304784,
+      "channels": 2,
+      "width": 2,
+      "frames": 576000,
+      "samples": 1152000,
+      "peak_abs": 6604,
+      "rms_abs": 869.11
+    },
+    "after": {
+      "completion": "render_done",
+      "job_id": "24ca531fe7ea4691995dfe157479296d",
+      "wav_bytes": 2304784,
+      "channels": 2,
+      "width": 2,
+      "frames": 576000,
+      "samples": 1152000,
+      "peak_abs": 7023,
+      "rms_abs": 899.83
+    },
+    "diff": {
+      "max_abs_diff": 7312
+    },
+    "probe_sum_abs": [
+      13543.432351541695,
+      13532.302242413898
+    ],
+    "probe_sum_abs_rel_delta": 0.0008
+  },
+  "journey_leg": {
+    "project_surface": "reachable",
+    "workbench_entry": "clicked via [data-project-open-workbench]",
+    "score_panel": "loaded on 80bpm template project (corrected 384 asset: 2/4, clip 8 拍)",
+    "return": "back to project surface"
+  },
+  "exit_code": 0,
+  "duration_ms": 35500,
+  "clip_id": "1042",
+  "track_id": "1039"
+}

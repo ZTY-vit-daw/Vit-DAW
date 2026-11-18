@@ -3,7 +3,8 @@
 **状态：草案 / 未授权运行。** 编制：`lead/score397stack`（DeepSeek-V4.1-Flash 执行子代理；主管 `lead`），2026-11-18 晚，PC。
 初版基于 `codex/score-binding-397`@c6991e18；**2026-11-18 续段在集成分支 `codex/score-binding-397-integ`（基线 main `f529e3f2`，合并 c6991e18+c17bf4bf，merge commit `df0e134b`）上完成 smoke 适配（真栈 S1 断言 + E2E-WEBUI-1 score 段 397 适配）并同步更新本文件。**
 **本文件编制期间零真栈**（未启动 VitApp/agent/Godot/VitShell/真实 Chromium、未登记占用、未改生产代码）。
-**只有同时满足 §0 全部门槛并由主管书面放行后，才可按 §4 启动真栈。** 模板参考：`coord/runs/SCORE-DG1A-COMPLETE-1/RUNBOOK.md`（377 DG1-A）与 `coord/runs/SCORE-ENTRY-REACH-1/run_accept_20261116_2210/RUNBOOK.md`（382）。
+**只有同时满足 §0 全部门槛并由主管书面放行后，才可按 §4 启动真栈。**
+**2026-11-18 20:23 主管放行第二次正式轮**（栈位已登记推送）：仅修订 `scripts/score_workbench_smoke.mjs` 中 J1/J2 两条**过期期望**（接受 384 修正后模板形态 `已从内核装载 + 2/4 + 80bpm + clip 8 拍`，不再要求旧 buggy 资产的 `10.75/上取整`；其余断言零改动，断言面仍 **33**），候选=集成分支本修订提交（运行期 `git rev-parse HEAD` 落工件）。模板参考：`coord/runs/SCORE-DG1A-COMPLETE-1/RUNBOOK.md`（377 DG1-A）与 `coord/runs/SCORE-ENTRY-REACH-1/run_accept_20261116_2210/RUNBOOK.md`（382）。
 
 卡面依据：`coord/cards/doing/2026-11-17-SCORE-BINDING-SAFE-1.md` 验收段——「生产装配真实栈选轨→edit→apply→目标回读与 J1–J3 exit 0，真栈候主管放行；单测可先行，不能记最终通过」。
 
@@ -11,7 +12,8 @@
 
 - **0.1 主管独立复核 + 合入裁定**：397 零栈交付 `c6991e18` + 零栈复核/runbook 草案 `c17bf4bf` 已由主管合入集成分支 `codex/score-binding-397-integ`（基于 main `f529e3f2`，合并提交 `df0e134b`，无冲突）。**运行候选 = 该集成分支的最终 commit**（含本段适配提交；运行期以 `git rev-parse HEAD` 落工件）。主管必须给出：①对集成分支的复核/验收结论；②书面授权运行候选与真栈轮；③（如需）是否把该分支合入 main 后从 main 的 worktree 运行。分支未获授权不得启栈。
 - **0.2 候选确定性**：主检出（`D:/Vit_DAW`）仍有未提交运行态，不得扰动；**本轮候选 worktree = `C:/Users/timoz/.codex/worktrees/pc397-merge/Vit_DAW`**（集成分支）。候选 HEAD/status 写入 `head.txt`/`git_status.txt`；**webui dist、agent 二进制均从该候选源码构建**，禁止复用主检出/397 分支 dist。
-- **0.3 候选零栈前置（本续段已在集成分支亲跑，真栈前重跑留日志）**：`npm ci` exit 0；`npm run test` **61 files / 733 tests passed** exit 0；`npm run build` exit 0（dist/index.html sha256 见 `coord/runs/SCORE-BINDING-SAFE-1/integ-20261118/ADAPTATION.md`，运行期重构建后以新值记录）；`node --check scripts/score_workbench_smoke.mjs` 与 `node --check scripts/webui_rendered_dom_smoke.mjs` 均 exit 0；S1 断言已落地（见 §7/§1：真栈断言面 28+5=33）。
+- **0.3 候选零栈前置（本续段已在集成分支亲跑，真栈前重跑留日志）**：`npm ci` exit 0；`npm run test` **61 files / 733 tests passed** exit 0；`npm run build` exit 0；`node --check scripts/score_workbench_smoke.mjs` 与 `node --check scripts/webui_rendered_dom_smoke.mjs` 均 exit 0；S1 断言已落地（真栈断言面 28+5=**33**）。
+  - **第二次正式轮修订后复检（2026-11-18 20:2x，候选=修订提交）**：`node --check scripts/score_workbench_smoke.mjs` exit 0；`npm run test` 61 files/733 tests exit 0；`npm run build` exit 0；dist/index.html sha256 `7F3C0270…F9178`（与修订前一致——本次仅改 smoke 脚本与 runbook，webui 源码未动）；断言面仍 33。
 - **0.4 真栈占用授权**：按 `coord/PROTOCOL.md` §2.2 在 `coord/resources/PC-RUNTIME-STACK.md` 新增「占用中」行（卡 ID、owner、候选 HEAD、run 目录、端口面、§8 口径）→ push main → fetch 重读确认 owner → **≤60 秒内即时复核净空**。占用记录未成功同步，不得启栈。**本执行子代理零栈段不执行此步；由主管或其书面授权的 owner 执行。**
 - **0.5 S2–S4 裁定**：S1（UI 绑定身份==实际写入目标）**已在集成分支落地**（33 断言面）无需再裁；S2（非目标 clip 不变）、S3（dirty 切换守卫真栈腿）、S4（多 clip 显式选择真栈腿）仍为建议、本段未实施——主管决定是否先落（脚本域小改，需授权）或接受 §8 覆盖边界。**不得**把未实施项的缺失写成“已覆盖”。
 - **0.6 基线哈希**：启动前记录 recents before 快照 hash、kernel/settings/boot/模板/候选 HEAD/agent/webui dist 哈希（§2/§5）。
@@ -23,6 +25,7 @@
 - **成功条件**：`dev_agent_smoke.ps1 ... -ScoreWorkbenchSmoke` **exit 0**，且 `score_workbench_summary.json` 的 `exit_code=0`、断言全 PASS（**33 断言** = A1–A8 十九 + J1/J2/J3 九 + S1 五）：
   - A1–A8 十九断言（A1 load/write-readback、A2 id binding/stable、A3 symbol coverage、A4 双拍号、A5 saved-after-verify、A6 save→open→reload、A7 模板音源 edit-readback+probe non-silent、A8 WAV 差分）；
   - J1/J2/J3 九断言（工程面→工作台→谱面旅程、非 120bpm 面板装载回归、返回工程）；
+  - **2026-11-18 第二轮修订说明**：J2-non120-clip-grid-snapped 与 J1-score-panel-from-project-journey 两条**过期期望**已改为接受 384 修正后模板形态（`已从内核装载` + `2/4` + `80bpm` + `clip 8 拍`）；J2 的 panel-load/error-boundary-absent 与 J1 其余旅程断言零改动。依据见 §7.1。
   - **S1 五断言（本段新增）**：`S1-ui-binding-P1`、`S1-ui-binding-P4-reopen`、`S1-ui-binding-P5-D4-regression`、`S1-ui-binding-J1-journey`、`S1-apply-target`——每次生产选轨/选 clip 装载后断言 `[data-score-binding-root].data-score-project-key`/`[data-score-root].data-score-loaded-target`/`data-score-clip-id`/`data-score-write-ready` 与目标（project 归一化路径 + track id + clip id）一致且**选轨前 `[data-score-root]` count=0（无隐式目标）**；P2 真实 apply 的 `/agent/invoke` 载荷 `track_id/clip_id/time_unit/confirmed` 必须等于同一目标（并与 kernel 回读目标一致）。
 - 工件齐（§5）+ recents 还原哈希亲证 + TEARDOWN_ALL_ZERO（§6）。
 - **生产路径纪律**：不得用测试后门写内核；A7/A8 编辑缝沿用 373 DG1-B B4 tool-face（历史 D4 边界，卡面指定判据形态，**不因 397 改变**）；其余编辑一律面板真实指针。
@@ -136,6 +139,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev_agent_smoke.ps
 
 ### 7.1 已落地（本续段，集成分支）
 - **S1（+5 断言）**：在 `scripts/score_workbench_smoke.mjs` 的 `openScorePanel` 装载后（P1 / P4-reopen / P5-D4-regression 三相位）与 J1 旅程装载后断言 UI 绑定身份；P2 真实 apply 后断言 `/agent/invoke apply_midi_note_patch` 载荷目标。实现位置（集成分支 c6991e18 之上的适配提交，行号以该提交为准）：页面创建处注册 request 观察者 + `assertUiBinding` 帮助函数（`openScorePanel` 之上）；`openScorePanel` 内 `rootBefore` 与装载后断言；P2 `S1-apply-target`；J1 流程 `journeyRootBefore` 与 `S1-ui-binding-J1-journey`。**未改任何既有断言/阈值**。
+- **第二轮过期期望修订（2026-11-18，主管放行）**：`J2-non120-clip-grid-snapped` / `J1-score-panel-from-project-journey` 原断言硬编码 382 时代旧 buggy 模板资产的 `10.75/上取整` 形态；384 腿D 修正模板资产（MIDICLIP length=6.0/6.0/12.0s @80bpm = 8/8/16 拍）后，内核实披露 `2/4 @ 80bpm，clip 8 拍`，旧形态不再出现（第一轮 run_20261118_201839 因此 2/33 FAIL，归类 smoke_expectation_stale）。本次仅把两条期望改为接受修正后形态；**其余断言/阈值零改动，断言面仍 33**。
 - **E2E-WEBUI-1 score 段 397 适配**（跨卡回归修复，`scripts/webui_rendered_dom_smoke.mjs`）：原“点 score 页签→等 `[data-score-root]`→面板自动装载”契约已被 397 显式目标语义退役；改为等 `[data-score-binding-root]` 并断言**诚实无目标态**（S1e/S2e/S3e，原意/等价性见 `coord/runs/SCORE-BINDING-SAFE-1/integ-20261118/ADAPTATION.md` 与脚本内注释）。面板编辑/apply/discard/cursor 断言不再适用该零内核/无轨道装置，覆盖转移至 `agent/webui/src/scoreworkbench/render-smoke.mjs`（fixture target，11 断言）与真栈 A1–A6。**该 smoke 需由 E2E-WEBUI-1 owner 在 agent 实跑面复跑复绿（本零栈段未执行 agent/真实浏览器栈）；不得以本卡真栈 PASS 推定其已绿。**
 
 ### 7.2 真栈仍未覆盖（S2–S4 建议；本段未实施）
@@ -163,7 +167,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev_agent_smoke.ps
 
 ## 10 授权状态
 
-**本 RUNBOOK 为草案，当前禁止运行。** 待主管：①复核集成分支 `codex/score-binding-397-integ`（含本段适配提交）并裁定合入/候选；②决定 S2–S4 是否先落（§7.2）；③按 §2.2 完成真栈占用登记；④书面放行本轮。放行后在候选 worktree 按 §4 执行，回执按 §5/§8 交付。
+**本 RUNBOOK 为草案；常态下禁止运行。** 主管已于 **2026-11-18 20:23 书面放行第二次正式轮（单次）**，并已在 `PC-RUNTIME-STACK` 登记占用（owner=`lead/score397stack`，候选=集成分支修订后 commit）；本轮按 §4 执行，回执按 §5/§8 交付。本轮结束（PASS 或失败上报）后恢复“待下一次书面授权”状态；若失败：不原样重跑、不自起第三次正式轮。S2–S4 真栈判据仍未实施（§7.2），本轮按 §8 边界交付。
 
 ---
 （参考先例：`coord/runs/SCORE-DG1A-COMPLETE-1/RUNBOOK.md` 377；`coord/runs/SCORE-ENTRY-REACH-1/run_accept_20261116_2210/RUNBOOK.md` 382；零栈复核 `coord/runs/SCORE-BINDING-SAFE-1/local-397-review/REVIEW.md`；本续段适配说明 `coord/runs/SCORE-BINDING-SAFE-1/integ-20261118/ADAPTATION.md`。）

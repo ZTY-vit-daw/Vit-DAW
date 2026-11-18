@@ -999,8 +999,12 @@ async function main() {
 
     // ---- SCORE-ENTRY-REACH-1 (382): J2 -- D4 修复回归（377 attempt3 崩溃点）----
     // 80bpm 模板工程（当前会话工程）面板真实装载：修复前形态=openScorePanel 选
-    // 旋律 clip → pageerror grid_misaligned → [data-score-root] 消失（377 fatal.png）；
-    // 修复后=面板活着 + status 披露桥面网格化（8.0s@80bpm → raw 10.6667 → 10.75）。
+    // 旋律 clip → pageerror grid_misaligned → [data-score-root] 消失（377 fatal.png）。
+    // 2026-11-18 397 真栈第二正式轮修订：384 腿D 已修正模板资产（MIDICLIP
+    // length=6.0/6.0/12.0s @80bpm = 8/8/16 拍），内核/桥直接披露 "clip 8 拍"；
+    // 旧 buggy 资产的 raw 10.6667→10.75/上取整 形态已随资产修正退役。本断言改为
+    // 接受修正后模板形态；"非网格上取整"防御本身如需回归，须另建合成非网格
+    // fixture（不在本卡装置内扩域）。
     const journeyPageErrors = [];
     const pageErrorHandler = (error) => journeyPageErrors.push(String(error && error.message ? error.message : error));
     page.on("pageerror", pageErrorHandler);
@@ -1012,8 +1016,8 @@ async function main() {
         (await page.locator("[data-score-root]").count()) === 1 && journeyPageErrors.length === 0,
         "score-root present, pageerrors=" + JSON.stringify(journeyPageErrors).slice(0, 200));
       assert("J2-non120-clip-grid-snapped",
-        d4Status.includes("10.75") && d4Status.includes("上取整"),
-        "status='" + d4Status.slice(0, 200) + "' (bridge grids 8.0s@80bpm raw 10.6667 -> 10.75)");
+        d4Status.includes("已从内核装载") && d4Status.includes("2/4") && d4Status.includes("80bpm") && d4Status.includes("clip 8 拍"),
+        "status='" + d4Status.slice(0, 200) + "' (expect corrected template 2/4@80bpm clip 8 拍; legacy buggy-asset 10.75/上取整 retired)");
       assert("J2-non120-error-boundary-absent",
         (await page.locator("[data-score-error-boundary]").count()) === 0,
         "boundary must not trigger for gridded non-grid clips");
@@ -1065,8 +1069,9 @@ async function main() {
     const journeyStatus = await rootAttr("data-score-status");
     await page.screenshot({ path: join(args.screenshotDir, "j1_score_panel_from_project.png") });
     assert("J1-score-panel-from-project-journey",
-      (await page.locator("[data-score-root]").count()) === 1 && journeyStatus.includes("10.75"),
-      "score panel loaded from project-surface journey; status='" + journeyStatus.slice(0, 160) + "'");
+      (await page.locator("[data-score-root]").count()) === 1 &&
+        journeyStatus.includes("已从内核装载") && journeyStatus.includes("2/4") && journeyStatus.includes("80bpm") && journeyStatus.includes("clip 8 拍"),
+      "score panel loaded from project-surface journey; status='" + journeyStatus.slice(0, 160) + "' (expect corrected template 2/4@80bpm clip 8 拍)");
 
     const exitButton = page.locator("[data-workbench-exit-project]");
     assert("J3-return-button-present", (await exitButton.count()) === 1, "workbench return bar button present");
@@ -1077,7 +1082,7 @@ async function main() {
     summary.journey_leg = {
       project_surface: "reachable",
       workbench_entry: "clicked via [data-project-open-workbench]",
-      score_panel: "loaded on 80bpm template project (10.75 gridded)",
+      score_panel: "loaded on 80bpm template project (corrected 384 asset: 2/4, clip 8 拍)",
       return: "back to project surface"
     };
 
