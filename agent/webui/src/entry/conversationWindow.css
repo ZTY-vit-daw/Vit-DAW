@@ -1,0 +1,57 @@
+/*
+ * CONV-WINDOW-SHELL-1（428，A 方案）：右侧对话窗口壳与持久流层。
+ *
+ * - 窗口壳：相对定位、撑满 EntryShell 右主区（左栏 EntryShell 节点不受影响）；
+ * - 流层：绝对定位叠放，active 层可见并播放 200ms 入场过渡（与 415 左栏收展 180ms
+ *   同一时长语言，均在 180–240ms 区间）；inactive 层 hidden（不占布局）+ inert +
+ *   aria-hidden（DOM 常驻，保留滚动位置/输入草稿/加载卡状态）；
+ * - prefers-reduced-motion: reduce 关闭过渡与动画（无位移/淡入）。
+ */
+
+.v5-conversation-window {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--v5-read-workspace);
+}
+
+.v5-conversation-layer {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* hidden 是语义事实（非活动层不可见/不可交互）；DOM 常驻由不卸载实现。 */
+.v5-conversation-layer[hidden] {
+  display: none;
+}
+
+/* active 层入场：200ms（180–240ms 语言内）淡入 + 轻微横向位移。 */
+.v5-conversation-layer--active {
+  animation: v5-conversation-layer-enter 200ms ease;
+}
+
+@keyframes v5-conversation-layer-enter {
+  from {
+    opacity: 0;
+    transform: translateX(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .v5-conversation-layer--active {
+    animation: none;
+  }
+}

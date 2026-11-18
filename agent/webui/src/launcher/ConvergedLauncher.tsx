@@ -143,6 +143,10 @@ export interface ConvergedLauncherProps {
   activeProjectName?: string;
   onReturnProject?: () => void;
   onOpenSettings?: () => void;
+  /** CONV-WINDOW-SHELL-1（428）：本层是否为当前活动窗口层。层被窗口壳持久挂载后，
+   * 从隐藏（工程面）返回启动页/管理视图时不再重挂载，由 active 由假转真刷新最近工程
+   * 列表（与重挂载时的 mount fetch 同语义；fixture/gallery 不传=true 行为不变）。 */
+  active?: boolean;
 }
 
 type DrawerState = "loading" | "ready" | "error" | "empty";
@@ -517,7 +521,7 @@ function LauncherProjectsDrawer({
   );
 }
 
-export function ConvergedLauncher({ fixture, fill = false, activeProjectName, onReturnProject, onOpenSettings }: ConvergedLauncherProps) {
+export function ConvergedLauncher({ fixture, fill = false, activeProjectName, onReturnProject, onOpenSettings, active = true }: ConvergedLauncherProps) {
   const presentation = useWindowPresentation();
   const launchBusy = isWindowLaunchBusy(presentation.state);
   const sidebarId = useId();
@@ -787,6 +791,20 @@ export function ConvergedLauncher({ fixture, fill = false, activeProjectName, on
     const run = ++loadRunRef.current;
     void loadRecents(run);
   }, [loadRecents]);
+
+  // CONV-WINDOW-SHELL-1（428）：窗口层持久挂载后，从工程面返回启动页/管理视图不再
+  // 重挂载本组件——用 active 由假转真补一次「进入启动页」的数据刷新（最近工程以
+  // 服务端为权威；失败态照常显示并可重试）。mount 首帧由上面的 mount fetch 负责。
+  const wasActiveRef = useRef(active);
+  useEffect(() => {
+    const becameActive = active && !wasActiveRef.current;
+    wasActiveRef.current = active;
+    if (fixture || !becameActive) {
+      return;
+    }
+    const run = ++loadRunRef.current;
+    void loadRecents(run);
+  }, [active, fixture, loadRecents]);
 
   const send = useCallback(
     async (message: string) => {
