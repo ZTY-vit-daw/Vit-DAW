@@ -13,7 +13,7 @@ const report = { scope: "real App + mocked HTTP/host; no real stack", checks: []
 // CONV-RAIL-1（418，B2a）render fixture：对话流左栏树/只读预览/继续/新对话全部走
 // mock HTTP（零真栈、零 agent）。/agent/ui/state 按下列状态动态投影；/agent/invoke
 // 记录真实请求参数（tool/args/confirmed/source/context）并按生产回执语义回执。
-const conversation = { activeBranch: "main", checkoutBlocked: false, createdBranches: [] };
+const conversation = { activeBranch: "main", checkoutBlocked: false, createdBranches: [], noActiveNode: false };
 const conversationNode = (id, kind, text, branch, commitID, parentNodeID, createdAt) => ({ id, kind, text, text_preview: text, branch, commit_id: commitID, parent_node_id: parentNodeID, created_at: createdAt });
 const conversationHistory = () => {
   // 基础 fixture：main（4 条消息）+ 从 n-base-vit 分叉的 feature-x（2 条消息）；运行中
@@ -39,6 +39,27 @@ const conversationHistory = () => {
     if (branch === "feature-x") return "n-fx-vit";
     return "n-main-vit";
   };
+  // SHELL-PROJECT-STREAM-FIX-1（427）：无活动节点但工程身份存在（project_path/branch/head）
+  // 的工程态 fixture——用于证明【＋ 新对话】不再灰、branch_create 走当前 HEAD 分叉。
+  if (conversation.noActiveNode) {
+    return {
+      project_path: "C:/fixture/alpha.vit",
+      root_project_path: "C:/fixture/alpha.vit",
+      active_branch: conversation.activeBranch,
+      active_node_id: "",
+      active_worktree: "",
+      detached: false,
+      head: "c4",
+      branches,
+      worktrees: [],
+      conversation_graph: {
+        project_path: "C:/fixture/alpha.vit",
+        active_branch: conversation.activeBranch,
+        active_node_id: "",
+        nodes: []
+      }
+    };
+  }
   const activeNodeID = activeNodeFor(conversation.activeBranch);
   return {
     project_path: "C:/fixture/alpha.vit",
@@ -246,6 +267,14 @@ try {
   await emit({ type: "vit_surface", surface: "project" });
   await page.locator("[data-project-root]").waitFor();
   check("ready feedback survives actual launcher unmount/project mount", await feedback().getAttribute("data-window-launch-terminal") === "ready" && (await feedback().innerText()).includes("工程内容已载入"));
+  // SHELL-PROJECT-STREAM-FIX-1（427）缺陷 B：工程加载卡是对话历史里的装载记录——DOM
+  // 顺序必须排在消息之前（消息尚未出现时只需与消息容器同在、位于顶部）。
+  check("project loading card is the first history record in the thread", await page.locator("[data-project-thread]").evaluate(thread => {
+    const card = thread.querySelector("[data-window-launch-feedback]");
+    if (!card) return false;
+    const firstMessage = thread.querySelector("[data-message-author]");
+    return !firstMessage || Boolean(card.compareDocumentPosition(firstMessage) & Node.DOCUMENT_POSITION_FOLLOWING);
+  }));
   await emit({ type: "vit_window_state", window_state: observation("daw", 30) });
   await page.locator("[data-project-titlebar] [data-native-focus-hint]").waitFor();
   check("observed DAW foreground changes only header feedback", await page.locator("[data-project-root]").getAttribute("data-native-focus") === "daw" && await feedback().getAttribute("data-window-launch-terminal") === "ready");
@@ -331,6 +360,41 @@ try {
   await page.waitForFunction(() => !document.querySelector("[data-conversation-blocked]"));
   await page.keyboard.press("Escape");
   check("checkout_blocked clears after the agent turn stops", await page.locator("[data-conversation-new]").isEnabled());
+
+  // SHELL-PROJECT-STREAM-FIX-1（427）缺陷 A：无活动节点但工程身份存在时【＋ 新对话】
+  // 仍可用（不再灰）；version.branch_create 工具字段只带 name，由当前 HEAD 分叉。
+  // 「有活动节点时仍带 from_node_id+commit_id」由上文 "new conversation branches from
+  // the active node through version.branch_create" 断言覆盖。
+  const waitForInvokeCount = async (target, timeoutMs = 4000) => {
+    const started = Date.now();
+    while (report.invokes.length < target) {
+      if (Date.now() - started > timeoutMs) throw new Error("invoke count timeout: expected " + target + " got " + report.invokes.length);
+      await page.waitForTimeout(25);
+    }
+  };
+  conversation.noActiveNode = true;
+  await page.locator("[data-entry-rail-settings]").click();
+  await page.locator("[data-entry-settings][open]").waitFor();
+  await page.waitForFunction(() => {
+    const button = document.querySelector("[data-conversation-new]");
+    return Boolean(button) && !button.disabled && (button.getAttribute("title") || "").includes("从当前工程状态");
+  });
+  await page.keyboard.press("Escape");
+  check("new conversation stays enabled without an active node when project identity exists", await page.locator("[data-conversation-new]").isEnabled() && (await page.locator("[data-conversation-new]").getAttribute("title") || "").includes("从当前工程状态新建对话"));
+  const invokesBeforeHeadFallback = report.invokes.length;
+  await page.locator("[data-conversation-new]").click();
+  await waitForInvokeCount(invokesBeforeHeadFallback + 1);
+  const headFallbackInvoke = report.invokes.at(-1);
+  check("new conversation without an active node branches from the current HEAD (name only)", headFallbackInvoke?.tool === "version.branch_create" && /^chat-\d{8}-\d{6}$/.test(headFallbackInvoke?.args?.name || "") && headFallbackInvoke?.args?.from_node_id === undefined && headFallbackInvoke?.args?.commit_id === undefined && headFallbackInvoke?.args?.project_path === "C:/fixture/alpha.vit");
+  conversation.noActiveNode = false;
+  await page.locator("[data-entry-rail-settings]").click();
+  await page.locator("[data-entry-settings][open]").waitFor();
+  await page.waitForFunction(() => {
+    const button = document.querySelector("[data-conversation-new]");
+    return Boolean(button) && !button.disabled && (button.getAttribute("title") || "").includes("从当前对话的活动节点");
+  });
+  await page.keyboard.press("Escape");
+  check("new conversation re-enables the active-node hint once a node exists again", await page.locator("[data-conversation-new]").isEnabled() && (await page.locator("[data-conversation-new]").getAttribute("title") || "").includes("从当前对话的活动节点"));
   await settleMotion();
   const newTextContrast = await page.locator("[data-native-focus-hint], [data-window-launch-feedback] h3, [data-window-launch-feedback] p").evaluateAll(elements => {
     const rgb = color => (color.match(/[\d.]+/g) || []).map(Number);
@@ -394,16 +458,42 @@ try {
   await page.keyboard.press("Escape");
   await page.locator("[data-launcher-return-project]").click();
   check("management/settings roundtrip preserves mounted project input", await composer.inputValue() === "保留的工程输入（render fixture）");
+  const uiStateGetsBeforeSend = report.requests.filter(request => request.path === "/agent/ui/state").length;
   await composer.fill("新建工程");
   await page.locator("[data-project-composer] button").click();
   await page.waitForFunction(old => window.__hostPosts.filter(p => p.type === "launcher_directive").at(-1)?.request_id !== old, request);
   request = await currentRequest();
   await progress(request, 11, "spawning");
   check("in-project directive uses same production feedback and gates input", await composer.isDisabled());
+  // 427 B：加载中仍在对话流顶部可见、排在消息之前，且不遮挡输入区。
+  check("pending loading card stays above messages and does not cover the composer", await page.locator("[data-project-thread]").evaluate(thread => {
+    const card = thread.querySelector("[data-window-launch-feedback]");
+    const composerElement = document.querySelector("[data-project-composer]");
+    if (!card || !composerElement) return false;
+    const cardBox = card.getBoundingClientRect();
+    const composerBox = composerElement.getBoundingClientRect();
+    const messages = [...thread.querySelectorAll("[data-message-author]")];
+    const beforeMessages = messages.every(message => Boolean(card.compareDocumentPosition(message) & Node.DOCUMENT_POSITION_FOLLOWING));
+    return beforeMessages && cardBox.height > 0 && cardBox.bottom <= composerBox.top + 1;
+  }));
   await progress(request, 12, "failed", { detail: "工作台超时（render fixture）" });
   await postResult(request, "failed", "工作台超时（render fixture）");
   await feedback().locator('[data-loading-phase="failed"]').waitFor();
   check("project timeout never completes", !await composer.isDisabled() && await feedback().locator('[data-loading-phase="completed"]').count() === 0);
+  // SHELL-PROJECT-STREAM-FIX-1（427）：发送完成后会刷新 /agent/ui/state（replySettled 后），
+  // 左栏 active node/branches/新对话状态跟上服务端；发送的用户/agent 消息排在装载卡之后。
+  let uiStateGetsAfterSend = report.requests.filter(request => request.path === "/agent/ui/state").length;
+  for (let attempt = 0; attempt < 80 && uiStateGetsAfterSend <= uiStateGetsBeforeSend; attempt += 1) {
+    await page.waitForTimeout(25);
+    uiStateGetsAfterSend = report.requests.filter(request => request.path === "/agent/ui/state").length;
+  }
+  check("sending a message refreshes the rail ui state after the turn settles", uiStateGetsAfterSend > uiStateGetsBeforeSend, "before=" + uiStateGetsBeforeSend + " after=" + uiStateGetsAfterSend);
+  await page.waitForFunction(() => document.querySelectorAll("[data-project-thread] [data-message-author]").length >= 2);
+  check("sent user/agent messages render after the loading card", await page.locator("[data-project-thread]").evaluate(thread => {
+    const card = thread.querySelector("[data-window-launch-feedback]");
+    const messages = [...thread.querySelectorAll("[data-message-author]")];
+    return Boolean(card) && messages.length > 0 && messages.every(message => Boolean(card.compareDocumentPosition(message) & Node.DOCUMENT_POSITION_FOLLOWING));
+  }));
   await page.emulateMedia({ reducedMotion: "reduce" });
   check("reduced motion disables receipt and busy step motion", await feedback().evaluate(el => getComputedStyle(el).animationName === "none" && [...el.querySelectorAll("*")].every(child => getComputedStyle(child).animationName === "none")));
   await page.setViewportSize({ width: 1024, height: 680 });

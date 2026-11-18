@@ -92,6 +92,7 @@ import {
   conversationActiveNodeCommitID,
   conversationActiveNodeId,
   conversationBranchMessages,
+  conversationHasProjectIdentity,
   nextConversationBranchName
 } from "../entry/conversationData";
 import { invokeAgent } from "../lib/api";
@@ -482,23 +483,33 @@ export function ProjectSurface({
       setConversationError("Agent Turn 正在运行；请先 Stop Turn 再新建对话。");
       return;
     }
-    if (!conversationActiveNode) {
-      setConversationError("当前对话还没有可用的活动节点，暂时不能新建对话。");
+    // SHELL-PROJECT-STREAM-FIX-1（427）：无活动节点不再提前报错。只要工程身份
+    // （project_path/active branch/head）存在，就按当前 HEAD 分叉——agent 侧
+    // version.branch_create 省略 from_node_id/commit_id 时即按当前 HEAD 建分支。
+    if (!conversationActiveNode && !conversationHasProjectIdentity(conversationHistory)) {
+      setConversationError("当前工程还没有可用的工程状态，暂时不能新建对话。");
       return;
     }
     // 新对话=从当前活动节点分叉（分支名确定性生成，避免与既有分支撞名）。
     const name = nextConversationBranchName(Object.keys(asRecord(conversationHistory.branches)));
-    const commitID = conversationActiveNodeCommitID(conversationHistory);
+    const commitID = conversationActiveNode ? conversationActiveNodeCommitID(conversationHistory) : "";
     setConversationBusy(true);
     setConversationError("");
     try {
       const response = await invokeAgent({
         tool: "version.branch_create",
-        args: historyToolArgs(conversationHistory, {
-          name,
-          from_node_id: conversationActiveNode,
-          ...(commitID ? { commit_id: commitID } : {})
-        }),
+        // 有活动节点：from_node_id + commit_id 精确落在该节点；无活动节点：工具字段只带
+        // name（historyToolArgs 仅补 project_path 这一全部历史工具共用的寻址参数）。
+        args: historyToolArgs(
+          conversationHistory,
+          conversationActiveNode
+            ? {
+                name,
+                from_node_id: conversationActiveNode,
+                ...(commitID ? { commit_id: commitID } : {})
+              }
+            : { name }
+        ),
         confirmed: true,
         source: "ask_vit_webui_conversation",
         context: buildHistoryInvokeContext(conversationUIState ?? null, conversationHistory)
@@ -669,6 +680,9 @@ export function ProjectSurface({
         if (contextRunRef.current !== run) return;
         dispatch({ type: "contextLoaded", view });
         setContextLoading(false);
+        // 427：工程上下文就绪后同步刷新左栏对话流数据（active node/branches/新对话
+        // 可用性跟上服务端 ui state；失败静默保留旧数据）。
+        void refreshConversationState();
       })
       .catch((error: unknown) => {
         if (contextRunRef.current !== run) return;
@@ -678,7 +692,7 @@ export function ProjectSurface({
     return () => {
       contextRunRef.current += 1;
     };
-  }, [fixture, fixtureService]);
+  }, [fixture, fixtureService, refreshConversationState]);
 
   const retryContext = useCallback(() => {
     if (fixture) return;
@@ -693,13 +707,14 @@ export function ProjectSurface({
         if (contextRunRef.current !== run) return;
         dispatch({ type: "contextLoaded", view });
         setContextLoading(false);
+        void refreshConversationState();
       })
       .catch((error: unknown) => {
         if (contextRunRef.current !== run) return;
         setContextError(error instanceof Error ? error.message : "工程上下文暂不可用");
         setContextLoading(false);
       });
-  }, [fixture]);
+  }, [fixture, refreshConversationState]);
 
   const send = useCallback(
     async (text: string) => {
@@ -727,9 +742,12 @@ export function ProjectSurface({
         setInput(trimmed); // 失败还原输入
       } finally {
         dispatch({ type: "replySettled" });
+        // 427：发送完成后刷新 /agent/ui/state，让左栏 active node/branches/新对话
+        // 状态跟上（失败静默保留旧数据，不打断对话）。
+        void refreshConversationState();
       }
     },
-    [state.inputDisabled, state.replying, launchBusy, executeDirective, previewBranch]
+    [state.inputDisabled, state.replying, launchBusy, executeDirective, previewBranch, refreshConversationState]
   );
 
   // 确认卡/建议入口要调 send：以 ref 解回调环（send 定义于桥执行块之后）。
@@ -905,6 +923,13 @@ export function ProjectSurface({
             {conversationPreview}
             {conversationPreview ? null : (
               <>
+            {/* SHELL-PROJECT-STREAM-FIX-1（427）：工程加载卡（WindowLaunchFeedback/
+                LoadingCard）是对话历史里的「装载记录」，固定在消息列表之前——用户/
+                agent 消息一律排在它之后；同一时刻只渲染这一张卡（全文件唯一）。 */}
+            <div data-project-bridge-exec={bridgeExec?.requestId === presentation.state.requestId ? "" : undefined}
+              data-project-bridge-exec-state={bridgeExec?.requestId === presentation.state.requestId ? bridgeExec.state : undefined}>
+              <WindowLaunchFeedback onRetry={bridgeExec && bridgeExec.requestId === presentation.state.requestId && lastDirectiveRef.current ? retryLastDirective : undefined} />
+            </div>
             {state.thread.map((item) => {
               if (item.kind === "message") {
                 return (
@@ -1128,10 +1153,6 @@ export function ProjectSurface({
                 </button>
               </p>
             ) : null}
-            <div data-project-bridge-exec={bridgeExec?.requestId === presentation.state.requestId ? "" : undefined}
-              data-project-bridge-exec-state={bridgeExec?.requestId === presentation.state.requestId ? bridgeExec.state : undefined}>
-              <WindowLaunchFeedback onRetry={bridgeExec && bridgeExec.requestId === presentation.state.requestId && lastDirectiveRef.current ? retryLastDirective : undefined} />
-            </div>
             {bridgeExec && bridgeExec.requestId !== presentation.state.requestId ? (
               <div
                 className={`v5-project-bridge-exec v5-project-bridge-exec--${

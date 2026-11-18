@@ -75,8 +75,10 @@ export interface ConversationRailView {
   branches: ConversationBranchSummary[];
   /** 当前活动分支名（无=空）。 */
   activeBranch: string;
-  /** 当前活动节点 id（新建对话分叉起点；空=不可新建）。 */
+  /** 当前活动节点 id（新建对话分叉起点；空=无活动节点，可走当前 HEAD 分叉）。 */
   activeNodeId: string;
+  /** 是否有工程身份（project_path/active branch/head 任一可得）——无身份才禁用「新对话」。 */
+  hasProjectIdentity: boolean;
   /** 是否有可展示的对话流（空=「暂无历史对话」）。 */
   hasHistory: boolean;
 }
@@ -346,6 +348,18 @@ export function conversationWorktree(history: JsonRecord): ConversationWorktreeS
   };
 }
 
+/**
+ * 工程身份存在性（SHELL-PROJECT-STREAM-FIX-1/427）：无活动节点但能确定当前工程/
+ * 分支/HEAD 时，新对话仍可从当前 HEAD 分叉——只有「无工程身份」才禁用。
+ */
+export function conversationHasProjectIdentity(history: JsonRecord): boolean {
+  return Boolean(
+    textValue(history.project_path ?? history.current_project_path, "") ||
+      conversationActiveBranchName(history) ||
+      textValue(history.head, "")
+  );
+}
+
 /** 左栏树完整视图（渲染面唯一数据入口）。 */
 export function conversationRailView(uiState: AgentUIState | null): ConversationRailView {
   const history = asRecord(uiState?.project_history);
@@ -355,6 +369,7 @@ export function conversationRailView(uiState: AgentUIState | null): Conversation
     branches,
     activeBranch: conversationActiveBranchName(history),
     activeNodeId: conversationActiveNodeId(history),
+    hasProjectIdentity: conversationHasProjectIdentity(history),
     hasHistory: branches.length > 0
   };
 }
