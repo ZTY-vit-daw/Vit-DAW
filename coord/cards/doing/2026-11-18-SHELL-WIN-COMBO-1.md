@@ -24,3 +24,12 @@ script/wrapper/host 均 exit 0 + 断言摘要 + 原始工件。任何 `not_exerc
 ## 领取/回执/验收
 
 待 410–413 收口后回填（owner=lead/combo 或主管亲跑；分支/worktree、资源记录、执行时间同批登记）。
+
+## 领取（2026-11-18 晚，主管亲跑）
+
+- owner=lead（PC 主管决策流，主管本人执行真栈验收；不委派生产实现）；无实现分支；真栈唯一 owner。
+- 前置已达成：410/411/412 实现面 PASS 并合入（前端 main `cf33195b`、主仓 main `dfa86cac`）；413 产物刷新 PASS（VitShell `5D420DED…`、DLL `B270362D…`、webui dist `0886058E…`）。
+- 装置扩展（主管实施）：`scripts/vitshell_zproduct_smoke.ps1` 增 `-CardId` / `-PresentationChecks`（默认行为与原 409 一致）+ 新 `scripts/vitshell_combo_cdp.mjs` 读取真实 DOM：feedback request/seq/terminal/progress、`data-loading-phase=completed`、步骤数、无假进度文本、shell 条件下无 DAW 焦点声明与无 focus hint、同窗 sentinel。
+- 运行参数（拟）：`-Condition shell -CardId SHELL-WIN-COMBO-1 -PresentationChecks -TimeoutSec 180 -NaturalConditionWaitSec 60`；Stage 于 `%TEMP%/shell414-combo-*`（host/runtime/frontend 布局，fresh DLL）；RunRoot `coord/runs/SHELL-WIN-COMBO-1/run_<stamp>`。
+- 资源：跑前在 `coord/resources/PC-RUNTIME-STACK.md` 顶部登记（卡 414、owner、stage/run、单次预算与止损），推 main 重读后 ≤60s 启动；失败即停、无原样重跑。
+- 通过：script/wrapper/host exit 0 + 409 分类器 PASS + 395 呈现断言 PASS（terminal=ready、completed 卡在场、无假进度、无焦点误报）。任一门失败按 product/harness/environment/coverage 分类保留原工件。

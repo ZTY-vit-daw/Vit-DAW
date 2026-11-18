@@ -25,3 +25,9 @@
 ## 领取（2026-11-18 晚，主管）
 
 - owner=`lead/entry413`（DeepSeek-V4.1-Flash 执行子代理，PC）；执行主检出；先做**隔离扩展 DLL 预构建**（临时目录、零源码改动、零真栈），待 410/411/412 合入并经主管放行后再刷新最终产物（VitShell Release / webui dist / 入口哈希）。
+
+## 回执与验收（2026-11-18 晚）
+
+- 主管放行后完成最终刷新：VitShell.exe `5D420DED…`（311,808 B）、extension DLL `B270362D…`（替换 tracked 旧 DLL，未提交）、VitAgent `27D09FA0…`、webui dist `0886058E…`；真实工程 import 两命令 exit 0；部署 DLL 探针三断言 true。
+- 入口 `启动VitShell.cmd` 未变且路径有效。工件：[PRESTAGE](runs/SHELL-ENTRY-REFRESH-1/PRESTAGE.md)、[FINAL](runs/SHELL-ENTRY-REFRESH-1/FINAL.md)。
+- 裁定：[rulings/2026-11-18-SHELL-ENTRY-REFRESH-1-pass.md](../../rulings/2026-11-18-SHELL-ENTRY-REFRESH-1-pass.md) PASS；真实栈呈现由 414 验证。

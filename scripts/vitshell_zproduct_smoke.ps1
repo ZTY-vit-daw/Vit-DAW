@@ -2,6 +2,8 @@
 # Explicit opt-in, one natural foreground condition, one open, zero chat/LLM.
 # Preparation never calls this runtime leg. PASS applies only to stated samples
 # and the existing own-thread subclass interval, never to rendered frames.
+# 414 extension: -CardId / -PresentationChecks add rendered 395 feedback assertions
+# (default off keeps 409 behavior).
 param(
     [switch]$RuntimeAuthorized,
     [string]$LeaseOwner,
@@ -15,7 +17,9 @@ param(
     [string]$RunRoot,
     [ValidateRange(0,180)][int]$NaturalConditionWaitSec = 0,
     [ValidateRange(0,2147483647)][int]$ExpectedExternalPid = 0,
-    [ValidateRange(10,240)][int]$TimeoutSec = 120
+    [ValidateRange(10,240)][int]$TimeoutSec = 120,
+    [string]$CardId = 'SHELL-WIN-ZPRODUCT-1',
+    [switch]$PresentationChecks
 )
 $ErrorActionPreference = 'Stop'
 $MainRoot = Split-Path -Parent $PSScriptRoot
@@ -26,7 +30,7 @@ foreach ($required in @('LeaseOwner','FrontendWorktree','StageRoot','ExpectedExt
 if (Test-Path -LiteralPath $RunRoot) { throw 'RunRoot must be new (no overwrite/retry)' }
 New-Item -ItemType Directory -Path $RunRoot | Out-Null
 $RunRoot = (Resolve-Path -LiteralPath $RunRoot).Path
-$report = [ordered]@{ card='SHELL-WIN-ZPRODUCT-1'; run_id=(Split-Path -Leaf $RunRoot); condition=$Condition
+$report = [ordered]@{ card=$CardId; run_id=(Split-Path -Leaf $RunRoot); condition=$Condition
     command_line=[Environment]::CommandLine; invocation=$MyInvocation.Line; parameters=$PSBoundParameters
     started_utc=[DateTime]::UtcNow.ToString('o'); result='environment_failure'; llm_calls='not_yet_verified'
     coverage='DOM open chain, bound native first-show/correction, existing own-thread message interval, 10ms polling (not frames; gaps unobserved)' }
@@ -51,7 +55,7 @@ function Assert-Lease {
     # The action belongs to the timestamped event header, not its teardown prose.
     $eventHeader = ($latest -split '/',2)[0]
     if ($eventHeader -notmatch '^-\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}(?::\d{2})?\s+[+-]\d{2}:?\d{2}\s+(预留|占用)\s*$' -or $latest -match '无.*启动权' -or
-        $latest -notmatch 'SHELL-WIN-ZPRODUCT-1' -or $latest -notmatch ('owner=.*'+[regex]::Escape($LeaseOwner)+'[ `；;,（(]') -or ([regex]::Matches($latest,'owner=')).Count -ne 1) {
+        $latest -notmatch ([regex]::Escape($CardId)) -or $latest -notmatch ('owner=.*'+[regex]::Escape($LeaseOwner)+'[ `；;,（(]') -or ([regex]::Matches($latest,'owner=')).Count -ne 1) {
         throw 'latest remote resource event does not grant this exact 409 runtime owner'
     }
     $report.remote_head = $remoteHead; $report.lease = $latest
@@ -101,6 +105,19 @@ function Cdp($Phase) {
     & node (Join-Path $PSScriptRoot 'vitshell_open_chain_cdp.mjs') --cdp-port 9333 --phase $Phase --out $out --webui-dir (Join-Path $MainRoot 'agent/webui') 2>&1 |
         Out-File -LiteralPath ($out+'.log') -Encoding utf8
     if ($LASTEXITCODE -ne 0) { throw "CDP $Phase failed (exit $LASTEXITCODE)" }
+    return (Get-Content -LiteralPath $out -Raw -Encoding UTF8 | ConvertFrom-Json)
+}
+function CdpPresentation {
+    # 414: read the rendered 395 launch feedback from the real WebView2 DOM.
+    # Check failures are data (ok=false), not a harness exception; the product
+    # verdict is asserted after the native classifier below.
+    $out = Join-Path $RunRoot 'cdp_presentation.json'
+    & node (Join-Path $PSScriptRoot 'vitshell_combo_cdp.mjs') --cdp-port 9333 --phase probe-presentation --out $out --webui-dir (Join-Path $MainRoot 'agent/webui') --timeout-sec 30 2>&1 |
+        Out-File -LiteralPath ($out+'.log') -Encoding utf8
+    $script:presentationCdpExit = $LASTEXITCODE
+    if (-not (Test-Path -LiteralPath $out)) {
+        return @{ phase='probe-presentation'; ok=$false; error="presentation CDP produced no verdict (exit $LASTEXITCODE)" }
+    }
     return (Get-Content -LiteralPath $out -Raw -Encoding UTF8 | ConvertFrom-Json)
 }
 function Remember-Tree {
@@ -348,6 +365,11 @@ try {
         Save-Json $opened 'status_opened.json'
         if ([int]$opened.launch_count -ne 1 -or $opened.chain_state -ne 'opened' -or -not $opened.godot_running) { throw 'PRODUCT: single product open timeout' }
         $dom = Cdp 'probe-project'
+        $presentation = $null
+        if ($PresentationChecks) {
+            $presentation = CdpPresentation
+            Save-Json $presentation 'presentation.json'
+        }
         Start-Sleep -Milliseconds 2200
         $samples=[Shell409Observer]::Stop(); $observerStarted=$false
         Save-Json $samples 'native_poll_samples.json'
@@ -362,12 +384,21 @@ try {
             open_tick_ms=$openTick; native=$native; samples=$samples; observer_error=[Shell409Observer]::Error
             chain_opened=($opened.chain_state -eq 'opened' -and ([string]$state.current_project.path).Replace('\','/') -eq $fixture.Replace('\','/'))
             guard_ok=$capture.guard_ok
-            project_dom_ok=($dom.ok -and $dom.launcher_root_gone -and $dom.sentinel -eq $probe.sentinel -and $dom.url -eq $probe.url) }
+            project_dom_ok=($dom.ok -and $dom.launcher_root_gone -and $dom.sentinel -eq $probe.sentinel -and $dom.url -eq $probe.url)
+            presentation=$presentation }
         Save-Json $data 'classification_input.json'
         & node (Join-Path $PSScriptRoot 'vitshell_zproduct_verdict.mjs') (Join-Path $RunRoot 'classification_input.json') (Join-Path $RunRoot 'verdict.json') 2>&1 | Out-File -LiteralPath (Join-Path $RunRoot 'verdict.log') -Encoding utf8
         $exitCode=$LASTEXITCODE; $report.classifier_exit=$exitCode
         $verdict=Get-Content -LiteralPath (Join-Path $RunRoot 'verdict.json') -Raw -Encoding UTF8 | ConvertFrom-Json
         $report.result=$verdict.classification; $report.verdict=$verdict
+        if ($PresentationChecks) {
+            $report.presentation=$presentation
+            if ($null -eq $presentation -or -not [bool]$presentation.ok) {
+                $report.result='product_failure'
+                $report.presentation_failure='presentation checks failed'
+                $exitCode=1
+            }
+        }
     }
 } catch {
     $report.error=$_.Exception.Message; $report.error_record=($_ | Out-String); $exitCode=2
