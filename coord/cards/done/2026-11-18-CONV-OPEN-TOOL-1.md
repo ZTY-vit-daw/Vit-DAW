@@ -27,3 +27,9 @@
 ## 停止与回执
 
 同确定性断点两次失败→停；需改内核/协议/webui→停报。回执：commit、文件、命令+exit、测试清单、fake kernel 命令计数、失败语义证据、边界（零真栈）。
+
+## 回执与验收（2026-11-18 晚）
+
+- commit `e6184e1d`+`4554e8e8`；主管亲跑 build/harness/tools/history/diff-check 全 0；合入 main `8d9b8f4e`。
+- 交付：组合工具单 reload、autosave 复用、turn 守卫、失败披露；7 个新测试含 fake kernel 命令计数（同树/跨树/守卫/未知/ reload 失败/catalog）。
+- 后续：421 B2b 前端接线（等 426 修复合入避免文件域冲突）；422 真栈组合验证。
