@@ -40,3 +40,9 @@ Attempt 03 reached stage agent+hub and WebUI ready, then the harness prematurely
 Changed script SHA-256 `C3FECF67F57346B41F792475AF7D6F4F015349F89FB94669BD47D681E78311CA` now waits within TimeoutSec for all three owned stage processes and their listeners, rejects foreign/duplicate/unknown PID/birth/endpoint ownership immediately, and saves lightweight readiness and missing-item evidence on timeout. Offline progression and negative checks pass. Product/DLL/host hashes remain unchanged.
 
 After a new shared reservation, allow only one `runtime_shell_04` invocation by the same supervisor owner, using fresh `C:/Users/timoz/AppData/Local/Temp/shell409-product-stage4-033a09f298834fb58eaf20f2a718da36` and its `frontend/`. Keep all previous success conditions, one-attempt limit, time bound, hygiene and stop rules. External remains unauthorized.
+
+## UTF8 and child teardown correction, 13:21 +08:00
+
+Attempt 04 proved all three stage runtime processes and owned listeners ready, but PS5.1 decoded the valid UTF8 Chinese launcher JSON as ANSI and stopped before the open action. The shell exited 0; a still-exiting owned child was immediately forced, so the final report retained environment failure. Independent clearance and six authority hashes passed; reservation released (`d60a3022`).
+
+Changed script SHA-256 `E7E1571C45E34A95E4219B41DD5CF219353D57EBE9F7A792587C9BBE68329C92` reads JSON/Godot logs explicitly as UTF8 and waits within the existing 20-second cleanup deadline for all exact owned PID/birth identities. Residual forced cleanup still fails. The original run04 JSON parses correctly and delayed-exit/timeout/PID-reuse offline cases pass. Allow one new `runtime_shell_05` after reservation, using fresh `C:/Users/timoz/AppData/Local/Temp/shell409-product-stage5-601925cf1c0e42a6b54ff87968e7a0cb`, same supervisor owner and unchanged product artifacts. Previous success criteria, limits and no-external/no-unchanged-retry rules remain.
