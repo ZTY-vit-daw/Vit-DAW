@@ -32,3 +32,10 @@
 ## 停止
 
 同确定性断点两次失败→停；若需结构统一 frame（A+）才能改善观感，停手交主管讨论，不扩域。
+
+## 回执与验收（2026-11-18 晚）
+
+- commit `e2ce71ef`；主管亲跑 755 测/build/RWP 126 检查 0 失败/test:render 全段 PASS；合入 main `c7195e18`；dist=`1F517BCC…`。
+- 动效：右侧 480ms（+40ms 错峰）/左栏 320ms/内容体 420ms；token 化一处可调；reduced-motion 全关。
+- 边界：结构未变；若仍觉得快，下一步 ~550ms 或动效速度偏好。
+- 裁定：[rulings/2026-11-18-CONV-WINDOW-MOTION-2-pass.md](../../rulings/2026-11-18-CONV-WINDOW-MOTION-2-pass.md) PASS；候手测。
