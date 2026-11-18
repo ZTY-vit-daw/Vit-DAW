@@ -40,3 +40,8 @@
 
 - 主检出 `agent/webui/dist/index.html` 已重建，新 SHA256=`0C6A1691EB17323DBAEA13C4CBA3954D0DC70459ACBC5FB98315F3CC311FE7A9`（取代上表 0886058E…）；VitShell.exe / extension DLL / VitAgent 哈希不变。
 - 416 已修加载卡黄色状态环「绕轴环绕」缺陷（原地自转 + 去掉 translateY 覆盖）；手测入口重新打开即可看到新动效。
+
+## 更新（2026-11-18 20:20，B2a 418 合入后）
+
+- 主检出 `agent/webui/dist/index.html` 重建，新 SHA256=`6304D7D8C713FC885865CFFA5AF0437980FA11CE4F95299C40BF903FC2243635`；VitShell/DLL/agent 哈希不变。
+- 当前入口已含 B1 常驻左栏 + B2a 工程面「对话流」树/只读预览/继续/新对话。**跨工作树（B2b）尚未接入**，多工作树时的分支归属过滤也留 B2b；建议等 B2b 完成后再做完整手测。
