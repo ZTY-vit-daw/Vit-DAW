@@ -61,3 +61,8 @@
 
 - 主检出 `agent/webui/dist/index.html` 重建，新 SHA256=`7C30A2B6C277A4996799CC78F2143BA92670BF30F1DE64477FAF0AD52A677D46`。
 - A 方案：右侧 ConversationWindow 窗口壳 + launcher/project 持久流层；管理视图↔工程往返不重建、200ms 过渡、滚动/草稿/加载卡保留。首次 launcher→project 仍按 2026-11-15 旧裁定卸载 launcher 层一次；首次工程打开仍有一次真实加载。
+
+## 更新（2026-11-18 22:05，429 动效合入后）
+
+- 主检出 `agent/webui/dist/index.html` 重建，新 SHA256=`345417A7EB2C4C38D0EA98BD6F0EF1C7C4A5C7C001A08E960C16085E898CFDD5`。
+- 动效：右侧层 340ms 缓出（仅 active 入场）、左栏内容 240ms、工程/launcher 内容体 300ms；inactive 立即隐藏；reduced-motion 全关。

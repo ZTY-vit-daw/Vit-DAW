@@ -25,3 +25,10 @@
 ## 停止
 
 同确定性断点两次失败→停；若必须改结构（统一 titlebar/composer）才能消除右侧切换感，停手交主管讨论 A+。
+
+## 回执与验收（2026-11-18 晚）
+
+- commit `03f8debd`；主管亲跑 755 测/build/RWP 124 检查 0 失败/test:render 全段 PASS；合入 main `ae832888`；dist=`345417A7…`。
+- 动效：右侧 340ms 缓出/左栏 240ms/内容体 300ms；inactive 立即隐藏无双影；reduced-motion 全关。
+- 边界：未统一 titlebar/composer；若观感仍像两窗口切换需 A+。
+- 裁定：[rulings/2026-11-18-CONV-WINDOW-MOTION-1-pass.md](../../rulings/2026-11-18-CONV-WINDOW-MOTION-1-pass.md) PASS；候手测。
