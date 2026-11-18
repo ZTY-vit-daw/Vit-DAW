@@ -7,3 +7,9 @@
 - 要点：T-14 判定面三分支白名单（deterministic→结构叶；rubric→verbal_rubric；user_judgment→event 映射）；白名单外降 advisory+W-CHK，禁止文本生成判定；T-13 材料准入+catalog 状态；T-11 clip_origins/bar_span；T-17 write_boundary 表结构（接线归 425）；manifest 四元组键+W 清单+fail-closed 失效。
 - 验收：`go test ./internal/legamedesign/...`（music-creation-unit2 编译产物过 ValidateLevelCard 0 拒绝；W 清单对账；缓存键变化重编译；手改 compiled 卡被 manifest 拒绝）；`go build ./...` 0。
 - 依赖/停止：待 423 合入后由主管发卡；映射表全行有测试；不做 chat/装配接线。
+
+## 发卡/领取（2026-11-18 晚，423 合入后）
+
+- owner=`lead/legameparse423`（续用 W01-A 执行流）；分支 `codex/legame-compile-424`；worktree=`C:/Users/timoz/.codex/worktrees/pc424-compile/Vit_DAW`；基线 main `69760e78`。
+- **硬约束**：编译入口必须调用 `legamedesign.ValidateCompileReadiness(d, overrides)`（R5 fail-closed 落点；源校验允许设计期 null；无覆盖时 tempo+2 budget=3E，给覆盖=0E）；映射/manifest 按契约 v0-frozen（R3 声明序+manifest 映射、R4 id#k、R6 30 调/归一/留 catalog）。
+- 复用 423 产物：`Parse/ParseWithOptions`、`Design` 结构、`Report/诊断规则号`、`Validate/ValidateCompileReadiness`；编译产物必须过现行 `edu.ValidateLevelCard`。

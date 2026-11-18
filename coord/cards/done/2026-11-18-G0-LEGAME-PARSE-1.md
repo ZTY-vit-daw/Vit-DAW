@@ -27,3 +27,9 @@
 ## 停止
 
 同确定性断点两次失败→停；需改契约→停报；不做编译器（424）/工程绑定（425）。
+
+## 回执与验收（2026-11-18 晚）
+
+- commit `fefb0939`；主管亲跑 legamedesign 191 RUN 全 PASS/build/edu/vet/gofmt/diff 全 0；fixture HEAD blob=`DBF3781A…` 与 coord 原件一致（工作树 CRLF 哈希差异非内容）。合入 main `69760e78`。
+- 裁定：[rulings/2026-11-18-G0-LEGAME-PARSE-1-pass.md](../../rulings/2026-11-18-G0-LEGAME-PARSE-1-pass.md) PASS。
+- R5 落点：源校验允许 null，`ValidateCompileReadiness` 在编译就绪入口 fail-closed；424 必须调用。
