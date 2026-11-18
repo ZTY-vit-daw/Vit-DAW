@@ -30,3 +30,11 @@
 - 跨卡风险：`scripts/webui_rendered_dom_smoke.mjs` 点 score 页签后直接等 data-score-root，397 后需先选轨；由续段做最小适配（保 fail-honest 断言）。
 - 集成分支：`codex/score-binding-397-integ`（worktree `C:/Users/timoz/.codex/worktrees/pc397-merge/Vit_DAW`），基于主仓 main f529e3f2 干净合并 c6991e18+c17bf4bf，HEAD **df0e134b**，无冲突。
 - 下一步：续段完成集成适配/零栈复跑/RUNBOOK 候选 HEAD 更新 → 主管复核合入 → 登记真栈单次授权运行。
+
+## 真栈尝试 1（2026-11-18 20:18，单次授权轮）
+
+- run_id `run_20261118_201839`（候选 pc397-merge@b5f74fbb，主仓 main 8972c5a5）：PS1 exit 1 / leg exit 1 = `assertion_failure`，33 断言 31 PASS / 2 FAIL。
+- PASS：A1–A8 十九、S1 五（UI 绑定身份==实际 apply 载荷目标==kernel 回读）、J1 旅程结构、J2 面板存活/无 pageerror/无错误边界、J3 返回。
+- FAIL：`J2-non120-clip-grid-snapped` / `J1-score-panel-from-project-journey` 两条旧期望仍等 `10.75/上取整`；本 run 模板已是 384 修正资产（clip 8 拍@80bpm），内核/桥按正确几何披露，故子类=`smoke_expectation_stale`（装置判据陈旧），非产品/非 env。
+- 卫生：recents 哈希 807226F4… 五段一致（快照/还原后/teardown 后）；TEARDOWN_ALL_ZERO（Vit 进程/TCP 六口/UDP 4445=0）；栈位已释放（main 记录）。
+- 处置：只修订 J1/J2 两条过期期望（保留 J2 安全三断言/J1 其余旅程断言），修订后单次第二次正式轮；不改产品/不原样重跑。
