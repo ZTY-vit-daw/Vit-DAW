@@ -24,3 +24,10 @@
 ## 回执（短）与禁止
 
 commit hash+分支、文件清单、命令+exit 原文、测试/渲染计数与段清单、冲突文件与解决理由、边界声明（零真栈）。禁止 push main、改主检出、启 agent/Godot/VitShell、跨卡文件域。
+
+## 回执与验收（2026-11-18 晚）
+
+- commit `c44c9039`（分支 `codex/shell-win-pres-412`）；主管复核后合入 main `668078fd`（已推 origin/main）。
+- 主管独立复跑：`npm run test` 60 files/722 tests exit 0；`npm run build` exit 0；`node tests/render-window-presentation.mjs` checks=31 exit 0；`npm run test:render` 全段 PASS exit 0；diff 仅卡面 8 文件。
+- 裁定：[rulings/2026-11-18-SHELL-WIN-PRES-MERGE-1-pass.md](../../rulings/2026-11-18-SHELL-WIN-PRES-MERGE-1-pass.md)。实现面 PASS；真实端侧由 414 组合真栈最终裁决。
+- 边界：395-B launcherData 文案（域外）未入本卡，另行裁定是否补卡。
