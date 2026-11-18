@@ -1079,7 +1079,16 @@ export function ProjectSurface({
               </button>
             </div>
           ) : null}
-          <div className="v5-project-thread" data-project-thread data-scroll-intentional="thread">
+          {/* 429：线程内容体模式（live=当前对话，preview=只读分支预览）——只驱动内容体
+              过渡动画（CSS 按模式切换重播），titlebar/composer/窗口壳保持静止。 */}
+          <div
+            className="v5-project-thread"
+            data-project-thread
+            data-scroll-intentional="thread"
+            // fixture/gallery 静态渲染不带模式属性（不做入场动画，渲染树逐字不变）；
+            // 仅 live 工程面按 live/preview 模式驱动内容体过渡。
+            data-project-thread-mode={fixture ? undefined : conversationPreview ? "preview" : "live"}
+          >
             {/* B2a：只读预览优先——浏览非当前对话流时整个线程切换为该分支路径消息，
                 实时线程/桥执行块暂时让位；返回或继续后恢复。 */}
             {conversationPreview}
