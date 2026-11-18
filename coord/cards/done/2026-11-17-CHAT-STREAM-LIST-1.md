@@ -12,3 +12,8 @@
 - 验收：渲染断言+真栈腿（列表加载+切换会话往返）+用户目检（工程态左列成立）。
 
 ## 领取/回执/验收：待回填
+
+## 取代说明（2026-11-18 晚）
+
+- 本卡被 **417 SHELL-ENTRY-RAIL-1 + 418 CONV-RAIL-1 + 419 CONV-RAIL-CROSS-1** 取代并升级：常驻左栏 + 工作区/工作树/分支层级 + 只读预览 + 上下文动作卡（【继续此对话】/【打开此工作树并继续此对话】）+ 组合工具单次重载。模型见 [decisions/2026-11-18-entry-rail-conversation-model.md](../../decisions/2026-11-18-entry-rail-conversation-model.md)。
+- 本卡不再领取；归档为 superseded（未执行实现，历史需求保留）。

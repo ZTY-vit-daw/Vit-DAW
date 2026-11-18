@@ -1,4 +1,4 @@
-# 共享卡池统一索引（POOL-INDEX）
+﻿# 共享卡池统一索引（POOL-INDEX）
 
 - 维护：GLM 主管决策流（主线）/ 2026-11-06 建立（用户指令「按三线执行计划整理任务池」）
 - **权威规则**：领取凭证=**卡文件名（卡 ID）**；数字池序仅排序辅助。编号空间（2026-11-07 早窗主管裁定修订）：主线（混音/自由态/A-F/仪器）**258–275 封块**（269–274 为 11-07 凌晨连续发卡已成事实追认，275=B3-ABLATION 本次启用；原「267–275 留空」缓冲规则作废——消歧目的已被 11-07 凌晨发卡突破，回改成本>收益，[映射表](../reports/2026-11-05-nov-three-line-execution-plan.md)在案可查旧号）；三线（乐局/编曲/生成）**276–291**（原 260–275，2026-11-06 撞号协调改号）；**292 起两线共用递增序列，发卡时以本索引登记先后为准**。
@@ -181,7 +181,7 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 390 | YUE-INSTRUMENTAL-PATH-1 | doing 零栈两腿 pass 合入（**模型件齐+接入=纯封装层**：S1/S2/S4/S6 官方语义对齐+干跑断言+go 回归 0；**真栈生成+用户听核候栈**——人声抑制效果无先例，fallback 待命） |
 | 391 | SHELL-WIN-BEHAVIOR-1 | **todo 候用户手测 v7**（410/411/412/413/415 全 PASS；414 组合真栈 attempt03 PASS；[HANDTEST-V7](../runs/SHELL-WIN-BEHAVIOR-1/HANDTEST-V7.md)；父卡不可重复领） |
 | 392 | SCORE-TRACK-BIND-1 | 父卡（397绑定→398跟随→399小条；400草稿契约先行，父卡不可重复领；谱面轨道绑定+双模式：轨道选择器+GUI 跟随+clip 小条+草稿 clip 资产不落位；374 痛点承接；裁定档 §二） |
-| 393 | CHAT-STREAM-LIST-1 | todo 可领 P2（工程态对话流列表侧栏+会话切换最简档；裁定档 §三；settings 归 388 补） |
+| 393 | CHAT-STREAM-LIST-1 | **done superseded**（需求升级为 417/418/419 常驻左栏+对话流模型；未执行实现；[决定档](../decisions/2026-11-18-entry-rail-conversation-model.md)） |
 | —— | music_score 对话流控件 | 登记阶段 2 承接（裁定档 §二：374 内核包装成卡内挂载组件；候 388/389 收口后随阶段 2 发卡） |
 | 382 | SCORE-ENTRY-REACH-1 | done 已验收 pass 合入（**D4 归因翻案**：内核命令面正确〔377 归因撤销〕，真因=373 模板 MIDICLIP 拍数值被 tracktion loader 当秒读→**模板资产修正并入 384 腿 D**；ErrorBoundary+「打开工作台」入口+J1-J3 旅程断言；702/702 主管复跑+真栈 28/28；**用户 M4 重测就绪**〔VitShell 进工程→打开工作台〕） |
 | 383 | LAUNCHER-RECENTS-CLICK-1 | done 已验收 pass 合入（**磁带卡可点=用户刚需落地**：点击→治理→打开全链+移走/损坏降级+置灰；706/706 port 分支主管亲证+真栈 RC1-RC3 exit 0；LLM 上界 7=attempt1 装置轮如实记；**用户终验 PASS 2026-11-17「可点击加载工程，没问题」**） |
@@ -224,6 +224,10 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 414 | SHELL-WIN-COMBO-1 | **done PASS**（attempt03 hands-off：409 分类器 PASS + 395 呈现 PASS + chain_detail=workspace_ready；零 LLM/卫生还原；[裁定](../rulings/2026-11-18-SHELL-WIN-COMBO-1-pass.md)；run_20261118_190253） |
 | 415 | SHELL-WIN-STAGE-PARSE-FIX-1 | **done PASS**（主管复跑 ctest 3/3；真实链 workspace_ready 生效；8c2c2b44→前端 main 8c3801f；[裁定](../rulings/2026-11-18-SHELL-WIN-STAGE-PARSE-FIX-1-pass.md)） |
 | 416 | SHELL-RING-SPIN-FIX-1 | **done PASS**（加载卡状态环轴心居中/去 translateY 覆盖；主管复跑 722 测+35 渲染+全段 render；2160104f→主仓 main 88f4f163；[裁定](../rulings/2026-11-18-SHELL-RING-SPIN-FIX-1-pass.md)） |
+| 417 | SHELL-ENTRY-RAIL-1 | doing（lead/railb1；B1 入口壳层+常驻左栏+启动页工程列表迁入；主仓 worktree pc417-rail；零栈） |
+| 418 | CONV-RAIL-1 | todo 候 417（B2a：工作区→工作树→分支树+只读预览+输入蒙版+【继续此对话】） |
+| 419 | CONV-RAIL-CROSS-1 | todo 候 418（B2b：跨工作树只读浏览+【打开此工作树并继续此对话】+组合工具单次重载+真栈） |
 
 - 目标链：410/411/412 并发零栈 → 413 重建 → 414 单次真栈组合 → 391 手测放行。409 RULING 不重开；395/402 原 blocked 卡待本批收口后归档/收口。
 - 交接记录：[decisions/2026-11-18-pc-supervisor-handoff-planA.md](../decisions/2026-11-18-pc-supervisor-handoff-planA.md)。
+
