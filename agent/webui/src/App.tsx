@@ -115,6 +115,9 @@ import { loadSessionFlowMainID, mainConversationDefaultTitle, saveSessionFlowMai
 // 平移 + chat 域对话流复用 + 366 磁带卡落位）；旧 LauncherSurface 保留至
 // CONVERGE-CLEANUP-1（gallery fixture 面仍消费它，施工图 §7.2 双轨）。
 import { ConvergedLauncher } from "./launcher/ConvergedLauncher";
+// SHELL-ENTRY-RAIL-1（417）：live 入口壳层——窗口级常驻左栏（280px，可收起）+ 右主区。
+// 只在 launcher/project 两 surface 分支内包壳；full/main/workbench 原样走 MainApp。
+import { EntryShell } from "./entry/EntryShell";
 // UI-ENTRY-1：入口 surface 切换桥（宿主→React 单向 + React 取证回执）——进工程展开
 // DAW 时宿主通知 React 切 project surface，走内部 setState 零导航零重载（343 不变量）。
 import { postEntrySurfaceAck, subscribeEntrySurface } from "./launcher/entrySurfaceBridge";
@@ -529,52 +532,57 @@ function EntrySurfaceApp() {
     });
   }, []);
   if (surface === "launcher" || surface === "project") {
+    // SHELL-ENTRY-RAIL-1（417）：入口壳层——左栏跨 surface 常驻（同一条 data-entry-rail
+    // 节点不重建；收展状态在 WindowPresentationProvider），右主区内两个 hidden surface
+    // div 原样放入（各自内容仍按 surface 挂载/隐藏，既有旅程不变）。
     return (
-      <>
-        <div hidden={surface !== "launcher"} style={{ height: "100%" }}>
-          {surface === "launcher" ? (
-            <ConvergedLauncher
-              fill
-              activeProjectName={managedProject ?? undefined}
-              onReturnProject={managedProject ? () => {
-                setSurface("project");
-                postEntrySurfaceAck("project");
-              } : undefined}
-              onOpenSettings={() => setEntrySettingsOpen(true)}
-            />
-          ) : null}
-        </div>
-        {/* 管理视图只隐藏工程页，保留当前对话/输入；不关闭 DAW、不解绑工程。 */}
-        <div hidden={surface !== "project"} style={{ height: "100%" }}>
-          {managedProject || surface === "project" ? (
-            <ProjectLoadingGate>
-              <ProjectSurface
+      <EntryShell surface={surface === "launcher" ? "launcher" : "project"}>
+        <>
+          <div hidden={surface !== "launcher"} style={{ height: "100%" }}>
+            {surface === "launcher" ? (
+              <ConvergedLauncher
                 fill
-                active={surface === "project"}
-                onOpenWorkbench={() => setSurface("workbench")}
-                onViewLauncher={(name) => {
-                  setManagedProject(name || "当前工程");
-                  setSurface("launcher");
-                  postEntrySurfaceAck("launcher");
-                }}
+                activeProjectName={managedProject ?? undefined}
+                onReturnProject={managedProject ? () => {
+                  setSurface("project");
+                  postEntrySurfaceAck("project");
+                } : undefined}
                 onOpenSettings={() => setEntrySettingsOpen(true)}
               />
-            </ProjectLoadingGate>
-          ) : null}
-        </div>
-        <dialog
-          ref={entrySettingsRef}
-          className="v5-design v5-entry-settings"
-          aria-label="设置"
-          data-entry-settings
-          onCancel={() => setEntrySettingsOpen(false)}
-          onClose={() => setEntrySettingsOpen(false)}
-        >
-          {entrySettingsOpen ? (
-            <SettingsPage runtimeStatus={entryRuntime} uiState={entryUIState} onClose={() => setEntrySettingsOpen(false)} />
-          ) : null}
-        </dialog>
-      </>
+            ) : null}
+          </div>
+          {/* 管理视图只隐藏工程页，保留当前对话/输入；不关闭 DAW、不解绑工程。 */}
+          <div hidden={surface !== "project"} style={{ height: "100%" }}>
+            {managedProject || surface === "project" ? (
+              <ProjectLoadingGate>
+                <ProjectSurface
+                  fill
+                  active={surface === "project"}
+                  onOpenWorkbench={() => setSurface("workbench")}
+                  onViewLauncher={(name) => {
+                    setManagedProject(name || "当前工程");
+                    setSurface("launcher");
+                    postEntrySurfaceAck("launcher");
+                  }}
+                  onOpenSettings={() => setEntrySettingsOpen(true)}
+                />
+              </ProjectLoadingGate>
+            ) : null}
+          </div>
+          <dialog
+            ref={entrySettingsRef}
+            className="v5-design v5-entry-settings"
+            aria-label="设置"
+            data-entry-settings
+            onCancel={() => setEntrySettingsOpen(false)}
+            onClose={() => setEntrySettingsOpen(false)}
+          >
+            {entrySettingsOpen ? (
+              <SettingsPage runtimeStatus={entryRuntime} uiState={entryUIState} onClose={() => setEntrySettingsOpen(false)} />
+            ) : null}
+          </dialog>
+        </>
+      </EntryShell>
     );
   }
   return (

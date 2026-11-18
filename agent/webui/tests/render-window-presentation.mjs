@@ -62,12 +62,31 @@ try {
   check("wrong subscription replay ignored", await page.locator("[data-native-focus-hint]").count() === 0);
   await emit({ type: "vit_window_state", window_state: observation("shell"), replay: true, subscription_id: subscription });
   await page.locator('[data-launcher-root][data-native-focus="shell"]').waitFor();
+  // SHELL-ENTRY-RAIL-1（417）：窗口级常驻左栏——live App 在 WindowPresentationProvider
+  // 内包 EntryShell；启动页工程列表由 launcher 抽屉门户迁入左栏，右主区保留原 surface。
+  await page.locator("[data-entry-rail]").waitFor();
+  const railWidth = () => page.locator("[data-entry-rail]").evaluate(el => el.getBoundingClientRect().width);
+  const railIdentity = await page.evaluateHandle(() => document.querySelector("[data-entry-rail]"));
+  check("live entry App mounts one window-level rail", await page.locator("[data-entry-rail]").count() === 1);
+  check("entry rail is the 280px persistent left column", Math.round(await railWidth()) === 280);
+  check("startup project list is portaled into the entry rail", await page.locator("[data-entry-rail] [data-launcher-projects]").count() === 1 && await page.locator("[data-entry-rail] [data-launcher-drawer]").count() === 1);
+  check("entry rail header owns the surface title and collapse control", (await page.locator("[data-entry-rail] [data-entry-rail-title]").innerText()).trim() === "工程列表" && await page.locator("[data-entry-rail] [data-window-sidebar-toggle]").count() === 1);
+  check("launcher titlebar no longer duplicates the collapse control", await page.locator("[data-launcher-titlebar] [data-window-sidebar-toggle]").count() === 0);
+  check("right main area keeps the live launcher surface", await page.locator("[data-entry-main] [data-launcher-root]").count() === 1);
   await page.locator("[data-window-sidebar-toggle]").focus();
   await page.keyboard.press("Enter");
   await page.waitForFunction(() => document.querySelector("[data-window-sidebar-slot]").getBoundingClientRect().width < 1);
   check("keyboard collapse hides and inerts only existing recents slot", await page.locator("[data-window-sidebar-slot]").evaluate(el => el.inert && el.getAttribute("aria-hidden") === "true"));
   check("collapse button remains keyboard accessible", await page.locator("[data-window-sidebar-toggle]").getAttribute("aria-expanded") === "false");
+  await page.waitForFunction(() => document.querySelector("[data-entry-rail]").getBoundingClientRect().width < 1);
+  check("collapsing the rail releases its width to the main area", Math.round(await railWidth()) === 0
+    && Math.round(await page.locator("[data-entry-main]").evaluate(el => el.getBoundingClientRect().width)) === 1440
+    && await page.locator("[data-launcher-input] textarea").isVisible());
   await page.keyboard.press("Enter");
+  await page.waitForFunction(() => Math.round(document.querySelector("[data-entry-rail]").getBoundingClientRect().width) === 280);
+  check("expanding restores the same rail node and recents slot", await page.evaluate(node => node === document.querySelector("[data-entry-rail]"), railIdentity)
+    && Math.round(await railWidth()) === 280
+    && await page.locator("[data-entry-rail-slot]").evaluate(el => !el.inert && el.getAttribute("aria-hidden") === "false"));
   await page.locator("[data-launcher-recent-open]").first().click();
   let request = await currentRequest();
   await feedback().waitFor();
@@ -149,6 +168,10 @@ try {
   await emit({ type: "vit_window_state", window_state: observation("daw", 30) });
   await page.locator("[data-project-titlebar] [data-native-focus-hint]").waitFor();
   check("observed DAW foreground changes only header feedback", await page.locator("[data-project-root]").getAttribute("data-native-focus") === "daw" && await feedback().getAttribute("data-window-launch-terminal") === "ready");
+  check("same rail DOM node survives the launcher→project surface switch", await page.evaluate(node => node === document.querySelector("[data-entry-rail]"), railIdentity));
+  check("project surface swaps rail content to the conversation-stream placeholder", await page.locator("[data-entry-rail] [data-entry-project-rail]").count() === 1 && (await page.locator("[data-entry-rail] [data-entry-project-rail]").innerText()).includes("对话流列表将在下一步接入"));
+  check("project surface rail no longer renders the startup project list", await page.locator("[data-entry-rail] [data-launcher-projects]").count() === 0 && (await page.locator("[data-entry-rail] [data-entry-rail-title]").innerText()).trim() === "对话流");
+  check("rail expansion state survives the surface switch", await page.locator("[data-window-sidebar-toggle]").getAttribute("aria-expanded") === "true");
   await settleMotion();
   const newTextContrast = await page.locator("[data-native-focus-hint], [data-window-launch-feedback] h3, [data-window-launch-feedback] p").evaluateAll(elements => {
     const rgb = color => (color.match(/[\d.]+/g) || []).map(Number);
@@ -173,8 +196,21 @@ try {
   check("absent native state returns unknown", await page.locator("[data-project-root]").getAttribute("data-native-focus") === "unknown");
   const composer = page.locator("[data-project-composer] input");
   await composer.fill("保留的工程输入（render fixture）");
+  // SHELL-ENTRY-RAIL-1（417）：收展状态跨 surface 保持——工程面收起后切回启动页，
+  // 同一条 rail 节点仍是收起态；再由左栏收起态浮动把手展开，恢复工程列表。
+  await page.locator("[data-window-sidebar-toggle]").click();
+  await page.waitForFunction(() => document.querySelector("[data-entry-rail]").getBoundingClientRect().width < 1);
+  check("project surface shares the same collapsible rail", Math.round(await railWidth()) === 0);
   await page.locator("[data-project-view-launcher]").click();
   await page.locator('[data-launcher-mode="project-management"]').waitFor();
+  check("collapsed rail state survives the project→launcher return", await page.evaluate(node => node === document.querySelector("[data-entry-rail]"), railIdentity)
+    && await page.locator("[data-window-sidebar-toggle]").getAttribute("aria-expanded") === "false"
+    && Math.round(await railWidth()) === 0);
+  await page.locator("[data-entry-rail-expand]").click();
+  await page.waitForFunction(() => Math.round(document.querySelector("[data-entry-rail]").getBoundingClientRect().width) === 280);
+  check("expanding from the collapsed handle restores the startup project list", await page.evaluate(node => node === document.querySelector("[data-entry-rail]"), railIdentity)
+    && await page.locator("[data-entry-rail] [data-launcher-projects]").count() === 1
+    && await page.locator("[data-entry-project-rail]").count() === 0);
   check("management sidebar preference survives remount and contains no invented chat list", await page.locator("[data-window-sidebar-toggle]").getAttribute("aria-expanded") === "true" && await page.locator("[data-window-sidebar-slot]").getAttribute("data-window-sidebar-slot") === "recents");
   await page.locator("[data-launcher-choose-file]").click();
   const fileRequest = await page.evaluate(() => window.__hostPosts.filter(p => p.type === "launcher_choose_file").at(-1).request_id);
