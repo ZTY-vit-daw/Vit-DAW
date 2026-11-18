@@ -21,7 +21,9 @@
 
 :root {
   --v5-conv-motion-layer: 480ms;
-  --v5-conv-motion-rail: 320ms;
+  /* 431 试验值：用户要求左栏内容切换先加到 800ms 试（超出常规 200–500ms 区间，
+     仅左栏槽内容使用；后续可按手测回调该 token，一处改全局生效）。 */
+  --v5-conv-motion-rail: 800ms;
   --v5-conv-motion-content: 420ms;
   --v5-conv-motion-layer-delay: 40ms;
   --v5-conv-motion-ease: cubic-bezier(0.05, 0.7, 0.1, 1);

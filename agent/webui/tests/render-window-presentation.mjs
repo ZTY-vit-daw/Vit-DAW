@@ -278,20 +278,20 @@ try {
   const windowShellIdentity = await page.evaluateHandle(() => document.querySelector("[data-conversation-window]"));
   check("conversation window shell hosts the live launcher stream layer", await page.locator("[data-conversation-window]").count() === 1 && await page.locator('[data-conversation-layer="launcher"][data-conversation-layer-active="true"]').evaluate(layer => !layer.hidden && !layer.inert && layer.getAttribute("aria-hidden") === "false"));
   // CONV-WINDOW-MOTION-2（430）：动效值抽成 CSS 自定义属性（--v5-conv-motion-layer/rail/content
-  // + ease，一处可调）；左栏内容 320ms、launcher 内容体 420ms；右侧 surface 层 480ms 且
+  // + ease，一处可调）；左栏内容 800ms（431 试验值）、launcher 内容体 420ms；右侧 surface 层 480ms 且
   // 延迟 40ms 起（与左栏错峰，避免两侧同时动）。
   check("conversation motion values are tokenized in CSS custom properties", await page.evaluate(() => {
     const style = getComputedStyle(document.documentElement);
     const normalize = value => (value || "").replace(/\s+/g, "");
     return style.getPropertyValue("--v5-conv-motion-layer").trim() === "480ms"
-      && style.getPropertyValue("--v5-conv-motion-rail").trim() === "320ms"
+      && style.getPropertyValue("--v5-conv-motion-rail").trim() === "800ms"
       && style.getPropertyValue("--v5-conv-motion-content").trim() === "420ms"
       && normalize(style.getPropertyValue("--v5-conv-motion-ease")).includes("cubic-bezier(0.05,0.7,0.1,1)");
   }));
-  check("entry rail content animates 320ms with the emphasized ease when the surface content swaps", await page.locator("[data-entry-rail-slot] > .v5-launcher-drawer").evaluate(drawer => {
+  check("entry rail content animates 800ms with the emphasized ease when the surface content swaps", await page.locator("[data-entry-rail-slot] > .v5-launcher-drawer").evaluate(drawer => {
     const style = getComputedStyle(drawer);
     const durationMs = style.animationDuration.endsWith("ms") ? Number.parseFloat(style.animationDuration) : Number.parseFloat(style.animationDuration) * 1000;
-    return style.animationName === "v5-entry-rail-content-enter" && Math.abs(durationMs - 320) <= 1 && style.animationTimingFunction.replace(/\s+/g, "") === "cubic-bezier(0.05,0.7,0.1,1)";
+    return style.animationName === "v5-entry-rail-content-enter" && Math.abs(durationMs - 800) <= 1 && style.animationTimingFunction.replace(/\s+/g, "") === "cubic-bezier(0.05,0.7,0.1,1)";
   }));
   check("right surface layer starts 40ms after the rail content (staggered, not simultaneous)", await page.evaluate(() => {
     const layer = document.querySelector('[data-conversation-layer][data-conversation-layer-active="true"]');
@@ -712,10 +712,10 @@ try {
       && getComputedStyle(composerElement).animationName === "none"
       && getComputedStyle(shell).animationName === "none";
   }));
-  check("entry rail conversation content also animates 320ms", await page.locator("[data-entry-rail-slot] > .v5-conversation-rail").evaluate(rail => {
+  check("entry rail conversation content also animates 800ms", await page.locator("[data-entry-rail-slot] > .v5-conversation-rail").evaluate(rail => {
     const style = getComputedStyle(rail);
     const durationMs = style.animationDuration.endsWith("ms") ? Number.parseFloat(style.animationDuration) : Number.parseFloat(style.animationDuration) * 1000;
-    return style.animationName === "v5-entry-rail-content-enter" && Math.abs(durationMs - 320) <= 1;
+    return style.animationName === "v5-entry-rail-content-enter" && Math.abs(durationMs - 800) <= 1;
   }));
   const projectThreadIdentity = await page.evaluateHandle(() => document.querySelector("[data-project-thread]"));
   // 当前活动分支是 beta-topic（421 跨工作树打开后），改用同工作树的非活动分支 shared
@@ -808,7 +808,7 @@ try {
     && await page.locator("[data-conversation-rail]").count() === 0);
   check("management sidebar preference survives remount and contains no invented chat list", await page.locator("[data-window-sidebar-toggle]").getAttribute("aria-expanded") === "true" && await page.locator("[data-window-sidebar-slot]").getAttribute("data-window-sidebar-slot") === "recents");
   // 429/430：左栏槽切换后同一时刻只有新内容（launcher drawer），旧工程对话流已卸载且
-  // 新内容带 320ms（--v5-conv-motion-rail）入场。
+  // 新内容带 800ms（--v5-conv-motion-rail，431 试验值）入场。
   check("entry rail slot holds only the newly mounted content after the swap", await page.locator("[data-entry-rail-slot]").evaluate(slot => {
     const direct = [...slot.children].filter(child => child.matches(".v5-launcher-drawer, .v5-conversation-rail"));
     const style = direct[0] ? getComputedStyle(direct[0]) : null;
@@ -816,7 +816,7 @@ try {
     return direct.length === 1
       && direct[0].matches(".v5-launcher-drawer")
       && slot.querySelectorAll(".v5-conversation-rail").length === 0
-      && Math.abs(durationMs - 320) <= 1;
+      && Math.abs(durationMs - 800) <= 1;
   }));
   await page.locator("[data-launcher-choose-file]").click();
   const fileRequest = await page.evaluate(() => window.__hostPosts.filter(p => p.type === "launcher_choose_file").at(-1).request_id);
