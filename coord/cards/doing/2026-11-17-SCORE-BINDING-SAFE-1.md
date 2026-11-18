@@ -15,3 +15,10 @@
 
 - c6991e1872de690b9c8976ec465366ff7c3cb1c0 @codex/score-binding-397 已推，26文件957+/149-（5生产文件）。715项全量vitest+最终focused11反例+build+真实App→Workbench装配11断言执行侧exit0，日志/报告在coord/runs/SCORE-BINDING-SAFE-1/local-397。
 - 不将局部自验视为最终通过；真实栈及J1-J3欠证，主管独立审diff/复跑待执行。生产path身份非CAS，前端检查到写入间并发切工程边界如实。
+
+## 真实栈批次准备（2026-11-18 晚，PC 主管 lead 放行）
+
+- owner=`lead/score397stack`（DeepSeek-V4.1-Flash，PC；续用既有 worktree `C:/Users/timoz/.codex/worktrees/score-binding-397/Vit_DAW`，分支 `codex/score-binding-397` @ c6991e18）；本段只做**零栈独立复核 + 真栈 runbook 准备**，不启真栈、不改生产代码。
+- 前置：397 零栈交付 c6991e18（26 文件 957+/149−，5 生产文件）已推；主管尚未独立验收/合入，真栈前必须先由主管复核 diff 并合入当前 main。
+- 本段任务：①在 worktree 独立复跑 vitest/build/必要 render 段并核对 5 生产文件与断言未弱化；②按真实栈验收要求（生产路径选轨→edit→apply→目标回读 + J1–J3）列出 smoke 覆盖缺口；③以 `coord/runs/SCORE-DG1A-COMPLETE-1/RUNBOOK.md` 为模板写本卡真栈 RUNBOOK（kerl+agent berth、webui 从本分支构建、kernel 二进制借用、插件数据库前置、运行次数/失败分类/止损、工件契约）；④提交零栈证据与 runbook 草案后停手，候主管复核合入与真栈授权。
+- 真栈纪律：单 owner；跑前 PC-RUNTIME-STACK 登记+推送+重读；新 run 目录；recents 快照/finally 还原哈希亲证；零 LLM 死端点；断言失败不原样重跑。
