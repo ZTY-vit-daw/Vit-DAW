@@ -28,6 +28,15 @@
 - 常规任务模型上限为 GPT-6.1 Sol；下档可用 GPT-6.1 Terra、GPT-6 Luna（以当前工具实际可用列表为准，不假称不可用模型已启动）。Astra 仅在最疑难问题上作只读参谋征询，不承担常规实现或常规复核。
 - 决策与执行仍分离：生产实现交独立子代理/worktree；主管保留最终裁定权。领取同步 main、文件域互斥、真实栈唯一 owner、原始证据和测试卫生规则继续有效。具体授权与当轮里程碑见 `coord/decisions/2026-11-17-autonomous-subagent-execution.md`。
 
+### 子代理复用与 token 经济（2026-11-18 用户裁定）
+
+- **优先复用**：一条开发线固定一个执行子代理；同线新卡/小修用 `send_message` 续用原 agent+worktree，不逐卡新建。新建仅限文件域/技术栈不同、原 agent 阻塞或真正并行不相交。
+- 发卡前查 `coord/agents/ROSTER.md`；每次发卡/完结更新名册。
+- 回执≤15 行，完整日志/diff/截图写 `coord/runs/`；主管只读裁定摘要+抽查高风险 diff，不逐行通读。
+- 按开发面拆短会话；gate 更新 `coord/decisions/NEXT-SESSION-BRIEF.md`；新会话只读 brief+POOL-INDEX+相关卡，不重读历史。
+- 完整规则：`coord/decisions/2026-11-18-agent-economy-rules.md`。
+
+
 ## 1. 常用命令
 
 所有 Go 命令都在 `agent/` 目录下执行：
