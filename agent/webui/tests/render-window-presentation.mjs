@@ -9,7 +9,56 @@ import { fileURLToPath } from "node:url";
 const webuiRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const runRoot = resolve(process.env.VIT_WINDOW_RENDER_OUTPUT || resolve(webuiRoot, "output/playwright/395-" + new Date().toISOString().replace(/[:.]/g, "-")));
 mkdirSync(runRoot, { recursive: true });
-const report = { scope: "real App + mocked HTTP/host; no real stack", checks: [], requests: [], consoleErrors: [], failure: null };
+const report = { scope: "real App + mocked HTTP/host; no real stack", checks: [], requests: [], invokes: [], consoleErrors: [], failure: null };
+// CONV-RAIL-1（418，B2a）render fixture：对话流左栏树/只读预览/继续/新对话全部走
+// mock HTTP（零真栈、零 agent）。/agent/ui/state 按下列状态动态投影；/agent/invoke
+// 记录真实请求参数（tool/args/confirmed/source/context）并按生产回执语义回执。
+const conversation = { activeBranch: "main", checkoutBlocked: false, createdBranches: [] };
+const conversationNode = (id, kind, text, branch, commitID, parentNodeID, createdAt) => ({ id, kind, text, text_preview: text, branch, commit_id: commitID, parent_node_id: parentNodeID, created_at: createdAt });
+const conversationHistory = () => {
+  // 基础 fixture：main（4 条消息）+ 从 n-base-vit 分叉的 feature-x（2 条消息）；运行中
+  // branch_create 出来的新分支追加 branch_marker（与 Go BranchCreate 写入一致）。
+  const graphNodes = [
+    conversationNode("n-base-ask", "ask", "把贝斯轨压低 2dB", "main", "c1", "", "2026-11-18T19:00:00"),
+    conversationNode("n-base-vit", "vit", "已把贝斯轨压低 2dB。", "main", "c2", "n-base-ask", "2026-11-18T19:01:00"),
+    conversationNode("n-main-ask", "ask", "把鼓组整体再亮一点", "main", "c3", "n-base-vit", "2026-11-18T19:05:00"),
+    conversationNode("n-main-vit", "vit", "鼓组高频已提升。", "main", "c4", "n-main-ask", "2026-11-18T19:06:00"),
+    conversationNode("n-fx-marker", "branch_marker", "branch feature-x", "feature-x", "c2", "n-base-vit", "2026-11-18T19:10:00"),
+    conversationNode("n-fx-ask", "ask", "贝斯再加一点压缩", "feature-x", "f1", "n-fx-marker", "2026-11-18T19:11:00"),
+    conversationNode("n-fx-vit", "vit", "贝斯压缩已加 2:1。", "feature-x", "f2", "n-fx-ask", "2026-11-18T19:12:00")
+  ];
+  const branches = { main: "c4", "feature-x": "f2" };
+  conversation.createdBranches.forEach(created => {
+    const commitID = created.commit_id || "c4";
+    branches[created.name] = commitID;
+    graphNodes.push(conversationNode("n-" + created.name + "-marker", "branch_marker", "branch " + created.name, created.name, commitID, created.from_node_id, "2026-11-18T20:03:11"));
+  });
+  const activeNodeFor = branch => {
+    const created = conversation.createdBranches.find(entry => entry.name === branch);
+    if (created) return "n-" + created.name + "-marker";
+    if (branch === "feature-x") return "n-fx-vit";
+    return "n-main-vit";
+  };
+  const activeNodeID = activeNodeFor(conversation.activeBranch);
+  return {
+    project_path: "C:/fixture/alpha.vit",
+    root_project_path: "C:/fixture/alpha.vit",
+    active_branch: conversation.activeBranch,
+    active_node_id: activeNodeID,
+    active_worktree: "",
+    detached: false,
+    head: branches[conversation.activeBranch] || "c4",
+    branches,
+    worktrees: [],
+    conversation_graph: {
+      project_path: "C:/fixture/alpha.vit",
+      active_branch: conversation.activeBranch,
+      active_node_id: activeNodeID,
+      nodes: graphNodes
+    }
+  };
+};
+const conversationUIStateBody = () => ({ status: "ok", project: { project_path: "C:/fixture/alpha.vit" }, tracks: [], checkout_blocked: conversation.checkoutBlocked, project_history: conversationHistory() });
 let server, browser;
 const check = (name, condition) => { report.checks.push({ name, pass: Boolean(condition) }); if (!condition) throw new Error(name); };
 const observation = (foreground, tick = 1) => ({ schema: "vitshell.window_state.v1", foreground, daw_hwnd: foreground === "daw" ? "22" : null, observed_at_tick_ms: tick, release_reason: "workspace_ready" });
@@ -26,8 +75,26 @@ try {
       let body = {};
       if (url.pathname === "/agent/launcher/greeting") body = { status: "ok", reply: "选择工程（render fixture）", recent_count: 1 };
       if (url.pathname === "/agent/launcher/recent-projects") body = { status: "ok", project_result_cards: [{ kind: "launcher_project", name: "工程甲（render fixture）", file_path: "C:/fixture/alpha.vit", exists: true }] };
-      if (url.pathname === "/agent/ui/state") body = { project: { project_path: "C:/fixture/alpha.vit" }, tracks: [] };
+      if (url.pathname === "/agent/ui/state") body = conversationUIStateBody();
       if (url.pathname === "/agent/chat") body = { reply: "切换工程（render fixture）", launcher_directive: { action: "new_project", project_name: "工程乙（render fixture）", requires_governance: true } };
+      if (url.pathname === "/agent/invoke") {
+        // CONV-RAIL-1（418）：记录生产缝请求参数；120ms 延迟让 loading/禁用态可断言。
+        let payload = {};
+        try { payload = route.request().postDataJSON() || {}; } catch { payload = {}; }
+        report.invokes.push(payload);
+        await new Promise(resolve => setTimeout(resolve, 120));
+        if (payload.tool === "version.checkout") {
+          conversation.activeBranch = payload.args?.branch || conversation.activeBranch;
+          body = { status: "ok", result: { status: "ok", branch: payload.args?.branch || "" } };
+        } else if (payload.tool === "version.branch_create") {
+          const created = { name: payload.args?.name || "", from_node_id: payload.args?.from_node_id || "", commit_id: payload.args?.commit_id || "" };
+          conversation.createdBranches.push(created);
+          conversation.activeBranch = created.name;
+          body = { status: "ok", result: { status: "ok", branch: created.name, checked_out_to: "C:/fixture/alpha.vit" } };
+        } else {
+          body = { status: "ok", result: {} };
+        }
+      }
       await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(body) });
       return;
     }
@@ -72,6 +139,16 @@ try {
   check("startup project list is portaled into the entry rail", await page.locator("[data-entry-rail] [data-launcher-projects]").count() === 1 && await page.locator("[data-entry-rail] [data-launcher-drawer]").count() === 1);
   check("entry rail header owns the surface title and collapse control", (await page.locator("[data-entry-rail] [data-entry-rail-title]").innerText()).trim() === "工程列表" && await page.locator("[data-entry-rail] [data-window-sidebar-toggle]").count() === 1);
   check("launcher titlebar no longer duplicates the collapse control", await page.locator("[data-launcher-titlebar] [data-window-sidebar-toggle]").count() === 0);
+  // CONV-RAIL-1（418，B2a）：rail 模式下「Vit」品牌只在左栏头出现，启动页主标题栏不再
+  // 重复；左栏 footer（设置 + 预留头像槽）固定常驻在左栏底。
+  check("rail head owns the only Vit brand in rail mode", await page.locator("[data-entry-rail] [data-entry-rail-brand]").count() === 1 && (await page.locator("[data-entry-rail] [data-entry-rail-brand]").innerText()).trim() === "Vit" && await page.locator("[data-launcher-titlebar] .v5-launcher-titlebar-brand").count() === 0);
+  const railFootIdentity = await page.evaluateHandle(() => document.querySelector("[data-entry-rail-foot]"));
+  check("rail footer is persistent with settings and an avatar slot", await page.locator("[data-entry-rail] [data-entry-rail-foot] [data-entry-rail-settings]").count() === 1 && await page.locator("[data-entry-rail] [data-entry-rail-foot] [data-entry-rail-avatar]").count() === 1);
+  check("rail footer stays pinned to the rail bottom on the launcher surface", await page.locator("[data-entry-rail-foot]").evaluate(element => {
+    const foot = element.getBoundingClientRect();
+    const rail = element.closest("[data-entry-rail]").getBoundingClientRect();
+    return Math.abs(foot.bottom - rail.bottom) < 1 && foot.top > rail.top + rail.height / 2;
+  }));
   check("right main area keeps the live launcher surface", await page.locator("[data-entry-main] [data-launcher-root]").count() === 1);
   await page.locator("[data-window-sidebar-toggle]").focus();
   await page.keyboard.press("Enter");
@@ -169,9 +246,85 @@ try {
   await page.locator("[data-project-titlebar] [data-native-focus-hint]").waitFor();
   check("observed DAW foreground changes only header feedback", await page.locator("[data-project-root]").getAttribute("data-native-focus") === "daw" && await feedback().getAttribute("data-window-launch-terminal") === "ready");
   check("same rail DOM node survives the launcher→project surface switch", await page.evaluate(node => node === document.querySelector("[data-entry-rail]"), railIdentity));
-  check("project surface swaps rail content to the conversation-stream placeholder", await page.locator("[data-entry-rail] [data-entry-project-rail]").count() === 1 && (await page.locator("[data-entry-rail] [data-entry-project-rail]").innerText()).includes("对话流列表将在下一步接入"));
+  await page.locator("[data-entry-rail] [data-conversation-rail]").waitFor();
+  // CONV-RAIL-1（418，B2a）：工程面左栏 = 当前工作树对话流树（数据=真实 /agent/ui/state
+  // mock 投影；标题=首条有意义用户消息摘要、副标=分支名·最近活动、当前分支高亮）。
+  check("project rail renders the current worktree conversation tree", (await page.locator("[data-conversation-rail] [data-conversation-worktree-label]").innerText()).trim() === "主工作树" && await page.locator("[data-conversation-branch]").count() === 2);
+  check("branch rows show first meaningful user message and branch/activity subtitle", (await page.locator('[data-conversation-branch="main"] [data-conversation-branch-title]').innerText()).trim() === "把贝斯轨压低 2dB" && (await page.locator('[data-conversation-branch="feature-x"] [data-conversation-branch-title]').innerText()).trim() === "贝斯再加一点压缩" && (await page.locator('[data-conversation-branch="feature-x"] [data-conversation-branch-subtitle]').innerText()).includes("feature-x · 最近活动"));
+  check("current branch is highlighted and marked in the conversation tree", await page.locator('[data-conversation-branch="main"][data-conversation-branch-active="true"]').count() === 1 && await page.locator('[data-conversation-branch="main"] [data-conversation-branch-current]').count() === 1 && await page.locator('[data-conversation-branch="feature-x"][data-conversation-branch-active="false"]').count() === 1);
   check("project surface rail no longer renders the startup project list", await page.locator("[data-entry-rail] [data-launcher-projects]").count() === 0 && (await page.locator("[data-entry-rail] [data-entry-rail-title]").innerText()).trim() === "对话流");
+  check("rail footer survives the launcher→project surface switch as the same node", await page.evaluate(node => node === document.querySelector("[data-entry-rail-foot]"), railFootIdentity) && await page.locator("[data-entry-rail-foot] [data-entry-rail-settings]").count() === 1);
   check("rail expansion state survives the surface switch", await page.locator("[data-window-sidebar-toggle]").getAttribute("aria-expanded") === "true");
+
+  // CONV-RAIL-1（418）：点击非当前分支 = 只读预览（消息路径 + composer 蒙版 + 继续卡），
+  // 不调 invoke、不重载；返回/点当前分支清除预览。
+  await page.locator('[data-conversation-branch="feature-x"]').click();
+  await page.locator("[data-project-preview]").waitFor();
+  const previewBranch = await page.locator("[data-project-preview]").getAttribute("data-project-preview-branch");
+  const previewMessageTexts = await page.locator("[data-project-preview-thread] [data-message-author]").evaluateAll(elements => elements.map(element => element.innerText.trim()));
+  check("clicking another branch previews its message path read-only", previewBranch === "feature-x" && previewMessageTexts.length === 4 && previewMessageTexts[0].includes("把贝斯轨压低 2dB") && previewMessageTexts[3].includes("贝斯压缩已加"));
+  check("read-only preview masks and disables the composer", await page.locator("[data-project-composer-mask]").count() === 1 && await page.locator("[data-project-composer] input").isDisabled() && await page.locator('[data-conversation-branch="feature-x"]').getAttribute("data-conversation-branch-preview") === "true");
+  check("entering preview never invokes checkout", report.invokes.length === 0);
+  await page.locator("[data-project-composer-mask-return]").click();
+  check("returning clears preview and restores the composer", await page.locator("[data-project-preview]").count() === 0 && !await page.locator("[data-project-composer] input").isDisabled());
+  await page.locator('[data-conversation-branch="feature-x"]').click();
+  await page.locator("[data-project-preview]").waitFor();
+  await page.locator('[data-conversation-branch="main"]').click();
+  check("clicking the current branch clears the preview", await page.locator("[data-project-preview]").count() === 0);
+
+  // 【继续此对话】：window.confirm 守卫（取消=不切换、保留预览）→ version.checkout
+  // （historyToolArgs/buildHistoryInvokeContext 组装的生产缝参数）→ loading 禁用重复 →
+  // 成功后刷新树并清预览。
+  const dialogMessages = [];
+  let acceptDialogs = false;
+  page.on("dialog", async dialog => {
+    dialogMessages.push(dialog.message());
+    if (acceptDialogs) await dialog.accept(); else await dialog.dismiss();
+  });
+  await page.locator('[data-conversation-branch="feature-x"]').click();
+  await page.locator("[data-project-preview]").waitFor();
+  await page.locator("[data-project-preview-continue]").click();
+  await page.waitForTimeout(120);
+  check("continue asks before returning to the branch project state and cancel keeps preview", dialogMessages.some(message => message.includes("回到该对话对应的工程状态")) && report.invokes.length === 0 && await page.locator("[data-project-preview]").count() === 1);
+  acceptDialogs = true;
+  await page.locator("[data-project-preview-continue]").click();
+  await page.locator("[data-project-preview-busy]").waitFor();
+  check("continue shows loading and disables repeat clicks", await page.locator("[data-project-preview-continue]").isDisabled() && await page.locator("[data-project-preview-busy]").count() === 1);
+  await page.waitForFunction(() => !document.querySelector("[data-project-preview]"));
+  const continueInvoke = report.invokes.at(-1);
+  check("continue invokes version.checkout for the previewed branch (production seam args)", continueInvoke?.tool === "version.checkout" && continueInvoke?.args?.branch === "feature-x" && continueInvoke?.args?.project_path === "C:/fixture/alpha.vit" && continueInvoke?.confirmed === true && continueInvoke?.source === "ask_vit_webui_conversation" && continueInvoke?.context?.active_branch === "main");
+  await page.waitForFunction(() => document.querySelector('[data-conversation-branch="feature-x"][data-conversation-branch-active="true"]'));
+  check("continue refreshes the tree and highlights the continued conversation", await page.locator('[data-conversation-branch="feature-x"][data-conversation-branch-active="true"]').count() === 1 && await page.locator("[data-project-preview]").count() === 0 && !await page.locator("[data-project-composer] input").isDisabled() && await page.locator("[data-conversation-branch]").count() === 2);
+
+  // 【新对话】：version.branch_create{name, from_node_id=当前活动节点, commit_id}；
+  // 回执含 checked_out_to → 不再补 checkout；成功后刷新并进入新分支。
+  const invokesBeforeNew = report.invokes.length;
+  await page.locator("[data-conversation-new]").click();
+  await page.waitForFunction(() => [...document.querySelectorAll("[data-conversation-branch]")].some(element => element.getAttribute("data-conversation-branch-active") === "true" && /^chat-/.test(element.getAttribute("data-conversation-branch") || "")));
+  const newConversationInvokes = report.invokes.slice(invokesBeforeNew);
+  check("new conversation branches from the active node through version.branch_create", newConversationInvokes.length === 1 && newConversationInvokes[0]?.tool === "version.branch_create" && /^chat-\d{8}-\d{6}$/.test(newConversationInvokes[0]?.args?.name || "") && newConversationInvokes[0]?.args?.from_node_id === "n-fx-vit" && newConversationInvokes[0]?.args?.commit_id === "f2" && newConversationInvokes[0]?.args?.project_path === "C:/fixture/alpha.vit" && newConversationInvokes[0]?.confirmed === true);
+  check("new conversation becomes the active stream titled as a fresh conversation", (await page.locator('[data-conversation-branch-active="true"] [data-conversation-branch-title]').innerText()).trim() === "新对话" && await page.locator("[data-conversation-branch]").count() === 3);
+
+  // checkout_blocked（agent Turn 运行中）：新建/继续禁用并给出原因；解除后恢复。
+  // 触发刷新=打开既有 settings dialog（App 内既有 fetchUIState 路径，无新增协议）。
+  conversation.checkoutBlocked = true;
+  await page.locator("[data-entry-rail-settings]").click();
+  await page.locator("[data-entry-settings][open]").waitFor();
+  // App 的 settings 刷新只在对话进行期（entrySettingsOpen=true）内生效：等状态落到
+  // 左栏再关 dialog（关得太快会按既有语义丢弃在飞刷新）。
+  await page.waitForFunction(() => Boolean(document.querySelector("[data-conversation-blocked]")));
+  await page.keyboard.press("Escape");
+  check("checkout_blocked disables conversation switching with a reason", await page.locator("[data-conversation-new]").isDisabled() && (await page.locator("[data-conversation-blocked]").innerText()).includes("Stop Turn"));
+  await page.locator('[data-conversation-branch="main"]').click();
+  await page.locator("[data-project-preview]").waitFor();
+  check("checkout_blocked disables continue and explains the guard", await page.locator("[data-project-preview-continue]").isDisabled() && await page.locator("[data-project-preview-blocked]").count() === 1 && await page.locator("[data-project-preview-error]").count() === 0);
+  await page.locator("[data-project-preview-return]").click();
+  conversation.checkoutBlocked = false;
+  await page.locator("[data-entry-rail-settings]").click();
+  await page.locator("[data-entry-settings][open]").waitFor();
+  await page.waitForFunction(() => !document.querySelector("[data-conversation-blocked]"));
+  await page.keyboard.press("Escape");
+  check("checkout_blocked clears after the agent turn stops", await page.locator("[data-conversation-new]").isEnabled());
   await settleMotion();
   const newTextContrast = await page.locator("[data-native-focus-hint], [data-window-launch-feedback] h3, [data-window-launch-feedback] p").evaluateAll(elements => {
     const rgb = color => (color.match(/[\d.]+/g) || []).map(Number);
@@ -201,6 +354,19 @@ try {
   await page.locator("[data-window-sidebar-toggle]").click();
   await page.waitForFunction(() => document.querySelector("[data-entry-rail]").getBoundingClientRect().width < 1);
   check("project surface shares the same collapsible rail", Math.round(await railWidth()) === 0);
+  await page.waitForFunction(() => window.localStorage.getItem("vit_entry_rail_collapsed") === "true");
+  check("collapsed rail state is persisted to localStorage", await page.evaluate(() => window.localStorage.getItem("vit_entry_rail_collapsed")) === "true");
+  // CONV-RAIL-1（418，B2a）：收展状态 localStorage 记忆——同源新页面重载后恢复收起态，
+  // 且收起态可用既有浮动把手展开（不把左栏做成不可逆收起）。
+  const persistedPage = await context.newPage();
+  await persistedPage.goto(origin + "/app/?surface=launcher");
+  await persistedPage.locator("[data-entry-rail]").waitFor();
+  await persistedPage.waitForFunction(() => Math.round(document.querySelector("[data-entry-rail]").getBoundingClientRect().width) === 0);
+  check("reloaded App restores the collapsed rail from localStorage", await persistedPage.locator("[data-entry-rail]").getAttribute("data-entry-rail-collapsed") === "true" && await persistedPage.locator("[data-entry-rail-expand]").count() === 1);
+  await persistedPage.locator("[data-entry-rail-expand]").click();
+  await persistedPage.waitForFunction(() => Math.round(document.querySelector("[data-entry-rail]").getBoundingClientRect().width) === 280);
+  check("restored collapsed rail expands through the floating handle", await persistedPage.locator("[data-entry-rail]").getAttribute("data-entry-rail-collapsed") === "false");
+  await persistedPage.close();
   await page.locator("[data-project-view-launcher]").click();
   await page.locator('[data-launcher-mode="project-management"]').waitFor();
   check("collapsed rail state survives the project→launcher return", await page.evaluate(node => node === document.querySelector("[data-entry-rail]"), railIdentity)
@@ -210,7 +376,7 @@ try {
   await page.waitForFunction(() => Math.round(document.querySelector("[data-entry-rail]").getBoundingClientRect().width) === 280);
   check("expanding from the collapsed handle restores the startup project list", await page.evaluate(node => node === document.querySelector("[data-entry-rail]"), railIdentity)
     && await page.locator("[data-entry-rail] [data-launcher-projects]").count() === 1
-    && await page.locator("[data-entry-project-rail]").count() === 0);
+    && await page.locator("[data-conversation-rail]").count() === 0);
   check("management sidebar preference survives remount and contains no invented chat list", await page.locator("[data-window-sidebar-toggle]").getAttribute("aria-expanded") === "true" && await page.locator("[data-window-sidebar-slot]").getAttribute("data-window-sidebar-slot") === "recents");
   await page.locator("[data-launcher-choose-file]").click();
   const fileRequest = await page.evaluate(() => window.__hostPosts.filter(p => p.type === "launcher_choose_file").at(-1).request_id);

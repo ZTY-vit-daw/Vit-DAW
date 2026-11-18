@@ -1,0 +1,285 @@
+/*
+ * CONV-RAIL-1（418，B2a）：对话流左栏 + 只读预览卡 + 输入蒙版样式。
+ *
+ * 左栏树注入 EntryShell 左栏体槽（280px，跨 surface 常驻；footer 在 EntryShell）。
+ * 令牌全部来自 styles/tokens.css（--v5-*），与 entryShell.css / project.css 同族：
+ * 左栏底 --v5-ui-rail、当前行 --v5-read-bg + 柔影、预览卡 --v5-ui-plate。
+ * 对比度/最小字号沿用项目面纪律（正文 ≥4.5:1、字号 ≥13px）。
+ * 纪律：只服务 .v5-conversation-* 与工程面预览/蒙版，不改既有 launcher/project 规则。
+ */
+
+/* ---------- 左栏树：标题 + 【＋ 新对话】 + 工作树分组 + 分支行 ---------- */
+
+.v5-conversation-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 12px;
+  overflow: hidden;
+}
+
+.v5-conversation-rail-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.v5-conversation-rail-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--v5-ui-text);
+}
+
+.v5-conversation-new {
+  flex: 0 0 auto;
+  min-height: 30px;
+  padding: 0 8px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.v5-conversation-worktree {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 0 0 auto;
+  padding: 6px 8px;
+  background: var(--v5-ui-plate);
+  border: 1px solid var(--v5-ui-border);
+  border-radius: var(--v5-radius-control);
+}
+
+.v5-conversation-worktree-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--v5-ui-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.v5-conversation-worktree-path {
+  font-size: 13px;
+  color: var(--v5-ui-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.v5-conversation-branches {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1 1 auto;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow-y: auto;
+}
+
+.v5-conversation-branch-item {
+  flex: 0 0 auto;
+}
+
+.v5-conversation-branch {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  padding: 8px 44px 8px 8px;
+  border: 1px solid transparent;
+  border-radius: var(--v5-radius-control);
+  background: transparent;
+  color: var(--v5-ui-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.v5-conversation-branch:hover {
+  background: var(--v5-read-bg);
+  border-color: var(--v5-ui-border);
+}
+
+/* 当前分支高亮：白底 + 边线 + 柔影（与 HistoryPane 当前行同族语义）。 */
+.v5-conversation-branch--active {
+  background: var(--v5-read-bg);
+  border-color: var(--v5-rail-edge);
+  box-shadow: var(--v5-shadow-macro-card);
+}
+
+/* 只读预览中的行：换一条更强的边线区分「正在看」与「当前」。 */
+.v5-conversation-branch--preview {
+  border-color: var(--v5-control-header);
+}
+
+.v5-conversation-branch-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--v5-ui-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.v5-conversation-branch-subtitle {
+  font-size: 13px;
+  color: var(--v5-ui-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.v5-conversation-branch-current {
+  position: absolute;
+  top: 9px;
+  right: 8px;
+  font-size: 13px;
+  color: var(--v5-ui-muted);
+}
+
+.v5-conversation-empty {
+  margin: 0;
+  flex: 1 1 auto;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--v5-ui-muted);
+}
+
+.v5-conversation-blocked,
+.v5-conversation-busy {
+  margin: 0;
+  flex: 0 0 auto;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--v5-ui-muted);
+}
+
+.v5-conversation-error {
+  margin: 0;
+  flex: 0 0 auto;
+  padding: 4px 8px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--v5-ui-text);
+  background: var(--v5-warning-shell);
+  border: 1px solid var(--v5-warning-edge);
+  border-radius: 6px;
+}
+
+/* ---------- 工程面只读预览：上方继续卡 + 分支路径消息（Message 组件只读） ---------- */
+
+.v5-project-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.v5-project-preview-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: var(--v5-ui-plate);
+  border: 1px solid var(--v5-ui-border);
+  border-radius: var(--v5-radius-control);
+}
+
+.v5-project-preview-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.v5-project-preview-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--v5-ui-text);
+}
+
+.v5-project-preview-branch {
+  font-family: var(--v5-font-mono);
+  font-size: 13px;
+  color: var(--v5-ui-muted);
+}
+
+.v5-project-preview-note {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--v5-ui-text);
+}
+
+.v5-project-preview-error {
+  margin: 0;
+  padding: 4px 8px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--v5-ui-text);
+  background: var(--v5-warning-shell);
+  border: 1px solid var(--v5-warning-edge);
+  border-radius: 6px;
+}
+
+.v5-project-preview-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.v5-project-preview-blocked,
+.v5-project-preview-busy {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--v5-ui-muted);
+}
+
+.v5-project-preview-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.v5-project-preview-empty {
+  margin: 0;
+  font-size: 13px;
+  color: var(--v5-ui-muted);
+}
+
+/* ---------- 输入蒙版：只读浏览时禁用输入（覆盖 composer，含返回入口） ---------- */
+
+.v5-project-composer-slot {
+  position: relative;
+}
+
+.v5-project-composer-mask {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 0 12px;
+  background: rgba(240, 241, 242, 0.88);
+  border: 1px solid var(--v5-ui-border);
+  border-radius: var(--v5-radius-control);
+}
+
+.v5-project-composer-mask-text {
+  font-size: 13px;
+  color: var(--v5-ui-text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .v5-conversation-branch {
+    transition: none;
+  }
+}

@@ -16,6 +16,13 @@
  *
  * 收起后的展开入口：左栏宽 0（窗口级不占位）时左栏头被裁切，主区左缘保留浮动
  * 展开把手（data-entry-rail-expand），鼠标/键盘仍可展开——不把左栏做成不可逆收起。
+ *
+ * CONV-RAIL-1（418，B2a）增补：
+ * - 左栏 footer（data-entry-rail-foot）固定常驻、跨 surface 不重建：设置按钮
+ *   （App 回调打开既有 settings dialog）+ 预留头像槽；不随左栏体列表内容变化。
+ * - 收展状态写 localStorage（vit_entry_rail_collapsed），挂载时恢复——DSH 习惯的
+ *   重载记忆；收展唯一状态源仍是 WindowPresentation.sidebarOpen（本文件只在挂载
+ *   时用它恢复初始值，不改 windowPresentation 协议）。
  */
 
 import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
@@ -35,14 +42,37 @@ const ENTRY_SURFACE_SLOT: Record<EntryRailSurface, string> = {
   project: "chats"
 };
 
+/** 左栏收展持久化键（DSH 习惯：重载后恢复上次收展状态）。 */
+export const ENTRY_RAIL_COLLAPSED_STORAGE_KEY = "vit_entry_rail_collapsed";
+
+/** 读取持久化收展状态：true=收起。localStorage 不可用/缺省=展开（fail-open）。 */
+export function loadEntryRailCollapsed(): boolean {
+  try {
+    return window.localStorage.getItem(ENTRY_RAIL_COLLAPSED_STORAGE_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+
+/** 写入持久化收展状态（best-effort；存储失败不得阻塞收展交互）。 */
+export function saveEntryRailCollapsed(collapsed: boolean): void {
+  try {
+    window.localStorage.setItem(ENTRY_RAIL_COLLAPSED_STORAGE_KEY, collapsed ? "true" : "false");
+  } catch {
+    // localStorage 不可用时收展仍按内存状态工作。
+  }
+}
+
 export interface EntryShellProps {
   /** 当前入口面（launcher/project）——只切内容，不重建左栏容器。 */
   surface: EntryRailSurface;
+  /** 左栏 footer 设置按钮回调（App 打开既有 settings dialog）。 */
+  onOpenSettings?: () => void;
   /** 右主区：App 原有两个 hidden surface div（+入口设置 dialog）原样放入。 */
   children: ReactNode;
 }
 
-export function EntryShell({ surface, children }: EntryShellProps) {
+export function EntryShell({ surface, onOpenSettings, children }: EntryShellProps) {
   // 收展唯一状态源：WindowPresentationProvider.sidebarOpen（旧 launcher 抽屉同源）。
   const { sidebarOpen, setSidebarOpen } = useWindowPresentation();
   const slotId = useId();
@@ -54,6 +84,17 @@ export function EntryShell({ surface, children }: EntryShellProps) {
     setHost(slotRef.current);
   }, []);
   const collapsed = !sidebarOpen;
+  // B2a：挂载时恢复上次收展状态（只读一次，避免覆盖用户当次操作）；展开态由默认值承担。
+  useEffect(() => {
+    if (loadEntryRailCollapsed()) {
+      setSidebarOpen(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  // B2a：收展变化写 localStorage（DSH 习惯的重载记忆；失败不阻塞交互）。
+  useEffect(() => {
+    saveEntryRailCollapsed(collapsed);
+  }, [collapsed]);
   const rail = useMemo(() => ({ host, surface, collapsed }), [host, surface, collapsed]);
   return (
     <EntryRailProvider value={rail}>
@@ -98,6 +139,25 @@ export function EntryShell({ surface, children }: EntryShellProps) {
             aria-hidden={collapsed}
             inert={collapsed}
           />
+          {/* B2a：footer 固定在左栏底（不随列表内容/surface 变化）——设置常驻入口 +
+              预留头像槽。设置打开既有 App settings dialog（onOpenSettings 回调）。 */}
+          <footer className="v5-entry-rail-foot" data-entry-rail-foot>
+            <button
+              type="button"
+              className="v5-btn v5-btn--secondary v5-entry-rail-settings"
+              data-entry-rail-settings
+              disabled={!onOpenSettings}
+              onClick={onOpenSettings}
+            >
+              设置
+            </button>
+            <span
+              className="v5-entry-rail-avatar"
+              data-entry-rail-avatar
+              aria-hidden="true"
+              title="账号头像（预留槽位）"
+            />
+          </footer>
         </aside>
         <div className="v5-entry-main" data-entry-main>
           {children}
