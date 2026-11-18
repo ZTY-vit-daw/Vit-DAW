@@ -41,3 +41,9 @@
 ## 回执（短）与禁止
 
 commit hash+分支、文件清单、每命令 exit 码原文、测试计数、契约样例、边界声明（零真栈/零窗口）。禁止 push main、改主检出、启 VitShell/Godot GUI/agent 栈、跨卡文件域。
+
+## 回执与验收（2026-11-18 晚）
+
+- commit `4d450b9c`（分支 `codex/shell-win-producer-410`）；主管独立复跑 configure/build/ctest 全 exit 0（3/3 测试），diff 仅卡面 11 文件；已合入前端 main。
+- 契约样例：`{"schema":"vitshell.window_state.v1","foreground":"other","daw_hwnd":null,"observed_at_tick_ms":...}`；progress/replay seq 规则由纯测断言。
+- 裁定：[rulings/2026-11-18-SHELL-WIN-PRODUCER-1-pass.md](../../rulings/2026-11-18-SHELL-WIN-PRODUCER-1-pass.md)。实现面 PASS；真实链路由 414 组合真栈裁决。
