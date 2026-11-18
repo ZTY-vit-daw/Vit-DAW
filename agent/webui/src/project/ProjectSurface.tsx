@@ -79,6 +79,7 @@ import type { LauncherDirective } from "../api/launcher";
 import "../styles/tokens.css";
 import "../components/components.css";
 import "./project.css";
+import { NativeFocusHint, WindowLaunchFeedback, isWindowLaunchBusy, useWindowPresentation } from "./loading/windowPresentation";
 
 export interface ProjectFixtureOverrides {
   /** fixture 工程上下文（离线注入；source 必须为 "fixture"）。 */
@@ -318,6 +319,8 @@ function MacroItem({
 }
 
 export function ProjectSurface({ fixture, fill = false, onOpenWorkbench, onViewLauncher, onOpenSettings, active = true }: ProjectSurfaceProps) {
+  const presentation = useWindowPresentation();
+  const launchBusy = isWindowLaunchBusy(presentation.state);
   const fixtureService = fixture?.service ?? null;
   const [state, dispatch] = useReducer(
     (s: ProjectSurfaceState, e: ProjectEvent) => reduceProject(s, e),
@@ -373,9 +376,12 @@ export function ProjectSurface({ fixture, fill = false, onOpenWorkbench, onViewL
         return;
       }
       const requestId = createLauncherBridgeRequestID();
+      const path = directive.file_path?.replace(/\\/g, "/").split("/").pop() || "";
+      presentation.begin(requestId, directive.project_name || path);
       setBridgeExec({ requestId, action: directive.action ?? "", state: "waiting", message: LAUNCHER_BRIDGE_WAITING_TEXT });
       const posted = postLauncherDirective(directive as unknown as Record<string, unknown>, requestId);
       if (!posted) {
+        presentation.result(requestId, "failed", LAUNCHER_BRIDGE_UNAVAILABLE_TEXT);
         setBridgeExec({
           requestId,
           action: directive.action ?? "",
@@ -384,7 +390,7 @@ export function ProjectSurface({ fixture, fill = false, onOpenWorkbench, onViewL
         });
       }
     },
-    [fixture]
+    [fixture, presentation.begin, presentation.result]
   );
 
   const retryLastDirective = useCallback(() => {
@@ -499,7 +505,7 @@ export function ProjectSurface({ fixture, fill = false, onOpenWorkbench, onViewL
     async (text: string) => {
       const trimmed = text.trim();
       const service = serviceRef.current;
-      if (!trimmed || state.inputDisabled || state.replying || !service) return;
+      if (!trimmed || state.inputDisabled || state.replying || launchBusy || !service) return;
       dispatch({ type: "userSent", id: nextProjectItemID("msg-user"), text: trimmed });
       setInput("");
       dispatch({ type: "replyStarted" });
@@ -522,7 +528,7 @@ export function ProjectSurface({ fixture, fill = false, onOpenWorkbench, onViewL
         dispatch({ type: "replySettled" });
       }
     },
-    [state.inputDisabled, state.replying, executeDirective]
+    [state.inputDisabled, state.replying, launchBusy, executeDirective]
   );
 
   // 确认卡/建议入口要调 send：以 ref 解回调环（send 定义于桥执行块之后）。
@@ -546,7 +552,7 @@ export function ProjectSurface({ fixture, fill = false, onOpenWorkbench, onViewL
 
   const composerState: ProjectComposerState =
     fixture?.forceComposerState ?? composerStateOf(state);
-  const composerDisabled = composerState === "disabled";
+  const composerDisabled = composerState === "disabled" || launchBusy;
   const composerBusy = composerState === "replying";
 
   const frameClass = ["v5-project-frame", fill ? "v5-project-frame--fill" : ""].filter(Boolean).join(" ");
@@ -563,6 +569,7 @@ export function ProjectSurface({ fixture, fill = false, onOpenWorkbench, onViewL
       data-project-context-source={contextSource}
       data-project-bridge={bridgeAvailable ? "available" : fixture ? "fixture" : "unavailable"}
       data-fixture={fixture ? "project-surface" : undefined}
+      data-native-focus={presentation.state.window?.foreground ?? "unknown"}
     >
       <div className={frameClass} data-project-frame>
         <header className="v5-project-titlebar" data-project-titlebar>
@@ -573,6 +580,7 @@ export function ProjectSurface({ fixture, fill = false, onOpenWorkbench, onViewL
           {state.context?.detail ? (
             <span className="v5-project-titlebar-detail">{state.context.detail}</span>
           ) : null}
+          <NativeFocusHint />
           {onViewLauncher ? (
             <button type="button" className="v5-btn v5-btn--secondary v5-project-view-launcher" data-project-view-launcher onClick={() => onViewLauncher(contextName)} disabled={state.replying || bridgeExec?.state === "waiting" || bridgeExec?.state === "pending"} title="查看工程管理；当前工程保持打开">
               查看启动页
@@ -716,7 +724,7 @@ export function ProjectSurface({ fixture, fill = false, onOpenWorkbench, onViewL
                       {launcherGovernanceHeadline(item.view)}
                     </span>
                     <span className="v5-project-governance-note">
-                      治理确认跟随发起方：本次切换由对话发起，确认在此页内完成——选择后 Vit 才执行切换（保存由 Vit 完成）。
+                      请选择保存后切换、直接切换，或留在当前工程。
                     </span>
                     {item.answered ? (
                       <span className="v5-project-governance-answered" data-project-governance-answered-text>
@@ -827,7 +835,11 @@ export function ProjectSurface({ fixture, fill = false, onOpenWorkbench, onViewL
                 </button>
               </p>
             ) : null}
-            {bridgeExec ? (
+            <div data-project-bridge-exec={bridgeExec?.requestId === presentation.state.requestId ? "" : undefined}
+              data-project-bridge-exec-state={bridgeExec?.requestId === presentation.state.requestId ? bridgeExec.state : undefined}>
+              <WindowLaunchFeedback onRetry={bridgeExec && bridgeExec.requestId === presentation.state.requestId && lastDirectiveRef.current ? retryLastDirective : undefined} />
+            </div>
+            {bridgeExec && bridgeExec.requestId !== presentation.state.requestId ? (
               <div
                 className={`v5-project-bridge-exec v5-project-bridge-exec--${
                   bridgeExec.state === "opened" || bridgeExec.state === "dialog_shown"

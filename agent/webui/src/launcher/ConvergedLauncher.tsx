@@ -31,7 +31,7 @@
  * LauncherSurface 同语义（生产 URL 无 launcher_smoke 参数 → 全零行为）。
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import type { CSSProperties, FormEvent, RefObject } from "react";
 import {
   cardsToEntries,
@@ -97,6 +97,7 @@ import "../styles/tokens.css";
 import "../components/components.css";
 import "../styles/launcher.css";
 import "./converged.css";
+import { NativeFocusHint, WindowLaunchFeedback, isWindowLaunchBusy, useWindowPresentation } from "../project/loading/windowPresentation";
 
 /** 会话线程条目（directive 携带原始指令供桥执行；fixture 线程不带 directive）。
  * SHELL-2：governance=宿主页内治理请求（跟随发起方——对话发起的工程切换在页内确认）。
@@ -326,6 +327,9 @@ export function TapeCardFace({
 }
 
 export function ConvergedLauncher({ fixture, fill = false, activeProjectName, onReturnProject, onOpenSettings }: ConvergedLauncherProps) {
+  const presentation = useWindowPresentation();
+  const launchBusy = isWindowLaunchBusy(presentation.state);
+  const sidebarId = useId();
   const fixtureGreeting = fixture?.greeting;
   const fixtureThread = fixture?.thread;
   const [greetingState, setGreetingState] = useState<LauncherGreetingState>(
@@ -452,9 +456,11 @@ export function ConvergedLauncher({ fixture, fill = false, activeProjectName, on
       }
       lastDirectiveRef.current = directive;
       const requestId = createLauncherBridgeRequestID();
+      presentation.begin(requestId, directive.project_name || launcherDisplayFileName(directive.file_path || ""));
       setBridgeExec({ requestId, action: directive.action ?? "", state: "waiting", message: LAUNCHER_BRIDGE_WAITING_TEXT });
       const posted = postLauncherDirective(directive as unknown as Record<string, unknown>, requestId);
       if (!posted) {
+        presentation.result(requestId, "failed", LAUNCHER_BRIDGE_UNAVAILABLE_TEXT);
         setBridgeExec({
           requestId,
           action: directive.action ?? "",
@@ -463,18 +469,23 @@ export function ConvergedLauncher({ fixture, fill = false, activeProjectName, on
         });
       }
     },
-    [fixture]
+    [fixture, presentation.begin, presentation.result]
   );
 
   const chooseFileViaBridge = useCallback(() => {
     if (fixture || !isLauncherBridgeAvailable()) return;
+    // The native dialog has not returned a path yet. A retry must not replay
+    // a different directive retained from a previous recents/chat request.
+    lastDirectiveRef.current = null;
     const requestId = createLauncherBridgeRequestID();
+    presentation.begin(requestId, "");
     setBridgeExec({ requestId, action: "choose_file", state: "waiting", message: LAUNCHER_BRIDGE_WAITING_TEXT });
     const posted = postLauncherChooseFile(requestId);
     if (!posted) {
+      presentation.result(requestId, "failed", LAUNCHER_BRIDGE_UNAVAILABLE_TEXT);
       setBridgeExec({ requestId, action: "choose_file", state: "failed", message: LAUNCHER_BRIDGE_UNAVAILABLE_TEXT });
     }
-  }, [fixture]);
+  }, [fixture, presentation.begin, presentation.result]);
 
   const retryLastDirective = useCallback(() => {
     const directive = lastDirectiveRef.current;
@@ -581,7 +592,7 @@ export function ConvergedLauncher({ fixture, fill = false, activeProjectName, on
   const send = useCallback(
     async (message: string) => {
       const trimmed = message.trim();
-      if (!trimmed || busy || fixture || activeProjectName) return;
+      if (!trimmed || busy || launchBusy || fixture || activeProjectName) return;
       setInput("");
       setThread((prev) => [...prev, { kind: "user", text: trimmed }]);
       setBusy(true);
@@ -614,7 +625,7 @@ export function ConvergedLauncher({ fixture, fill = false, activeProjectName, on
         setBusy(false);
       }
     },
-    [busy, conversationID, fixture, activeProjectName, executeDirective]
+    [busy, launchBusy, conversationID, fixture, activeProjectName, executeDirective]
   );
 
   // 烟测消息队列：greeting 就绪后发第一条；每条 vit_launcher_result 后延迟发下一条
@@ -677,15 +688,20 @@ export function ConvergedLauncher({ fixture, fill = false, activeProjectName, on
     .filter(Boolean)
     .join(" ");
   const rootState = fixture ? (fixture.greetingErrorText ? "error" : "ready") : greetingState;
-  const bridgeBusy = bridgeExec?.state === "waiting";
+  const bridgeBusy = bridgeExec?.state === "waiting" || launchBusy;
   // Composer 输入门（对齐旧壳语义：greeting 读取中输入不可用——呈现为 pointer-events
   // 门 + 半透明，chat/Composer 无 disabled prop，作用域 CSS 落 converged.css）。
-  const composerGated = !fixture && greetingState === "loading";
+  const composerGated = !fixture && (greetingState === "loading" || bridgeBusy);
 
   const segments = useMemo(() => segmentThread(thread), [thread]);
 
   const renderBridgeExec = () => {
-    if (!bridgeExec) return null;
+    if (!bridgeExec) return <WindowLaunchFeedback />;
+    if (presentation.state.requestId === bridgeExec.requestId) return (
+      <div data-launcher-bridge-exec data-launcher-bridge-exec-state={bridgeExec.state}>
+        <WindowLaunchFeedback onRetry={lastDirectiveRef.current ? retryLastDirective : undefined} />
+      </div>
+    );
     const terminal = bridgeExec.state !== "waiting" && bridgeExec.state !== "pending";
     const stateClass = `v5-launcher-bridge-exec--${
       bridgeExec.state === "opened" || bridgeExec.state === "dialog_shown"
@@ -801,7 +817,7 @@ export function ConvergedLauncher({ fixture, fill = false, activeProjectName, on
             {launcherGovernanceHeadline(segment.view)}
           </span>
           <span className="v5-launcher-governance-note">
-            治理确认跟随发起方：本次切换由对话发起，确认在此页内完成——选择后 Vit 才执行切换（保存由 Vit 完成）。
+            请选择保存后切换、直接切换，或留在当前工程。
           </span>
           {segment.answered ? (
             <span className="v5-launcher-governance-answered" data-launcher-governance-answered-text>
@@ -866,16 +882,24 @@ export function ConvergedLauncher({ fixture, fill = false, activeProjectName, on
       }
       data-fixture={fixture ? "converged-launcher" : undefined}
       data-launcher-mode={activeProjectName ? "project-management" : "startup"}
+      data-native-focus={presentation.state.window?.foreground ?? "unknown"}
     >
       <div className={frameClass} data-launcher-frame>
         <header className="v5-launcher-titlebar" data-launcher-titlebar>
           <span className="v5-launcher-titlebar-brand">Vit</span>
+          <button type="button" className="v5-btn v5-btn--secondary v5-window-sidebar-toggle" data-window-sidebar-toggle
+            aria-controls={sidebarId} aria-expanded={presentation.sidebarOpen} onClick={() => presentation.setSidebarOpen(!presentation.sidebarOpen)}>
+            {presentation.sidebarOpen ? "收起工程列表" : "展开工程列表"}
+          </button>
+          <NativeFocusHint />
         </header>
         <div className="v5-launcher-body">
           <aside
             className="v5-launcher-drawer"
             data-launcher-drawer
             data-drawer-state={drawerState}
+            id={sidebarId} data-window-sidebar-slot="recents" data-sidebar-open={presentation.sidebarOpen ? "true" : "false"}
+            aria-hidden={!presentation.sidebarOpen} inert={!presentation.sidebarOpen}
             aria-label="最近工程"
           >
             <div className="v5-converged-projects" data-launcher-projects data-scroll-intentional="projects">
@@ -1048,7 +1072,7 @@ export function ConvergedLauncher({ fixture, fill = false, activeProjectName, on
                 </li>
               ))}
             </ul>
-            <div className="v5-converged-composer" data-launcher-input data-composer-gated={composerGated ? "true" : undefined}>
+            <fieldset className="v5-converged-composer v5-window-composer-fieldset" data-launcher-input data-composer-gated={composerGated ? "true" : undefined} disabled={composerGated}>
               <Composer
                 composerRef={composerRef}
                 input={input}
@@ -1058,7 +1082,7 @@ export function ConvergedLauncher({ fixture, fill = false, activeProjectName, on
                 mode="default"
                 agentTurnRunning={false}
                 stopTurnBusy={false}
-                isSending={busy}
+                isSending={busy || bridgeBusy}
                 isUploading={false}
                 interactionAction={null}
                 respondingActionID=""
@@ -1075,7 +1099,7 @@ export function ConvergedLauncher({ fixture, fill = false, activeProjectName, on
                 onRemoveArtifact={() => undefined}
                 onRemoveMacroControl={() => undefined}
               />
-            </div>
+            </fieldset>
               </>
             )}
           </section>
