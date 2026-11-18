@@ -223,6 +223,7 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 413 | SHELL-ENTRY-REFRESH-1 | doing（lead/entry413；先隔离扩展 DLL 预构建，410/411 合入后主管放行刷新最终 VitShell/webui/入口产物；零栈） |
 | 414 | SHELL-WIN-COMBO-1 | **done PASS**（attempt03 hands-off：409 分类器 PASS + 395 呈现 PASS + chain_detail=workspace_ready；零 LLM/卫生还原；[裁定](../rulings/2026-11-18-SHELL-WIN-COMBO-1-pass.md)；run_20261118_190253） |
 | 415 | SHELL-WIN-STAGE-PARSE-FIX-1 | **done PASS**（主管复跑 ctest 3/3；真实链 workspace_ready 生效；8c2c2b44→前端 main 8c3801f；[裁定](../rulings/2026-11-18-SHELL-WIN-STAGE-PARSE-FIX-1-pass.md)） |
+| 416 | SHELL-RING-SPIN-FIX-1 | **done PASS**（加载卡状态环轴心居中/去 translateY 覆盖；主管复跑 722 测+35 渲染+全段 render；2160104f→主仓 main 88f4f163；[裁定](../rulings/2026-11-18-SHELL-RING-SPIN-FIX-1-pass.md)） |
 
 - 目标链：410/411/412 并发零栈 → 413 重建 → 414 单次真栈组合 → 391 手测放行。409 RULING 不重开；395/402 原 blocked 卡待本批收口后归档/收口。
 - 交接记录：[decisions/2026-11-18-pc-supervisor-handoff-planA.md](../decisions/2026-11-18-pc-supervisor-handoff-planA.md)。

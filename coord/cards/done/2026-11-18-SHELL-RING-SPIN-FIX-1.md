@@ -28,3 +28,9 @@
 ## 停止与回执
 
 同确定性断点两次失败→停；需改 React 结构或新增测试机制→停报。回执：commit、文件、命令+exit、computed-style 原文、边界（零真栈；实际视觉待用户目检）。
+
+## 回执与验收（2026-11-18 晚）
+
+- commit `2160104f`；主管亲跑 722 测/build/35 渲染检查（0 fail）/test:render 全段 PASS；computed-style 亲证 `v5-ring-spin 1.6s infinite / transformOrigin 8px 8px / 无位移矩阵`，三档样张 16→8/20→10/24→12 居中。
+- 合入主仓 main `88f4f163` 并推送；主检出 webui dist 已重建（`0C6A1691…`），手测入口含本修复。
+- 裁定：[rulings/2026-11-18-SHELL-RING-SPIN-FIX-1-pass.md](../../rulings/2026-11-18-SHELL-RING-SPIN-FIX-1-pass.md) PASS；实际视觉待用户目检。
