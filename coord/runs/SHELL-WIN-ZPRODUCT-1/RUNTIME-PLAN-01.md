@@ -78,3 +78,9 @@ Allow one external03 with the changed explicit foreground setup, 60-second read-
 External03 remained not exercised and exited 3 before open; independent clearance and all six authority hashes passed. The user has now explicitly replied “现在开始，我保持 Codex 前台”. After the new host appears, the user will bring the existing Codex window back to foreground; no automated focus control is allowed.
 
 Authorize only one external04, final script/product hashes and supervisor owner unchanged, fresh `C:/Users/timoz/AppData/Local/Temp/shell409-product-stage10-583d6a6ead3647d8b110fa5306048a83`, its `frontend/`, fresh `runtime_external_04`, read-only natural-condition wait 60 seconds. Criteria, hygiene and stop limits remain unchanged; missing condition still exits 3 and no automatic further run follows.
+
+## User explicitly requested another setup attempt, 13:49 +08:00
+
+External04 did not reach an independent foreground and exited 3; normal host exit, zero LLM, independent clearance and all authority hashes passed. Runs stopped and the reservation was released (`ef6e34cf`). Asked about desktop visibility, the user explained “刚才没在看桌面” and explicitly requested another attempt. No desktop/session defect is established by the missing condition.
+
+Authorize exactly one external05 for that request, with the same frozen criteria, final script/product hashes and supervisor owner, 60-second read-only condition wait, fresh `C:/Users/timoz/AppData/Local/Temp/shell409-product-stage11-1465f91b9cf64a479fde2d24fffcdc10`, its `frontend/`, fresh `runtime_external_05`. The user will naturally select Codex or the browser after the host appears; all assertions remain automatic. Stop on any anomaly and do not automatically retry.
