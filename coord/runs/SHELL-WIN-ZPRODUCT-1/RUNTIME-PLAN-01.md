@@ -32,3 +32,11 @@ Attempt 02 started VitShell but did not start agent/kernel/Godot or exercise DAW
 The changed harness leaves flags bare and quotes values, rejects embedded quotes/newlines, uses the normal visible product-host startup, saves the complete error/last status, pins the process handle and obtains an explicit numeric exit after waiting. Offline tests against the actual host parser prove old failure and acceptance of four spaced-path arguments; PS5.1 hidden ordinary child exits 0/7 are captured correctly. Script SHA-256 `C79D1EBD377929404D19A034CB93EB8A5A71E4F009629118F6B8B78AE332FECD`.
 
 After a new reservation, allow one shell-condition invocation by the same supervisor owner, `StageRoot C:/Users/timoz/AppData/Local/Temp/shell409-product-stage3-444504f9831740cbb593cfc5b67d94f0`, project its `frontend/`, fresh run `runtime_shell_03` in the same smoke evidence directory. The product code, DLL and host remain unchanged; all previous limits and stop conditions apply. No external run or unchanged retry is authorized.
+
+## Runtime readiness correction, 13:16 +08:00
+
+Attempt 03 reached stage agent+hub and WebUI ready, then the harness prematurely required all three runtime processes before the asynchronous kernel spawn. The host exited normally with code 0; independent cleanup and all six hashes passed (`88e981f8`). The source contract confirms `Supervisor.Start` runs asynchronously, ensures hub first, then kernel (`agent/internal/runtimehost/runtimehost.go:351`).
+
+Changed script SHA-256 `C3FECF67F57346B41F792475AF7D6F4F015349F89FB94669BD47D681E78311CA` now waits within TimeoutSec for all three owned stage processes and their listeners, rejects foreign/duplicate/unknown PID/birth/endpoint ownership immediately, and saves lightweight readiness and missing-item evidence on timeout. Offline progression and negative checks pass. Product/DLL/host hashes remain unchanged.
+
+After a new shared reservation, allow only one `runtime_shell_04` invocation by the same supervisor owner, using fresh `C:/Users/timoz/AppData/Local/Temp/shell409-product-stage4-033a09f298834fb58eaf20f2a718da36` and its `frontend/`. Keep all previous success conditions, one-attempt limit, time bound, hygiene and stop rules. External remains unauthorized.
