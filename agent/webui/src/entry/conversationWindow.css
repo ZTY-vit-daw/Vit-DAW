@@ -1,11 +1,14 @@
 /*
  * CONV-WINDOW-SHELL-1（428，A 方案）：右侧对话窗口壳与持久流层。
+ * CONV-WINDOW-MOTION-1（429）：切换动效调慢/分层——只动新内容，不两侧同时快速切换。
  *
  * - 窗口壳：相对定位、撑满 EntryShell 右主区（左栏 EntryShell 节点不受影响）；
- * - 流层：绝对定位叠放，active 层可见并播放 200ms 入场过渡（与 415 左栏收展 180ms
- *   同一时长语言，均在 180–240ms 区间）；inactive 层 hidden（不占布局）+ inert +
- *   aria-hidden（DOM 常驻，保留滚动位置/输入草稿/加载卡状态）；
- * - prefers-reduced-motion: reduce 关闭过渡与动画（无位移/淡入）。
+ * - 流层：绝对定位叠放，active 层可见并播放 340ms 缓出入场（cubic-bezier(0.22,0.61,0.36,1)，
+ *   320–360ms 区间；轻淡入 + 10px 位移）；inactive 层立即 hidden（不占布局、无双影）
+ *   + inert + aria-hidden（DOM 常驻，保留滚动位置/输入草稿/加载卡状态）；
+ * - launcher 流内容体（429 第 4 条）：模式切换（启动页↔工程管理）与线程新条目同样只动
+ *   内容体（280–320ms），titlebar/窗口壳静止；
+ * - 纯 CSS（无 JS 定时器）；prefers-reduced-motion: reduce 关闭全部过渡与动画。
  */
 
 .v5-conversation-window {
@@ -29,20 +32,21 @@
   overflow: hidden;
 }
 
-/* hidden 是语义事实（非活动层不可见/不可交互）；DOM 常驻由不卸载实现。 */
+/* hidden 是语义事实（非活动层立即不可见/不可交互，避免双影）；DOM 常驻由不卸载实现。 */
 .v5-conversation-layer[hidden] {
   display: none;
 }
 
-/* active 层入场：200ms（180–240ms 语言内）淡入 + 轻微横向位移。 */
+/* active 层入场：340ms 缓出（320–360ms 区间）轻淡入 + 10px 横向位移；
+ * 只有 active 层播放，inactive 层已 hidden——不出现两框同时快速切换/双影。 */
 .v5-conversation-layer--active {
-  animation: v5-conversation-layer-enter 200ms ease;
+  animation: v5-conversation-layer-enter 340ms cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
 @keyframes v5-conversation-layer-enter {
   from {
     opacity: 0;
-    transform: translateX(8px);
+    transform: translateX(10px);
   }
   to {
     opacity: 1;
@@ -50,8 +54,60 @@
   }
 }
 
+/* ---- 429 第 4 条：launcher 流内容体过渡（只动内容体，标题栏/窗口壳静止） ---- */
+
+/* 启动页 ↔ 工程管理模式下 .v5-launcher-main 内容切换（模式属性变化→动画名变化→重播）。 */
+.v5-conversation-layer--active [data-launcher-mode="startup"] .v5-launcher-main {
+  animation: v5-launcher-content-enter 300ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.v5-conversation-layer--active [data-launcher-mode="project-management"] .v5-launcher-main {
+  animation: v5-launcher-management-enter 300ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* 线程新条目（greeting/对话/结果卡/directive）逐条入场：只动新增内容体。 */
+.v5-conversation-layer--active .v5-launcher-thread > * {
+  animation: v5-launcher-item-enter 300ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+@keyframes v5-launcher-content-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes v5-launcher-management-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes v5-launcher-item-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .v5-conversation-layer--active {
+  .v5-conversation-layer--active,
+  .v5-conversation-layer--active [data-launcher-mode="startup"] .v5-launcher-main,
+  .v5-conversation-layer--active [data-launcher-mode="project-management"] .v5-launcher-main,
+  .v5-conversation-layer--active .v5-launcher-thread > * {
     animation: none;
   }
 }
