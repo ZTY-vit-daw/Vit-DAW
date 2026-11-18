@@ -40,3 +40,8 @@ script/wrapper/host 均 exit 0 + 断言摘要 + 原始工件。任何 `not_exerc
 - attempt02（run_20261118_185034）：415 生效，**395 呈现面 PASS**（terminal=ready/completed/steps=3，无假进度、无焦点误报）；409 冻结分类器因 open 后 polling 中出现 Godot 前台（interval.end+2094ms 起 113 样本）且 pre-open 存在非本栈前台切换 → 按冻结规则保留 FAIL，归环境/外部前台干扰（归属未定）。详见 [ATTEMPT-02](../runs/SHELL-WIN-COMBO-1/ATTEMPT-02.md)。
 - harness 已调整：presentation CDP 移到 observer Stop 之后，保持 409 冻结观测窗口不变。
 - 下一轮：一次 hands-off 条件的 shell 验收（用户配合 ~30–40s 不动键鼠）；若再遇同类外部干扰则停手转环境核对，不原样重跑。
+
+## 终验收（2026-11-18 晚）
+
+- attempt03 PASS（run_20261118_190253，用户 hands-off）：script/wrapper/host exit 0；409 分类器 PASS（initial_below_reference、无纠正、interval 0 激活/0 焦点、707 样本）；395 呈现 PASS（terminal=ready、completed=1、steps=3、无假进度、无焦点误报、同窗 sentinel）；chain_detail=workspace_ready；零 LLM；六份 authority 还原一致、进程/端口/UDP 全零。
+- 裁定：[rulings/2026-11-18-SHELL-WIN-COMBO-1-pass.md](../../rulings/2026-11-18-SHELL-WIN-COMBO-1-pass.md)。391 解锁，手测 v7 放行。

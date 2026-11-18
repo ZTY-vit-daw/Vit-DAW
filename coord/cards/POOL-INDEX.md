@@ -179,7 +179,7 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 380 | MATERIAL-TRANSCRIBE-1 | 部分完成（批1五条transcribed_unverified；批2-4十五条候续派，保留uncertain/未听核边界） |
 | 381 | YUE-VOCAL-FORENSICS-1 | done 已验收 pass 合入 1001a216+补腿 731a7d9f→main（C8 双版时长比例窗 [0.6,1.5] 干跑 0；**人声定性后被 390 查证修正**：官方有 instrumental 工作流，差距在本地封装） |
 | 390 | YUE-INSTRUMENTAL-PATH-1 | doing 零栈两腿 pass 合入（**模型件齐+接入=纯封装层**：S1/S2/S4/S6 官方语义对齐+干跑断言+go 回归 0；**真栈生成+用户听核候栈**——人声抑制效果无先例，fallback 待命） |
-| 391 | SHELL-WIN-BEHAVIOR-1 | blocked（11-18新产品窗口路径409已验收并合入；整体仍待395兼容/呈现组合真栈及入口刷新，未放行手测；原394/E2失败封存不复活，父卡不可重复领） |
+| 391 | SHELL-WIN-BEHAVIOR-1 | **todo 候用户手测 v7**（410/411/412/413/415 全 PASS；414 组合真栈 attempt03 PASS；[HANDTEST-V7](../runs/SHELL-WIN-BEHAVIOR-1/HANDTEST-V7.md)；父卡不可重复领） |
 | 392 | SCORE-TRACK-BIND-1 | 父卡（397绑定→398跟随→399小条；400草稿契约先行，父卡不可重复领；谱面轨道绑定+双模式：轨道选择器+GUI 跟随+clip 小条+草稿 clip 资产不落位；374 痛点承接；裁定档 §二） |
 | 393 | CHAT-STREAM-LIST-1 | todo 可领 P2（工程态对话流列表侧栏+会话切换最简档；裁定档 §三；settings 归 388 补） |
 | —— | music_score 对话流控件 | 登记阶段 2 承接（裁定档 §二：374 内核包装成卡内挂载组件；候 388/389 收口后随阶段 2 发卡） |
@@ -221,7 +221,7 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 411 | SHELL-READY-SEAM-1 | **done 实现面 PASS**（主管复跑 import+unit runner exit 0；4784f9b→前端 main cf33195b；[裁定](../rulings/2026-11-18-SHELL-READY-SEAM-1-pass.md)；真实装配待 414） |
 | 412 | SHELL-WIN-PRES-MERGE-1 | **done 实现面 PASS**（主管独立复跑 722 测/build/31 渲染/全段 render；c44c9039→main 668078fd；[裁定](../rulings/2026-11-18-SHELL-WIN-PRES-MERGE-1-pass.md)；真实端侧待 414） |
 | 413 | SHELL-ENTRY-REFRESH-1 | doing（lead/entry413；先隔离扩展 DLL 预构建，410/411 合入后主管放行刷新最终 VitShell/webui/入口产物；零栈） |
-| 414 | SHELL-WIN-COMBO-1 | doing（lead 亲跑；attempt01 集成缺陷→415 修复 PASS；attempt02：**395 呈现 PASS**、409 分类器因外部前台干扰 FAIL（归环境，未定归属）；待一次 hands-off 重跑；[ATTEMPT-02](../runs/SHELL-WIN-COMBO-1/ATTEMPT-02.md)） |
+| 414 | SHELL-WIN-COMBO-1 | **done PASS**（attempt03 hands-off：409 分类器 PASS + 395 呈现 PASS + chain_detail=workspace_ready；零 LLM/卫生还原；[裁定](../rulings/2026-11-18-SHELL-WIN-COMBO-1-pass.md)；run_20261118_190253） |
 | 415 | SHELL-WIN-STAGE-PARSE-FIX-1 | **done PASS**（主管复跑 ctest 3/3；真实链 workspace_ready 生效；8c2c2b44→前端 main 8c3801f；[裁定](../rulings/2026-11-18-SHELL-WIN-STAGE-PARSE-FIX-1-pass.md)） |
 
 - 目标链：410/411/412 并发零栈 → 413 重建 → 414 单次真栈组合 → 391 手测放行。409 RULING 不重开；395/402 原 blocked 卡待本批收口后归档/收口。

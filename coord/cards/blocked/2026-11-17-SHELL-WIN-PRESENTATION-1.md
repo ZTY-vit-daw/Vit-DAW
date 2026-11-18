@@ -24,3 +24,8 @@
 
 ## 2026-11-17 本轮止损与状态
 blocked：391normal旧版首次激活FAIL，E/E2两个候选均bootstrap/恢复失败，最后E2 after仍iconic；按预设停止第三normal/产品修与依赖矩阵。具体代码/日志/范围见coord/reports/2026-11-17-pc-development-progress.md与coord/runs/SHELL-WIN-BEHAVIOR-1/stopped-native-candidates/。本卡既有局部测试/呈现成果保留，不等于最终端侧通过；不合未验候选main、不放手测。恢复前先403独立取证，未自动领取。真实栈全零/哈希还原，owner无在飞运行，分支/worktree保留。
+
+## 收口说明（2026-11-18 晚）
+
+- 本卡剩余工作已由 412（呈现 rebase/合入）+ 410（producer）+ 414（组合真栈）吸收并验收：414 attempt03 真实 DOM 呈现 PASS（terminal=ready、completed 卡、3 步、无假进度、无焦点误报）。
+- 本卡不再单独领取/验收；待 gate 归档为 superseded（保留原 722 测/31 渲染证据）。域外 launcherData 文案未合入，另记。

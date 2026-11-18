@@ -27,3 +27,11 @@ ROOT entry388为本轮验证owner，组合主仓1c104631/前端1301345；normal�
 
 ## 2026-11-17 本轮止损与状态
 blocked：391normal旧版首次激活FAIL，E/E2两个候选均bootstrap/恢复失败，最后E2 after仍iconic；按预设停止第三normal/产品修与依赖矩阵。具体代码/日志/范围见coord/reports/2026-11-17-pc-development-progress.md与coord/runs/SHELL-WIN-BEHAVIOR-1/stopped-native-candidates/。本卡既有局部测试/呈现成果保留，不等于最终端侧通过；不合未验候选main、不放手测。恢复前先403独立取证，未自动领取。真实栈全零/哈希还原，owner无在飞运行，分支/worktree保留。
+
+## 解锁与手测放行（2026-11-18 晚，PC 主管 lead）
+
+- 409 产品窗口已验收；410 producer / 411 readiness / 412 呈现 / 413 入口产物刷新 / 415 stage 解析修复全部 PASS 并合入（前端 main `8c3801f`）。
+- 414 组合真栈 attempt03 PASS（`coord/runs/SHELL-WIN-COMBO-1/run_20261118_190253`）：409 原生分类器 PASS + 395 呈现 DOM PASS（terminal=ready / completed / steps=3 / 无假进度 / 无焦点误报 / 同窗 sentinel）+ chain_detail=workspace_ready + 零 LLM + 进程/端口/authority 全清。
+- **解锁要件已满足**（395 兼容 + 组合真栈 + 实际入口刷新）。**用户手测 v7 放行**：入口 `启动VitShell.cmd`，清单与边界见 [HANDTEST-V7](../../runs/SHELL-WIN-BEHAVIOR-1/HANDTEST-V7.md)。
+- 本卡移回 todo 等待用户手测结果；通过后出 391 终验 ruling 并归档。父卡仍不可被其他执行流重复领取。
+- 边界：396 retry 微卡未并入；导出/release DLL 未刷新；单次成功路径不代表稳定性。
