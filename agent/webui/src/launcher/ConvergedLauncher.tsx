@@ -1147,8 +1147,11 @@ export function ConvergedLauncher({ fixture, fill = false, activeProjectName, on
                   {activeProjectName ? "工程管理" : greetingDisplayText(greeting)}
                 </p>
                 <div className="v5-launcher-thread v5-converged-thread" data-launcher-thread data-scroll-intentional="thread">
-                  {segments.map((segment) => renderThreadSegment(segment))}
+                  {/* SHELL-PROJECT-STREAM-FIX-1（427）：装载/执行卡与工程面同语义——
+                      它是对话历史里的「装载记录」，固定在消息列表之前，消息一律排在其后
+                      （同一时刻仍只渲染这一个执行/装载卡）。 */}
                   {renderBridgeExec()}
+                  {segments.map((segment) => renderThreadSegment(segment))}
                 </div>
               </>
             ) : null}

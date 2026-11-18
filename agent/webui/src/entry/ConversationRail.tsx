@@ -44,12 +44,15 @@ export function ConversationRail({
   onNewConversation
 }: ConversationRailProps) {
   const view = useMemo(() => conversationRailView(uiState), [uiState]);
-  const newDisabled = busy || checkoutBlocked || !view.activeNodeId;
+  // SHELL-PROJECT-STREAM-FIX-1（427）：无活动节点不再是禁用理由——只要存在工程身份
+  // （project_path/active branch/head），新对话即可从当前 HEAD 分叉（agent 侧
+  // version.branch_create 省略 from_node_id 时按当前 HEAD 建分支）。
+  const newDisabled = busy || checkoutBlocked || !view.hasProjectIdentity;
   const newHint = checkoutBlocked
     ? "Agent Turn 正在运行；请先 Stop Turn 再新建对话。"
     : view.activeNodeId
       ? "从当前对话的活动节点分叉出新对话"
-      : "当前对话还没有可用的活动节点";
+      : "从当前工程状态新建对话";
   return (
     <section className="v5-conversation-rail" data-conversation-rail aria-label="对话流">
       <div className="v5-conversation-rail-head" data-conversation-rail-head>
