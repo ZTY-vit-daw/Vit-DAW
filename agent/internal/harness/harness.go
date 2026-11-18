@@ -3136,6 +3136,11 @@ func (h *Harness) invokeLocal(ctx context.Context, spec tools.CommandSpec, cmd m
 		}
 		result = h.withProjectReload(ctx, "version_worktree_checkout", result)
 		return resultWithErr(result, err), true
+	case "version_conversation_open":
+		// CONV-OPEN-TOOL-1（419）：组合缝。校验/守卫 → autosave → 目标工作树
+		// 副本物化 → 恰好一次 withProjectReload；旧 checkout 语义不变。
+		result, err := h.conversationOpen(ctx, cmd)
+		return resultWithErr(result, err), true
 	case "version_worktree_list":
 		result, err := history.WorktreeList(h.historyArgs(cmd))
 		return resultWithErr(result, err), true
@@ -9388,7 +9393,7 @@ func (h *Harness) EnsureCapabilityExecutionBaseline(ctx context.Context, goalID,
 
 func activeProjectPlaneCommand(commandName string) bool {
 	switch strings.ToLower(strings.TrimSpace(commandName)) {
-	case "version_checkout", "version_node_checkout", "version_worktree_checkout", "version_restore":
+	case "version_checkout", "version_node_checkout", "version_worktree_checkout", "version_conversation_open", "version_restore":
 		return true
 	default:
 		return false
