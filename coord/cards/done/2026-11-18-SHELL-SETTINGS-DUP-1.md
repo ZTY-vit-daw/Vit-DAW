@@ -30,3 +30,9 @@
 ## 停止
 
 同确定性断点两次失败→停；如需改 EntryShell footer 布局或 windowPresentation 协议→停报。
+
+## 回执与验收（2026-11-18 晚，用户手测缺陷）
+
+- commit `479897dc`；主管亲跑 746 测/build/RWP 75 检查 0 失败/test:render ENTRY388+全段 PASS；合入 main `65142940`。dist 重建为 `A14BE870…`。
+- 修复：live 入口唯一设置入口=左栏 footer；工程页/启动页旧 footer 按钮移除；新增唯一性断言。
+- 裁定：[rulings/2026-11-18-SHELL-SETTINGS-DUP-1-pass.md](../../rulings/2026-11-18-SHELL-SETTINGS-DUP-1-pass.md) PASS；待用户刷新验证。
