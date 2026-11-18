@@ -14,3 +14,10 @@
 - 硬约束：项目包元数据 `legame.{enabled,design}` 启用判定（R2，普通工程可随时转乐局）；binding 键=project UUID（修复父目录静态推导串工程）；缓存键四元组；材料相对路径随包迁移；A/B 两工程不串 binding、重开不切别版、revise 源→缓存失效新卡生效（真实栈三关）。
 - 复用 423/424：`legamedesign.Parse/Compile/WriteCompiled/RefreshCompiled`；编译入口必须含 ValidateCompileReadiness。
 - 文件域：`agent/internal/projectpackage/`、`agent/internal/chat/edu_jam_chat.go`（binding 读取点）、`scripts/`（扩展既有 ps1 烟测，不另起机制）；领取时主管核对在飞卡文件域（当前无同域）。
+
+## 零栈段验收（2026-11-18 晚）
+
+- commit `b78c9969`；主管亲跑 build/projectpackage/legamedesign/chat 全 PASS（chat 121.6s）；合入 main `bef5e9c1`。
+- 交付：R2 元数据启用、M1 导入装配、binding UUID、四元组缓存、重开/移动/revise fail-closed、真栈 runbook。
+- 零栈证据：A/B 隔离、重开不切版、revise 新卡、enabled=false 惰性、R5 无覆盖不落卡。
+- 真栈腿未跑（runbook 待授权）；卡保持 doing。裁定：[zerostack-pass](../../rulings/2026-11-18-G0-LEGAME-BIND-1-zerostack-pass.md)。
