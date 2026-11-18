@@ -1,0 +1,143 @@
+﻿{
+    "card":  "SHELL-WIN-COMBO-1",
+    "run_id":  "run_20261118_190253",
+    "condition":  "shell",
+    "command_line":  "\"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe\" -NoProfile -ExecutionPolicy Bypass -File D:/Vit_DAW/scripts/vitshell_zproduct_smoke.ps1 -RuntimeAuthorized -LeaseOwner lead/PC-supervisor-20261118 -CardId SHELL-WIN-COMBO-1 -PresentationChecks -Condition shell -FrontendWorktree C:/Users/timoz/.codex/worktrees/pc414-combo/vit-daw-frontend -GodotProjectStage C:/Users/timoz/AppData/Local/Temp/shell414-combo3-7cf5adf8/frontend -StageRoot C:/Users/timoz/AppData/Local/Temp/shell414-combo3-7cf5adf8 -ExpectedExtensionSha256 B270362D1E3380D27A709747611FED149A8A0F54B11BA00C1229834510CD2EB7 -RunRoot D:/Vit_DAW/coord/runs/SHELL-WIN-COMBO-1/run_20261118_190253 -TimeoutSec 180 -NaturalConditionWaitSec 60",
+    "invocation":  "",
+    "parameters":  {
+                       "RuntimeAuthorized":  {
+                                                 "IsPresent":  true
+                                             },
+                       "LeaseOwner":  "lead/PC-supervisor-20261118",
+                       "CardId":  "SHELL-WIN-COMBO-1",
+                       "PresentationChecks":  {
+                                                  "IsPresent":  true
+                                              },
+                       "Condition":  "shell",
+                       "FrontendWorktree":  "C:/Users/timoz/.codex/worktrees/pc414-combo/vit-daw-frontend",
+                       "GodotProjectStage":  "C:/Users/timoz/AppData/Local/Temp/shell414-combo3-7cf5adf8/frontend",
+                       "StageRoot":  "C:/Users/timoz/AppData/Local/Temp/shell414-combo3-7cf5adf8",
+                       "ExpectedExtensionSha256":  "B270362D1E3380D27A709747611FED149A8A0F54B11BA00C1229834510CD2EB7",
+                       "RunRoot":  "D:/Vit_DAW/coord/runs/SHELL-WIN-COMBO-1/run_20261118_190253",
+                       "TimeoutSec":  180,
+                       "NaturalConditionWaitSec":  60
+                   },
+    "started_utc":  "2026-11-18T11:03:01.3780894Z",
+    "result":  "PASS",
+    "llm_calls":  0,
+    "coverage":  "DOM open chain, bound native first-show/correction, existing own-thread message interval, 10ms polling (not frames; gaps unobserved)",
+    "main_head":  "8a4e7691144be553e2c185d729438e5090d52c7b",
+    "main_status":  " M CURRENT-STATE.md\n M VitApp/Workspace/Settings/Settings.xml\n M VitApp/Workspace/default_project.xml\n M tracktion_engine\n?? .vit_derived/\n?? .zcode/\n?? .zcodeignore\n?? docs/ACOUSTIC_OBSERVATION_L1_L3_RELIABILITY_AUDIT_2026-10-29.md\n?? docs/ADR-EFFECT-CONTROL-REDESIGN-V2.md\n?? docs/ADR_AI_LISTENING_EAR_V1.md\n?? docs/ADR_AI_LISTENING_EAR_V2.md\n?? docs/AI_FIRST_INTERACTION_DISCUSSION_2026-10-28.md\n?? docs/EDU_SEQUENCE_DEMO_PREDEFENSE_PLAN_2026-11-05.md\n?? docs/FIRST_RUN_GAME_AND_LEVEL_RUNTIME_DESIGN_2026-11-05.md\n?? docs/INTERVIEW_PILOT_2026-11-02.md\n?? docs/PERSONAL_AGENT_DESIGN_DISCUSSION_2026-11-02.md\n?? docs/SHOW_BIBLE_DRAFT_2026-11-02.md\n?? docs/TEST-BARE-CONTROL-VALIDATION.md\n?? ledger/",
+    "frontend_head":  "8c3801f41924cb9d0ffccc8a0872372401e3319c",
+    "frontend_status":  "",
+    "binaries":  [
+                     {
+                         "modified_utc":  "2026-11-18T10:50:13.1052197Z",
+                         "path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\shell414-combo3-7cf5adf8\\host\\VitShell.exe",
+                         "sha256":  "F8FD36ABEFA46D09983E119C0DA2457D87BB7ABBB577501461454199BECD8B0F"
+                     },
+                     {
+                         "modified_utc":  "2026-11-18T10:43:32.9010771Z",
+                         "path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\shell414-combo3-7cf5adf8\\runtime\\agent\\bin\\VitAgent.exe",
+                         "sha256":  "27D09FA09D0CD6F710F9BFAD7E06F44242159987178241953431B13C435C3768"
+                     },
+                     {
+                         "modified_utc":  "2026-11-18T10:43:32.9010771Z",
+                         "path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\shell414-combo3-7cf5adf8\\runtime\\VitApp\\build\\VitApp_artefacts\\Release\\VitApp.exe",
+                         "sha256":  "A59473614152882B21433DCEE684F8B13AE0BD5B632A97CD5E2C8765BB18348E"
+                     },
+                     {
+                         "modified_utc":  "2026-11-18T10:43:32.9010771Z",
+                         "path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\shell414-combo3-7cf5adf8\\runtime\\agent\\bin\\VspHub.exe",
+                         "sha256":  "B10CC41295066C48BB446B255D12D1A58D2D8D64F164D875083667B464C71F68"
+                     },
+                     {
+                         "modified_utc":  "2026-11-18T10:24:45.7629147Z",
+                         "path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\shell414-combo3-7cf5adf8\\frontend\\extension\\bin\\vit_extension.windows.template_debug.x86_64.dll",
+                         "sha256":  "B270362D1E3380D27A709747611FED149A8A0F54B11BA00C1229834510CD2EB7"
+                     },
+                     {
+                         "modified_utc":  "2026-03-14T09:48:22.5899605Z",
+                         "path":  "D:/Godot/Godot_v4.6.1-stable_win64.exe",
+                         "sha256":  "1E5EFE381F62EE1CEA6BC18CAAC71C0C74BD6E68E6AF5C6EFB3DBE76628F61C7"
+                     }
+                 ],
+    "source_fixture_sha256":  "AC0CE2E81C12E6F10E3D691CF062CD3E568365C274F12F2B963694AE3B48B41D",
+    "stage_fixture_inputs":  {
+                                 "source":  "D:/Vit_DAW/temp/f3_empty_project.vit",
+                                 "stage":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\shell414-combo3-7cf5adf8",
+                                 "frontend_source":  "C:/Users/timoz/.codex/worktrees/pc414-combo/vit-daw-frontend",
+                                 "webui_index_sha256":  "0886058EF839F421FBA09FDEAE381583FE5E8911D561DD9C4E5866161EFCFB9F",
+                                 "project_sha256":  "E64FF791596FE618C9FB4D5BFC1EAD40D6A2B2E0755C241194BD1CCA3D1C3C6F",
+                                 "godot_project_stage":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\shell414-combo3-7cf5adf8\\frontend"
+                             },
+    "fixture_copy_before_sha256":  "AC0CE2E81C12E6F10E3D691CF062CD3E568365C274F12F2B963694AE3B48B41D",
+    "raw_logs":  {
+                     "hub":  "D:\\Vit_DAW\\coord\\runs\\SHELL-WIN-COMBO-1\\run_20261118_190253\\hub.log",
+                     "agent":  "D:\\Vit_DAW\\coord\\runs\\SHELL-WIN-COMBO-1\\run_20261118_190253\\agent.log",
+                     "godot":  "D:\\Vit_DAW\\coord\\runs\\SHELL-WIN-COMBO-1\\run_20261118_190253\\godot.log",
+                     "kernel":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\shell414-combo3-7cf5adf8\\runtime\\VitApp\\Workspace\\Logs",
+                     "bridge":  "D:\\Vit_DAW\\coord\\runs\\SHELL-WIN-COMBO-1\\run_20261118_190253\\bridge.log"
+                 },
+    "remote_head":  "8a4e7691144be553e2c185d729438e5090d52c7b",
+    "lease":  "- 2026-11-18 19:02 +0800 预留 / **SHELL-WIN-COMBO-1(414) attempt03 hands-off 单次 shell 验收**：owner=lead/PC-supervisor-20261118（PC 主管亲跑，用户已确认 hands-off）；Stage=C:/Users/timoz/AppData/Local/Temp/shell414-combo3-7cf5adf8；前端源 C:/Users/timoz/.codex/worktrees/pc414-combo/vit-daw-frontend@8c3801f（含 415 修复）；host F8FD36AB、DLL B270362D、agent 27D09FA0、webui 0886058E；单次 shell 条件 open 链、timeout 180s、自然前台等待 60s、零 LLM；presentation CDP 在 observer Stop 之后。失败即停保留原工件，不原样重跑；核净后释放。",
+    "shell_pid":  29988,
+    "classifier_exit":  0,
+    "verdict":  {
+                    "classification":  "PASS",
+                    "reason":  "defined native, message-interval and polling assertions passed",
+                    "coverage":  "Native first-show + optional correction; own-thread WM_ACTIVATE/WM_SETFOCUS only during message_interval; polling before open through stable. Poll gaps and rendered frames are not covered. No whole-open-interval zero-activation claim.",
+                    "initial_below_reference":  true,
+                    "correction_attempted":  false,
+                    "message_interval":  {
+                                             "start_tick_ms":  200350406,
+                                             "end_tick_ms":  200353453,
+                                             "activate_count":  0,
+                                             "setfocus_count":  0
+                                         },
+                    "sample_count":  707
+                },
+    "presentation":  {
+                         "phase":  "probe-presentation",
+                         "ok":  true,
+                         "error":  "",
+                         "checks":  {
+                                        "request_present":  true,
+                                        "seq_positive":  true,
+                                        "progress_unknown":  true,
+                                        "terminal_ready":  true,
+                                        "terminal_is_not_limited_fallback":  true,
+                                        "completed_card":  true,
+                                        "real_steps_rendered":  true,
+                                        "no_fake_progress_text":  true,
+                                        "shell_condition_no_daw_focus_claim":  true,
+                                        "shell_condition_no_focus_hint":  true,
+                                        "native_focus_observed":  true,
+                                        "same_window_no_reload":  true
+                                    },
+                         "observed":  {
+                                          "nativeFocus":  "shell",
+                                          "hintCount":  0,
+                                          "stepCount":  3,
+                                          "completedCount":  1,
+                                          "loadingPhase":  "completed",
+                                          "limitedCount":  0,
+                                          "text":  "已打开工程\n\n工作台已打开，工程内容已载入\n\n装载轨迹",
+                                          "url":  "http://127.0.0.1:7878/app/?surface=launcher",
+                                          "sentinel":  1794999790658,
+                                          "request":  "webui_launcher_br_mwm0j2yf",
+                                          "seq":  4,
+                                          "terminal":  "ready",
+                                          "progress":  "unknown"
+                                      }
+                     },
+    "shell_exit_observation":  {
+                                   "known":  true,
+                                   "code":  0,
+                                   "reason":  "WaitForExit with retained handle"
+                               },
+    "shell_exit":  0,
+    "fixture_copy_after_sha256":  "AC0CE2E81C12E6F10E3D691CF062CD3E568365C274F12F2B963694AE3B48B41D",
+    "exit_code":  0,
+    "finished_utc":  "2026-11-18T11:03:20.1302982Z"
+}

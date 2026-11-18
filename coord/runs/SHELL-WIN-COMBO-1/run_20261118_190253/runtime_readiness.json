@@ -1,0 +1,107 @@
+﻿{
+    "at_utc":  "2026-11-18T11:03:10.3634662Z",
+    "missing":  [
+
+                ],
+    "problems":  [
+
+                 ],
+    "state":  "ready",
+    "processes":  [
+                      {
+                          "ProcessId":  19720,
+                          "Name":  "VitAgent.exe",
+                          "ExecutablePath":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\shell414-combo3-7cf5adf8\\runtime\\agent\\bin\\VitAgent.exe",
+                          "CreationDate":  "2026-11-18T11:03:08.1680250Z",
+                          "ParentProcessId":  29988
+                      },
+                      {
+                          "ProcessId":  24920,
+                          "Name":  "VspHub.exe",
+                          "ExecutablePath":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\shell414-combo3-7cf5adf8\\runtime\\agent\\bin\\VspHub.exe",
+                          "CreationDate":  "2026-11-18T11:03:08.6072500Z",
+                          "ParentProcessId":  19720
+                      },
+                      {
+                          "ProcessId":  17852,
+                          "Name":  "VitApp.exe",
+                          "ExecutablePath":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\shell414-combo3-7cf5adf8\\runtime\\VitApp\\build\\VitApp_artefacts\\Release\\VitApp.exe",
+                          "CreationDate":  "2026-11-18T11:03:09.2782940Z",
+                          "ParentProcessId":  19720
+                      }
+                  ],
+    "endpoints":  [
+                      {
+                          "LocalAddress":  "127.0.0.1",
+                          "OwningProcess":  24920,
+                          "LocalPort":  8787,
+                          "State":  "Established"
+                      },
+                      {
+                          "LocalAddress":  "127.0.0.1",
+                          "OwningProcess":  24920,
+                          "LocalPort":  8787,
+                          "State":  "Listen"
+                      },
+                      {
+                          "LocalAddress":  "127.0.0.1",
+                          "OwningProcess":  19720,
+                          "LocalPort":  7878,
+                          "State":  "Established"
+                      },
+                      {
+                          "LocalAddress":  "127.0.0.1",
+                          "OwningProcess":  0,
+                          "LocalPort":  7878,
+                          "State":  "TimeWait"
+                      },
+                      {
+                          "LocalAddress":  "127.0.0.1",
+                          "OwningProcess":  19720,
+                          "LocalPort":  7878,
+                          "State":  "Established"
+                      },
+                      {
+                          "LocalAddress":  "127.0.0.1",
+                          "OwningProcess":  19720,
+                          "LocalPort":  7878,
+                          "State":  "Established"
+                      },
+                      {
+                          "LocalAddress":  "127.0.0.1",
+                          "OwningProcess":  19720,
+                          "LocalPort":  7878,
+                          "State":  "Established"
+                      },
+                      {
+                          "LocalAddress":  "127.0.0.1",
+                          "OwningProcess":  19720,
+                          "LocalPort":  7878,
+                          "State":  "Listen"
+                      },
+                      {
+                          "LocalAddress":  "127.0.0.1",
+                          "OwningProcess":  17852,
+                          "LocalPort":  5556,
+                          "State":  "Listen"
+                      },
+                      {
+                          "LocalAddress":  "127.0.0.1",
+                          "OwningProcess":  17852,
+                          "LocalPort":  5556,
+                          "State":  "Established"
+                      },
+                      {
+                          "LocalAddress":  "127.0.0.1",
+                          "OwningProcess":  17852,
+                          "LocalPort":  5556,
+                          "State":  "Established"
+                      },
+                      {
+                          "LocalAddress":  "127.0.0.1",
+                          "OwningProcess":  17852,
+                          "LocalPort":  5555,
+                          "State":  "Listen"
+                      }
+                  ]
+}

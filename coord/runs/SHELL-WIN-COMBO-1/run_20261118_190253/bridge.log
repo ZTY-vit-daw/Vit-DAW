@@ -1,0 +1,7 @@
+2026-11-18T19:03:08.746 [LauncherBridge] surface_ready
+2026-11-18T19:03:11.031 [LauncherBridge] smoke.file_dialog.bypass {"chain_index":0}
+2026-11-18T19:03:11.033 [LauncherBridge] governance.none {"reason":"no current project"}
+2026-11-18T19:03:11.111 [LauncherBridge] godot.spawn {"pid":29632}
+2026-11-18T19:03:15.596 [LauncherBridge] launch.ok {"scene":"res://vit_dock/scenes/VitDockRoot.tscn"}
+2026-11-18T19:03:15.596 [LauncherBridge] result {"request_id":"webui_launcher_br_mwm0j2yf","status":"opened","action":"open_project","message":"已进入工程（D:\\Vit_DAW\\coord\\runs\\SHELL-WIN-COMBO-1\\run_20261118_190253\\fixture_a.vit）"}
+2026-11-18T19:03:15.598 [LauncherBridge] surface_ack

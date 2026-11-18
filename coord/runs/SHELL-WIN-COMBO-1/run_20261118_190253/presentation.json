@@ -1,0 +1,34 @@
+﻿{
+    "phase":  "probe-presentation",
+    "ok":  true,
+    "error":  "",
+    "checks":  {
+                   "request_present":  true,
+                   "seq_positive":  true,
+                   "progress_unknown":  true,
+                   "terminal_ready":  true,
+                   "terminal_is_not_limited_fallback":  true,
+                   "completed_card":  true,
+                   "real_steps_rendered":  true,
+                   "no_fake_progress_text":  true,
+                   "shell_condition_no_daw_focus_claim":  true,
+                   "shell_condition_no_focus_hint":  true,
+                   "native_focus_observed":  true,
+                   "same_window_no_reload":  true
+               },
+    "observed":  {
+                     "nativeFocus":  "shell",
+                     "hintCount":  0,
+                     "stepCount":  3,
+                     "completedCount":  1,
+                     "loadingPhase":  "completed",
+                     "limitedCount":  0,
+                     "text":  "已打开工程\n\n工作台已打开，工程内容已载入\n\n装载轨迹",
+                     "url":  "http://127.0.0.1:7878/app/?surface=launcher",
+                     "sentinel":  1794999790658,
+                     "request":  "webui_launcher_br_mwm0j2yf",
+                     "seq":  4,
+                     "terminal":  "ready",
+                     "progress":  "unknown"
+                 }
+}
