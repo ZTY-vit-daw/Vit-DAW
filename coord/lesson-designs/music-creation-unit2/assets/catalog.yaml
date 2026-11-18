@@ -57,90 +57,90 @@ items:
     printed_page: 21
     pdf_page: 26
     source_image: source/pages/pdf-026_book-021.png
-    excerpt: 首包选择不含三连音的一项基础例，逐符号核对后定范围
-    file: null
-    status: planned_transcription
+    excerpt: P21 均分节奏例（4/4，第 1-4 小节：全音符 X - - -｜两二分 X - X -｜四四分 X X X X｜八八分 X X X X X X X X；第 5 小节三连音例未选入首包；X 谱无音高）
+    file: assets/midi/rhythm-even_uniform-4bars_GM37_80bpm.mid
+    status: transcribed_unverified
   - id: rhythm-long-short
     title: 原页前长后短节奏例
     concepts: [前长后短]
     printed_page: 21
     pdf_page: 26
     source_image: source/pages/pdf-026_book-021.png
-    excerpt: 选一项能说明关系的原例，小节范围待核
-    file: null
-    status: planned_transcription
+    excerpt: P21 前长后短节奏例（4/4，图面全 4 小节：四分+二分+两八分｜二分+四八分｜附点四分+八分+附点四分+两十六分｜八分+附点八分与十六分组合；X 谱无音高）
+    file: assets/midi/rhythm-long-short_4bars_GM37_80bpm.mid
+    status: transcribed_unverified
   - id: rhythm-short-long
     title: 原页前短后长节奏例
     concepts: [前短后长]
     printed_page: 21
     pdf_page: 26
     source_image: source/pages/pdf-026_book-021.png
-    excerpt: 选一项能说明关系的原例，小节范围待核
-    file: null
-    status: planned_transcription
+    excerpt: P21 前短后长节奏例（4/4，图面全 4 小节：两八分+四分+二分延长｜八分+附点四分+两十六分+附点四分｜两十六分+附点四分+八分+附点四分｜四十六分+四分+十六分附点组合；X 谱无音高）
+    file: assets/midi/rhythm-short-long_4bars_GM37_80bpm.mid
+    status: transcribed_unverified
   - id: rhythm-syncopation
     title: 原页切分节奏例
     concepts: [切分, 强弱变化]
     printed_page: 21
     pdf_page: 26
     source_image: source/pages/pdf-026_book-021.png
-    excerpt: 保留跨拍连线或时值关系的原例，小节范围待核
-    file: null
-    status: planned_transcription
+    excerpt: P21 切分节奏例（4/4，图面全 4 小节：四分+第2拍起二分+四分｜八分起+三连续四分+八分｜八分与十六分切分组合｜十六分密集切分；跨小节弧线未合并时值；X 谱无音高）
+    file: assets/midi/rhythm-syncopation_4bars_GM37_80bpm.mid
+    status: transcribed_unverified
   - id: contour-free
     title: 二月里来
     concepts: [自由曲线, 核心音附近的运动]
     printed_page: 22
     pdf_page: 27
     source_image: source/pages/pdf-027_book-022.png
-    excerpt: 教材自由曲线谱例，具体使用的连贯短句待核
-    file: null
-    status: planned_transcription
+    excerpt: P22 自由曲线例（1=♭A 4/4，图面 4 小节：2 1 2 3 2. 3｜6̣ 1 2 3 5̣ -｜2. 3 5 3 2 3 1 2 6̣｜3̣ 5̣ 6̣ 1 5̣ -；歌词“二月里来呀好春光，家家户户种田忙”；装饰音见 verification）
+    file: assets/midi/contour-free_february-first4_Ab_72bpm.mid
+    status: transcribed_unverified
   - id: contour-flat
     title: 乘胜追击
     concepts: [平直线]
     printed_page: 22
     pdf_page: 27
     source_image: source/pages/pdf-027_book-022.png
-    excerpt: 教材平直线谱例，具体短句待核
-    file: null
-    status: planned_transcription
+    excerpt: P22 平直线例（1=♭B 2/4，图面 8 小节：3. 3 3 0｜3. 3 3 0｜3 3 3 3｜♯2 3 0｜6. 6 6｜6. 6 6｜6 6 6 6｜♯5 6 0；0 为休止）
+    file: assets/midi/contour-flat_chengsheng-first8_Bb_120bpm.mid
+    status: transcribed_unverified
   - id: contour-smooth
     title: 早晨的问候
     concepts: [平缓进行, 音域与级进小跳]
     printed_page: 25
     pdf_page: 30
     source_image: source/pages/pdf-030_book-025.png
-    excerpt: 能体现五度框架内组织的原例，具体短句待核
-    file: null
-    status: planned_transcription
+    excerpt: P25 平缓进行例（1=C 3/4，弱起 2 个十六分 + 图面 4 小节：2̇2̇｜2̇. 2̇2̇2̇｜♯1̇. 3̇ 3̇. 6 7｜i̇. i̇i̇i̇｜7. 2̇ 2̇(延长) 0）
+    file: assets/midi/contour-smooth_morning-first4_C_72bpm.mid
+    status: transcribed_unverified
   - id: contour-wave
     title: 海港之夜
     concepts: [跌宕起伏, 上下大跳]
     printed_page: 26
     pdf_page: 31
     source_image: source/pages/pdf-031_book-026.png
-    excerpt: 含起伏上下文的原例，具体短句待核
-    file: null
-    status: planned_transcription
+    excerpt: P26 跌宕起伏例（1=♭B 4/4，弱起 0 3 + 图面第一行 4 小节：3̇ 3. 3̇ 2 2̇ 0 3｜2̇ 3. 3̇ i̇ i̇ 0 i̇｜7 2̇. i̇ 7 6 5 6｜3 - - 0 3；含八度/七度/六度大跳标注）
+    file: assets/midi/contour-wave_seaport-first4_Bb_60bpm.mid
+    status: transcribed_unverified
   - id: analysis-huainian
     title: 怀念战友
     concepts: [同音反复, 级进与大跳, 切分与附点, 音乐语境]
     printed_page: 27
     pdf_page: 32
     source_image: source/pages/pdf-032_book-027.png
-    excerpt: 配合教材分析选取连贯短句，不转写整曲作为首包前提
-    file: null
-    status: planned_transcription
+    excerpt: P27 创作示例《怀念战友》首句（1=♭B 2/4，图面 4 小节：0 22 5 5｜5. 6 7 i̇ 7｜6 6 i̇ 7 6｜5 -；歌词“天山脚下是我可爱的家乡”；上方小数字/分数标记未入 MIDI）
+    file: assets/midi/analysis-huainian_first4_Bb_72bpm.mid
+    status: transcribed_unverified
   - id: analysis-xiaocao
     title: 小草
     concepts: [同音级进跳进结合, 均分切分, 重复与统一]
     printed_page: 28
     pdf_page: 33
     source_image: source/pages/pdf-033_book-028.png
-    excerpt: 配合教材分析选取连贯短句，具体范围待核
-    file: null
-    status: planned_transcription
+    excerpt: P28 《小草》首句（1=G 2/4，图面第一行 8 小节：6̣6̣ 1 7̣｜6̣. 0｜6̣6̣ 3 2｜3. 0｜3 3 5 3｜2 2 1 7̣7̣｜6̣ 0 5｜3̣. 0；歌词“没有花香，没有树高，我是一棵无人知道的小草”）
+    file: assets/midi/analysis-xiaocao_first8_G_80bpm.mid
+    status: transcribed_unverified
   - id: develop-prototype
     title: 实践2原型动机
     concepts: [旋律发展原型]
@@ -164,45 +164,45 @@ items:
     printed_page: 29
     pdf_page: 34
     source_image: source/pages/pdf-034_book-029.png
-    excerpt: 即兴一整条，与原型配对
-    file: null
-    status: planned_transcription
+    excerpt: P29 编创实践·即兴一 加花（1=C 4/4，图面 2 小节：1 2 3 1 2 5｜3 2 3 6 5 -；与原型 1 3 2 5｜3 6 5 - 配对）
+    file: assets/midi/develop-ornament_jiaxing1_C_80bpm.mid
+    status: transcribed_unverified
   - id: develop-rhythm
     title: 实践2改变节奏示例
     concepts: [改变节奏]
     printed_page: 29
     pdf_page: 34
     source_image: source/pages/pdf-034_book-029.png
-    excerpt: 即兴二整条，与原型配对
-    file: null
-    status: planned_transcription
+    excerpt: P29 编创实践·即兴二 改变节奏（1=C 4/4，图面 2 小节：1 3 1 2 5.｜3 6 3 5 -；与原型配对）
+    file: assets/midi/develop-rhythm_change1_C_80bpm.mid
+    status: transcribed_unverified
   - id: develop-augment-meter
     title: 实践2节奏放大并改变节拍示例
     concepts: [节奏放大, 改变节拍]
     printed_page: 29
     pdf_page: 34
     source_image: source/pages/pdf-034_book-029.png
-    excerpt: 即兴三整条，保留3/4及完整时值关系
-    file: null
-    status: planned_transcription
+    excerpt: P29 编创实践·即兴三 节奏放大并改变节拍（1=C 3/4，图面 7 小节：1 - -｜3 - 1｜2 - -｜5 - -｜3 - -｜6 - 3｜5 - -）
+    file: assets/midi/develop-augment-meter_3-4_C_80bpm.mid
+    status: transcribed_unverified
   - id: develop-shift-rhythm
     title: 实践2旋律移位并作节奏变化示例
     concepts: [旋律移位, 节奏变化]
     printed_page: 29
     pdf_page: 34
     source_image: source/pages/pdf-034_book-029.png
-    excerpt: 即兴四整条，与原型及后接变形的关系一起保留
-    file: null
-    status: planned_transcription
+    excerpt: P29 编创实践·即兴四 旋律移位并作节奏变化（1=C 4/4，图面 4 小节：1 3 2 5｜3 6 5 -｜4 6 4 5 i̇｜6 2̇. i̇ -）
+    file: assets/midi/develop-shift-rhythm_yiwei1_C_80bpm.mid
+    status: transcribed_unverified
   - id: reference-sanshilipu-melody
     title: 三十里铺前两句原旋律
     concepts: [节奏参照的原曲语境]
     printed_page: 30
     pdf_page: 35
     source_image: source/pages/pdf-035_book-030.png
-    excerpt: 原曲前两句8小节，保留音高和节奏
-    file: null
-    status: planned_transcription
+    excerpt: P30 三十里铺（陕西民歌）前两句 8 小节（1=C 2/4：1̇2̇2̇｜5̇1̇6｜5.6 5 2｜5 - 重复两次；歌词“提起个家来家有名，家住绥德三十里铺村”）
+    file: assets/midi/reference-sanshilipu-melody_first8_C_80bpm.mid
+    status: transcribed_unverified
   - id: reference-sanshilipu-rhythm
     title: 三十里铺前两句节奏
     concepts: [八小节节奏参照]
