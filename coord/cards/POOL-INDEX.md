@@ -227,10 +227,12 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 417 | SHELL-ENTRY-RAIL-1 | **done PASS**（B1 壳层+常驻左栏；主管复跑 722 测+50 渲染检查+全段 render；d231d67e→main f529e3f2；[裁定](../rulings/2026-11-18-SHELL-ENTRY-RAIL-1-pass.md)） |
 | 418 | CONV-RAIL-1 | **done PASS**（B2a 对话流树/只读预览/继续/新对话/footer/持久化；主管 735 测+73 渲染检查+全段 render；9b1b2d58→main c2f7b2c2；[裁定](../rulings/2026-11-18-CONV-RAIL-1-pass.md)） |
 | 419 | CONV-RAIL-CROSS-1 | todo 候 418（B2b：跨工作树只读浏览+【打开此工作树并继续此对话】+组合工具单次重载+真栈） |
-| 420 | MATERIAL-TRANSCRIBE-2 | doing（lead/materials420；批2-4 剩余 planned_transcription 转写；主仓 worktree pc420-materials；零栈） |
+| 420 | MATERIAL-TRANSCRIBE-2 | **done PASS**（15/15→transcribed_unverified；22=20 unverified+2 checked；主管复跑 validate/final_check 0；44ad301c→main 25b58b8a；[裁定](../rulings/2026-11-18-MATERIAL-TRANSCRIBE-2-pass.md)） |
+| 419 | CONV-OPEN-TOOL-1 | doing（lead/convopen419；agent 组合工具 version.conversation_open 单次重载；主仓 worktree pc419-open；零栈 Go） |
 
 - 目标链：410/411/412 并发零栈 → 413 重建 → 414 单次真栈组合 → 391 手测放行。409 RULING 不重开；395/402 原 blocked 卡待本批收口后归档/收口。
 - 交接记录：[decisions/2026-11-18-pc-supervisor-handoff-planA.md](../decisions/2026-11-18-pc-supervisor-handoff-planA.md)。
+
 
 
 

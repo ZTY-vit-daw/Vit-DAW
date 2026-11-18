@@ -28,3 +28,10 @@
 - catalog diff 与 run 工件一致；uncertain 清单如实（有则接受、无则明确零）；
 - 主管抽 3 条目检（谱面对照+回读记录+catalog diff 一致）；
 - 回执：commit、文件清单、逐条清单、命令+exit、uncertain 汇总、边界（零真栈/零 LLM 说明）。
+
+## 回执与验收（2026-11-18 晚）
+
+- commit `44ad301c`；主管独立复跑 validate_catalog/final_check exit 0、文件域 181/181 在域、crop 抽检自洽；合入 main `25b58b8a`。
+- 结果：15/15 → `transcribed_unverified`；22 条 = 20 unverified + 2 checked；uncertain 61 条逐项记录；未听核不冒充 checked。
+- 裁定：[rulings/2026-11-18-MATERIAL-TRANSCRIBE-2-pass.md](../../rulings/2026-11-18-MATERIAL-TRANSCRIBE-2-pass.md) PASS（零栈）。
+- 后续：W01/W19 才把材料接入运行时；听核升级另节点。
