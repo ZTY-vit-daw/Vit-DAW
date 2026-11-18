@@ -1,5 +1,9 @@
 # CURRENT-STATE.md — 当前状态与 docs/ 文档三态索引
 
+## PC 窗口线更新（2026-11-18）
+
+409 `SHELL-WIN-ZPRODUCT-1` 已由 Codex PC 主管验收当前 Windows 官方 Godot 4.6.1 editor/project 产品开发入口并合入：前端 `bc8daf6`、主仓验收工具 `83bd5e77`。真实 shell 前台及独立 Codex 前台两轮 script/wrapper/host 均 exit 0；首次普通显示在对话窗下、16 DIP、观测消息区间零激活/焦点、未用后纠正。原失败/未覆盖轮次及采样/导出/稳定性边界保留，详见 [409 回执](coord/runs/SHELL-WIN-ZPRODUCT-1/RULING.md)。391 整体手测仍待 395 兼容复核、组合真栈和实际入口产物刷新；当前不授权新运行。
+
 ## 当前工程状态（2026-09-07）
 
 本节记录需要随开发推进更新的动态事实；长期协作规则见仓库根目录 [AGENTS.md](AGENTS.md)。具体运行日志和完整验收证据仍以 `C:\Users\timoz\.zcode\workspace\default\queue\reports\` 下对应报告为准。

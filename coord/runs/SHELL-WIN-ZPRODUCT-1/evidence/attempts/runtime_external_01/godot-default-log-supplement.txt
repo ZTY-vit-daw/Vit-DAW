@@ -1,0 +1,104 @@
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+D3D12 12_0 - Forward+ - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4070
+
+[AgentChatWindow] mode.off {"flag":"","mode_active":false}
+[VitShellLaunch] direct.begin {"action":"open","path":"C:\Users\timoz\.codex\worktrees\shell-zproduct-smoke-409\Vit_DAW\coord\runs\SHELL-WIN-ZPRODUCT-1\runtime_external_01\fixture_a.vit","name":""}
+start_page: VSP Hub ready.
+start_page: Agent v0.5 tools ready.
+[VitShellLaunch] direct.enter_ok {"scene":"res://vit_dock/scenes/VitDockRoot.tscn"}
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:246)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [3] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1679)
+       [4] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1480)
+       [5] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1452)
+       [6] _ready (res://vit_dock/scenes/vit_dock_root.gd:237)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:250)
+       [1] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [2] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1679)
+       [3] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1480)
+       [4] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1452)
+       [5] _ready (res://vit_dock/scenes/vit_dock_root.gd:237)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:253)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [3] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1679)
+       [4] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1480)
+       [5] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1452)
+       [6] _ready (res://vit_dock/scenes/vit_dock_root.gd:237)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:246)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [3] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1679)
+       [4] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1480)
+       [5] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1452)
+       [6] _ready (res://vit_dock/scenes/vit_dock_root.gd:237)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:250)
+       [1] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [2] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1679)
+       [3] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1480)
+       [4] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1452)
+       [5] _ready (res://vit_dock/scenes/vit_dock_root.gd:237)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:253)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [3] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1679)
+       [4] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1480)
+       [5] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1452)
+       [6] _ready (res://vit_dock/scenes/vit_dock_root.gd:237)
+[ShellZ409.snapshot] {"samples":[{"stage":"show_return","tick_ms":180130000,"pid":1160,"hwnd":2164908,"reference_hwnd":1115150,"reference_pid":524,"binding_valid":true,"foreground_hwnd":3211840,"foreground_pid":27352,"focus_ok":true,"focus_hwnd":3211840,"focus_pid":27352,"target_focus_ok":true,"target_focus_hwnd":0,"target_focus_pid":0,"visible":true,"iconic":false,"zoomed":false,"below_reference":true,"rect_ok":true,"rect":[28,28,2532,1412],"monitor_ok":true,"workarea":[0,0,2560,1440],"dpi":168,"correction_attempted":false}],"message_interval":{"start_tick_ms":180126031,"end_tick_ms":180130000,"activate_count":0,"setfocus_count":0}}
+[ShellZ409] launch_result.post guard_ok=true request_error=0
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)

@@ -1,0 +1,9 @@
+2026-11-18T13:34:16 [INFO] VspHub started listen=127.0.0.1:8787 kernel_req=tcp://127.0.0.1:5555 kernel_sub=tcp://127.0.0.1:5556 telemetry=true
+2026-11-18T13:34:16 [INFO] VspHub HTTP listening on http://127.0.0.1:8787
+2026-11-18T13:34:17 [INFO] VSP telemetry relay started: tcp://127.0.0.1:5556 -> vsp.hub.websocket
+2026-11-18T13:34:17 [INFO] VSP session registered role=agent client_id=vit.agent.transport_publisher session_id=sess_kernel_1794980057753_821092472 transport=vsp.hub.http
+2026-11-18T13:34:17 [INFO] VSP session registered role=agent client_id=vit.agent.realtime_publisher session_id=sess_kernel_1794980057755_186879666 transport=vsp.hub.http
+2026-11-18T13:34:18 [INFO] VSP session registered role=agent client_id=vit.agent.official session_id=sess_kernel_1794980058022_1025628502 transport=vsp.hub.http
+2026-11-18T13:34:20 [INFO] VSP stream connected id=stream_1794980060489886200_109 remote=127.0.0.1:60759
+2026-11-18T13:34:20 [INFO] VSP session registered role=gui client_id=godot.gui.realtime_adapter session_id=sess_kernel_1794980060506_185157655 transport=vsp.hub.websocket
+2026-11-18T13:34:24 [INFO] VSP session registered role=gui client_id=godot.gui session_id=sess_kernel_1794980064391_568311417 transport=vsp.hub.http

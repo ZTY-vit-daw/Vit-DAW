@@ -1,0 +1,119 @@
+[
+  {
+    "exit_code": 4,
+    "result": "coverage_gap",
+    "error": null,
+    "reason": null,
+    "condition": "external",
+    "run": "runtime_external_01",
+    "llm_calls": 0
+  },
+  {
+    "exit_code": 3,
+    "result": "not_exercised",
+    "error": null,
+    "reason": "natural foreground absent; no focus forcing",
+    "condition": "external",
+    "run": "runtime_external_02",
+    "llm_calls": 0
+  },
+  {
+    "exit_code": 3,
+    "result": "not_exercised",
+    "error": null,
+    "reason": "natural foreground absent; no focus forcing",
+    "condition": "external",
+    "run": "runtime_external_03",
+    "llm_calls": 0
+  },
+  {
+    "exit_code": 3,
+    "result": "not_exercised",
+    "error": null,
+    "reason": "natural foreground absent; no focus forcing",
+    "condition": "external",
+    "run": "runtime_external_04",
+    "llm_calls": 0
+  },
+  {
+    "exit_code": 1,
+    "result": "product_failure",
+    "error": null,
+    "reason": null,
+    "condition": "external",
+    "run": "runtime_external_05",
+    "llm_calls": 0
+  },
+  {
+    "exit_code": 3,
+    "result": "not_exercised",
+    "error": null,
+    "reason": "natural foreground absent; no focus forcing",
+    "condition": "external",
+    "run": "runtime_external_06",
+    "llm_calls": 0
+  },
+  {
+    "exit_code": 0,
+    "result": "PASS",
+    "error": null,
+    "reason": null,
+    "condition": "external",
+    "run": "runtime_external_07",
+    "llm_calls": 0
+  },
+  {
+    "exit_code": 2,
+    "result": "environment_failure",
+    "error": "latest remote resource event does not grant this exact 409 runtime owner",
+    "reason": null,
+    "condition": "shell",
+    "run": "runtime_shell_01",
+    "llm_calls": 0
+  },
+  {
+    "exit_code": 2,
+    "result": "environment_failure",
+    "error": "VitShell phase=error",
+    "reason": null,
+    "condition": "shell",
+    "run": "runtime_shell_02",
+    "llm_calls": 0
+  },
+  {
+    "exit_code": 2,
+    "result": "harness_failure",
+    "error": "runtime missing or escaped isolated stage",
+    "reason": null,
+    "condition": "shell",
+    "run": "runtime_shell_03",
+    "llm_calls": 0
+  },
+  {
+    "exit_code": 2,
+    "result": "environment_failure",
+    "error": "Invalid object passed in, ':' or '}' expected. (158): {\n  \"phase\": \"probe-launcher\",\n  \"ok\": true,\n  \"url\": \"http://127.0.0.1:7878/app/?surface=launcher\",\n  \"sentinel\": 1794979039485,\n  \"drawer_new\": \"锛嬫柊寤?,\n  \"drawer_open\": \"鎵撳紑鈥?\n}",
+    "reason": null,
+    "condition": "shell",
+    "run": "runtime_shell_04",
+    "llm_calls": 0
+  },
+  {
+    "exit_code": 3,
+    "result": "not_exercised",
+    "error": null,
+    "reason": "natural foreground absent; no focus forcing",
+    "condition": "shell",
+    "run": "runtime_shell_05",
+    "llm_calls": 0
+  },
+  {
+    "exit_code": 0,
+    "result": "PASS",
+    "error": null,
+    "reason": null,
+    "condition": "shell",
+    "run": "runtime_shell_06",
+    "llm_calls": 0
+  }
+]

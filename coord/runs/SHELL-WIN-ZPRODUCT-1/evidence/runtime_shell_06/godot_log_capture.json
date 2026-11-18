@@ -1,0 +1,56 @@
+﻿{
+    "source":  "C:\\Users\\timoz\\AppData\\Roaming\\Godot\\app_userdata\\Vit_DAW_Frontend\\logs\\godot.log",
+    "guard_ok":  true,
+    "accepted":  true,
+    "native":  {
+                   "samples":  [
+                                   {
+                                       "stage":  "show_return",
+                                       "tick_ms":  180622343,
+                                       "pid":  16672,
+                                       "hwnd":  8062996,
+                                       "reference_hwnd":  2885426,
+                                       "reference_pid":  22712,
+                                       "binding_valid":  true,
+                                       "foreground_hwnd":  2885426,
+                                       "foreground_pid":  22712,
+                                       "focus_ok":  true,
+                                       "focus_hwnd":  3999828,
+                                       "focus_pid":  12792,
+                                       "target_focus_ok":  true,
+                                       "target_focus_hwnd":  0,
+                                       "target_focus_pid":  0,
+                                       "visible":  true,
+                                       "iconic":  false,
+                                       "zoomed":  false,
+                                       "below_reference":  true,
+                                       "rect_ok":  true,
+                                       "rect":  [
+                                                    28,
+                                                    28,
+                                                    2532,
+                                                    1412
+                                                ],
+                                       "monitor_ok":  true,
+                                       "workarea":  [
+                                                        0,
+                                                        0,
+                                                        2560,
+                                                        1440
+                                                    ],
+                                       "dpi":  168,
+                                       "correction_attempted":  false
+                                   }
+                               ],
+                   "message_interval":  {
+                                            "start_tick_ms":  180618687,
+                                            "end_tick_ms":  180622343,
+                                            "activate_count":  0,
+                                            "setfocus_count":  0
+                                        }
+               },
+    "raw":  "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_shell_06\\godot-captured.raw.log",
+    "last_write_utc":  "2026-11-18T05:34:24.2769120Z",
+    "sha256":  "0E9C46AFE97E7B48D077450666A9B5E69551FD384D47FD88FDC0180A517E2577",
+    "reason":  "changed raw log and current PID/reference/HWND/tick binding"
+}

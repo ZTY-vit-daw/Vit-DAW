@@ -1,5 +1,7 @@
 # SHELL-WIN-BEHAVIOR-1：窗口行为包——DAW 不抢焦点+对话窗前台保持+窗口内动效
 
+- 2026-11-18 主管更新：409 新产品窗口路径已独立验收并合入（shell06/external07 script/wrapper/host 均 exit0；前端 `bc8daf6`、主工具 `83bd5e77`），范围与原始证据见 [回执](../../runs/SHELL-WIN-ZPRODUCT-1/RULING.md)。本父卡仍 blocked：395 装载呈现兼容、组合真栈及实际产品入口刷新尚待完成；本轮用户只配合自动前台设置，未放行整体手测。旧 394/E2 失败工件保留，不重启原失败矩阵。
+
 - 发卡：主管 2026-11-17 凌晨（[裁定档](../../decisions/2026-11-17-window-and-score-design-ruling.md) §一；用户「没问题，可以 gate 了」确认）
 - 池序 391；P1；依赖=343 UI-HOST（同 HWND 机制）+371 live 装载事件裁定项（动效数据源）；真栈腿候栈位
 - 目标：

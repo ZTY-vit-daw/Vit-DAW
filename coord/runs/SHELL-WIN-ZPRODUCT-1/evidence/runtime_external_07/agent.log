@@ -1,0 +1,31 @@
+2026-11-18T14:10:56 [WARN] [pca-native-seed] family=generation_shell bundle=C:\Users\timoz\Library\Audio\Plug-Ins\VST3\GenShell.vst3 seed failed: processor attestation: inspect plug-in path: GetFileAttributesEx C:\Users\timoz\Library\Audio\Plug-Ins\VST3\GenShell.vst3: The system cannot find the path specified.
+2026-11-18T14:10:56 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=<none>
+2026-11-18T14:10:56 [INFO] VitAgent started req=tcp://127.0.0.1:5555 sub=tcp://127.0.0.1:5556 udp_to=4444 udp_from=4445
+2026-11-18T14:10:56 [INFO] HTTP agent API listening on http://127.0.0.1:7878
+2026-11-18T14:10:56 [INFO] runtimehost: enabled dev_root=C:\Users\timoz\AppData\Local\Temp\shell409-product-stage13-976ec685a51d4a52a2045b59f5eef09d\runtime kernel=tcp://127.0.0.1:5555 hub_health=http://127.0.0.1:8787/health
+2026-11-18T14:10:56 [INFO] VSP realtime publisher enabled client=vit.agent.transport_publisher hub=http://127.0.0.1:8787/vsp
+2026-11-18T14:10:56 [INFO] VSP realtime publisher enabled client=vit.agent.realtime_publisher hub=http://127.0.0.1:8787/vsp
+2026-11-18T14:10:56 [INFO] control loop started: UDP:4445 -> tcp://127.0.0.1:5555
+2026-11-18T14:10:56 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=1 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-18T14:10:56 [INFO] runtimehost: VspHub not reachable (Get "http://127.0.0.1:8787/health": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.) -> spawn path
+2026-11-18T14:10:56 [INFO] [webui] serving root=C:\Users\timoz\AppData\Local\Temp\shell409-product-stage13-976ec685a51d4a52a2045b59f5eef09d\runtime\agent\webui\dist index_mod=2026-11-18T12:18:41+08:00 assets=gallery-CY77NL5L.css,gallery-D1qV8Y-d.js,main-DELB1KAd.css,main-W6tC8yFL.js,sprite-D0EfNV1r.css,sprite-DZqP-la9.js build_mark=project-aware-mondrian-workbench-v1-20260713
+2026-11-18T14:10:56 [INFO] runtimehost: spawned hub pid=13164 (C:/Users/timoz/AppData/Local/Temp/shell409-product-stage13-976ec685a51d4a52a2045b59f5eef09d/runtime/agent/bin/VspHub.exe)
+2026-11-18T14:10:56 [INFO] runtimehost: VspHub ready (C:/Users/timoz/AppData/Local/Temp/shell409-product-stage13-976ec685a51d4a52a2045b59f5eef09d/runtime/agent/bin/VspHub.exe)
+2026-11-18T14:10:57 [INFO] runtimehost: kernel not reachable (kernel dial tcp://127.0.0.1:5555: zmq4: could not dial to "tcp://127.0.0.1:5555" (retry=250ms): dial tcp 127.0.0.1:5555: connectex: No connection could be made because the target machine actively refused it.) -> spawn path
+2026-11-18T14:10:57 [INFO] runtimehost: spawned kernel pid=24736 (C:/Users/timoz/AppData/Local/Temp/shell409-product-stage13-976ec685a51d4a52a2045b59f5eef09d/runtime/VitApp/build/VitApp_artefacts/Release/VitApp.exe)
+2026-11-18T14:10:57 [INFO] telemetry thread started: tcp://127.0.0.1:5556 -> UDP:4444
+2026-11-18T14:10:58 [INFO] runtimehost: kernel ready (C:/Users/timoz/AppData/Local/Temp/shell409-product-stage13-976ec685a51d4a52a2045b59f5eef09d/runtime/VitApp/build/VitApp_artefacts/Release/VitApp.exe)
+2026-11-18T14:10:58 [INFO] VitAgent registered with VSP Hub url=http://127.0.0.1:8787/vsp session_id=sess_kernel_1794982258213_68686755 type=session.hello_ack
+2026-11-18T14:10:58 [INFO] [shadow] initialized tracks=11 project_path="" replayed_deltas=0
+2026-11-18T14:10:58 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-18T14:11:13 [INFO] [timing] kernel.vsp_state_snapshot ms=5 reason=version_project_opened err=false
+2026-11-18T14:11:13 [INFO] [shadow] initialized tracks=0 project_path="C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_external_07\\fixture_a.vit" replayed_deltas=0
+2026-11-18T14:11:13 [INFO] [timing] harness.refresh_shadow ms=13 reason=version_project_opened status=ok err=false
+2026-11-18T14:11:13 [INFO] [harness] project ledger genesis appended entries=1 project="C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_external_07\\fixture_a.vit"
+2026-11-18T14:11:13 [WARN] [project_package] legacy background migration start failed project=C:\Users\timoz\.codex\worktrees\shell-zproduct-smoke-409\Vit_DAW\coord\runs\SHELL-WIN-ZPRODUCT-1\runtime_external_07\fixture_a.vit uuid=vitproj_b5bcbcf452a941468e1e0f7d83fbed85 error=<nil> reply=map[message:project.audio_analysis_start could not find analyzable source clips in the current project status:error]
+2026-11-18T14:11:13 [INFO] [timing] harness.invoke total_ms=51 tool=version.project_opened command=version_project_opened status=ok confirmed=true err=false
+2026-11-18T14:11:13 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-11-18T14:11:13 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_b5bcbcf452a941468e1e0f7d83fbed85
+2026-11-18T14:11:13 [INFO] [workspace] activated project="C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_external_07\\fixture_a.vit" uuid=vitproj_b5bcbcf452a941468e1e0f7d83fbed85 recovered=false conversations=0 retired_legacy_b2=0 retired_legacy_b3=0
+2026-11-18T14:11:16 [INFO] control reply spilled to file cmd=plugin_list_available request_id=library_plugin_list_5165436 bytes=1288808 file=C:\Users\timoz\.codex\worktrees\shell-zproduct-smoke-409\Vit_DAW\coord\runs\SHELL-WIN-ZPRODUCT-1\runtime_external_07\BridgeReplies\20261118_141116_369130800_plugin_list_available_library_plugin_list_5165436.json
+2026-11-18T14:11:16 [INFO] [shadow] initialized tracks=5 project_path="C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_external_07\\fixture_a.vit" replayed_deltas=0

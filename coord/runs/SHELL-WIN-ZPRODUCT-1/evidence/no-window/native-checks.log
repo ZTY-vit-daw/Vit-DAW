@@ -1,0 +1,24 @@
+UpdateCTestConfiguration  from :C:/Users/timoz/AppData/Local/Temp/shell409-pass2-74205e3384f340d586e988ab403c4ed9/build/DartConfiguration.tcl
+Parse Config file:C:/Users/timoz/AppData/Local/Temp/shell409-pass2-74205e3384f340d586e988ab403c4ed9/build/DartConfiguration.tcl
+Test project C:/Users/timoz/AppData/Local/Temp/shell409-pass2-74205e3384f340d586e988ab403c4ed9/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 1
+    Start 1: shell_window_guard_no_window
+
+1: Test command: C:\Users\timoz\AppData\Local\Temp\shell409-pass2-74205e3384f340d586e988ab403c4ed9\build\Release\shell_window_guard_test.exe
+1: Working Directory: C:/Users/timoz/AppData/Local/Temp/shell409-pass2-74205e3384f340d586e988ab403c4ed9/build
+1: Test timeout computed to be: 1500
+1: checks=67 failures=0 windows_created=0
+1/1 Test #1: shell_window_guard_no_window .....   Passed    0.02 sec
+
+The following tests passed:
+	shell_window_guard_no_window
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =   0.06 sec

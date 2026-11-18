@@ -1,0 +1,290 @@
+[
+  {
+    "source": "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_shell_06\\d1_smoke_report.json",
+    "file": "d1_smoke_report.json",
+    "run": "runtime_shell_06",
+    "sha256": "71CDCA8CCED109CA72DB52AD52D35814B100BD896188F5512EAE9A323EDE0D7E"
+  },
+  {
+    "source": "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_shell_06\\verdict.json",
+    "file": "verdict.json",
+    "run": "runtime_shell_06",
+    "sha256": "CCCEE3AEDFB512E484D0FF8D8D6D16321F33ECF3EC631256426E55C9AF34B19E"
+  },
+  {
+    "source": "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_shell_06\\classification_input.json",
+    "file": "classification_input.json",
+    "run": "runtime_shell_06",
+    "sha256": "BA4E91BA74AF152992FCAAF73CB4D036A20DCBDC1872B412A3C30A8FDAEB35F2"
+  },
+  {
+    "source": "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_shell_06\\native_poll_samples.json",
+    "file": "native_poll_samples.json",
+    "run": "runtime_shell_06",
+    "sha256": "ECBF1400217E9E273C9B92011785C34669C5C6F39DE00BE3395F1E04E4076281"
+  },
+  {
+    "source": "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_shell_06\\godot-captured.raw.log",
+    "file": "godot-captured.raw.log",
+    "run": "runtime_shell_06",
+    "sha256": "0E9C46AFE97E7B48D077450666A9B5E69551FD384D47FD88FDC0180A517E2577"
+  },
+  {
+    "source": "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_shell_06\\godot_log_capture.json",
+    "file": "godot_log_capture.json",
+    "run": "runtime_shell_06",
+    "sha256": "55E55A4E99203FB5F6AC2A1359C579F62D9FC55341F8174E25EE1503F6442ADD"
+  },
+  {
+    "source": "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_shell_06\\status_ready.json",
+    "file": "status_ready.json",
+    "run": "runtime_shell_06",
+    "sha256": "E300065626F71B2117ED7DCE611D34D9EE729951D21F441F0FADB401884BAEFE"
+  },
+  {
+    "source": "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_shell_06\\runtime_readiness.json",
+    "file": "runtime_readiness.json",
+    "run": "runtime_shell_06",
+    "sha256": "683EE6FFF664D18E10F92F630EB47C2622547165E68EDD5541DF4B173DD383A3"
+  },
+  {
+    "source": "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_shell_06\\status_opened.json",
+    "file": "status_opened.json",
+    "run": "runtime_shell_06",
+    "sha256": "D47187DDBB7303BB46CB46D16C40E879C0AA685F276D352E15FAA4F4157FA6B6"
+  },
+  {
+    "source": "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_shell_06\\agent_state.json",
+    "file": "agent_state.json",
+    "run": "runtime_shell_06",
+    "sha256": "6881342BC87DFA123113A01F2016CC4642867508A10354828F02DFF58F0FC49C"
+  },
+  {
+    "source": "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_shell_06\\cdp_probe-launcher.json",
+    "file": "cdp_probe-launcher.json",
+    "run": "runtime_shell_06",
+    "sha256": "D43C4F4DBA5B8BB9C7817A18DF6E3D898B055A3B4999ADB8599C8BFC13B9DBC3"
+  },
+  {
+    "source": "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_shell_06\\cdp_click-open.json",
+    "file": "cdp_click-open.json",
+    "run": "runtime_shell_06",
+    "sha256": "BEA0F2F23D9836A4A64E19DFEB98730994E90E329F3508CABF5AC1CD3556AE04"
+  },
+  {
+    "source": "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_shell_06\\cdp_probe-project.json",
+    "file": "cdp_probe-project.json",
+    "run": "runtime_shell_06",
+    "sha256": "55C23A4F3C4CFC41758A4C4C71A9E3B30B3CFF892519321346FE2AACBFEA4285"
+  },
+  {
+    "source": "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_shell_06\\authority_restoration.json",
+    "file": "authority_restoration.json",
+    "run": "runtime_shell_06",
+    "sha256": "5C04914CFB0054C753D3DCCD7E1C89A4A2ED3070E51D72E169CB768C6C627C26"
+  },
+  {
+    "source": "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_shell_06\\authority_snapshots.json",
+    "file": "authority_snapshots.json",
+    "run": "runtime_shell_06",
+    "sha256": "C41E3B25551C2EA3899F03999D4E11BAD75CCF8BC3F9CC292CB4DF26DD926759"
+  },
+  {
+    "source": "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_shell_06\\prelaunch_clearance.json",
+    "file": "prelaunch_clearance.json",
+    "run": "runtime_shell_06",
+    "sha256": "6684F5278D06DCA99320A9C44330F1FBFD3693C7065B427E8E5F6C675E857559"
+  },
+  {
+    "source": "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_shell_06\\teardown_clearance.json",
+    "file": "teardown_clearance.json",
+    "run": "runtime_shell_06",
+    "sha256": "64B898184128B78A91D85D5904A99409681235684420B8F8C2FB979158ED2BC1"
+  },
+  {
+    "source": "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_shell_06\\launch_command.json",
+    "file": "launch_command.json",
+    "run": "runtime_shell_06",
+    "sha256": "B100DF21E7BCA68A39DD42752BFE8DDF778AF5A225F5D1E44480199C1BCE73C8"
+  },
+  {
+    "source": "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_shell_06\\agent.log",
+    "file": "agent.log",
+    "run": "runtime_shell_06",
+    "sha256": "CF30704ECB51EF6090B0CBB1DB5CCC045AAFEE2F161171F6152479A9B1251004"
+  },
+  {
+    "source": "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_shell_06\\hub.log",
+    "file": "hub.log",
+    "run": "runtime_shell_06",
+    "sha256": "612F2ECB43870E676F8CE932CD5F91F286ECCFCFD51D1209957FCD62BCF855C3"
+  },
+  {
+    "source": "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_shell_06\\bridge.log",
+    "file": "bridge.log",
+    "run": "runtime_shell_06",
+    "sha256": "E6A376BEA6A7248E9AFC4E365A121546596C829E5E38027195750EB4E327017A"
+  },
+  {
+    "source": "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_shell_06\\owned_processes.json",
+    "file": "owned_processes.json",
+    "run": "runtime_shell_06",
+    "sha256": "1413C61344E5A1A8E5EE70CDEFC9839AC1A02C832853F43B79660E63610E012F"
+  },
+  {
+    "source": "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_shell_06\\natural_condition.json",
+    "file": "natural_condition.json",
+    "run": "runtime_shell_06",
+    "sha256": "EC5DADEF193EA91193288DA3150BFB6F2DBFF3A1F225C399450C33937F5A4CC1"
+  },
+  {
+    "source": "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_shell_06\\godot-default.before.json",
+    "file": "godot-default.before.json",
+    "run": "runtime_shell_06",
+    "sha256": "53CE9268E7AA545DA3F5BE433FE861ACC6E2705F89B061B465FC279F053FDCAE"
+  },
+  {
+    "source": "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_external_07\\d1_smoke_report.json",
+    "file": "d1_smoke_report.json",
+    "run": "runtime_external_07",
+    "sha256": "77DDE6E5652D677B4E7926C6E5EBC6377AFE1913F0259BA14590790DE62B2DB2"
+  },
+  {
+    "source": "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_external_07\\verdict.json",
+    "file": "verdict.json",
+    "run": "runtime_external_07",
+    "sha256": "D18403485D47CF6A51FEE15114E5B19CE5E0D2F77C5392B935EF18869732085D"
+  },
+  {
+    "source": "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_external_07\\classification_input.json",
+    "file": "classification_input.json",
+    "run": "runtime_external_07",
+    "sha256": "604D550F34A47A00FDBD7727030AD514DD6BDC1516E052F9E67BB3BBB2E10CE0"
+  },
+  {
+    "source": "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_external_07\\native_poll_samples.json",
+    "file": "native_poll_samples.json",
+    "run": "runtime_external_07",
+    "sha256": "370565B35B1E0F3B2E62BA3F73B6C75DCC66F14643E143CA2F1DB6C882DDC8B0"
+  },
+  {
+    "source": "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_external_07\\godot-captured.raw.log",
+    "file": "godot-captured.raw.log",
+    "run": "runtime_external_07",
+    "sha256": "61ED3273C0901F61EFB422F69116016CC2444176738760FF3583863356FF0C81"
+  },
+  {
+    "source": "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_external_07\\godot_log_capture.json",
+    "file": "godot_log_capture.json",
+    "run": "runtime_external_07",
+    "sha256": "F22DB956C910B6571057726006367FA0E3C36CF9383A4658EB5AA7F21816D753"
+  },
+  {
+    "source": "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_external_07\\status_ready.json",
+    "file": "status_ready.json",
+    "run": "runtime_external_07",
+    "sha256": "E8FF138F708CD0B409E8DB3F4B9848DE2A65B301037EC2B9BDDEB5970C1AB679"
+  },
+  {
+    "source": "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_external_07\\runtime_readiness.json",
+    "file": "runtime_readiness.json",
+    "run": "runtime_external_07",
+    "sha256": "528553F71307E187DEB952F2A215AE6FD36D6354F4CEDC7935A3592B08DDE2EE"
+  },
+  {
+    "source": "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_external_07\\status_opened.json",
+    "file": "status_opened.json",
+    "run": "runtime_external_07",
+    "sha256": "BBFAB00055ED471D76C610E30E316BB1E622FACED0A90E4D438DD3632A0F91AD"
+  },
+  {
+    "source": "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_external_07\\agent_state.json",
+    "file": "agent_state.json",
+    "run": "runtime_external_07",
+    "sha256": "64123B6E263FD0761046156B99F59D1E8B09C3C252025821EA2CCC1E3EA23F18"
+  },
+  {
+    "source": "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_external_07\\cdp_probe-launcher.json",
+    "file": "cdp_probe-launcher.json",
+    "run": "runtime_external_07",
+    "sha256": "5A9012005B924E910895809A4386070B9B9B9FBE6A07AD43B49ED6EBCBF15232"
+  },
+  {
+    "source": "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_external_07\\cdp_click-open.json",
+    "file": "cdp_click-open.json",
+    "run": "runtime_external_07",
+    "sha256": "BEA0F2F23D9836A4A64E19DFEB98730994E90E329F3508CABF5AC1CD3556AE04"
+  },
+  {
+    "source": "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_external_07\\cdp_probe-project.json",
+    "file": "cdp_probe-project.json",
+    "run": "runtime_external_07",
+    "sha256": "D98666F3832C2F77175A9448154448AC0C05328F0F5218DB9E6804D6ADBD8C35"
+  },
+  {
+    "source": "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_external_07\\authority_restoration.json",
+    "file": "authority_restoration.json",
+    "run": "runtime_external_07",
+    "sha256": "B28C65A131666D1D2D151455CCAB8D1ED98BEB899981C317E2FE9F75CB4F36F7"
+  },
+  {
+    "source": "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_external_07\\authority_snapshots.json",
+    "file": "authority_snapshots.json",
+    "run": "runtime_external_07",
+    "sha256": "18DCBBE86ACDBA76CE3EC239787A74E18FB29F3FAFC61D429491BACA961DCE84"
+  },
+  {
+    "source": "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_external_07\\prelaunch_clearance.json",
+    "file": "prelaunch_clearance.json",
+    "run": "runtime_external_07",
+    "sha256": "D491A4B054BEF82BD20733190ABB6520941175ED0B6B37C98ACD7AA6AE1577F1"
+  },
+  {
+    "source": "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_external_07\\teardown_clearance.json",
+    "file": "teardown_clearance.json",
+    "run": "runtime_external_07",
+    "sha256": "AFDE260080A768CA5C2AFF02C11C1BCA34D678D9350CDD0720C1E685238D4967"
+  },
+  {
+    "source": "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_external_07\\launch_command.json",
+    "file": "launch_command.json",
+    "run": "runtime_external_07",
+    "sha256": "62ED6C4FE2065EB57588978400308FC6C0DEC8911B93545318940DD16A643EDA"
+  },
+  {
+    "source": "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_external_07\\agent.log",
+    "file": "agent.log",
+    "run": "runtime_external_07",
+    "sha256": "C53FF6243D4DF9DE31FFC3A064D8BD2C69E49585CAC3B8059233483BA80963B7"
+  },
+  {
+    "source": "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_external_07\\hub.log",
+    "file": "hub.log",
+    "run": "runtime_external_07",
+    "sha256": "C8F070835FA09BA8AB521B0CD7493ED93AC62ED848D18C8D052755A95C2FB9B7"
+  },
+  {
+    "source": "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_external_07\\bridge.log",
+    "file": "bridge.log",
+    "run": "runtime_external_07",
+    "sha256": "5D2045AA3EF12E97C9CF68FFC8DE472EB0B0E5CB2CE891D66BB8DFAB6D2F336A"
+  },
+  {
+    "source": "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_external_07\\owned_processes.json",
+    "file": "owned_processes.json",
+    "run": "runtime_external_07",
+    "sha256": "5BB3E0DE210E78A3AF65826B9928A588C5139D86402C9B2BC7267E5361E5D0F0"
+  },
+  {
+    "source": "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_external_07\\natural_condition.json",
+    "file": "natural_condition.json",
+    "run": "runtime_external_07",
+    "sha256": "B6E5D8D8F8A83C5FB848F406D463F8AD4B95A00E97360C5A3C5A40E5CAF64F15"
+  },
+  {
+    "source": "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_external_07\\godot-default.before.json",
+    "file": "godot-default.before.json",
+    "run": "runtime_external_07",
+    "sha256": "FCFA69E2EC228C0913833C4091C3E67B5FEC1B47CCFCE6C8AC9A6A4A770521B0"
+  }
+]

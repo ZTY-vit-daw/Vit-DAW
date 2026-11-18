@@ -1,0 +1,13 @@
+﻿{
+    "tick_ms":  180123531,
+    "foreground_hwnd":  3211840,
+    "focus_hwnd":  3211840,
+    "reference_hwnd":  1115150,
+    "foreground_pid":  27352,
+    "focus_pid":  27352,
+    "reference_pid":  524,
+    "focus_ok":  true,
+    "engines":  [
+
+                ]
+}

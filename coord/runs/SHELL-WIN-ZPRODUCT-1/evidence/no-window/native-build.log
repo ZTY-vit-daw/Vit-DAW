@@ -1,0 +1,12 @@
+适用于 .NET Framework MSBuild 版本 18.4.0+6e61e96ac
+
+C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Microsoft\VC\v180\Microsoft.CppBuild.targets(561,5): warning MSB8029: 中间目录或输出目录无法驻留在临时目录下，因为这可能会导致增量生成出现问题。 [C:\Users\timoz\AppData\Local\Temp\shell409-pass2-74205e3384f340d586e988ab403c4ed9\build\ZERO_CHECK.vcxproj]
+C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Microsoft\VC\v180\Microsoft.CppBuild.targets(561,5): warning MSB8029: 中间目录或输出目录无法驻留在临时目录下，因为这可能会导致增量生成出现问题。 [C:\Users\timoz\AppData\Local\Temp\shell409-pass2-74205e3384f340d586e988ab403c4ed9\build\VitShell.vcxproj]
+  VitShell.vcxproj -> C:\Users\timoz\AppData\Local\Temp\shell409-pass2-74205e3384f340d586e988ab403c4ed9\build\Release\VitShell.exe
+  Copying WebView2Loader.dll next to VitShell.exe
+适用于 .NET Framework MSBuild 版本 18.4.0+6e61e96ac
+
+C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Microsoft\VC\v180\Microsoft.CppBuild.targets(561,5): warning MSB8029: 中间目录或输出目录无法驻留在临时目录下，因为这可能会导致增量生成出现问题。 [C:\Users\timoz\AppData\Local\Temp\shell409-pass2-74205e3384f340d586e988ab403c4ed9\build\ZERO_CHECK.vcxproj]
+C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Microsoft\VC\v180\Microsoft.CppBuild.targets(561,5): warning MSB8029: 中间目录或输出目录无法驻留在临时目录下，因为这可能会导致增量生成出现问题。 [C:\Users\timoz\AppData\Local\Temp\shell409-pass2-74205e3384f340d586e988ab403c4ed9\build\shell_window_guard_test.vcxproj]
+  shell_window_guard.cpp
+  shell_window_guard_test.vcxproj -> C:\Users\timoz\AppData\Local\Temp\shell409-pass2-74205e3384f340d586e988ab403c4ed9\build\Release\shell_window_guard_test.exe

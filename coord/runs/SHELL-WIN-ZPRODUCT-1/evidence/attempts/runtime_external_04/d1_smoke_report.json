@@ -1,0 +1,92 @@
+﻿{
+    "card":  "SHELL-WIN-ZPRODUCT-1",
+    "run_id":  "runtime_external_04",
+    "condition":  "external",
+    "command_line":  "\"C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe\" -NoProfile -ExecutionPolicy Bypass -File C:/Users/timoz/.codex/worktrees/shell-zproduct-smoke-409/Vit_DAW/scripts/vitshell_zproduct_smoke.ps1 -RuntimeAuthorized -LeaseOwner /root/01a1eca3-e329-73f2-b43a-390e9fafbd30 -Condition external -NaturalConditionWaitSec 60 -FrontendWorktree C:/Users/timoz/.codex/worktrees/shell-win-zproduct-409/vit-daw-frontend -GodotProjectStage C:\\Users\\timoz\\AppData\\Local\\Temp\\shell409-product-stage10-583d6a6ead3647d8b110fa5306048a83/frontend -StageRoot C:\\Users\\timoz\\AppData\\Local\\Temp\\shell409-product-stage10-583d6a6ead3647d8b110fa5306048a83 -ExpectedExtensionSha256 8323F43BFD6CD6C91404DDD120B6B10BA38FEFE27A34B8DFA256BC4678927EF4 -RunRoot C:/Users/timoz/.codex/worktrees/shell-zproduct-smoke-409/Vit_DAW/coord/runs/SHELL-WIN-ZPRODUCT-1/runtime_external_04 -TimeoutSec 120",
+    "invocation":  "",
+    "parameters":  {
+                       "RuntimeAuthorized":  {
+                                                 "IsPresent":  true
+                                             },
+                       "LeaseOwner":  "/root/01a1eca3-e329-73f2-b43a-390e9fafbd30",
+                       "Condition":  "external",
+                       "NaturalConditionWaitSec":  60,
+                       "FrontendWorktree":  "C:/Users/timoz/.codex/worktrees/shell-win-zproduct-409/vit-daw-frontend",
+                       "GodotProjectStage":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\shell409-product-stage10-583d6a6ead3647d8b110fa5306048a83/frontend",
+                       "StageRoot":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\shell409-product-stage10-583d6a6ead3647d8b110fa5306048a83",
+                       "ExpectedExtensionSha256":  "8323F43BFD6CD6C91404DDD120B6B10BA38FEFE27A34B8DFA256BC4678927EF4",
+                       "RunRoot":  "C:/Users/timoz/.codex/worktrees/shell-zproduct-smoke-409/Vit_DAW/coord/runs/SHELL-WIN-ZPRODUCT-1/runtime_external_04",
+                       "TimeoutSec":  120
+                   },
+    "started_utc":  "2026-11-18T05:44:12.8090958Z",
+    "result":  "not_exercised",
+    "llm_calls":  0,
+    "coverage":  "DOM open chain, bound native first-show/correction, existing own-thread message interval, 10ms polling (not frames; gaps unobserved)",
+    "main_head":  "90b42269a08eb14c853d03587f30b36ca2de6903",
+    "main_status":  "?? coord/runs/SHELL-WIN-ZPRODUCT-1/\n?? scripts/vitshell_zproduct_observer.cs\n?? scripts/vitshell_zproduct_smoke.ps1\n?? scripts/vitshell_zproduct_verdict.mjs\n?? scripts/vitshell_zproduct_verdict.test.mjs",
+    "frontend_head":  "2d92d55aa5e4a709a825dc8a02ca2290d51cfcfc",
+    "frontend_status":  " M VitShell/CMakeLists.txt\n M VitShell/godot_manager.cpp\n M VitShell/godot_manager.h\n M VitShell/launcher_bridge.cpp\n M VitShell/launcher_bridge.h\n M app/startup/start_page.gd\n M extension/SConstruct\n M extension/src/register_types.cpp\n M project.godot\n?? VitShell/shell_hidden_boot.h\n?? VitShell/shell_window_guard_test.cpp\n?? app/startup/vitshell_window_entry.gd\n?? extension/src/shell_launch_reference.h\n?? extension/src/shell_window_guard.cpp\n?? extension/src/shell_window_guard.h\n?? extension/src/shell_window_guard_policy.h",
+    "binaries":  [
+                     {
+                         "modified_utc":  "2026-11-18T04:14:49.7755629Z",
+                         "path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\shell409-product-stage10-583d6a6ead3647d8b110fa5306048a83\\host\\VitShell.exe",
+                         "sha256":  "0A9541F823E76D7B6C1105764AE1CAF9C4CC40AFCFB83F0A02DCF3D61770D73D"
+                     },
+                     {
+                         "modified_utc":  "2026-11-18T04:18:14.7198073Z",
+                         "path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\shell409-product-stage10-583d6a6ead3647d8b110fa5306048a83\\runtime\\agent\\bin\\VitAgent.exe",
+                         "sha256":  "411C7C1B22EFCEB5D51FC7434F0A06AC9621C56AF1C38574096CE157C2CC9C9D"
+                     },
+                     {
+                         "modified_utc":  "2026-11-18T05:43:05.3495198Z",
+                         "path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\shell409-product-stage10-583d6a6ead3647d8b110fa5306048a83\\runtime\\VitApp\\build\\VitApp_artefacts\\Release\\VitApp.exe",
+                         "sha256":  "A59473614152882B21433DCEE684F8B13AE0BD5B632A97CD5E2C8765BB18348E"
+                     },
+                     {
+                         "modified_utc":  "2026-11-18T05:43:05.3476574Z",
+                         "path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\shell409-product-stage10-583d6a6ead3647d8b110fa5306048a83\\runtime\\agent\\bin\\VspHub.exe",
+                         "sha256":  "B10CC41295066C48BB446B255D12D1A58D2D8D64F164D875083667B464C71F68"
+                     },
+                     {
+                         "modified_utc":  "2026-11-18T04:35:40.5138998Z",
+                         "path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\shell409-product-stage10-583d6a6ead3647d8b110fa5306048a83\\frontend\\extension\\bin\\vit_extension.windows.template_debug.x86_64.dll",
+                         "sha256":  "8323F43BFD6CD6C91404DDD120B6B10BA38FEFE27A34B8DFA256BC4678927EF4"
+                     },
+                     {
+                         "modified_utc":  "2026-03-14T09:48:22.5899605Z",
+                         "path":  "D:/Godot/Godot_v4.6.1-stable_win64.exe",
+                         "sha256":  "1E5EFE381F62EE1CEA6BC18CAAC71C0C74BD6E68E6AF5C6EFB3DBE76628F61C7"
+                     }
+                 ],
+    "source_fixture_sha256":  "AC0CE2E81C12E6F10E3D691CF062CD3E568365C274F12F2B963694AE3B48B41D",
+    "stage_fixture_inputs":  {
+                                 "source":  "D:/Vit_DAW/temp/f3_empty_project.vit",
+                                 "stage":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\shell409-product-stage10-583d6a6ead3647d8b110fa5306048a83",
+                                 "frontend_source":  "C:/Users/timoz/.codex/worktrees/shell-win-zproduct-409/vit-daw-frontend",
+                                 "webui_index_sha256":  "A31C539E65B27F9B0768FB3F5D7D77189F7AACEA56FDF4F99ACA7671A7FF9F0A",
+                                 "project_sha256":  "E64FF791596FE618C9FB4D5BFC1EAD40D6A2B2E0755C241194BD1CCA3D1C3C6F",
+                                 "godot_project_stage":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\shell409-product-stage10-583d6a6ead3647d8b110fa5306048a83\\frontend"
+                             },
+    "fixture_copy_before_sha256":  "AC0CE2E81C12E6F10E3D691CF062CD3E568365C274F12F2B963694AE3B48B41D",
+    "raw_logs":  {
+                     "hub":  "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_external_04\\hub.log",
+                     "agent":  "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_external_04\\agent.log",
+                     "godot":  "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_external_04\\godot.log",
+                     "kernel":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\shell409-product-stage10-583d6a6ead3647d8b110fa5306048a83\\runtime\\VitApp\\Workspace\\Logs",
+                     "bridge":  "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_external_04\\bridge.log"
+                 },
+    "remote_head":  "344c86886841da5f86d725280053e196f77ae62f",
+    "lease":  "- 2026-11-18 13:43 +0800 预留 / **SHELL-WIN-ZPRODUCT-1 409 用户已确认当前Codex自然external设置验收**：owner=/root/01a1eca3-e329-73f2-b43a-390e9fafbd30 （PC主管验收）；仅新runtime_external_04、≤10分钟、零LLM、NaturalConditionWaitSec60。用户最新明确“现在开始，我保持Codex前台”，新窗出现后点回Codex约20s，自动功能断言、无代理桌面控制。装置D7B5CD03/产品候选/DLL8323F43B/host0A9541F8不变；fresh TEMP `shell409-product-stage10-583d6a6ead3647d8b110fa5306048a83`。script先fetch重读exactowner+≤60秒全Vit/Godot进程/TCP六口ListenBound/UDP4445净空；fixture副本、recents快照/finally/hash及authority核对，只本轮PID/birth清理，异常停且无自动下一轮。RUNTIME-PLAN-01最新节为准，核净后释放。",
+    "shell_pid":  3972,
+    "reason":  "natural foreground absent; no focus forcing",
+    "close_error":  "The underlying connection was closed: An unexpected error occurred on a receive.",
+    "shell_exit_observation":  {
+                                   "known":  true,
+                                   "code":  0,
+                                   "reason":  "WaitForExit with retained handle"
+                               },
+    "shell_exit":  0,
+    "fixture_copy_after_sha256":  "AC0CE2E81C12E6F10E3D691CF062CD3E568365C274F12F2B963694AE3B48B41D",
+    "exit_code":  3,
+    "finished_utc":  "2026-11-18T05:45:24.7750013Z"
+}

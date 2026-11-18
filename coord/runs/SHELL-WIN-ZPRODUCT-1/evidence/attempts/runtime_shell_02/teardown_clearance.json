@@ -1,0 +1,21 @@
+﻿{
+    "at_utc":  "2026-11-18T04:59:48.5343285Z",
+    "tcp_active_blockers":  [
+
+                            ],
+    "tcp":  [
+                {
+                    "LocalAddress":  "127.0.0.1",
+                    "LocalPort":  7879,
+                    "State":  11,
+                    "OwningProcess":  0
+                }
+            ],
+    "processes":  [
+
+                  ],
+    "udp":  [
+
+            ],
+    "clean":  true
+}

@@ -1,0 +1,38 @@
+﻿[
+    {
+        "path":  "C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\global_project_config.json",
+        "restored_hash":  "807226F4AF3FC85C2B99BFD2FB827C1583E7C991826BDE5F0B4344A6DC13E353",
+        "backup":  "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_external_02\\recents.before.json",
+        "hash":  "807226F4AF3FC85C2B99BFD2FB827C1583E7C991826BDE5F0B4344A6DC13E353"
+    },
+    {
+        "path":  "D:/Vit_DAW/temp/f3_empty_project.vit",
+        "restored_hash":  "AC0CE2E81C12E6F10E3D691CF062CD3E568365C274F12F2B963694AE3B48B41D",
+        "backup":  "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_external_02\\fixture-source.before.json",
+        "hash":  "AC0CE2E81C12E6F10E3D691CF062CD3E568365C274F12F2B963694AE3B48B41D"
+    },
+    {
+        "path":  "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\VitApp\\Workspace\\Settings\\Settings.xml",
+        "restored_hash":  "FF86975B034D49AB5C53B53EBD910F01B4E88B4E680A90C1C990DA2EF6856658",
+        "backup":  "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_external_02\\authority-2.before.json",
+        "hash":  "FF86975B034D49AB5C53B53EBD910F01B4E88B4E680A90C1C990DA2EF6856658"
+    },
+    {
+        "path":  "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\VitApp\\Workspace\\default_project.xml",
+        "restored_hash":  "947E4D00886F146F7DB082215BC8A69E1727A41D5EA339FA064DEE814E0D521C",
+        "backup":  "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_external_02\\authority-3.before.json",
+        "hash":  "947E4D00886F146F7DB082215BC8A69E1727A41D5EA339FA064DEE814E0D521C"
+    },
+    {
+        "path":  "D:\\Vit_DAW\\VitApp\\Workspace\\Settings\\Settings.xml",
+        "restored_hash":  "72F0F5112EF926ED77F59F015E6CE492142F8FDF1828E5082E970AA949EDFBB8",
+        "backup":  "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_external_02\\authority-4.before.json",
+        "hash":  "72F0F5112EF926ED77F59F015E6CE492142F8FDF1828E5082E970AA949EDFBB8"
+    },
+    {
+        "path":  "D:\\Vit_DAW\\VitApp\\Workspace\\default_project.xml",
+        "restored_hash":  "2ADC97E01E18454F3D295DAE7FD43B729C7AD84FDFA3871E2B01421BAEDCC161",
+        "backup":  "C:\\Users\\timoz\\.codex\\worktrees\\shell-zproduct-smoke-409\\Vit_DAW\\coord\\runs\\SHELL-WIN-ZPRODUCT-1\\runtime_external_02\\authority-5.before.json",
+        "hash":  "2ADC97E01E18454F3D295DAE7FD43B729C7AD84FDFA3871E2B01421BAEDCC161"
+    }
+]
