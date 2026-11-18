@@ -211,4 +211,4 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 406 | WINDOW-TRANSITION-OBSERVER-1 | doing（Sol/high /root/restore403；测试专用自进程观察DLL+纯无窗策略，供405因果geometry证据；不改生产、不授启窗） |
 | 407 | ORDINARY-LARGE-WINDOW-1 | blocked（R2尺寸/mode0/noFG过但rawdownprefix证child在guard前；目标自线程z事务→408） |
 | 408 | TARGET-Z-TRANSACTION-1 | done 取证PASS收口（11-17晚GLM亲证：z事务机制全绿——1821/1821三phase配对+guard_after 5/5锚定已核reference+16DIP+窗口期零FG/focus；runtime_01停机期焦点违约=产品窗外known behavior〔用户裁定A〕；工件9873eaf1；external腿转409） |
-| 409 | SHELL-WIN-ZPRODUCT-1 | todo 可领 P1（产品修订：原生缝装配guard+reference显式传递+显示后纠正兜底；external前台腿并入；真栈腿+391手测节点；391解锁要件之一，另件=395） |
+| 409 | SHELL-WIN-ZPRODUCT-1 | doing P1（11-18 Codex PC 主管接任，Sol/high 执行；仅放行前端产品装配/无窗验证，external 真栈腿待审；391 另需 395） |
