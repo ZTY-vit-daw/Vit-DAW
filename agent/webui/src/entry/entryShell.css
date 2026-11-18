@@ -1,0 +1,197 @@
+/*
+ * SHELL-ENTRY-RAIL-1（417）：入口壳层样式（窗口级常驻左栏 280px + 右主区）。
+ *
+ * 沿用现有 launcher drawer 视觉/收展：左栏底=--v5-ui-rail、右缘=--v5-rail-edge、
+ * 头部=--v5-ui-plate + --v5-titlebar-rule；收展过渡 180ms（旧 drawer slot 同参数），
+ * prefers-reduced-motion 下关闭过渡。收展状态仍由 WindowPresentation.sidebarOpen
+ * 驱动（本文件只定义呈现，不引入第二状态源）。
+ *
+ * 纪律：不改 fixture/gallery 路径——本文件只服务 .v5-entry-* 与门户内容在左栏内的
+ * 撑满归位；launcher/project 原有样式不动。
+ */
+
+/* ---------- 壳层：横向两栏 ---------- */
+
+.v5-entry-shell {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--v5-read-workspace);
+}
+
+/* ---------- 左栏容器（跨 surface 常驻；收起后宽 0） ---------- */
+
+.v5-entry-rail {
+  --v5-entry-rail-width: 280px;
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 var(--v5-entry-rail-width);
+  width: var(--v5-entry-rail-width);
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--v5-ui-rail);
+  border-right: 1px solid var(--v5-rail-edge);
+  transition: flex-basis 180ms ease, width 180ms ease, border-right-width 180ms ease;
+}
+
+.v5-entry-rail[data-entry-rail-collapsed="true"] {
+  flex-basis: 0;
+  width: 0;
+  border-right-width: 0;
+}
+
+/* ---------- 左栏头：Vit 品牌 + 当前面标题 + 收起/展开 + NativeFocusHint ---------- */
+
+.v5-entry-rail-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 40px;
+  height: 40px;
+  /* 固定 280 宽：收展过渡期间头部内容不回流（裁切由 aside overflow:hidden 完成）。 */
+  width: var(--v5-entry-rail-width);
+  min-width: var(--v5-entry-rail-width);
+  padding: 0 12px;
+  background: var(--v5-ui-plate);
+  border-bottom: 1px solid var(--v5-titlebar-rule);
+}
+
+.v5-entry-rail-brand {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--v5-ui-text);
+}
+
+.v5-entry-rail-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--v5-ui-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.v5-entry-rail-head .v5-window-focus-hint {
+  margin-left: 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.v5-entry-rail-toggle {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+/* ---------- 左栏体：门户容器（内容由当前面注入） ---------- */
+
+.v5-entry-rail-slot {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* launcher 工程抽屉门户化后撑满左栏体（原有 .v5-launcher-drawer 视觉保留：
+ * 底/间距/条目样式不动，只把「内嵌列」宽度与右边框归位给 rail 容器本身）。
+ * 选择器权重高于 launcher.css 的 900px 媒体查询窄化档，live 恒 280px 左栏。 */
+.v5-entry-rail-slot > .v5-launcher-drawer {
+  width: 100%;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  padding: 12px;
+  border-right: none;
+  background: transparent;
+}
+
+/* ---------- 工程面左栏占位（B1：对话流列表下一步接入） ---------- */
+
+.v5-entry-project-rail {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  gap: 8px;
+  padding: 12px;
+  overflow-y: auto;
+}
+
+.v5-entry-rail-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.v5-entry-rail-section-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--v5-ui-text);
+}
+
+.v5-entry-rail-empty {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--v5-ui-muted);
+}
+
+/* ---------- 右主区：现有两个 hidden surface div 原样放入 ---------- */
+
+.v5-entry-main {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--v5-read-workspace);
+}
+
+/* 收起态浮动展开把手：左栏宽 0 时保持展开路径可达（主区左缘、垂直居中）。 */
+.v5-entry-rail-expand {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  z-index: 6;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 64px;
+  padding: 0;
+  border: 1px solid var(--v5-rail-edge);
+  border-left: 0;
+  border-radius: 0 4px 4px 0;
+  background: var(--v5-ui-rail);
+  color: var(--v5-ui-muted);
+  font-size: 15px;
+  line-height: 1;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.v5-entry-rail-expand:hover {
+  background: var(--v5-read-bg);
+  color: var(--v5-ui-text);
+}
+
+/* ---------- 动效降级 ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .v5-entry-rail,
+  .v5-entry-rail-expand {
+    transition: none;
+  }
+}

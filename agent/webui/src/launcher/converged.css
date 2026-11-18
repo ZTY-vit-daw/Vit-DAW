@@ -19,8 +19,12 @@
  * 建议词面/文案零改动（LAUNCHER_SUGGESTIONS 沿用）。
  */
 
-/* ── 冻结令牌镜像（数值=ProjectBadge.tsx TAPE_* 逐字；勿改值，改值须过 SPEC-V5 §7.3）── */
-.v5-converged-launcher {
+/* ── 冻结令牌镜像（数值=ProjectBadge.tsx TAPE_* 逐字；勿改值，改值须过 SPEC-V5 §7.3）──
+ * SHELL-ENTRY-RAIL-1（417）：live 入口壳把工程抽屉 portal 到窗口级左栏（门户内容 DOM 祖先
+ * 不再是 .v5-converged-launcher），令牌作用域泛化到 .v5-entry-rail——数值逐字不变；
+ * fixture/gallery 仍从 .v5-converged-launcher 继承，视觉零变化。 */
+.v5-converged-launcher,
+.v5-entry-rail {
   --tape-ink: #090b0e;
   --tape-win: #fbf9f1;
   --tape-hub: #fafaf2;

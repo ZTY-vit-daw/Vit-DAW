@@ -33,6 +33,8 @@
 
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import type { CSSProperties, FormEvent, RefObject } from "react";
+import { createPortal } from "react-dom";
+import { useEntryRail } from "../entry/entryRail";
 import {
   cardsToEntries,
   fetchLauncherGreeting,
@@ -326,10 +328,207 @@ export function TapeCardFace({
   );
 }
 
+/**
+ * 工程抽屉内容（SHELL-ENTRY-RAIL-1 从原 aside[data-launcher-drawer] 原样抽出）：
+ * 保留全部 props/状态/回调/收展行为。两种挂载：
+ * - 内嵌（fixture/gallery/无 rail context）：原 aside 语义不变——data-window-sidebar-slot
+ *   收展槽位 + aria-hidden/inert 由 WindowPresentation.sidebarOpen 驱动，逐字保持；
+ * - rail（live 入口壳）：createPortal 到 data-entry-rail-slot。槽位身份/收展归 EntryShell
+ *   左栏（不重复 data-window-sidebar-slot/aria-hidden/inert），aside 只作内容体。
+ */
+interface LauncherProjectsDrawerProps {
+  activeProjectName?: string;
+  onReturnProject?: () => void;
+  onOpenSettings?: () => void;
+  drawerState: DrawerState;
+  drawerEntries: LauncherProjectCard[];
+  drawerError: string;
+  drawerViewLabel: string;
+  busy: boolean;
+  bridgeBusy: boolean;
+  bridgeAvailable: boolean;
+  greetingReady: boolean;
+  fixture?: ConvergedLauncherFixtureOverrides;
+  /** 内嵌抽屉的 WindowPresentation 收展槽位；rail 模式=null（槽位归 EntryShell）。 */
+  sidebar: { id: string; open: boolean } | null;
+  onDirectNew: () => void;
+  onChooseFile: () => void;
+  onRetryDrawer: () => void;
+  onOpenRecent: (entry: LauncherProjectCard) => void;
+}
+
+function LauncherProjectsDrawer({
+  activeProjectName,
+  onReturnProject,
+  onOpenSettings,
+  drawerState,
+  drawerEntries,
+  drawerError,
+  drawerViewLabel,
+  busy,
+  bridgeBusy,
+  bridgeAvailable,
+  greetingReady,
+  fixture,
+  sidebar,
+  onDirectNew,
+  onChooseFile,
+  onRetryDrawer,
+  onOpenRecent
+}: LauncherProjectsDrawerProps) {
+  const actionsGated = busy || bridgeBusy || (!fixture && !greetingReady);
+  return (
+    <aside
+      className={sidebar ? "v5-launcher-drawer" : "v5-launcher-drawer v5-launcher-drawer--rail"}
+      data-launcher-drawer
+      data-launcher-drawer-rail={sidebar ? undefined : "true"}
+      data-drawer-state={drawerState}
+      id={sidebar?.id}
+      data-window-sidebar-slot={sidebar ? "recents" : undefined}
+      data-sidebar-open={sidebar ? (sidebar.open ? "true" : "false") : undefined}
+      aria-hidden={sidebar ? !sidebar.open : undefined}
+      inert={sidebar ? !sidebar.open : undefined}
+      aria-label="最近工程"
+    >
+      <div className="v5-converged-projects" data-launcher-projects data-scroll-intentional="projects">
+        {activeProjectName ? (
+          <section className="v5-converged-active-project" aria-label="当前打开的工程" data-launcher-active-project>
+            <span>工程保持打开</span>
+            <strong data-launcher-active-project-name>{activeProjectName}</strong>
+            <button type="button" className="v5-btn v5-btn--secondary" onClick={onReturnProject} disabled={!onReturnProject} data-launcher-return-project>
+              返回工程
+            </button>
+            <p>这里用于查找、新建与打开工程；切换工程仍需确认。</p>
+          </section>
+        ) : null}
+        <div className="v5-launcher-drawer-head">
+          <span className="v5-launcher-drawer-title">最近工程</span>
+          <span className="v5-launcher-drawer-count" data-launcher-recents-count={drawerEntries.length}>
+            {drawerViewLabel}
+          </span>
+        </div>
+        {/* SHELL-2 抽屉手动按钮；SHELL-5 语义收口：「＋新建」=直连 directive；
+            「打开…」=宿主原生文件对话框。空 recents 态两按钮主路径突出。 */}
+        <div
+          className="v5-launcher-drawer-actions"
+          data-launcher-drawer-actions
+          data-drawer-primary={drawerState === "empty" ? "true" : undefined}
+        >
+          <button
+            type="button"
+            className="v5-btn v5-btn--primary v5-launcher-new"
+            data-launcher-new
+            data-launcher-new-mode="direct"
+            disabled={actionsGated}
+            onClick={onDirectNew}
+            title="直接新建工程并进入（不经对话问询；缺省名进工程后可改）"
+          >
+            ＋新建
+          </button>
+          {bridgeAvailable ? (
+            <button
+              type="button"
+              className="v5-btn v5-btn--secondary v5-launcher-choose-file v5-launcher-open"
+              data-launcher-choose-file
+              onClick={onChooseFile}
+              disabled={bridgeBusy}
+              title="由 Vit 弹出原生文件对话框选择工程"
+            >
+              打开…
+            </button>
+          ) : null}
+        </div>
+        {drawerState === "loading" ? (
+          <p className="v5-launcher-drawer-note" data-launcher-drawer-loading>
+            正在读取最近工程…
+          </p>
+        ) : null}
+        {drawerState === "error" ? (
+          <div className="v5-launcher-drawer-error" data-launcher-drawer-error>
+            <span>{drawerError || LAUNCHER_RECENTS_ERROR_TEXT}</span>
+            <button type="button" className="v5-btn v5-btn--secondary v5-launcher-retry" onClick={onRetryDrawer} data-launcher-drawer-retry>
+              重试
+            </button>
+          </div>
+        ) : null}
+        {drawerState === "empty" ? (
+          <p className="v5-launcher-drawer-note" data-launcher-drawer-empty>
+            还没有最近工程记录。点「＋新建」直接新建一个工程，或点「打开…」选择工程文件。
+          </p>
+        ) : null}
+        {drawerEntries.length > 0 ? (
+          <ul className="v5-launcher-recents" data-launcher-recents>
+            {drawerEntries.map((entry) => {
+              // 366（用户裁定 b 案）：工程条目本身=磁带盒造型整卡（非图标+文字行）——
+              // 工程名/路径排布进磁带卡结构（底标位），氛围色=工程名哈希沿用。
+              // 383（LAUNCHER-RECENTS-CLICK-1）：整卡可点=发起该工程 open（同对话流
+              // 结果卡链）；agent os.Stat 实测缺失（exists===false）→置灰不可点+如实
+              // 注记（健康度标注最小档；字段缺省=旧 agent 未知，按可点，点后失败走
+              // 宿主降级文案，不虚报）。禁用门与「＋新建」同语义（busy/桥在飞/未就绪）。
+              const missing = entry.exists === false;
+              const displayName = entry.name || launcherDisplayFileName(entry.filePath);
+              return (
+                <li
+                  key={entry.id}
+                  className="v5-launcher-recent v5-converged-recent"
+                  data-launcher-recent
+                  data-tape-card
+                  data-tape-card-mode={entry.name ? "named" : "derived"}
+                  data-launcher-recent-missing={missing ? "true" : undefined}
+                >
+                  <button
+                    type="button"
+                    className="v5-launcher-recent-open"
+                    data-launcher-recent-open={entry.id}
+                    disabled={missing || actionsGated}
+                    onClick={() => onOpenRecent(entry)}
+                    title={
+                      missing
+                        ? `《${displayName}》的工程文件已不在原位置——检查文件后重试`
+                        : `打开工程《${displayName}》（${entry.filePath}）`
+                    }
+                    aria-label={
+                      missing
+                        ? `工程 ${displayName}（文件缺失，不可打开）`
+                        : `打开工程 ${displayName}`
+                    }
+                  >
+                    <TapeCardFace name={entry.name} filePath={entry.filePath} />
+                  </button>
+                  {missing ? (
+                    <span className="v5-launcher-recent-missing-note" data-launcher-recent-missing-note>
+                      文件已不在原位置
+                    </span>
+                  ) : null}
+                </li>
+              );
+            })}
+          </ul>
+        ) : null}
+      </div>
+      {onOpenSettings ? (
+        <footer className="v5-converged-drawer-footer">
+          <button type="button" className="v5-btn v5-btn--secondary" onClick={onOpenSettings} data-launcher-settings>
+            设置
+          </button>
+        </footer>
+      ) : null}
+    </aside>
+  );
+}
+
 export function ConvergedLauncher({ fixture, fill = false, activeProjectName, onReturnProject, onOpenSettings }: ConvergedLauncherProps) {
   const presentation = useWindowPresentation();
   const launchBusy = isWindowLaunchBusy(presentation.state);
   const sidebarId = useId();
+  // SHELL-ENTRY-RAIL-1（417）：live 入口壳左栏上下文。无 context（fixture/gallery/
+  // 独立静态渲染）= null → 保持原有内嵌抽屉 + 标题栏收展按钮行为逐字不变。
+  const entryRail = useEntryRail();
+  const railHost = entryRail?.host ?? null;
+  const railMode = !fixture && Boolean(railHost) && entryRail?.surface === "launcher";
+  // 卡片 §3：rail 门户只在「surface=launcher 且未收起」时挂载（收起态左栏体 0 宽+inert，
+  // 内容卸载；ConvergedLauncher 自身状态/回调不丢，展开即原样重挂）。
+  const railCollapsed = entryRail?.collapsed ?? false;
   const fixtureGreeting = fixture?.greeting;
   const fixtureThread = fixture?.thread;
   const [greetingState, setGreetingState] = useState<LauncherGreetingState>(
@@ -871,6 +1070,30 @@ export function ConvergedLauncher({ fixture, fill = false, activeProjectName, on
     );
   };
 
+  // SHELL-ENTRY-RAIL-1（417）：抽屉内容抽成同文件组件后两种挂载——rail 模式
+  // createPortal 到 EntryShell 左栏槽；否则原样内嵌 launcher body（fixture/gallery 不变）。
+  const projectsDrawer = (
+    <LauncherProjectsDrawer
+      activeProjectName={activeProjectName}
+      onReturnProject={onReturnProject}
+      onOpenSettings={onOpenSettings}
+      drawerState={drawerState}
+      drawerEntries={drawerEntries}
+      drawerError={drawerError}
+      drawerViewLabel={drawerViewLabel}
+      busy={busy}
+      bridgeBusy={bridgeBusy}
+      bridgeAvailable={bridgeAvailable}
+      greetingReady={greetingState === "ready"}
+      fixture={fixture}
+      sidebar={railMode ? null : { id: sidebarId, open: presentation.sidebarOpen }}
+      onDirectNew={directNewProject}
+      onChooseFile={chooseFileViaBridge}
+      onRetryDrawer={retryDrawer}
+      onOpenRecent={openRecentProject}
+    />
+  );
+
   return (
     <div
       className={rootClass}
@@ -887,145 +1110,20 @@ export function ConvergedLauncher({ fixture, fill = false, activeProjectName, on
       <div className={frameClass} data-launcher-frame>
         <header className="v5-launcher-titlebar" data-launcher-titlebar>
           <span className="v5-launcher-titlebar-brand">Vit</span>
-          <button type="button" className="v5-btn v5-btn--secondary v5-window-sidebar-toggle" data-window-sidebar-toggle
-            aria-controls={sidebarId} aria-expanded={presentation.sidebarOpen} onClick={() => presentation.setSidebarOpen(!presentation.sidebarOpen)}>
-            {presentation.sidebarOpen ? "收起工程列表" : "展开工程列表"}
-          </button>
-          <NativeFocusHint />
+          {/* SHELL-ENTRY-RAIL-1：live rail 模式下旧收展按钮与焦点提示由 EntryShell 左栏头
+              接管（收展状态仍=WindowPresentation.sidebarOpen；NativeFocusHint 不重复）。 */}
+          {railMode ? null : (
+            <>
+              <button type="button" className="v5-btn v5-btn--secondary v5-window-sidebar-toggle" data-window-sidebar-toggle
+                aria-controls={sidebarId} aria-expanded={presentation.sidebarOpen} onClick={() => presentation.setSidebarOpen(!presentation.sidebarOpen)}>
+                {presentation.sidebarOpen ? "收起工程列表" : "展开工程列表"}
+              </button>
+              <NativeFocusHint />
+            </>
+          )}
         </header>
         <div className="v5-launcher-body">
-          <aside
-            className="v5-launcher-drawer"
-            data-launcher-drawer
-            data-drawer-state={drawerState}
-            id={sidebarId} data-window-sidebar-slot="recents" data-sidebar-open={presentation.sidebarOpen ? "true" : "false"}
-            aria-hidden={!presentation.sidebarOpen} inert={!presentation.sidebarOpen}
-            aria-label="最近工程"
-          >
-            <div className="v5-converged-projects" data-launcher-projects data-scroll-intentional="projects">
-            {activeProjectName ? (
-              <section className="v5-converged-active-project" aria-label="当前打开的工程" data-launcher-active-project>
-                <span>工程保持打开</span>
-                <strong data-launcher-active-project-name>{activeProjectName}</strong>
-                <button type="button" className="v5-btn v5-btn--secondary" onClick={onReturnProject} disabled={!onReturnProject} data-launcher-return-project>
-                  返回工程
-                </button>
-                <p>这里用于查找、新建与打开工程；切换工程仍需确认。</p>
-              </section>
-            ) : null}
-            <div className="v5-launcher-drawer-head">
-              <span className="v5-launcher-drawer-title">最近工程</span>
-              <span className="v5-launcher-drawer-count" data-launcher-recents-count={drawerEntries.length}>
-                {drawerViewLabel}
-              </span>
-            </div>
-            {/* SHELL-2 抽屉手动按钮；SHELL-5 语义收口：「＋新建」=直连 directive；
-                「打开…」=宿主原生文件对话框。空 recents 态两按钮主路径突出。 */}
-            <div
-              className="v5-launcher-drawer-actions"
-              data-launcher-drawer-actions
-              data-drawer-primary={drawerState === "empty" ? "true" : undefined}
-            >
-              <button
-                type="button"
-                className="v5-btn v5-btn--primary v5-launcher-new"
-                data-launcher-new
-                data-launcher-new-mode="direct"
-                disabled={busy || bridgeBusy || (!fixture && greetingState !== "ready")}
-                onClick={directNewProject}
-                title="直接新建工程并进入（不经对话问询；缺省名进工程后可改）"
-              >
-                ＋新建
-              </button>
-              {bridgeAvailable ? (
-                <button
-                  type="button"
-                  className="v5-btn v5-btn--secondary v5-launcher-choose-file v5-launcher-open"
-                  data-launcher-choose-file
-                  onClick={chooseFileViaBridge}
-                  disabled={bridgeBusy}
-                  title="由 Vit 弹出原生文件对话框选择工程"
-                >
-                  打开…
-                </button>
-              ) : null}
-            </div>
-            {drawerState === "loading" ? (
-              <p className="v5-launcher-drawer-note" data-launcher-drawer-loading>
-                正在读取最近工程…
-              </p>
-            ) : null}
-            {drawerState === "error" ? (
-              <div className="v5-launcher-drawer-error" data-launcher-drawer-error>
-                <span>{drawerError || LAUNCHER_RECENTS_ERROR_TEXT}</span>
-                <button type="button" className="v5-btn v5-btn--secondary v5-launcher-retry" onClick={retryDrawer} data-launcher-drawer-retry>
-                  重试
-                </button>
-              </div>
-            ) : null}
-            {drawerState === "empty" ? (
-              <p className="v5-launcher-drawer-note" data-launcher-drawer-empty>
-                还没有最近工程记录。点「＋新建」直接新建一个工程，或点「打开…」选择工程文件。
-              </p>
-            ) : null}
-            {drawerEntries.length > 0 ? (
-              <ul className="v5-launcher-recents" data-launcher-recents>
-                {drawerEntries.map((entry) => {
-                  // 366（用户裁定 b 案）：工程条目本身=磁带盒造型整卡（非图标+文字行）——
-                  // 工程名/路径排布进磁带卡结构（底标位），氛围色=工程名哈希沿用。
-                  // 383（LAUNCHER-RECENTS-CLICK-1）：整卡可点=发起该工程 open（同对话流
-                  // 结果卡链）；agent os.Stat 实测缺失（exists===false）→置灰不可点+如实
-                  // 注记（健康度标注最小档；字段缺省=旧 agent 未知，按可点，点后失败走
-                  // 宿主降级文案，不虚报）。禁用门与「＋新建」同语义（busy/桥在飞/未就绪）。
-                  const missing = entry.exists === false;
-                  const displayName = entry.name || launcherDisplayFileName(entry.filePath);
-                  return (
-                    <li
-                      key={entry.id}
-                      className="v5-launcher-recent v5-converged-recent"
-                      data-launcher-recent
-                      data-tape-card
-                      data-tape-card-mode={entry.name ? "named" : "derived"}
-                      data-launcher-recent-missing={missing ? "true" : undefined}
-                    >
-                      <button
-                        type="button"
-                        className="v5-launcher-recent-open"
-                        data-launcher-recent-open={entry.id}
-                        disabled={missing || busy || bridgeBusy || (!fixture && greetingState !== "ready")}
-                        onClick={() => openRecentProject(entry)}
-                        title={
-                          missing
-                            ? `《${displayName}》的工程文件已不在原位置——检查文件后重试`
-                            : `打开工程《${displayName}》（${entry.filePath}）`
-                        }
-                        aria-label={
-                          missing
-                            ? `工程 ${displayName}（文件缺失，不可打开）`
-                            : `打开工程 ${displayName}`
-                        }
-                      >
-                        <TapeCardFace name={entry.name} filePath={entry.filePath} />
-                      </button>
-                      {missing ? (
-                        <span className="v5-launcher-recent-missing-note" data-launcher-recent-missing-note>
-                          文件已不在原位置
-                        </span>
-                      ) : null}
-                    </li>
-                  );
-                })}
-              </ul>
-            ) : null}
-            </div>
-            {onOpenSettings ? (
-              <footer className="v5-converged-drawer-footer">
-                <button type="button" className="v5-btn v5-btn--secondary" onClick={onOpenSettings} data-launcher-settings>
-                  设置
-                </button>
-              </footer>
-            ) : null}
-          </aside>
+          {railMode ? null : projectsDrawer}
           <section className="v5-launcher-main" aria-label={activeProjectName ? "Vit 工程管理对话" : "Vit 启动台对话"}>
             {greetingState === "loading" ? (
               <p className="v5-launcher-greeting-status" data-launcher-greeting-loading>
@@ -1105,6 +1203,7 @@ export function ConvergedLauncher({ fixture, fill = false, activeProjectName, on
           </section>
         </div>
       </div>
+      {railMode && railHost && !railCollapsed ? createPortal(projectsDrawer, railHost) : null}
     </div>
   );
 }

@@ -1789,7 +1789,10 @@ async function main() {
   try {
     await guardPage.goto(guardUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
     await guardPage.waitForSelector("[data-launcher-root]", { timeout: 30000 });
-    await guardPage.waitForSelector(".v5-converged-launcher [data-tape-card]", { timeout: 15000 });
+    // SHELL-ENTRY-RAIL-1（417）：live 入口的工程抽屉已门户迁入窗口级左栏
+    // （data-entry-rail-slot），磁带整卡的 DOM 祖先不再是 .v5-converged-launcher——
+    // 守卫改为按「rail 门户内的真实 drawer/磁带整卡」断言（仍是生产 App 装配面）。
+    await guardPage.waitForSelector("[data-entry-rail] [data-launcher-drawer] [data-tape-card]", { timeout: 15000 });
     const before = await guardPage.evaluate(() => ({
       launcherRoot: !!document.querySelector("[data-launcher-root]"),
       convergedRoot: !!document.querySelector(".v5-converged-launcher[data-launcher-root]"),

@@ -18,6 +18,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import type { FormEvent } from "react";
 import {
   Button,
@@ -80,6 +81,7 @@ import "../styles/tokens.css";
 import "../components/components.css";
 import "./project.css";
 import { NativeFocusHint, WindowLaunchFeedback, isWindowLaunchBusy, useWindowPresentation } from "./loading/windowPresentation";
+import { useEntryRail } from "../entry/entryRail";
 
 export interface ProjectFixtureOverrides {
   /** fixture 工程上下文（离线注入；source 必须为 "fixture"）。 */
@@ -321,6 +323,12 @@ function MacroItem({
 export function ProjectSurface({ fixture, fill = false, onOpenWorkbench, onViewLauncher, onOpenSettings, active = true }: ProjectSurfaceProps) {
   const presentation = useWindowPresentation();
   const launchBusy = isWindowLaunchBusy(presentation.state);
+  // SHELL-ENTRY-RAIL-1（417）：工程面左栏占位——live 入口壳 rail context 在场且当前面=
+  // 工程面时 portal 到 data-entry-rail-slot（B1 只占位；B2 CHAT-STREAM-LIST-1 接对话流列表）。
+  // 无 context（fixture/gallery/静态渲染）= null → 渲染树与既有行为逐字不变。
+  const entryRail = useEntryRail();
+  const railHost = entryRail?.host ?? null;
+  const showRailPlaceholder = !fixture && Boolean(railHost) && entryRail?.surface === "project";
   const fixtureService = fixture?.service ?? null;
   const [state, dispatch] = useReducer(
     (s: ProjectSurfaceState, e: ProjectEvent) => reduceProject(s, e),
@@ -561,6 +569,22 @@ export function ProjectSurface({ fixture, fill = false, onOpenWorkbench, onViewL
   const contextName = state.context?.name ?? "";
   const contextSource = state.context?.source ?? "none";
 
+  // 工程面左栏内容（B1 占位）：标题「对话流」+ 空态说明；下一步接对话流列表。
+  const entryRailPlaceholder =
+    showRailPlaceholder && railHost
+      ? createPortal(
+          <section className="v5-entry-project-rail" data-entry-project-rail aria-label="对话流">
+            <div className="v5-entry-rail-section-head">
+              <span className="v5-entry-rail-section-title">对话流</span>
+            </div>
+            <p className="v5-entry-rail-empty" data-entry-project-rail-empty>
+              对话流列表将在下一步接入
+            </p>
+          </section>,
+          railHost
+        )
+      : null;
+
   return (
     <div
       className={rootClass}
@@ -571,6 +595,7 @@ export function ProjectSurface({ fixture, fill = false, onOpenWorkbench, onViewL
       data-fixture={fixture ? "project-surface" : undefined}
       data-native-focus={presentation.state.window?.foreground ?? "unknown"}
     >
+      {entryRailPlaceholder}
       <div className={frameClass} data-project-frame>
         <header className="v5-project-titlebar" data-project-titlebar>
           <ProjectBadge size={20} />
