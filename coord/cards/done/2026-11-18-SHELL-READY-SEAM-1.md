@@ -34,3 +34,8 @@
 ## 回执（短）与禁止
 
 commit hash+分支、文件清单、命令+exit 原文、四情景结果、唯一回执静态证据、边界声明（零真栈/零窗口）。禁止 push main、改主检出、启 VitShell/Godot GUI/agent 栈。
+
+## 回执与验收（2026-11-18 晚）
+
+- commit `4784f9b5`（分支 `codex/shell-ready-seam-411`）；主管独立复跑 import check exit 0 与 `tools/run_vitshell_readiness_unit.ps1` exit 0（semantic 21/seam 28/assembly 8），dock file 与 402 版本逐字节一致；合入前端 main `cf33195b` 并推送。
+- 裁定：[rulings/2026-11-18-SHELL-READY-SEAM-1-pass.md](../../rulings/2026-11-18-SHELL-READY-SEAM-1-pass.md)。实现面 PASS；真实装配与端到端由 414 组合真栈裁决。

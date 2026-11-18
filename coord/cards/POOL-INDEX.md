@@ -217,8 +217,8 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 
 | 池序 | 卡 ID | 状态 |
 |---|---|---|
-| 410 | SHELL-WIN-PRODUCER-1 | doing（lead/producer410；394-B/D 的 window_state+launch_progress/replay 移植到 409 基线；前端 worktree pc410；零栈） |
-| 411 | SHELL-READY-SEAM-1 | doing（lead/ready411；402 workspace_ready 接入 409 隐藏启动路径，legacy 不变；前端 worktree pc411；零栈） |
+| 410 | SHELL-WIN-PRODUCER-1 | **done 实现面 PASS**（主管复跑 build+ctest 3/3；4d450b9→前端 main 3bceb3b；[裁定](../rulings/2026-11-18-SHELL-WIN-PRODUCER-1-pass.md)；真实链路待 414） |
+| 411 | SHELL-READY-SEAM-1 | **done 实现面 PASS**（主管复跑 import+unit runner exit 0；4784f9b→前端 main cf33195b；[裁定](../rulings/2026-11-18-SHELL-READY-SEAM-1-pass.md)；真实装配待 414） |
 | 412 | SHELL-WIN-PRES-MERGE-1 | **done 实现面 PASS**（主管独立复跑 722 测/build/31 渲染/全段 render；c44c9039→main 668078fd；[裁定](../rulings/2026-11-18-SHELL-WIN-PRES-MERGE-1-pass.md)；真实端侧待 414） |
 | 413 | SHELL-ENTRY-REFRESH-1 | doing（lead/entry413；先隔离扩展 DLL 预构建，410/411 合入后主管放行刷新最终 VitShell/webui/入口产物；零栈） |
 | 414 | SHELL-WIN-COMBO-1 | todo 候依赖（391 组合真栈：409 窗口断言+395 呈现+396 retry；真栈单 owner；410–413 后领取） |
