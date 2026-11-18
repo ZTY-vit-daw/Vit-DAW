@@ -85,3 +85,18 @@
 - 任何一项想换方案/想再展开，我们可以继续讨论。
 
 裁定后我会：回填契约 §7/§10 → 契约冻结 → 发 W01 三张实施卡（源 schema/编译映射/工程绑定与缓存失效），教学运行时主线即可开工。
+
+## 最终裁定（2026-11-18 用户确认，契约 v0-frozen）
+
+| # | 最终选择 |
+|---|---|
+| R1 | A：保留 `vit.project_intent.v0` + L0=乐局子集；普通工程=乐局未启用，可随时转为乐局工程 |
+| R2 | **判定点外移**：项目包元数据 `legame.{enabled,design}` 控制启用；YAML 的 `schema_version` 仅版本校验/迁移，未知版本启用时 fail-closed |
+| R3 | A：声明序 1..n 作轨道坐标，manifest 记录映射；YAML 只声明所需轨道，物理落位由实时工程对应 |
+| R4 | A：多 evidence_checks 拆成 `id#k`；未来可再细分 B/C |
+| R5 | A：tempo/budget 缺失→E，不注入缺省；诊断可行动，由用户/LLM 问清补齐 |
+| R6a | C：30 调封闭枚举（15 大调+15 关系小调） |
+| R6b | A：music_region 接受单值/列表，编译期归一 list |
+| R6c | A：材料核验状态不提升进 schema，留 catalog |
+
+契约已回填冻结：`docs/LEGAME_DESIGN_CONTRACT_V0.md` §7/§9/§10（v0-frozen）。W01 三卡：423 G0-LEGAME-PARSE-1（doing）、424 G0-LEGAME-COMPILE-1（todo 候 423）、425 G0-LEGAME-BIND-1（todo 候 424）。

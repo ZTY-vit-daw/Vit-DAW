@@ -1,6 +1,6 @@
 # vit.legame_design.v0 乐局设计源契约（冻结草案 W01，候审）
 
-- 状态：**冻结草案（候主管过目；§7 六项候用户裁定，未定夺前不得按草案默认值开工实施卡）**
+- 状态：**已冻结（v0-frozen，2026-11-18）：§7 R1–R6 已由用户裁定并回填（§7/§10）；W01 三张实施卡据此发卡。此前“候裁定”状态作废。**
 - 卡：G0-LEGAME-CONTRACT-1（池序 370，P0）；执行=GLM-5.3-Flash 免费车道子代理，2026-11-15 深夜
 - 输入权威：
   - 设计源实例：`coord/lesson-designs/music-creation-unit2/design.v1.yaml`（revision 3）
@@ -39,7 +39,7 @@
 
 | 层 | 适用 | 必填 | 可选字段 |
 |---|---|---|---|
-| **L0 最小意图层** | 一切 Vit 工程包可携带的意图文档（乐局与非乐局） | 仅结构性判层键 `schema_version`（见 3.3 解读） | id, revision, title, brief, workspace.timing, guidance, budget, pending_questions（全部可选） |
+| **L0 最小意图层** | 一切 Vit 工程包可携带的意图文档（乐局与非乐局） | 文档版本键 `schema_version`（必填；**是否启用乐局由项目包元数据判定，见 3.3**） | id, revision, title, brief, workspace.timing, guidance, budget, pending_questions（全部可选） |
 | **L1 乐局层** | `schema_version: vit.legame_design.v0` 的文档 | 追加五个硬必填段：**objectives, materials, checks, flow**（非空列表）+ **workspace.regions**（非空列表）；node 级 `complete_when` 非空 | 追加可选段：workspace.tracks, capability_requests, evidence_recording, submission, completion |
 
 必填段口径（§15"objectives/materials/regions/checks/flow 等必填段"的落法）：
@@ -50,13 +50,14 @@
 
 ### 3.2 非乐局文档的处理边界（M2+ 后置）
 
-非乐局意图文档：允许携带、发现、按 L0 子集解析（未知字段仍 fail-closed）；其每轮注入**后置 M2+，不进 11/19 关键路径**（§15 原文）。v0 只冻结：判层机制、L0 字段集、保留值 `vit.project_intent.v0`（候选值，R1）。在 R1 裁定前，实现卡只须保证"未知 schema_version fail-closed"，不必实现非乐局路径。
+非乐局意图文档：允许携带、发现、按 L0 子集解析（未知字段仍 fail-closed）；其每轮注入**后置 M2+，不进 11/19 关键路径**（§15 原文）。R1 裁定（2026-11-18）：保留值 `vit.project_intent.v0`；L0 字段集=乐局字段子集；**普通工程=乐局未启用，不是“没有乐局能力”**——同一工程可随时转为乐局工程（启用机制见 3.3）。
 
-### 3.3 判层机制与"全可选"解读（R2 候裁定）
+### 3.3 启用判定机制（R2 裁定：判定点外移）与“全可选”解读
 
-- `schema_version` 是判层键：`vit.legame_design.v0` → 按 L0+L1 全量校验；未知值 → fail-closed 拒绝（与 level_card 拒绝路径 11 同型）。
-- "最小意图层字段全可选"（§15 原文）解读为：**L0 的意图字段全可选；schema_version 是判层机制的结构键，不属于"意图字段"，必须存在**。没有它无法判层、无法 fail-closed。此解读若被否决（例如要求无 schema_version 的裸 YAML 也合法），需给出替代判层机制再冻结——故列为 R2。
-- 文档类型判定只看 schema_version，**不看段落存在性**（不做"有 objectives 就当乐局"的猜测——与 CCB 不做自动 view 选择的仓库纪律同款）。
+- **判定点不在 YAML 内**：是否启用乐局由**项目包元数据**决定（草案键：`legame: { enabled: true, design: "<设计源相对路径>" }`）；普通工程没有该段或 `enabled:false` 时，即使携带 YAML 也不编译、不注入、不按乐局报错；用户在产品中“转为乐局工程”时写入元数据并指向设计源。
+- `schema_version` 仍是 YAML 的**必填版本键**：`vit.legame_design.v0` 按 L0+L1 校验；未知版本在**启用时** fail-closed；预留值 `vit.project_intent.v0` 仅登记（非乐局路径 M2+）。
+- “最小意图层字段全可选”（§15 原文）解读为：**L0 意图字段全可选；`schema_version` 是版本键，不属于“意图字段”，必须存在**；它不再承担“这是不是乐局”的判定职责。
+- 禁止按段落存在性判断类型（不做“有 objectives 就当乐局”的猜测）；也不允许未知版本静默通过。
 
 ## 4. 字段契约（全字段覆盖）
 
@@ -66,7 +67,7 @@
 
 | 字段 | 层/必填 | 类型 | 枚举/格式/引用 | 缺省语义 |
 |---|---|---|---|---|
-| schema_version | 结构键（必填） | str | 枚举 {vit.legame_design.v0}；保留值 vit.project_intent.v0（R1） | 无（判层键） |
+| schema_version | 结构键（必填） | str | 枚举 {vit.legame_design.v0}；预留值 vit.project_intent.v0（R1）；**仅版本键，类型判定在项目包元数据（R2）** | 无（版本键） |
 | id | L0 可选 | str | 卡内全局唯一；乐局编译目标须与包目录一致（加载口收口） | 未命名工程 |
 | revision | L0 可选 | int | ≥1；内容哈希的一部分（§6.5 缓存键） | 0（未修订跟踪） |
 | title | L0 可选 | str | 编译目标须非空（卡拒绝空 title） | 空（E if 编译） |
@@ -112,9 +113,9 @@
 | file | 可选 | str? | null 合法=未备料；非 null 时为**相对设计源 YAML 所在目录的包内相对路径**（POSIX 斜杠；禁止绝对路径/`..` 越出包根→E，规则 MAT-PATH）；校验门不查文件存在性（设计期可在包外编辑），**文件存在性+哈希对账在装配/编译期收口**（E，规则 MAT-FILE，§6.3） |
 | purpose | 必填 | str | 非空 |
 | source | 必填 | str | 非空（出处声明；未核材料须如实标注"待转写/未听核"——来源声明不实属内容面 lint，W） |
-| locator | 可选 | map | pdf_pages list[int]、printed_pages list[int] 可空可缺；music_region：str 或 list[str] 或 null（**单/复值并存为设计源既定形态，schema 接受两态；归一方向 R6**）；material_group 的 music_region 列表项语义=组内条目 ID（按 ID 加载是拟议语义，实现属准备层——pending_questions 既定，不因 schema 收编而视为已实现） |
+| locator | 可选 | map | pdf_pages list[int]、printed_pages list[int] 可空可缺；music_region：str 或 list[str] 或 null（**R6b=A：接受单值/列表两态，编译期归一为 list**）；material_group 的 music_region 列表项语义=组内条目 ID（按 ID 加载是拟议语义，实现属准备层——pending_questions 既定，不因 schema 收编而视为已实现） |
 
-材料核验状态：**v0 schema 不新增 status 字段**。未听核/未转写状态由 `assets/catalog.yaml`（材料库索引）承载（TEXTBOOK-ALIGNMENT §3 既定结构）；编译期按 catalog 状态决定资产准入（§6.3）。是否把核验状态提升进设计源 schema → R6 附带项。
+材料核验状态：**v0 schema 不新增 status 字段**。未听核/未转写状态由 `assets/catalog.yaml`（材料库索引）承载（TEXTBOOK-ALIGNMENT §3 既定结构）；编译期按 catalog 状态决定资产准入（§6.3）。**R6c=A：核验状态留在 catalog，不提升进设计源 schema。**
 
 ### 4.5 （无独立段）材料→资产的方向声明
 
@@ -127,7 +128,7 @@
 | 字段 | 类型 | 校验/缺省 |
 |---|---|---|
 | time_signature | str? | 格式 `N/D`（N,D 正整数；E if 违例）；缺省=内核内建默认（不写工程） |
-| key_signature | str? | **v0 词表候裁定 R6**；草案按 token `^[A-G][#b]?$`（大调名）收；消费方=记谱拼写 + YuE2 ABC `K:` 默认上下文；**材料可自带覆盖**（§14 裁定原文）；缺省=C |
+| key_signature | str? | **v0 闭集=R6a 裁定的 30 调枚举**：15 大调（C,G,D,A,E,B,F#,C#,F,Bb,Eb,Ab,Db,Gb,Cb）+ 15 关系小调（Am,Em,Bm,F#m,C#m,G#m,D#m,A#m,Dm,Gm,Cm,Fm,Bbm,Ebm,Abm）；token 写法=大写根音+可选 `#`/`b`，小调加后缀 `m`；集合外→E；消费方=记谱拼写+YuE2 ABC `K:`；材料可自带覆盖（§14 裁定）；缺省=C |
 | tempo_bpm | float? | 可空（null=未定，编译 E+覆盖参数 R5）；>0 |
 | pickup_beats | float? | ≥0（缺省 0） |
 
@@ -256,7 +257,7 @@ max_turns / max_llm_calls：int?，**可空**（null=不限，运行时自行管
 - **E-CAP**：CAP-BRIDGE（capability_request 无登记的命令闭包表条目且 required=true）。
 - **W-CHK**：check/complete_when 项无法映射到卡判定面 → 降 advisory_checks（白名单见 §6.2 表 T-8/T-9）。
 - **W-MAT**：file:null 材料；catalog 核验状态不达标的可播放材料（排除出卡资产）；source 声明含"未听核/待转写"字样。
-- **W-BUDGET**：budget 空值注入缺省（R5 裁定前按草案默认表）。
+- **W-BUDGET**：budget/tempo 缺失→**E（R5=A，fail-closed）**，不注入缺省；诊断须可行动（明确要求设计源或显式覆盖参数补齐，由用户/LLM 共同编辑时问清）；不再产生“缺省注入 W”。
 - **I-NOTE**：设计层字段不进卡（editable_by_user、key_signature、transition、freedom 等）；estimated_minutes=null；pending_questions 计数。
 
 诊断输出形态：聚合列表（同 ValidateLevelCard 聚合风格），每条 `"[E-REF] checks[5].target 'r-nope' 引用未知 region"` 格式，可机读（规则号前缀）+人读（路径+提示）。
@@ -301,12 +302,12 @@ max_turns / max_llm_calls：int?，**可空**（null=不限，运行时自行管
 4. **binding 键=工程 UUID**：乐局 binding 按 project UUID 目录隔离（修复 `legameBindingPath` 父目录静态推导的串工程面，H3 审计既定口径；落实归 W01-C）。**缓存键禁用 level_id 单键**（H3 原文）。
 5. **学生作品快照归 W02**（§14 裁定原文）：clip alias 解析与版本快照是 W02/W05/W10/W19 共用契约——本文档只冻结"alias 是寻址身份"，快照语义不在本契约域内。
 
-### 6.4 缺项诊断与编译缺省注入表（R5 裁定前的草案默认）
+### 6.4 缺项诊断与编译缺省注入表（2026-11-18 R5 裁定：tempo/budget fail-closed，其余缺省不变）
 
 | 缺项 | 草案默认 | 级 |
 |---|---|---|
-| tempo_bpm=null | 无覆盖参数→E；有参数→注入并 W | E/W |
-| budget 两数值 null | 无覆盖参数→E；有参数→注入并 W | E/W |
+| tempo_bpm=null | **必填缺失→E；不注入缺省**；补写设计源或显式覆盖参数（用户/LLM 问清后填） | E |
+| budget 两数值 null | **必填缺失→E；不注入缺省**；补写设计源或显式覆盖参数（用户/LLM 问清后填） | E |
 | guidance.pullback_after_turns 缺 | 注入 6（first-run-twinkle 同型保守值）并 W | W |
 | brief 缺（story 兜底） | 模板句"（设计源未提供剧情句）"并 W | W |
 | evidence_recording/submission/completion 段缺 | §4.11–4.13 缺省表 + I | I |
@@ -320,18 +321,20 @@ max_turns / max_llm_calls：int?，**可空**（null=不限，运行时自行管
 - **revision 字段**：进入源哈希，不单独作键；revision 前进但内容不变的边界情形按"内容不变→哈希不变→缓存有效"处理（注释性修订不强制重编译；若需强制，触碰任何字节即可）。
 - **失效动作幂等**：重编译失败时保留旧缓存+阻断使用（fail-closed），不得降级运行旧卡。
 
-## 7. 候用户裁定项清单（未裁定前实施卡不得按草案默认开工）
+## 7. 裁定项清单（2026-11-18 用户已裁定；契约冻结）
 
-| # | 事项 | 草案立场（仅供参考，非裁定） | 影响面 |
+| # | 事项 | 裁定结果 | 落点 |
 |---|---|---|---|
-| R1 | 非乐局意图文档 schema_version 保留值（`vit.project_intent.v0`？）与 L0 字段集是否=乐局字段子集 | 保留该值；L0=子集 | M2+ 非乐局链路；不进关键路径 |
-| R2 | 判层机制=仅 schema_version；"字段全可选"不含 schema_version 本身 | 是（工程必需解读） | 解析器主入口 |
-| R3 | design.tracks→runtime_slots 的 track_index 指派：声明序 1..n（草案） vs 设计源加显式 `index` 字段 | 序数指派+manifest 记录映射 | 编译器 T-12；内核轨序 |
-| R4 | objectives 多 evidence_checks→卡单 check：拆分为多卡目标 `id#k`（草案） vs 选主检查+余项 advisory | 拆分（保全证据钩） | 编译器 T-15；W02 证据注入 |
-| R5 | budget/tempo 空值编译策略：覆盖参数必填否则 E（草案，fail-closed） vs 固定缺省注入表 | E+显式覆盖参数（不静默替用户定速度/预算） | 编译器 T-8/T-20；T-18 |
-| R6 | key_signature 词表封闭度（自由 token `^[A-G][#b]?$` vs 15 大调封闭枚举 vs 含小调）；附带：locator.music_region 单/复值归一方向（草案=接受两态、编译期归一为 list）；材料核验状态是否提升进设计源 schema（草案=不提升，留 catalog） | 草案立场见左 | §4.6 timing；§4.4 locator；§6.3 装配 |
+| R1 | 非乐局意图文档保留值与 L0 字段集 | **A**：保留 `vit.project_intent.v0`；L0=乐局字段子集；普通工程=乐局未启用，可随时转乐局 | §3.2 |
+| R2 | 判层/启用判定机制 | **判定点外移**：项目包元数据控制启用；YAML 的 schema_version 仅版本校验/迁移；未知版本启用时 fail-closed | §3.3 |
+| R3 | tracks→runtime_slots 的 track_index | **A**：声明序 1..n 作轨道坐标，manifest 记录映射；YAML 只声明所需轨道，物理落位由实时工程对应记录 | §6.2 T-12 |
+| R4 | 多 evidence_checks→卡单 check | **A**：拆分为多卡目标 `id#k`；未来可在多目标下再细分 | §6.2 T-15 |
+| R5 | budget/tempo 空值编译策略 | **A**：缺失→E（fail-closed），不注入缺省；诊断可行动，必须由用户/LLM 问清后补齐 | §5.2/§6.4 |
+| R6a | key_signature 词表 | **C**：30 调封闭枚举（15 大调+15 关系小调），token=根音+可选 #/b+可选 m，且必须在枚举内 | §4.6 |
+| R6b | locator.music_region 归一 | **A**：接受单值/列表两态，编译期归一为 list | §4.4 |
+| R6c | 材料核验状态是否进 schema | **A**：不提升，留 catalog | §4.4 |
 
-另有两点**非裁定的解释备案**（主管可否决）：①§15"regions"≙workspace.regions 不提升顶层；②卡 kind 映射表 T-12 的 assist_generated→blank_to_fill 为提案值，W01-C 落实时如有语义冲突回本文档修订。
+另两点非裁定的解释备案（主管决定，用户可否决）：①§15"regions"≙workspace.regions 不提升顶层；②卡 kind 映射表 T-12 的 assist_generated→blank_to_fill 为提案值，W01-C 落实时如有语义冲突回本文档修订。
 
 ## 8. 与裁定/审计的逐条对照（自证无遗漏）
 
@@ -355,7 +358,7 @@ max_turns / max_llm_calls：int?，**可空**（null=不限，运行时自行管
 
 ## 9. 验收与生效
 
-- 本文档经主管决策流过目 → §7 六项转用户裁定 → 裁定结论回填本文档（§10 修订记录）→ 冻结生效 → 实施卡（`coord/runs/G0-LEGAME-CONTRACT-1/impl-cards-draft.md` 三张）由主管确认发卡。
+- 本文档经主管决策流过目 → §7 R1–R6 用户裁定回填（2026-11-18）→ **v0-frozen 冻结生效** → W01 三张实施卡（G0-LEGAME-PARSE-1 / G0-LEGAME-COMPILE-1 / G0-LEGAME-BIND-1）由主管发卡。
 - 覆盖性自证：`coord/runs/G0-LEGAME-CONTRACT-1/design-source-coverage-check.md` 对设计源 revision 3 全字段路径逐项核验（方法与结果见该文件）。
 - 冻结后的修订规则：schema 变更=契约修订卡（改本文档+schema 草案+覆盖核验三件套同轮），禁止实现侧绕过契约改字段。
 
@@ -364,3 +367,4 @@ max_turns / max_llm_calls：int?，**可空**（null=不限，运行时自行管
 | 日期 | 版本 | 说明 |
 |---|---|---|
 | 2026-11-15 | v0-draft1 | 首版冻结草案（G0-LEGAME-CONTRACT-1） |
+| 2026-11-18 | v0-frozen | R1–R6 用户裁定回填（R1=A；R2=判定点外移；R3=A；R4=A；R5=A；R6a=C 30 调枚举；R6b=A；R6c=A）；契约冻结，W01 三卡据此发卡 |
