@@ -1,7 +1,8 @@
 # SHELL-RING-SPIN-FIX-1：状态环原地自转修复（加载卡 16px 轴心偏移）
 
 - 池序 416；P2；PC；发卡/验收=本会话 PC 主管（lead）；派发确认=已确认（用户手测反馈：一定是原地自转才是加载动效的合理逻辑）。
-- owner=`lead/ringfix416`（DeepSeek-V4.1-Flash，PC）；分支 `codex/shell-ring-spin-fix-416`；worktree=`C:/Users/timoz/.codex/worktrees/pc416-ringfix/vit-daw-frontend`；基线=前端 `origin/main@8c3801f`。
+- owner=`lead/ringfix416`（DeepSeek-V4.1-Flash，PC）；分支 `codex/shell-ring-spin-fix-416`；worktree=`C:/Users/timoz/.codex/worktrees/pc416-ringfix/Vit_DAW`（**主仓**；webui 文件在 Vit-DAW 主仓，不在 vit-daw-frontend）；基线=主仓 `origin/main@186ca505`。
+- 发卡更正（2026-11-18 晚）：初版卡面误把 worktree 指向 vit-daw-frontend；执行侧以文件域证据纠正为主仓独立 worktree，主检出未改、未 push。
 - 缺陷（用户手测 2026-11-18）：新建/加载工程卡片里的黄色状态环不是原地自转，而是绕一个轴点环绕。
 - 根因（主管已定位）：`src/design/sprite.css` 的 `.v5-ring--idle/.v5-ring--busy` 旋转动画把 `transform-origin` 固定写为 `12px 12px`（24px 图标坐标），而加载卡 `StatusRing` 用 `size=16`（16×16 SVG），轴心应为中心 8px/8px → 偏 4px 形成绕轴环绕。另 `src/project/loading/loading.css` 对 `.v5-loading-chip .v5-icon` 又设置 `v5-loading-advance`（translateY）动画，与 ring spin 争夺同一 `animation` 属性，动效语义漂移。
 
