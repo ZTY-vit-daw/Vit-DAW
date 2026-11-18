@@ -1,0 +1,5 @@
+﻿ CURRENT-STATE.md                       |    2 +
+ VitApp/Workspace/Settings/Settings.xml | 8693 ++++++++++++++++----------------
+ VitApp/Workspace/default_project.xml   |  150 +-
+ tracktion_engine                       |    2 +-
+ 4 files changed, 4360 insertions(+), 4487 deletions(-)

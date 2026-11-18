@@ -27,3 +27,9 @@
 ## 停止与回执
 
 同确定性断点两次失败→停；需改 411 协议/其他域→停报。回执：commit hash、文件、命令+exit、新测试计数、顶层解析样例、边界（零真栈）。
+
+## 回执与验收（2026-11-18 晚）
+
+- commit `8c2c2b44`；主管复跑 ctest 3/3 + 直跑解析测试 PASS（16 断言，嵌套遮蔽→workspace_ready）。合入前端 main `8c3801f` 并推送。
+- 真实链验证：414 attempt02 `chain_detail=workspace_ready`、395 呈现 terminal=ready → 缺陷消除。
+- 裁定：[rulings/2026-11-18-SHELL-WIN-STAGE-PARSE-FIX-1-pass.md](../../rulings/2026-11-18-SHELL-WIN-STAGE-PARSE-FIX-1-pass.md) PASS。

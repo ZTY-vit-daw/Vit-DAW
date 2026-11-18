@@ -365,14 +365,17 @@ try {
         Save-Json $opened 'status_opened.json'
         if ([int]$opened.launch_count -ne 1 -or $opened.chain_state -ne 'opened' -or -not $opened.godot_running) { throw 'PRODUCT: single product open timeout' }
         $dom = Cdp 'probe-project'
-        $presentation = $null
-        if ($PresentationChecks) {
-            $presentation = CdpPresentation
-            Save-Json $presentation 'presentation.json'
-        }
         Start-Sleep -Milliseconds 2200
         $samples=[Shell409Observer]::Stop(); $observerStarted=$false
         Save-Json $samples 'native_poll_samples.json'
+        $presentation = $null
+        if ($PresentationChecks) {
+            # 414: read the rendered 395 feedback AFTER the frozen 409 native
+            # observation window ends. CDP/node work must not extend the
+            # activation-polling window that the 409 classifier evaluates.
+            $presentation = CdpPresentation
+            Save-Json $presentation 'presentation.json'
+        }
         $logSource=$godotLog;$beforeHash='absent'
         if (-not (Test-Path -LiteralPath $logSource)) { $logSource=$defaultGodotLog;$beforeHash=$defaultBefore.sha256 }
         $capture=Capture-BoundGodotLog $logSource $beforeHash $openTick ([int]$opened.godot_pid) $shell.Id $reference $samples

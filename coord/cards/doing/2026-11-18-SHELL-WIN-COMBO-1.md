@@ -33,3 +33,10 @@ script/wrapper/host 均 exit 0 + 断言摘要 + 原始工件。任何 `not_exerc
 - 运行参数（拟）：`-Condition shell -CardId SHELL-WIN-COMBO-1 -PresentationChecks -TimeoutSec 180 -NaturalConditionWaitSec 60`；Stage 于 `%TEMP%/shell414-combo-*`（host/runtime/frontend 布局，fresh DLL）；RunRoot `coord/runs/SHELL-WIN-COMBO-1/run_<stamp>`。
 - 资源：跑前在 `coord/resources/PC-RUNTIME-STACK.md` 顶部登记（卡 414、owner、stage/run、单次预算与止损），推 main 重读后 ≤60s 启动；失败即停、无原样重跑。
 - 通过：script/wrapper/host exit 0 + 409 分类器 PASS + 395 呈现断言 PASS（terminal=ready、completed 卡在场、无假进度、无焦点误报）。任一门失败按 product/harness/environment/coverage 分类保留原工件。
+
+## 执行记录（2026-11-18 晚）
+
+- attempt01（run_20261118_184423）：product_failure=集成缺陷（410 宿主 stage 被嵌套 observations 同名字段遮蔽）→ 修复卡 415（已 PASS）。409 原生面本已 PASS。
+- attempt02（run_20261118_185034）：415 生效，**395 呈现面 PASS**（terminal=ready/completed/steps=3，无假进度、无焦点误报）；409 冻结分类器因 open 后 polling 中出现 Godot 前台（interval.end+2094ms 起 113 样本）且 pre-open 存在非本栈前台切换 → 按冻结规则保留 FAIL，归环境/外部前台干扰（归属未定）。详见 [ATTEMPT-02](../runs/SHELL-WIN-COMBO-1/ATTEMPT-02.md)。
+- harness 已调整：presentation CDP 移到 observer Stop 之后，保持 409 冻结观测窗口不变。
+- 下一轮：一次 hands-off 条件的 shell 验收（用户配合 ~30–40s 不动键鼠）；若再遇同类外部干扰则停手转环境核对，不原样重跑。

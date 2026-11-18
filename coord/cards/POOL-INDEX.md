@@ -221,8 +221,8 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 411 | SHELL-READY-SEAM-1 | **done 实现面 PASS**（主管复跑 import+unit runner exit 0；4784f9b→前端 main cf33195b；[裁定](../rulings/2026-11-18-SHELL-READY-SEAM-1-pass.md)；真实装配待 414） |
 | 412 | SHELL-WIN-PRES-MERGE-1 | **done 实现面 PASS**（主管独立复跑 722 测/build/31 渲染/全段 render；c44c9039→main 668078fd；[裁定](../rulings/2026-11-18-SHELL-WIN-PRES-MERGE-1-pass.md)；真实端侧待 414） |
 | 413 | SHELL-ENTRY-REFRESH-1 | doing（lead/entry413；先隔离扩展 DLL 预构建，410/411 合入后主管放行刷新最终 VitShell/webui/入口产物；零栈） |
-| 414 | SHELL-WIN-COMBO-1 | doing（lead 亲跑；attempt01 product_failure=集成缺陷已定位；修复 415 后拟新 stage 单次重跑；[ATTEMPT-01](../runs/SHELL-WIN-COMBO-1/ATTEMPT-01.md)） |
-| 415 | SHELL-WIN-STAGE-PARSE-FIX-1 | doing（lead/producer410 续用；宿主顶层 stage 解析修复——嵌套 observations 同名字段遮蔽；worktree pc415-fix；零栈） |
+| 414 | SHELL-WIN-COMBO-1 | doing（lead 亲跑；attempt01 集成缺陷→415 修复 PASS；attempt02：**395 呈现 PASS**、409 分类器因外部前台干扰 FAIL（归环境，未定归属）；待一次 hands-off 重跑；[ATTEMPT-02](../runs/SHELL-WIN-COMBO-1/ATTEMPT-02.md)） |
+| 415 | SHELL-WIN-STAGE-PARSE-FIX-1 | **done PASS**（主管复跑 ctest 3/3；真实链 workspace_ready 生效；8c2c2b44→前端 main 8c3801f；[裁定](../rulings/2026-11-18-SHELL-WIN-STAGE-PARSE-FIX-1-pass.md)） |
 
 - 目标链：410/411/412 并发零栈 → 413 重建 → 414 单次真栈组合 → 391 手测放行。409 RULING 不重开；395/402 原 blocked 卡待本批收口后归档/收口。
 - 交接记录：[decisions/2026-11-18-pc-supervisor-handoff-planA.md](../decisions/2026-11-18-pc-supervisor-handoff-planA.md)。

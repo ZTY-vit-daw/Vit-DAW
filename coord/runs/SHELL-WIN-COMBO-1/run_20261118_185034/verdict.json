@@ -1,0 +1,5 @@
+{
+  "classification": "product_failure",
+  "reason": "Godot foreground/focus observed",
+  "coverage": "Native first-show + optional correction; own-thread WM_ACTIVATE/WM_SETFOCUS only during message_interval; polling before open through stable. Poll gaps and rendered frames are not covered. No whole-open-interval zero-activation claim."
+}
