@@ -1,0 +1,79 @@
+{
+  "schema": "score_binding_397_review_logs.v1",
+  "reviewer": "lead/score397stack (DeepSeek-V4.1-Flash; PC)",
+  "date": "2026-11-18",
+  "worktree": "C:/Users/timoz/.codex/worktrees/score-binding-397/Vit_DAW",
+  "baseline_commit": "c6991e1872de690b9c8976ec465366ff7c3cb1c0",
+  "note": "exit codes and counts recorded in REVIEW.md §2; failed attempts classified as execution-pipeline artifacts in §2.1",
+  "logs": [
+    {
+      "name": "logs/full-vitest.log.gz",
+      "command": "npm run test",
+      "exit": 0,
+      "classification": "clean_evidence_run",
+      "original_bytes": 18343472,
+      "original_sha256": "C5DC9780BBD72FD074E24F8CB7B1BA4E9B9531950AEC60C7EB80D90818A9590F",
+      "compressed_bytes": 272923,
+      "compressed_sha256": "686CC0C4CA6A04A1E5FFF35F66EDB39A0DEA643AD06D9457A5A9484CBD756460",
+      "summary": "59 files / 717 tests passed; duration 5.10s; no unhandled errors"
+    },
+    {
+      "name": "logs/focused-11.log",
+      "command": "npm run test -- src/scoreworkbench/ScoreTrackWorkbench.test.tsx",
+      "exit": 0,
+      "classification": "clean_evidence_run",
+      "bytes": 432,
+      "sha256": "08D754F8D117C4C7E3DC3AD6B97E62DBC7CADC6C1F1C177FD0A864322DA772BA",
+      "summary": "1 file / 11 tests passed"
+    },
+    {
+      "name": "logs/build.log",
+      "command": "npm run build",
+      "exit": 0,
+      "classification": "clean_evidence_run",
+      "bytes": 2754,
+      "sha256": "B8539515903F0A1B3ED865B31FBA259389CB0F01AA69DE493599A6FCDCECD561",
+      "summary": "tsc --noEmit 0 errors + vite build (1790 modules, built 3.02s); existing large-chunk warning only"
+    },
+    {
+      "name": "logs/npm-ci.log",
+      "command": "npm ci",
+      "exit": 0,
+      "classification": "clean_evidence_run",
+      "bytes": 214,
+      "sha256": "757C531C80C8FEAC8D24560323398BB988527BAAD9016F3CDFF666E12B9483E0",
+      "summary": "added 170 packages in 6s; deprecation warning only"
+    },
+    {
+      "name": "logs/render-397.log",
+      "command": "node src/scoreworkbench/render-smoke.mjs local-397-review/render",
+      "exit": 0,
+      "classification": "clean_evidence_run",
+      "bytes": 199,
+      "sha256": "52E8FF8A0AB32660D21A60C75B333A8184AE621BE43620C59281366FBB563673",
+      "summary": "status PASS; 11 assertions; errors=[]"
+    },
+    {
+      "name": "logs/harness-failures/vitest-attempt1-timeline.log.gz",
+      "command": "npm run test 2>&1 | Tee-Object -FilePath ...",
+      "exit": 1,
+      "classification": "execution_pipeline_artifact_not_product",
+      "original_bytes": 37340218,
+      "original_sha256": "21B520431A5F7157BBFACBEDD9D6CABE579A711448C19A9C87F5CCD42D062936",
+      "compressed_bytes": 548479,
+      "compressed_sha256": "60B428183B9EAA66B044A6D2A72890DB6B69DFF1ED97468EA61A389AE0FAB63F",
+      "error_signature": "unhandled [vitest-worker]: Timeout calling \"snapshotSaved\"; 59 files/717 tests had passed, no FAIL test file"
+    },
+    {
+      "name": "logs/harness-failures/vitest-attempt2-timeline.log.gz",
+      "command": "npm run test 2>&1 | Tee-Object -FilePath ...",
+      "exit": 1,
+      "classification": "execution_pipeline_artifact_not_product",
+      "original_bytes": 37341062,
+      "original_sha256": "4FB83C6F8262F5926DC8FA8918F88947D1B7C541788B361680080892251D74CB",
+      "compressed_bytes": 548600,
+      "compressed_sha256": "A3565386C88D1BAA2A956CA7AD047272684BC22B6A01218E377B613E1F031FCA",
+      "error_signature": "[vitest-worker]: Timeout calling \"fetch\" on module load for 14 suites; 522 tests passed; zero assertion-level FAIL; resolved by cmd direct redirection (see clean run)"
+    }
+  ]
+}

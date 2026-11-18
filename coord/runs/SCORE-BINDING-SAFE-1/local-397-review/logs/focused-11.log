@@ -1,0 +1,14 @@
+
+> ask-vit-webui@0.1.0 test
+> vitest run src/scoreworkbench/ScoreTrackWorkbench.test.tsx
+
+
+ RUN  v3.2.7 C:/Users/timoz/.codex/worktrees/score-binding-397/Vit_DAW/agent/webui
+
+ ✓ src/scoreworkbench/ScoreTrackWorkbench.test.tsx (11 tests) 332ms
+
+ Test Files  1 passed (1)
+      Tests  11 passed (11)
+   Start at  20:05:38
+   Duration  1.55s (transform 99ms, setup 0ms, collect 265ms, tests 332ms, environment 626ms, prepare 132ms)
+

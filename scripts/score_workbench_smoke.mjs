@@ -579,6 +579,50 @@ async function main() {
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const page = await context.newPage();
 
+  // 397 S1: capture the production apply payload at the network layer so the
+  // UI binding identity can be compared with the ACTUAL write target (the same
+  // target the kernel readback below is made against). This is an observation
+  // of the real `/agent/invoke` request, not a test backdoor.
+  const applyRequests = [];
+  page.on("request", (request) => {
+    if (!request.url().endsWith("/agent/invoke")) return;
+    let payload = null;
+    try {
+      payload = request.postDataJSON();
+    } catch {
+      return;
+    }
+    if (!payload || payload.tool !== "apply_midi_note_patch") return;
+    const applied = payload.args || {};
+    applyRequests.push({
+      track_id: String(applied.track_id ?? ""),
+      clip_id: String(applied.clip_id ?? ""),
+      time_unit: String(applied.time_unit ?? ""),
+      confirmed: payload.confirmed === true
+    });
+  });
+  const scoreProjectKey = (state) => String((((state || {}).project) || {}).project_path || "").replace(/\\/g, "/");
+  const assertUiBinding = async (label, expectedProjectKey, expectedTrackID, expectedClipID, rootCountBefore) => {
+    const loadedRaw = await page.getAttribute("[data-score-root]", "data-score-loaded-target");
+    const selectedClip = (await page.getAttribute("[data-score-root]", "data-score-clip-id")) || "";
+    const writeReady = (await page.getAttribute("[data-score-root]", "data-score-write-ready")) || "";
+    let loaded = null;
+    try {
+      loaded = JSON.parse(loadedRaw || "null");
+    } catch {
+      loaded = null;
+    }
+    const expected = [expectedProjectKey, String(expectedTrackID), String(expectedClipID)];
+    return assert(
+      "S1-ui-binding-" + label,
+      rootCountBefore === 0 && expectedProjectKey !== "" && Array.isArray(loaded) && loaded.length === 3 &&
+        loaded[0] === expected[0] && String(loaded[1]) === expected[1] && String(loaded[2]) === expected[2] &&
+        selectedClip === expected[2] && writeReady === "true",
+      "expected " + JSON.stringify(expected) + " loaded=" + String(loadedRaw).slice(0, 160) +
+        " selected=" + selectedClip + " write-ready=" + writeReady + " root-before=" + rootCountBefore
+    );
+  };
+
   const openScorePanel = async (phaseName, targetClipID) => {
     const wanted = targetClipID || clipID;
     await page.goto(args.agentHttp + "/app/", { waitUntil: "domcontentloaded" });
@@ -586,15 +630,32 @@ async function main() {
     const tab = page.locator('[data-workbench-tab="score"]');
     if ((await tab.count()) !== 1) throw new Error("score tab missing on " + phaseName);
     await tab.click();
-    await page.waitForSelector("[data-score-root]", { timeout: 15000 });
+    await page.waitForSelector("[data-score-binding-root]", { timeout: 15000 });
+    // 397 S1 precondition: the panel must not mount a target before an explicit
+    // track/clip selection (no implicit auto-load target).
+    const rootBefore = await page.locator("[data-score-root]").count();
+    const bindingState = await fetch(args.agentHttp + "/agent/ui/state").then((reply) => reply.json());
+    const targetTrack = (bindingState.tracks || []).find((track) => (track.clips || []).some((clip) => String(clip.clip_id ?? clip.id) === wanted));
+    if (!targetTrack) throw new Error("target track missing on " + phaseName);
+    await page.waitForSelector(".score-track-item", { timeout: 10000 });
+    const trackButtons = page.locator(".score-track-item");
+    const trackIndex = await trackButtons.evaluateAll((items, id) => items.findIndex((node) => node.getAttribute("data-score-track-id") === id), String(targetTrack.track_id ?? targetTrack.id));
+    if (trackIndex < 0) throw new Error("score track button missing on " + phaseName);
+    await trackButtons.nth(trackIndex).click();
     // 多 clip 工程=常态（boot 演示工程 7 轨+本腿 fixture）：显式选择目标 clip
     //（真实 UI 事件，非测试后门；单 clip 工程会自动选中无需此步）。
     await page.waitForSelector("[data-score-clip-select]", { timeout: 10000 });
-    const currentClip = await page.getAttribute("[data-score-root]", "data-score-clip-id");
+    const currentClip = await page.locator("[data-score-root]").count() ? await page.getAttribute("[data-score-root]", "data-score-clip-id") : "";
     if (currentClip !== wanted) {
       await page.selectOption('[data-score-clip-select]', wanted);
     }
+    await page.waitForSelector("[data-score-root]", { timeout: 15000 });
+    await page.waitForSelector('[data-score-write-ready="true"]', { timeout: 15000 });
     await page.waitForTimeout(1800); // clip 选择 -> 桥重建 -> 回读装载
+    // 397 S1: UI-declared binding identity must equal the target used below for
+    // the kernel readback (project key + track + clip), and no implicit target
+    // may exist before the explicit selection.
+    await assertUiBinding(phaseName, scoreProjectKey(bindingState), targetTrack.track_id ?? targetTrack.id, wanted, rootBefore);
   };
   const domModel = async () => JSON.parse(await page.getAttribute("[data-score-root]", "data-score-model"));
   const rootAttr = async (name) => (await page.getAttribute("[data-score-root]", name)) || "";
@@ -671,6 +732,13 @@ async function main() {
       "kernel " + JSON.stringify(noteSetOf(kernelNotes1)) + " vs expected " + JSON.stringify(expectedAfterEdit));
     assert("A5-saved-only-after-verify", applyState === "saved" && (await rootAttr("data-score-dirty")) === "false",
       "applyState=" + applyState + " (bridge already verified readback before surfacing saved)");
+
+    // 397 S1: the ACTUAL production write payload must target exactly the UI
+    // bound track/clip -- the same ids used for the kernel readback above.
+    assert("S1-apply-target",
+      applyRequests.length === 1 && applyRequests[0].track_id === trackID && applyRequests[0].clip_id === clipID &&
+        applyRequests[0].time_unit === "beats" && applyRequests[0].confirmed === true,
+      "apply payload " + JSON.stringify(applyRequests) + " vs kernel readback target " + JSON.stringify({ track_id: trackID, clip_id: clipID }));
 
     // A2 step 2: after apply the DOM model is the kernel readback (same ids)
     const model2 = await domModel();
@@ -977,13 +1045,23 @@ async function main() {
       return fail(1, "J1-score-tab", "score tab missing on workbench surface after journey entry");
     }
     await journeyTab.click();
-    await page.waitForSelector("[data-score-root]", { timeout: 15000 });
+    await page.waitForSelector("[data-score-binding-root]", { timeout: 15000 });
+    const journeyRootBefore = await page.locator("[data-score-root]").count(); // 397: no implicit target
+    await page.waitForSelector(".score-track-item", { timeout: 10000 });
+    const journeyTrackButtons = page.locator(".score-track-item");
+    const journeyTrackIndex = await journeyTrackButtons.evaluateAll((items, id) => items.findIndex((node) => node.getAttribute("data-score-track-id") === id), melodyTrackID);
+    if (journeyTrackIndex < 0) throw new Error("J1 score melody track button missing");
+    await journeyTrackButtons.nth(journeyTrackIndex).click();
     await page.waitForSelector("[data-score-clip-select]", { timeout: 10000 });
-    const journeyClip = await rootAttr("data-score-clip-id");
+    const journeyClip = await page.locator("[data-score-root]").count() ? await rootAttr("data-score-clip-id") : "";
     if (journeyClip !== melodyClipID) {
       await page.selectOption('[data-score-clip-select]', melodyClipID);
     }
+    await page.waitForSelector("[data-score-root]", { timeout: 15000 });
+    await page.waitForSelector('[data-score-write-ready="true"]', { timeout: 15000 });
     await page.waitForTimeout(1800); // clip select -> bridge rebuild -> reload
+    const journeyState = await fetch(args.agentHttp + "/agent/ui/state").then((reply) => reply.json());
+    await assertUiBinding("J1-journey", scoreProjectKey(journeyState), melodyTrackID, melodyClipID, journeyRootBefore);
     const journeyStatus = await rootAttr("data-score-status");
     await page.screenshot({ path: join(args.screenshotDir, "j1_score_panel_from_project.png") });
     assert("J1-score-panel-from-project-journey",
