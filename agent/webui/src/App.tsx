@@ -551,6 +551,10 @@ function EntrySurfaceApp() {
     // SHELL-ENTRY-RAIL-1（417）：入口壳层——左栏跨 surface 常驻（同一条 data-entry-rail
     // 节点不重建；收展状态在 WindowPresentationProvider），右主区内两个 hidden surface
     // div 原样放入（各自内容仍按 surface 挂载/隐藏，既有旅程不变）。
+    // SHELL-SETTINGS-DUP-1（426）：live 入口唯一设置入口 = 左栏 footer
+    // [data-entry-rail-foot] [data-entry-rail-settings]。不再把 onOpenSettings 传给
+    // ConvergedLauncher/ProjectSurface——两者未收到 prop 即不渲染各自 footer 设置
+    // （避免对话窗下方/抽屉底部重复）；非 entry 的 MainApp 旧路径保持原样。
     return (
       <EntryShell
         surface={surface === "launcher" ? "launcher" : "project"}
@@ -566,7 +570,6 @@ function EntrySurfaceApp() {
                   setSurface("project");
                   postEntrySurfaceAck("project");
                 } : undefined}
-                onOpenSettings={() => setEntrySettingsOpen(true)}
               />
             ) : null}
           </div>
@@ -583,7 +586,6 @@ function EntrySurfaceApp() {
                     setSurface("launcher");
                     postEntrySurfaceAck("launcher");
                   }}
-                  onOpenSettings={() => setEntrySettingsOpen(true)}
                   conversationUIState={entryUIState}
                   onRefreshConversationState={refreshEntryUIState}
                 />

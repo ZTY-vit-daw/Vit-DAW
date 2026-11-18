@@ -2555,14 +2555,22 @@ async function main() {
       const b = button.getBoundingClientRect();
       return b.x < innerWidth / 3 && b.bottom > innerHeight - 80 && b.bottom <= innerHeight;
     });
-    entryAssert("startup settings bottom left", await bottomLeft("[data-launcher-settings]"));
-    await entryPage.locator("[data-launcher-settings]").click();
+    // SHELL-SETTINGS-DUP-1（426）：live entry 唯一设置入口=左栏 footer
+    // [data-entry-rail-foot] [data-entry-rail-settings]（B2a/418 已提供）。converged
+    // launcher 抽屉与 project footer 的旧设置按钮在 live entry 下不再渲染（App 不传
+    // onOpenSettings），由下方唯一性断言守住；fixture/gallery 路径（无 rail context）
+    // 保持各自原有断言不变。
+    const railSettings = "[data-entry-rail-foot] [data-entry-rail-settings]";
+    entryAssert("startup settings bottom left", await bottomLeft(railSettings));
+    await entryPage.locator(railSettings).click();
     await entryPage.waitForSelector("[data-entry-settings][open] .settings-page");
     await entryPage.keyboard.press("Escape");
-    entryAssert("Escape closes settings and restores focus", await entryPage.locator("[data-launcher-settings]").evaluate((button) => document.activeElement === button));
+    entryAssert("Escape closes settings and restores focus", await entryPage.locator(railSettings).evaluate((button) => document.activeElement === button));
+    entryAssert("startup settings entry is unique", await entryPage.locator(railSettings).count() === 1 && await entryPage.locator("[data-launcher-settings]").count() === 0 && await entryPage.locator("[data-project-settings]").count() === 0, `rail=${await entryPage.locator(railSettings).count()} drawer=${await entryPage.locator("[data-launcher-settings]").count()} project=${await entryPage.locator("[data-project-settings]").count()}`);
     await entryPage.evaluate(() => window.__entryDispatch({ type: "vit_surface", surface: "project" }));
     await entryPage.waitForSelector("[data-project-root]");
-    entryAssert("project settings bottom left", await bottomLeft("[data-project-settings]"));
+    entryAssert("project settings bottom left", await bottomLeft(railSettings));
+    entryAssert("project settings entry is unique (no duplicate in conversation frame)", await entryPage.locator(railSettings).count() === 1 && await entryPage.locator("[data-project-settings]").count() === 0 && await entryPage.locator("[data-launcher-settings]").count() === 0, `rail=${await entryPage.locator(railSettings).count()} project=${await entryPage.locator("[data-project-settings]").count()} drawer=${await entryPage.locator("[data-launcher-settings]").count()}`);
     await entryPage.locator("[data-project-composer] textarea, [data-project-composer] input").fill("保留输入 fixture");
     await entryPage.locator("[data-project-view-launcher]").click();
     await entryPage.waitForSelector('[data-launcher-mode="project-management"]');
@@ -2583,7 +2591,7 @@ async function main() {
     await entryPage.evaluate((requestId) => window.__entryDispatch({ type: "vit_launcher_result", request_id: requestId, status: "canceled" }), fileRequest.request_id);
     await entryPage.locator("[data-launcher-return-project]").click();
     entryAssert("project input retained", await entryPage.locator("[data-project-composer] textarea, [data-project-composer] input").inputValue() === "保留输入 fixture");
-    await entryPage.locator("[data-project-settings]").click();
+    await entryPage.locator(railSettings).click();
     await entryPage.waitForSelector("[data-entry-settings][open] .settings-page");
     await entryPage.locator('[data-entry-settings] button[title="关闭设置"]').click();
     await entryPage.locator("[data-project-view-launcher]").click();
@@ -2607,7 +2615,8 @@ async function main() {
     entryAssert("both internal view directions acknowledge existing bridge", acks.includes("project") && acks.includes("launcher"), JSON.stringify(acks));
     for (const width of [420, 1440]) {
       await entryPage.setViewportSize({ width, height: 900 });
-      entryAssert(`settings accessible at ${width}px`, await bottomLeft("[data-launcher-settings]"));
+      entryAssert(`settings accessible at ${width}px`, await bottomLeft(railSettings));
+      entryAssert(`settings entry stays unique at ${width}px`, await entryPage.locator(railSettings).count() === 1 && await entryPage.locator("[data-launcher-settings], [data-project-settings]").count() === 0);
     }
   } catch (err) { entryFailures.push(`ENTRY388: journey exception ${String(err)}`); }
   finally { await entryContext.close(); }
