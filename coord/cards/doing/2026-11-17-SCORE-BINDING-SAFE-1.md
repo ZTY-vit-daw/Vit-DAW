@@ -22,3 +22,11 @@
 - 前置：397 零栈交付 c6991e18（26 文件 957+/149−，5 生产文件）已推；主管尚未独立验收/合入，真栈前必须先由主管复核 diff 并合入当前 main。
 - 本段任务：①在 worktree 独立复跑 vitest/build/必要 render 段并核对 5 生产文件与断言未弱化；②按真实栈验收要求（生产路径选轨→edit→apply→目标回读 + J1–J3）列出 smoke 覆盖缺口；③以 `coord/runs/SCORE-DG1A-COMPLETE-1/RUNBOOK.md` 为模板写本卡真栈 RUNBOOK（kerl+agent berth、webui 从本分支构建、kernel 二进制借用、插件数据库前置、运行次数/失败分类/止损、工件契约）；④提交零栈证据与 runbook 草案后停手，候主管复核合入与真栈授权。
 - 真栈纪律：单 owner；跑前 PC-RUNTIME-STACK 登记+推送+重读；新 run 目录；recents 快照/finally 还原哈希亲证；零 LLM 死端点；断言失败不原样重跑。
+
+## 零栈复核回执 + 集成分支（2026-11-18 晚，主管 lead）
+
+- `lead/score397stack` 独立复核 c6991e18：59 files/717 tests（715+2 计数自洽）、build、397 专项 render 11/11 PASS；生产域恰 5 文件 361+/137−、无弱化；两次 vitest 失败为执行装置（PowerShell 2>&1|Tee 37MB 日志导致 worker 超时），非产品，原始日志留档。复核/runbook 提交 c17bf4bf（本地分支）。
+- 真栈缺口：G1 UI 身份==写入目标、G2 非目标 clip 不变、G3 dirty 切换、G4 多 clip 显式选择、G5/G6/G7 等；本轮最小补 S1（G1 显式断言），其余入 RUNBOOK 覆盖边界。
+- 跨卡风险：`scripts/webui_rendered_dom_smoke.mjs` 点 score 页签后直接等 data-score-root，397 后需先选轨；由续段做最小适配（保 fail-honest 断言）。
+- 集成分支：`codex/score-binding-397-integ`（worktree `C:/Users/timoz/.codex/worktrees/pc397-merge/Vit_DAW`），基于主仓 main f529e3f2 干净合并 c6991e18+c17bf4bf，HEAD **df0e134b**，无冲突。
+- 下一步：续段完成集成适配/零栈复跑/RUNBOOK 候选 HEAD 更新 → 主管复核合入 → 登记真栈单次授权运行。
