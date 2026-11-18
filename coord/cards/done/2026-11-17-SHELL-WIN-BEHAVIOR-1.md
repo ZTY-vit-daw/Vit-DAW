@@ -35,3 +35,9 @@ blocked：391normal旧版首次激活FAIL，E/E2两个候选均bootstrap/恢复�
 - **解锁要件已满足**（395 兼容 + 组合真栈 + 实际入口刷新）。**用户手测 v7 放行**：入口 `启动VitShell.cmd`，清单与边界见 [HANDTEST-V7](../../runs/SHELL-WIN-BEHAVIOR-1/HANDTEST-V7.md)。
 - 本卡移回 todo 等待用户手测结果；通过后出 391 终验 ruling 并归档。父卡仍不可被其他执行流重复领取。
 - 边界：396 retry 微卡未并入；导出/release DLL 未刷新；单次成功路径不代表稳定性。
+
+## 用户手测终验（2026-11-18 晚）
+
+- 用户以产品入口 `启动VitShell.cmd` 完成手测：**效果非常好，PASS**。覆盖双窗焦点/层级、真实装载反馈、窗口内行为。
+- 后续项：状态环动效 → 416 已修复 PASS；工程态对话流列表 → 417/418/419 新线。
+- 终验裁定：[rulings/2026-11-18-SHELL-WIN-BEHAVIOR-1-handtest-pass.md](../../rulings/2026-11-18-SHELL-WIN-BEHAVIOR-1-handtest-pass.md)。
