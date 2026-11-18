@@ -66,3 +66,9 @@ The user explicitly agreed to bring the next VitShell window to foreground for t
 Shell06 script/wrapper exit 0, host exit 0, zero LLM, 792 samples, native initial ordering correct with no correction, zero activation/focus messages in the installed interval, 16 DIP geometry at 168 DPI. Independent process/active-port clearance and six authority hashes passed. This is one successful shell path within the defined coverage, not a stability claim.
 
 Separately allow one external invocation `runtime_external_02` using the same final script/product hashes and supervisor owner, fresh `C:/Users/timoz/AppData/Local/Temp/shell409-product-stage8-500b2f8ce8c44a129c72180d0475f1f1`, its `frontend/`, `-Condition external -NaturalConditionWaitSec 20`. The user need not interact with VitShell. Require an actual independent natural external foreground and unchanged identity, plus all frozen assertions and hygiene. Stop on any anomaly; no automatic additional run.
+
+## Explicit external foreground setup, 13:39 +08:00
+
+External02 exited 3 before open: its natural foreground was the VitShell itself (PID5340). No product assertion failed; host exit 0, no teardown error, zero LLM, independent clearance and six hashes passed. The user is now instructed to switch naturally back to Edge after the next product window appears, using the already agreed foreground setup cooperation; assertions remain automated and no agent desktop control is used.
+
+Allow one external03 with the changed explicit foreground setup, 60-second read-only condition wait, same final script/product/owner, fresh `C:/Users/timoz/AppData/Local/Temp/shell409-product-stage9-6afacba69fb44d85be224cdfe5702f88` and its `frontend/`, fresh `runtime_external_03`. This is not another run against the same unfulfilled foreground setup. All criteria and stop limits remain; no automatic additional run.
