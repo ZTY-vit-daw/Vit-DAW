@@ -56,3 +56,8 @@
 - 主检出 `agent/webui/dist/index.html` 重建，新 SHA256=`8D4D25F09314ECD5A9380DB75EE9E863D7B8D80C81090D2073DC89DC4C31EC6F`；VitShell/DLL/agent 哈希不变。
 - 当前入口：B1 左栏 + B2a/B2b 对话流（当前/跨工作树浏览与继续）+ 397 评分绑定 + 426 设置唯一 + 427 工程页消息顺序/新对话修复。
 - 待做：422 跨工作树真栈组合验证；用户手测跨工作树打开并继续。
+
+## 更新（2026-11-18 21:50，428 窗口壳 A 方案合入后）
+
+- 主检出 `agent/webui/dist/index.html` 重建，新 SHA256=`7C30A2B6C277A4996799CC78F2143BA92670BF30F1DE64477FAF0AD52A677D46`。
+- A 方案：右侧 ConversationWindow 窗口壳 + launcher/project 持久流层；管理视图↔工程往返不重建、200ms 过渡、滚动/草稿/加载卡保留。首次 launcher→project 仍按 2026-11-15 旧裁定卸载 launcher 层一次；首次工程打开仍有一次真实加载。

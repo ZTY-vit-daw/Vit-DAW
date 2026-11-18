@@ -31,3 +31,10 @@
 ## 停止
 
 同确定性断点两次失败→停；需改 windowPresentation/agent/Go/内核→停报；若发现必须重做统一 frame 才能达到观感，先交回主管裁定是否升级 B 方案。
+
+## 回执与验收（2026-11-18 晚，A 方案）
+
+- commit `4cb47032`；主管亲跑 755 测/build/RWP 114 检查 0 失败/test:render 全段 PASS；合入 main `7b815d57`；dist=`7C30A2B6…`。
+- 交付：ConversationWindow 窗口壳 + 持久流层；管理视图往返不重建、滚动/草稿/加载卡保留；200ms crossfade/reduced-motion 关闭；114 渲染断言语义。
+- 边界：首次 launcher→project 仍按 2026-11-15 旧裁定卸载 launcher 层一次（改该裁定需用户确认）；首次工程打开仍有一次真实加载；层内 frame 未统一（B3 另议）。
+- 裁定：[rulings/2026-11-18-CONV-WINDOW-SHELL-1-pass.md](../../rulings/2026-11-18-CONV-WINDOW-SHELL-1-pass.md) PASS；候用户手测观感。
