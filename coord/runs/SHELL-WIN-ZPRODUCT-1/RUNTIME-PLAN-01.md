@@ -16,3 +16,11 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:/Users/timoz/.codex/wo
 ```
 
 Set a run-private `WEBVIEW2_USER_DATA_FOLDER` in the launching shell so the product child inherits it. Preserve the full command, wrapper exit, `d1_smoke_report.json`, raw logs, native samples, classifier input/verdict, authoritative before/after hashes and teardown clearance. The supervisor must inspect the actual evidence before releasing the reservation or deciding another condition.
+
+## Corrected harness attempt, 12:59 +08:00
+
+Attempt `runtime_shell_01` stopped before any product process: script exit 2 because the lease parser rejected a reservation's teardown prose containing the word `释放`. The outer metadata wrapper then hung and was terminated at its exact PID/birth; its exit is -1 and the original artifacts are preserved. All six authoritative hashes were equal and the supervisor independently confirmed zero processes/active ports before releasing the first reservation (`08f49b2c`). No product behavior was exercised.
+
+The parser now validates the timestamped event header's action separately from its prose. Nine offline cases using the captured actual reservation plus wrong-owner/release/no-start cases pass. Corrected script SHA-256 `C5B4B1EE91E66B66BE1A6F51C817EC1DC9E14AEA8203663710320B0B4ED9C6CF`. This is a changed harness, not an unchanged retry.
+
+Authorize one corrected shell-condition attempt only, after its new shared reservation: owner is supervisor `/root/01a1eca3-e329-73f2-b43a-390e9fafbd30`, running the already independently implemented code for acceptance. Use `StageRoot C:/Users/timoz/AppData/Local/Temp/shell409-product-stage2-436f76ac63244f0f93a3ca6860e7c431`, its `frontend/` as Godot project, and fresh `RunRoot C:/Users/timoz/.codex/worktrees/shell-zproduct-smoke-409/Vit_DAW/coord/runs/SHELL-WIN-ZPRODUCT-1/runtime_shell_02`. The product source, DLL and host hashes are unchanged. This fresh copy retains imported caches and copied dependencies from the unused first stage, excludes its log override, and has fresh staged runtime timestamps. Call the script directly with plain-text command/exit capture; do not reuse the recursive metadata wrapper. All other success criteria, one-attempt limit, stop conditions and coverage boundaries remain as above. External remains unauthorized.
