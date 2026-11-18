@@ -1,0 +1,35 @@
+[waveform_envelope.lifecycle] begin_gen key=1038 gen=1 retired_handles=0
+[waveform_envelope.lifecycle] start_bake key=1038 gen=1 priority_rank=10 track_id=1007 clip_id=1038 source_revision=C:\Users\timoz\.codex\worktrees\pc397-merge\Vit_DAW\VitApp\Workspace\Artifacts\smoke\strip_silence_agent_smoke_12432_1795004356017.wav|size=194084|mtime=1795004356079|length=2.2000 clip_revision=clip=1038|track=1007|source=C:\Users\timoz\.codex\worktrees\pc397-merge\Vit_DAW\VitApp\Workspace\Artifacts\smoke\strip_silence_agent_smoke_12432_1795004356017.wav|size=194084|mtime=1795004356079|length=2.2000|offset=0.0000|length=2.2000 source_offset=0.0000 bake_length=2.2000 frames_per_tile=1024 file=C:\Users\timoz\.codex\worktrees\pc397-merge\Vit_DAW\VitApp\Workspace\Artifacts\smoke\strip_silence_agent_smoke_12432_1795004356017.wav
+[waveform_envelope.queue] workers_started count=4 queue_max=256
+[waveform_envelope.queue] enqueue key=1038 gen=1 priority_rank=10 queue_size=1
+[VitImportPerf] op=waveform_envelope stage=source_read_lease total_ms=0.02 key=1038 gen=1 wait_ms=0.01
+[VitImportPerf] op=waveform_envelope stage=reader_open total_ms=2.35 key=1038 gen=1 stage_ms=0.20
+[VitImportPerf] op=waveform_envelope stage=range_ready total_ms=4.57 key=1038 gen=1 sample_rate=44100.00 total_tiles=1 total_duration=2.2000 frames_per_tile=1024
+[VitImportPerf] op=waveform_envelope stage=tile_read_begin total_ms=7.27 key=1038 gen=1 tile=1/1 source_sample=0 valid_samples=97020
+[VitImportPerf] op=waveform_envelope stage=tile_read_end total_ms=9.53 key=1038 gen=1 tile=1/1
+[VitImportPerf] op=waveform_envelope stage=tile_progress total_ms=12.87 key=1038 gen=1 tile=1/1 tile_ms=5.79 tile_duration=2.2000 handles=1
+[VitImportPerf] op=waveform_envelope stage=finish total_ms=14.46 key=1038 gen=1 status=ok completed_tiles=1 total_tiles=1
+[waveform_envelope.lifecycle] begin_gen key=1002 gen=1 retired_handles=0
+[waveform_envelope.lifecycle] begin_gen key=1003 gen=1 retired_handles=0
+[waveform_envelope.lifecycle] begin_gen key=1004 gen=1 retired_handles=0
+[waveform_envelope.lifecycle] begin_gen key=1005 gen=1 retired_handles=0
+[waveform_envelope.lifecycle] begin_gen key=1006 gen=1 retired_handles=0
+[waveform_envelope.lifecycle] begin_gen key=1007 gen=1 retired_handles=0
+[waveform_envelope.lifecycle] begin_gen key=1012 gen=1 retired_handles=0
+[waveform_envelope.lifecycle] begin_gen key=1017 gen=1 retired_handles=0
+[waveform_envelope.lifecycle] begin_gen key=1022 gen=1 retired_handles=0
+[waveform_envelope.lifecycle] begin_gen key=1027 gen=1 retired_handles=0
+[waveform_envelope.lifecycle] begin_gen key=1032 gen=1 retired_handles=0
+[waveform_envelope.lifecycle] begin_gen key=1039 gen=1 retired_handles=0
+[waveform_envelope.lifecycle] begin_gen key=1002 gen=2 retired_handles=0
+[waveform_envelope.lifecycle] begin_gen key=1003 gen=2 retired_handles=0
+[waveform_envelope.lifecycle] begin_gen key=1004 gen=2 retired_handles=0
+[waveform_envelope.lifecycle] begin_gen key=1005 gen=2 retired_handles=0
+[waveform_envelope.lifecycle] begin_gen key=1006 gen=2 retired_handles=0
+[waveform_envelope.lifecycle] begin_gen key=1007 gen=2 retired_handles=0
+[waveform_envelope.lifecycle] begin_gen key=1012 gen=2 retired_handles=0
+[waveform_envelope.lifecycle] begin_gen key=1017 gen=2 retired_handles=0
+[waveform_envelope.lifecycle] begin_gen key=1022 gen=2 retired_handles=0
+[waveform_envelope.lifecycle] begin_gen key=1027 gen=2 retired_handles=0
+[waveform_envelope.lifecycle] begin_gen key=1032 gen=2 retired_handles=0
+[waveform_envelope.lifecycle] begin_gen key=1039 gen=2 retired_handles=0
