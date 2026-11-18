@@ -1,0 +1,65 @@
+﻿diff --git a/batch3/catalog_before_batch3.yaml b/batch3/catalog_after_batch3.yaml
+index 1d37ed16..36a96c45 100644
+--- a/batch3/catalog_before_batch3.yaml
++++ b/batch3/catalog_after_batch3.yaml
+@@ -102,45 +102,45 @@ items:
+     printed_page: 22
+     pdf_page: 27
+     source_image: source/pages/pdf-027_book-022.png
+-    excerpt: 教材平直线谱例，具体短句待核
+-    file: null
+-    status: planned_transcription
++    excerpt: P22 平直线例（1=♭B 2/4，图面 8 小节：3. 3 3 0｜3. 3 3 0｜3 3 3 3｜♯2 3 0｜6. 6 6｜6. 6 6｜6 6 6 6｜♯5 6 0；0 为休止）
++    file: assets/midi/contour-flat_chengsheng-first8_Bb_120bpm.mid
++    status: transcribed_unverified
+   - id: contour-smooth
+     title: 早晨的问候
+     concepts: [平缓进行, 音域与级进小跳]
+     printed_page: 25
+     pdf_page: 30
+     source_image: source/pages/pdf-030_book-025.png
+-    excerpt: 能体现五度框架内组织的原例，具体短句待核
+-    file: null
+-    status: planned_transcription
++    excerpt: P25 平缓进行例（1=C 3/4，弱起 2 个十六分 + 图面 4 小节：2̇2̇｜2̇. 2̇2̇2̇｜♯1̇. 3̇ 3̇. 6 7｜i̇. i̇i̇i̇｜7. 2̇ 2̇(延长) 0）
++    file: assets/midi/contour-smooth_morning-first4_C_72bpm.mid
++    status: transcribed_unverified
+   - id: contour-wave
+     title: 海港之夜
+     concepts: [跌宕起伏, 上下大跳]
+     printed_page: 26
+     pdf_page: 31
+     source_image: source/pages/pdf-031_book-026.png
+-    excerpt: 含起伏上下文的原例，具体短句待核
+-    file: null
+-    status: planned_transcription
++    excerpt: P26 跌宕起伏例（1=♭B 4/4，弱起 0 3 + 图面第一行 4 小节：3̇ 3. 3̇ 2 2̇ 0 3｜2̇ 3. 3̇ i̇ i̇ 0 i̇｜7 2̇. i̇ 7 6 5 6｜3 - - 0 3；含八度/七度/六度大跳标注）
++    file: assets/midi/contour-wave_seaport-first4_Bb_60bpm.mid
++    status: transcribed_unverified
+   - id: analysis-huainian
+     title: 怀念战友
+     concepts: [同音反复, 级进与大跳, 切分与附点, 音乐语境]
+     printed_page: 27
+     pdf_page: 32
+     source_image: source/pages/pdf-032_book-027.png
+-    excerpt: 配合教材分析选取连贯短句，不转写整曲作为首包前提
+-    file: null
+-    status: planned_transcription
++    excerpt: P27 创作示例《怀念战友》首句（1=♭B 2/4，图面 4 小节：0 22 5 5｜5. 6 7 i̇ 7｜6 6 i̇ 7 6｜5 -；歌词“天山脚下是我可爱的家乡”；上方小数字/分数标记未入 MIDI）
++    file: assets/midi/analysis-huainian_first4_Bb_72bpm.mid
++    status: transcribed_unverified
+   - id: analysis-xiaocao
+     title: 小草
+     concepts: [同音级进跳进结合, 均分切分, 重复与统一]
+     printed_page: 28
+     pdf_page: 33
+     source_image: source/pages/pdf-033_book-028.png
+-    excerpt: 配合教材分析选取连贯短句，具体范围待核
+-    file: null
+-    status: planned_transcription
++    excerpt: P28 《小草》首句（1=G 2/4，图面第一行 8 小节：6̣6̣ 1 7̣｜6̣. 0｜6̣6̣ 3 2｜3. 0｜3 3 5 3｜2 2 1 7̣7̣｜6̣ 0 5｜3̣. 0；歌词“没有花香，没有树高，我是一棵无人知道的小草”）
++    file: assets/midi/analysis-xiaocao_first8_G_80bpm.mid
++    status: transcribed_unverified
+   - id: develop-prototype
+     title: 实践2原型动机
+     concepts: [旋律发展原型]
