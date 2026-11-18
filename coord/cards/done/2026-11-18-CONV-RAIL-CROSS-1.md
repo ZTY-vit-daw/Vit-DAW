@@ -27,3 +27,10 @@
 ## 停止
 
 同确定性断点两次失败→停；需改 agent/Go/内核/协议→停报；真实栈行为留 422。
+
+## 回执与验收（2026-11-18 晚）
+
+- commit `3c2e7775`；主管亲跑 755 测/build/RWP 101 检查 0 失败/test:render 全 PASS；合入 main `7cea611f`。
+- 交付：跨工作树折叠/懒加载、分支归属唯一、只读预览+蒙版、conversation_open 打开工作树并继续、失败/守卫/加载态。
+- 边界：真栈组合验证候 422；用户手测 dist `8D4D25F0…`。
+- 裁定：[rulings/2026-11-18-CONV-RAIL-CROSS-1-pass.md](../../rulings/2026-11-18-CONV-RAIL-CROSS-1-pass.md) PASS。

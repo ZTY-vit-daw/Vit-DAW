@@ -33,3 +33,9 @@
 ## 停止
 
 同确定性断点两次失败→停；需改 agent/Go/内核/协议→停报。
+
+## 回执与验收（2026-11-18 晚）
+
+- commit `30449b90`；主管亲跑（含 421 最终树）755 测/build/RWP 101 检查 0 失败/test:render 全 PASS；合入 main `c0a3ca6f`→`7cea611f`。
+- 修复：新对话无活动节点时从 HEAD 分叉 + 发送后刷新；加载卡移到消息列表之前。
+- 裁定：[rulings/2026-11-18-SHELL-PROJECT-STREAM-FIX-1-pass.md](../../rulings/2026-11-18-SHELL-PROJECT-STREAM-FIX-1-pass.md) PASS。
