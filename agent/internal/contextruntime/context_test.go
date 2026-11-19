@@ -510,6 +510,199 @@ func TestSnapshotJSONLPersistenceRoundTrip(t *testing.T) {
 	}
 }
 
+// ---- W02-A1b：bounded lesson context (additive field) ----
+
+func TestBuildProjectsBoundedLessonContext(t *testing.T) {
+	// fixedOptions keeps MaxTextRunes=80 / MaxListItems=5: the lesson contract
+	// has its own bounds and must not be squeezed by generic compaction.
+	opts := fixedOptions()
+	allowed := make([]string, 0, 10)
+	for i := 0; i < 10; i++ {
+		allowed = append(allowed, fmt.Sprintf("write_cmd_%d", i))
+	}
+	assets := make([]map[string]any, 0, 10)
+	for i := 0; i < 10; i++ {
+		assets = append(assets, map[string]any{
+			"id": fmt.Sprintf("asset_%d", i), "kind": "midi_reference",
+			"file": "assets/theme_twinkle_v0.mid", "sha256": strings.Repeat("a", 64),
+		})
+	}
+	cardTitle := strings.Repeat("课", LessonContextTitleMaxRunes+60)
+	nodeTitle := strings.Repeat("读", LessonContextTitleMaxRunes+60)
+	nodeGoal := strings.Repeat("目", LessonContextGoalMaxRunes+100)
+	payload := map[string]any{
+		"schema_version": "bogus.schema.never.trusted",
+		"card": map[string]any{
+			"id":    "first-run-twinkle",
+			"title": cardTitle,
+			"story": strings.Repeat("s", 20000),
+		},
+		"node": map[string]any{
+			"id": "n1_read_and_fix", "title": nodeTitle, "goal": nodeGoal,
+			"hint_ladder": []any{"hidden hint rung"},
+		},
+		"assets":        assets,
+		"selected_clip": map[string]any{"clip_id": "c_take_second", "track_id": "track_1"},
+		"allowed":       allowed,
+		"truncated":     false,
+		// Design-source and notes channels must never survive the projection.
+		"design_v1_yaml": "schema_version: vit.level_card.v0\nnodes: []\n",
+		"notes":          []any{map[string]any{"pitch": 60, "start": 0.0, "length": 1.0}},
+	}
+	input := map[string]any{LessonContextKey: payload}
+
+	snap := Build(Input{Context: input}, opts)
+	if snap.LessonContext == nil {
+		t.Fatalf("lesson context not projected")
+	}
+	card, _ := snap.LessonContext["card"].(map[string]any)
+	if card["id"] != "first-run-twinkle" {
+		t.Fatalf("card id = %v", card["id"])
+	}
+	if got := len([]rune(fmt.Sprint(card["title"]))); got != LessonContextTitleMaxRunes {
+		t.Fatalf("card title runes = %d want %d", got, LessonContextTitleMaxRunes)
+	}
+	node, _ := snap.LessonContext["node"].(map[string]any)
+	if node["id"] != "n1_read_and_fix" {
+		t.Fatalf("node id = %v", node["id"])
+	}
+	if got := len([]rune(fmt.Sprint(node["title"]))); got != LessonContextTitleMaxRunes {
+		t.Fatalf("node title runes = %d want %d", got, LessonContextTitleMaxRunes)
+	}
+	if got := len([]rune(fmt.Sprint(node["goal"]))); got != LessonContextGoalMaxRunes {
+		t.Fatalf("node goal runes = %d want %d", got, LessonContextGoalMaxRunes)
+	}
+	assetRows, ok := snap.LessonContext["assets"].([]map[string]any)
+	if !ok || len(assetRows) != LessonContextMaxItems {
+		t.Fatalf("assets = %+v", snap.LessonContext["assets"])
+	}
+	for _, row := range assetRows {
+		if row["file"] != nil || row["sha256"] != nil {
+			t.Fatalf("asset row leaked file/sha: %+v", row)
+		}
+	}
+	allowedRows, ok := snap.LessonContext["allowed"].([]string)
+	if !ok || len(allowedRows) != LessonContextMaxItems || allowedRows[0] != "write_cmd_0" {
+		t.Fatalf("allowed = %+v", snap.LessonContext["allowed"])
+	}
+	clip, _ := snap.LessonContext["selected_clip"].(map[string]any)
+	if clip["clip_id"] != "c_take_second" || clip["track_id"] != "track_1" {
+		t.Fatalf("selected_clip = %+v", clip)
+	}
+	if snap.LessonContext["schema_version"] != LessonContextSchemaVersion {
+		t.Fatalf("schema_version = %v", snap.LessonContext["schema_version"])
+	}
+	if snap.LessonContext["truncated"] != true {
+		t.Fatalf("truncated = %v (expected true after bounds)", snap.LessonContext["truncated"])
+	}
+
+	// Map()/JSON are the model- and audit-visible projections.
+	mapped, ok := snap.Map()["lesson_context"].(map[string]any)
+	if !ok || mapped["schema_version"] != LessonContextSchemaVersion {
+		t.Fatalf("Map() lost lesson_context: %v", snap.Map()["lesson_context"])
+	}
+	js := snap.JSON()
+	if !strings.Contains(js, "\"lesson_context\"") {
+		t.Fatalf("snapshot JSON missing lesson_context: %s", js)
+	}
+	for _, forbidden := range []string{"design_v1_yaml", "hint_ladder", "theme_twinkle_v0.mid", "sha256", "bogus.schema"} {
+		if strings.Contains(js, forbidden) {
+			t.Fatalf("snapshot JSON leaked %q: %s", forbidden, js)
+		}
+	}
+	if strings.Contains(js, strings.Repeat("s", 200)) {
+		t.Fatalf("snapshot JSON leaked the unbounded story field")
+	}
+	if strings.Contains(js, "\"notes\"") {
+		t.Fatalf("snapshot JSON leaked the notes table")
+	}
+
+	// Clone, not alias: later request mutation must not rewrite the snapshot,
+	// and snapshot mutation must not rewrite the caller's payload.
+	payload["card"].(map[string]any)["title"] = "mutated-after-build"
+	if got := snap.LessonContext["card"].(map[string]any)["title"]; got == "mutated-after-build" {
+		t.Fatalf("snapshot aliases the request payload")
+	}
+	snap.LessonContext["node"].(map[string]any)["goal"] = "snapshot-mutation"
+	if nodeGoal != strings.Repeat("目", LessonContextGoalMaxRunes+100) {
+		t.Fatalf("snapshot aliases caller maps")
+	}
+}
+
+func TestBuildOmitsLessonContextWithoutKey(t *testing.T) {
+	snap := Build(Input{ConversationID: "chat_legacy"}, fixedOptions())
+	if snap.LessonContext != nil {
+		t.Fatalf("lesson context present without key: %+v", snap.LessonContext)
+	}
+	if _, ok := snap.Map()["lesson_context"]; ok {
+		t.Fatalf("Map() contains empty lesson_context")
+	}
+	if strings.Contains(snap.JSON(), "lesson_context") {
+		t.Fatalf("JSON contains empty lesson_context: %s", snap.JSON())
+	}
+	// Empty / non-map / content-free payloads must not create the additive field.
+	for name, value := range map[string]any{
+		"empty":       map[string]any{},
+		"wrong_type":  "not-a-map",
+		"no_contract": map[string]any{"design_v1_yaml": "x"},
+	} {
+		next := Build(Input{Context: map[string]any{LessonContextKey: value}}, fixedOptions())
+		if next.LessonContext != nil {
+			t.Fatalf("%s payload produced lesson_context: %+v", name, next.LessonContext)
+		}
+	}
+}
+
+func TestLessonContextLegacySnapshotRoundTrip(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "agent_context_snapshots.jsonl")
+	snap := Build(Input{Context: map[string]any{LessonContextKey: map[string]any{
+		"card": map[string]any{"id": "first-run-twinkle", "title": "一个旋律的变奏"},
+	}}}, fixedOptions())
+	if err := AppendJSONL(path, snap); err != nil {
+		t.Fatalf("append snapshot: %v", err)
+	}
+	legacy := "{\"schema_version\":\"vit_context_snapshot.v1\",\"conversation_id\":\"legacy_conversation\",\"created_at\":\"2026-01-01T00:00:00Z\"}"
+	f, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o600)
+	if err != nil {
+		t.Fatalf("open snapshots: %v", err)
+	}
+	if _, err := f.WriteString(legacy + "\n"); err != nil {
+		t.Fatalf("write legacy snapshot: %v", err)
+	}
+	_ = f.Close()
+
+	all, err := ReadJSONL(path, 0)
+	if err != nil {
+		t.Fatalf("read snapshots: %v", err)
+	}
+	if len(all) != 2 {
+		t.Fatalf("snapshots = %d", len(all))
+	}
+	if all[0].LessonContext == nil || all[0].LessonContext["card"] == nil {
+		t.Fatalf("new snapshot lost lesson context on round trip: %+v", all[0].LessonContext)
+	}
+	if all[1].ConversationID != "legacy_conversation" || all[1].LessonContext != nil {
+		t.Fatalf("legacy snapshot decode = %+v", all[1])
+	}
+
+	// A pre-field JSON document decodes without error and keeps the field out
+	// of every subsequent serialization (omitempty compatibility).
+	var decoded Snapshot
+	if err := json.Unmarshal([]byte(legacy), &decoded); err != nil {
+		t.Fatalf("legacy JSON must stay decodable: %v", err)
+	}
+	if decoded.LessonContext != nil {
+		t.Fatalf("legacy JSON produced lesson_context: %+v", decoded.LessonContext)
+	}
+	again, err := json.Marshal(decoded)
+	if err != nil {
+		t.Fatalf("marshal legacy snapshot: %v", err)
+	}
+	if strings.Contains(string(again), "lesson_context") {
+		t.Fatalf("legacy reserialization grew lesson_context: %s", again)
+	}
+}
+
 func TestDefaultSnapshotPathFindsVitAppFromNestedWorkdir(t *testing.T) {
 	root := t.TempDir()
 	if err := os.MkdirAll(filepath.Join(root, "agent"), 0o755); err != nil {
