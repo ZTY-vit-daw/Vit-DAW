@@ -1,0 +1,11 @@
+﻿{
+    "card":  "TUTOR-SIM-3",
+    "commit":  "553c187c",
+    "main":  "b0c83c85",
+    "test_exit":  0,
+    "test_files":  66,
+    "tests":  783,
+    "build_exit":  0,
+    "accepted":  false,
+    "note":  "execution done; real VitShell handtest pending"
+}

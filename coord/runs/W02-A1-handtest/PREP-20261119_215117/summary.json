@@ -1,0 +1,363 @@
+﻿{
+    "schema_version":  "vit_w02_a1_handtest_prep.v1",
+    "card":  "W02-A1-HANDTEST-V0",
+    "question_mode":  "status",
+    "prep_mode":  "same_stack",
+    "handtest_prep":  {
+                          "schema_version":  "vit_w02_a1_handtest_prep.v1",
+                          "card":  "W02-A1-HANDTEST-V0",
+                          "mode":  "same_stack",
+                          "blocked_by_proj_open_resume":  false,
+                          "no_project_open":  true,
+                          "handtest_root":  "D:\\Vit_DAW_handtest\\W02-A1-v0\\prep-20261119_2152",
+                          "live_dir":  "D:\\Vit_DAW_handtest\\W02-A1-v0",
+                          "pristine_dir":  "D:\\Vit_DAW_handtest\\W02-A1-v0\\prep-20261119_2152\\pristine",
+                          "live_project":  "D:\\Vit_DAW_handtest\\W02-A1-v0\\live.vit",
+                          "pristine_project":  "D:\\Vit_DAW_handtest\\W02-A1-v0\\prep-20261119_2152\\pristine\\live.vit",
+                          "prep_conversation_id":  "w02-a1ht-20261119_215117",
+                          "expected_node":  "n2-rhythm",
+                          "target_slot":  "melody-track",
+                          "track_names":  {
+                                              "target":  "我的旋律（选第二个 clip）",
+                                              "reference":  "参考（空白）"
+                                          },
+                          "rename":  {
+                                         "target":  {
+                                                        "track_id":  "1010",
+                                                        "name":  "我的旋律（选第二个 clip）",
+                                                        "old_name":  "Track 2",
+                                                        "status":  "ok"
+                                                    },
+                                         "reference":  {
+                                                           "track_id":  "1007",
+                                                           "name":  "参考（空白）",
+                                                           "old_name":  "Track 1",
+                                                           "status":  "ok"
+                                                       }
+                                     },
+                          "save":  {
+                                       "command":  "project.save",
+                                       "status":  "ok",
+                                       "kernel_message":  "Project saved",
+                                       "project_path":  "D:\\Vit_DAW_handtest\\W02-A1-v0\\live.vit",
+                                       "project_lifecycle":  "save",
+                                       "size_before":  2328,
+                                       "size_after":  4403,
+                                       "sha256_before":  "CB3B7E6DF498898BBC122310F3E24A4B44B59BC5EF20C568906964DA89136BF7",
+                                       "sha256_after":  "85C174BFBE2CE4F52E3398D81B3B4ACEA7F6FA50141BEA180C76FDD870D0A260",
+                                       "rewritten":  true
+                                   },
+                          "copies":  {
+                                         "mode":  "same_stack_snapshot",
+                                         "items":  [
+                                                       {
+                                                           "source":  "D:\\Vit_DAW_handtest\\W02-A1-v0\\live.vit",
+                                                           "name":  "live.vit",
+                                                           "kind":  "file"
+                                                       },
+                                                       {
+                                                           "source":  "D:\\Vit_DAW_handtest\\W02-A1-v0\\live.vit_project",
+                                                           "name":  "live.vit_project",
+                                                           "kind":  "dir"
+                                                       },
+                                                       {
+                                                           "source":  "D:\\Vit_DAW_handtest\\W02-A1-v0\\.vit_agent",
+                                                           "name":  ".vit_agent",
+                                                           "kind":  "dir"
+                                                       },
+                                                       {
+                                                           "source":  "D:\\Vit_DAW_handtest\\W02-A1-v0\\.vit_history",
+                                                           "name":  ".vit_history",
+                                                           "kind":  "dir"
+                                                       }
+                                                   ],
+                                         "media_dir_copied":  false,
+                                         "attempts":  1,
+                                         "live_project_sha256":  "85C174BFBE2CE4F52E3398D81B3B4ACEA7F6FA50141BEA180C76FDD870D0A260",
+                                         "pristine":  {
+                                                          "files":  134,
+                                                          "bytes":  4259754,
+                                                          "sha256":  "D13BF253BDE64E46F1B9ED4F792E700EC9892482EB6599F77654C693E03EBBFF",
+                                                          "project_sha256":  "85C174BFBE2CE4F52E3398D81B3B4ACEA7F6FA50141BEA180C76FDD870D0A260"
+                                                      }
+                                     },
+                          "live_state":  {
+                                             "track_count":  2,
+                                             "user_track_count":  2,
+                                             "track_names":  [
+                                                                 "参考（空白）",
+                                                                 "我的旋律（选第二个 clip）"
+                                                             ],
+                                             "target_track_id":  "1010",
+                                             "reference_track_id":  "1007",
+                                             "target_track_id_stable":  true,
+                                             "reference_track_id_stable":  true,
+                                             "target_clip_count":  2,
+                                             "reference_clip_count":  0,
+                                             "clips":  [
+                                                           {
+                                                               "clip_id":  "1013",
+                                                               "start":  null,
+                                                               "length":  null,
+                                                               "notes":  "60@0/1,64@1/1,67@2/1",
+                                                               "notes_count":  3
+                                                           },
+                                                           {
+                                                               "clip_id":  "1014",
+                                                               "start":  null,
+                                                               "length":  null,
+                                                               "notes":  "67@0/2,71@2/0.5,74@2.5/1.5",
+                                                               "notes_count":  3
+                                                           }
+                                                       ],
+                                             "first_clip_id":  "1013",
+                                             "second_clip_id":  "1014",
+                                             "first_signature":  "60@0/1,64@1/1,67@2/1",
+                                             "second_signature":  "67@0/2,71@2/0.5,74@2.5/1.5",
+                                             "first_clip_id_stable":  true,
+                                             "second_clip_id_stable":  true,
+                                             "state_poll_attempts":  1,
+                                             "active_project_unchanged":  true,
+                                             "active_project_uuid":  "vitproj_020340e8ae5d452c967f0fd1bf29bcba"
+                                         },
+                          "conversation":  {
+                                               "conversation_id":  "w02-a1ht-20261119_215117",
+                                               "command":  "乐局状态",
+                                               "stop_reason":  "edu_jam_status",
+                                               "level_id":  "music-creation-unit2-demo",
+                                               "current_node":  "n2-rhythm",
+                                               "expected_node":  "n2-rhythm",
+                                               "live_session":  true,
+                                               "reply":  "乐局《把旋律的起伏写成自己的作品》（music-creation-unit2-demo）· 状态：进行中\n✓ 第 1 关 这段音乐想说什么（n0-intent）\n✓ 第 2 关 旋律怎样进行（n1-listen）\n▶ 第 3 关 我的节奏先发声（n2-rhythm）\n　目标：2/4共8拍写节奏（四小节暂定），Tap选速度，旋律轨占位音高实际试听，修改或说明保留\n… 第 4 关 四种走向，四个两小节（n3-contours）\n… 第 5 关 让喜欢的片段长出新样子（n4-develop）\n… 第 6 关 八小节，我自己的主题（n5-theme）\n… 第 7 关 我的主题，两个编曲世界（n6-song）\n… 第 8 关 我写了什么，我学会了什么（n7-reflect）\n（已完成 2/8；距拉回提醒还有 6 轮）"
+                                           },
+                          "restore_probe":  {
+                                                "result":  "node_active",
+                                                "file":  "D:\\Vit_DAW_handtest\\W02-A1-v0\\.vit_history\\.sessions\\vitproj_020340e8ae5d452c967f0fd1bf29bcba\\session_20261119T135123_75fe874f\\workspace\\state\\agent_runtime_state.json",
+                                                "checked_files":  1,
+                                                "conversation_found":  true,
+                                                "node_state":  "active",
+                                                "note":  ""
+                                            },
+                          "zero_llm":  {
+                                           "telemetry_available":  true,
+                                           "telemetry_path":  "D:\\Vit_DAW\\VitApp\\Workspace\\Logs\\agent_llm_telemetry.jsonl",
+                                           "llm_rows":  0,
+                                           "other_conversation_rows":  0,
+                                           "note":  ""
+                                       },
+                          "verified":  true,
+                          "fixture_manifest":  "D:\\Vit_DAW_handtest\\W02-A1-v0\\prep-20261119_2152\\handtest.json"
+                      },
+    "status":  "passed",
+    "runtime_owner":  "lead/pc-20261119",
+    "created_at":  "2026-11-19T21:51:17.1485472+08:00",
+    "completed_at":  "",
+    "run_root":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\vit_w02_a1c\\run_20261119_215117",
+    "agent_base_url":  "http://127.0.0.1:7878",
+    "repo_root":  "D:\\Vit_DAW",
+    "git_head":  "ef30ca3ef1124c0366c9af63fd97b4f01eb1de66",
+    "design_source":  "D:\\Vit_DAW\\coord\\lesson-designs\\music-creation-unit2",
+    "conversation_id":  "w02-a1ht-20261119_215117",
+    "project_a":  "D:\\Vit_DAW_handtest\\W02-A1-v0\\live.vit",
+    "project_uuid":  "vitproj_020340e8ae5d452c967f0fd1bf29bcba",
+    "card_id":  "music-creation-unit2-demo",
+    "compiled_card":  "D:\\Vit_DAW_handtest\\W02-A1-v0\\live.vit_project\\legame\\cards\\music-creation-unit2-demo\\music-creation-unit2-demo.compiled.level.yaml",
+    "binding_path":  "D:\\Vit_DAW_handtest\\W02-A1-v0\\.vit_agent\\vitproj_020340e8ae5d452c967f0fd1bf29bcba\\legame_binding.json",
+    "preflight":  {
+                      "runtime":  {
+                                      "goal_status":  "idle",
+                                      "inactive":  true,
+                                      "kernel_connected":  true,
+                                      "kernel_reply_status":  "ok",
+                                      "kernel_latency_ms":  1
+                                  },
+                      "state":  {
+                                    "current_project_path":  "D:\\Vit_DAW_handtest\\W02-A1-v0\\live.vit",
+                                    "current_project_uuid":  "vitproj_020340e8ae5d452c967f0fd1bf29bcba",
+                                    "unsaved":  false,
+                                    "draft":  false
+                                },
+                      "snapshots":  {
+                                        "recents":  {
+                                                        "name":  "recents",
+                                                        "path":  "C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\global_project_config.json",
+                                                        "existed":  true,
+                                                        "sha256_before":  "24CE028164273C90798C3B13EF276EC14C54C6FBE31B3B807ABF621664DE4503",
+                                                        "snapshot":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\vit_w02_a1c\\run_20261119_215117\\snapshots\\recents.before"
+                                                    },
+                                        "settings":  {
+                                                         "name":  "Settings.xml",
+                                                         "path":  "D:\\Vit_DAW\\VitApp\\Workspace\\Settings\\Settings.xml",
+                                                         "existed":  true,
+                                                         "sha256_before":  "72F0F5112EF926ED77F59F015E6CE492142F8FDF1828E5082E970AA949EDFBB8",
+                                                         "snapshot":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\vit_w02_a1c\\run_20261119_215117\\snapshots\\Settings.xml.before"
+                                                     },
+                                        "default_project":  {
+                                                                "name":  "default_project.xml",
+                                                                "path":  "D:\\Vit_DAW\\VitApp\\Workspace\\default_project.xml",
+                                                                "existed":  true,
+                                                                "sha256_before":  "2CF36A509602D45480EAB59190E4F163157431F0CA6DC13889D28BA8C2A11B1F",
+                                                                "snapshot":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\vit_w02_a1c\\run_20261119_215117\\snapshots\\default_project.xml.before"
+                                                            }
+                                    },
+                      "authority":  {
+                                        "before":  "manual_confirmation"
+                                    },
+                      "logs":  {
+                                   "kernel":  {
+                                                  "path":  "D:\\Vit_DAW\\VitApp\\Workspace\\Logs\\VitHeadlessServer2026-11-19_21-49-31.log",
+                                                  "length":  1593333,
+                                                  "last_write":  "2026-11-19T21:51:17.2713444+08:00"
+                                              },
+                                   "context_snapshot":  {
+                                                            "path":  "D:\\Vit_DAW\\VitApp\\Workspace\\Logs\\agent_context_snapshots.jsonl",
+                                                            "offset":  186382
+                                                        },
+                                   "prompt_render":  {
+                                                         "path":  "D:\\Vit_DAW\\VitApp\\Workspace\\Logs\\agent_prompt_render.jsonl",
+                                                         "offset":  1144123982
+                                                     },
+                                   "telemetry":  {
+                                                     "path":  "D:\\Vit_DAW\\VitApp\\Workspace\\Logs\\agent_llm_telemetry.jsonl",
+                                                     "offset":  39213277
+                                                 }
+                               }
+                  },
+    "s1":  {
+               "project":  {
+                               "mode":  "same_stack",
+                               "project_path":  "D:\\Vit_DAW_handtest\\W02-A1-v0\\live.vit",
+                               "project_uuid":  "vitproj_020340e8ae5d452c967f0fd1bf29bcba",
+                               "opened_by_user":  true,
+                               "prep_opened_project":  false
+                           },
+               "import":  {
+                              "stop_reason":  "edu_jam_legame_imported",
+                              "card_id":  "music-creation-unit2-demo",
+                              "warnings":  23,
+                              "infos":  16
+                          },
+               "package":  {
+                               "package_dir":  "D:\\Vit_DAW_handtest\\W02-A1-v0\\live.vit_project",
+                               "compiled_card":  "D:\\Vit_DAW_handtest\\W02-A1-v0\\live.vit_project\\legame\\cards\\music-creation-unit2-demo\\music-creation-unit2-demo.compiled.level.yaml",
+                               "binding":  "D:\\Vit_DAW_handtest\\W02-A1-v0\\.vit_agent\\vitproj_020340e8ae5d452c967f0fd1bf29bcba\\legame_binding.json"
+                           },
+               "enter":  {
+                             "stop_reason":  "edu_jam_entered",
+                             "level_id":  "music-creation-unit2-demo",
+                             "current_node":  "n0-intent",
+                             "reply":  "乐局开始：把旋律的起伏写成自己的作品\n本局任务：试写四种旋律线，发展一个喜欢的片段，再参照给定节奏创作八小节主题并听见成曲。最终交付：四条两小节片段、一个发展稿、八小节主题、现场试听与生成版本、作业报表和过程摘要。\n\n第 1 关（8 关）·这段音乐想说什么\n目标：给一个画面或感受，也可先探索；知道将自己写主题再听成曲\n（卡在哪可以说「乐局状态」看进度；写好了就说「写好了」）"
+                         },
+               "advance":  {
+                               "stopped_at_node":  "n2-rhythm",
+                               "slot":  "melody-track",
+                               "kind":  "clip_exists",
+                               "event_nodes":  2,
+                               "current_node":  "n2-rhythm",
+                               "target_slot":  "melody-track",
+                               "track_index":  2
+                           }
+           },
+    "s2":  {
+               "tracks":  {
+                              "target_slot":  "melody-track",
+                              "target_index":  2,
+                              "target_track_id":  "1010",
+                              "created_count":  2,
+                              "rows":  [
+                                           {
+                                               "track_id":  "1007",
+                                               "track_name":  "Track 1",
+                                               "track_type":  "hybrid",
+                                               "is_audio":  false,
+                                               "user_track_index":  1
+                                           },
+                                           {
+                                               "track_id":  "1010",
+                                               "track_name":  "Track 2",
+                                               "track_type":  "hybrid",
+                                               "is_audio":  false,
+                                               "user_track_index":  2
+                                           }
+                                       ]
+                          },
+               "cleanup":  {
+                               "removed_clip_ids":  [
+
+                                                    ],
+                               "remaining":  0
+                           },
+               "clips":  {
+                             "first_clip_id":  "1013",
+                             "first_notes":  "60@0/1,64@1/1,67@2/1",
+                             "second_clip_id":  "1014",
+                             "second_notes":  "67@0/2,71@2/0.5,74@2.5/1.5",
+                             "selection_binding":  "chat_context.selected_clip_id",
+                             "select_clip_ui_action":  "select_clip",
+                             "select_clip_returns_selection_state":  false,
+                             "select_clip_error":  ""
+                         }
+           },
+    "s3":  {
+
+           },
+    "s4":  {
+
+           },
+    "s4w":  {
+
+            },
+    "s5a":  {
+
+            },
+    "s5b":  {
+
+            },
+    "s6":  {
+
+           },
+    "teardown":  {
+                     "main_session_close":  {
+                                                "skipped":  "handtest_prep",
+                                                "conversation_id":  "w02-a1ht-20261119_215117",
+                                                "reason":  "fixture must stay at the clip node (n2)"
+                                            },
+                     "recents":  {
+                                     "name":  "recents",
+                                     "path":  "C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\global_project_config.json",
+                                     "restored":  true,
+                                     "hash_before":  "24CE028164273C90798C3B13EF276EC14C54C6FBE31B3B807ABF621664DE4503",
+                                     "hash_after":  "24CE028164273C90798C3B13EF276EC14C54C6FBE31B3B807ABF621664DE4503",
+                                     "error":  ""
+                                 },
+                     "settings":  {
+                                      "name":  "Settings.xml",
+                                      "path":  "D:\\Vit_DAW\\VitApp\\Workspace\\Settings\\Settings.xml",
+                                      "restored":  true,
+                                      "hash_before":  "72F0F5112EF926ED77F59F015E6CE492142F8FDF1828E5082E970AA949EDFBB8",
+                                      "hash_after":  "72F0F5112EF926ED77F59F015E6CE492142F8FDF1828E5082E970AA949EDFBB8",
+                                      "error":  ""
+                                  },
+                     "default_project":  {
+                                             "name":  "default_project.xml",
+                                             "path":  "D:\\Vit_DAW\\VitApp\\Workspace\\default_project.xml",
+                                             "restored":  true,
+                                             "hash_before":  "2CF36A509602D45480EAB59190E4F163157431F0CA6DC13889D28BA8C2A11B1F",
+                                             "hash_after":  "2CF36A509602D45480EAB59190E4F163157431F0CA6DC13889D28BA8C2A11B1F",
+                                             "error":  ""
+                                         },
+                     "authority":  {
+                                       "before":  "manual_confirmation",
+                                       "current":  "manual_confirmation",
+                                       "restored":  true
+                                   },
+                     "runtime":  {
+                                     "goal_status":  "completed",
+                                     "inactive":  true
+                                 },
+                     "kernel_log_appended_bytes":  1159859
+                 },
+    "prep_record_dir":  "D:\\Vit_DAW\\coord\\runs\\W02-A1-handtest\\PREP-20261119_215117",
+    "failure_class":  "",
+    "error":  ""
+}

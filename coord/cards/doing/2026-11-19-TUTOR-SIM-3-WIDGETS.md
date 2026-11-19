@@ -15,3 +15,10 @@
 - owner=`tutorui`（同线续用）；worktree `pc436-ui` / 分支 `codex/tutor-sim-2-ui-436`；基线 main `8d49cc49`（worktree 代码 ca65166d 已合入）。
 - 只改 UI 文件域；不启栈、不改 server/实验 YAML；真栈手测由 lead 开窗。
 
+## 执行完成（2026-11-19 22:58，待验收）
+
+- commit 553c187c → main b0c83c85；主管亲跑 npm test 66 文件/783 tests exit 0、npm run build exit 0。
+- TutorProgressCard 读 start/chat workflow_data；TutorStepCard 用 tutor conversation 提交；普通工程无卡；无 server/YAML 改动。
+- **未做真实 VitShell 渲染手测，不记 PASS**；下一会话首项：打开 TUTOR-SIM-1/live.vit 验证 1/3→错不推进→7/2/3→42/3/3→123 completed/禁用、普通工程无卡。
+
+
