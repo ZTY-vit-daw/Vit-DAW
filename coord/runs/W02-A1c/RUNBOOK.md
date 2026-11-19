@@ -6,6 +6,7 @@
 - 本轮范围：**只写零栈 runbook + 真栈执行器**，不启栈、不改产品代码、不改设计源/卡片/其他脚本。
 - 交付：本文件 + [`scripts/run_w02_a1c_smoke.ps1`](../../../scripts/run_w02_a1c_smoke.ps1)。
 - 状态：**真栈轮未运行（候 lead 登记栈位并授权）**；零栈验收已在本 worktree 跑完（见 §8）。
+- 2026-11-19 首轮后修：S4 主取证改为 `agent_prompt_render.jsonl`（S0 路径/偏移、S4 新增行解析）；已知当前诊断只记 system 消息，`lesson_context` 实际在 user 模型快照（§6 G4）。
 
 ## 0. 一句话结论
 
@@ -63,7 +64,7 @@
 | 2 | `preflight`/`http`/`teardown` | 栈不可达、busy/dirty、HTTP 失败、快照/还原失败、teardown 时仍有 active turn。按环境中断处理，不归因模型。 |
 | 3 | 未授权 | 默认无 `-StackAuthorized`；只打印摘要，零 HTTP、零写盘。 |
 | 4 | `llm` | S4 真实 LLM 类失败：超时、空回复、`stop_reason` 非 `done`。telemetry error 记录并披露，不单独推翻 done+reply+lesson_context 三件套。 |
-| 5 | `evidence`/`api`/`s6` | 取证/API 覆盖缺口：无 lesson_context 新快照、编译卡形态不支持、S6 因 `opened_at` 已置而无法在不花第二轮 LLM 的情况下取证等。**不伪 PASS**。 |
+| 5 | `evidence`/`api`/`s6` | 取证/API 覆盖缺口：prompt render 新行无 lesson_context、编译卡形态不支持、S6 因 `opened_at` 已置而无法在不花第二轮 LLM 的情况下取证等。**不伪 PASS**。 |
 
 > 选择 `select_clip` 失败不单独致命：它是 UI-only 动作（§6 G1），脚本记录错误并继续用 `/agent/chat` context 绑定；S3 的 `clip_scope=selected`/`clip_ids` 才是选中生效的判据。
 
@@ -76,7 +77,7 @@
 - `GET /agent/state`：`status=ok`；若 `current_project.path` 非空且 `project_history/shadow` 的 `unsaved` 或 `draft` 为真，拒绝替换（exit 2）。
 - `GET /agent/authority`：记录 `authority_mode`，teardown 还原。
 - 复制 recents / `Settings.xml` / `default_project.xml` 快照并记录 SHA256；不存在的文件记录 `existed=false`，teardown 还原为不存在。
-- 记录日志偏移：最新 `VitHeadlessServer*.log`、`agent_context_snapshots.jsonl`（`VIT_CONTEXT_SNAPSHOT_PATH` 覆写优先）、`agent_prompt_render.jsonl`、`agent_llm_telemetry.jsonl`。
+- 记录日志偏移：最新 `VitHeadlessServer*.log`、`agent_prompt_render.jsonl`（S4 主取证；`VIT_AGENT_PROMPT_RENDER_PATH` 或默认 `<RepoRoot>/VitApp/Workspace/Logs/agent_prompt_render.jsonl`，记录路径+字节偏移）、`agent_context_snapshots.jsonl`（仅可选 fallback）、`agent_llm_telemetry.jsonl`。
 - 证据：`responses/*s0*.json`、`snapshots/*.before`、`summary.preflight`。
 
 ### S1 隔离工程 + W01 导入 + 开局
@@ -115,10 +116,12 @@
 - 成功条件（三件全满足）：
   1. 正式轮 `stop_reason=done`；
   2. `reply` 非空（空回复=exit 4）；
-  3. 在 `agent_context_snapshots.jsonl` 的新增行中，存在 `conversation_id` 匹配且 `lesson_context` 非空的行，并断言 `lesson_context.schema_version=vit.edu_jam.lesson_context.v1`、`card.id=card_id`、`node.id=当前节点`、`selected_clip.clip_id=second`（有 `track_id` 则=target）。
+  3. 模型输入含 `lesson_context`：S0 记录 `agent_prompt_render.jsonl` 的路径与字节偏移；S4 后**只读新增行**（`Read-AppendedText`/FileStream，不整文件加载），找到 `conversation_id` 匹配且行内（`system_prompt`/`turn_directives`/任意嵌套 JSON 字段）含 `lesson_context` 的行；断言 `schema_version=vit.edu_jam.lesson_context.v1`、`card.id=card_id`、`node.id=当前节点`、`selected_clip.clip_id=second`（有 `track_id` 则=target），保存 `evidence/s4_prompt_render.jsonl`。
+- 辅助：若 prompt render 无 `lesson_context`，脚本**可选**检查 `agent_context_snapshots.jsonl` 新增行（**不要求新增**）；仍无 → exit 5，不伪 PASS。
+- **已知边界**：当前 `agent_prompt_render` 诊断只记录 system 消息（`agentloop/message_loop.go:4864-4910`）；`lesson_context` 在 user 模型快照（`planner/planner.go:223-224` / `agentloop/message_loop.go:3852-3854`）。b291e934 修的是模型快照，不保证该 JSONL 含 `lesson_context`；若重建后仍无，需产品诊断补 model snapshot/user message（或 message loop 落 context snapshot）。脚本按 exit 5 诊断并保存 prompt render 原文。
 - 回复内容只做**宽容关键词记录**（`第/关/目标/旋律/走向/两小节/曲线/平直/平缓/跌宕/节奏` 命中列表），不硬套文案；关键词不是 PASS 门槛。`keyword_hits=[]` 只 warn 并交 lead 复核，不改写 S4 的 done+reply+lesson_context 结论。
-- 可选证据：`agent_prompt_render.jsonl` 新增片段是否含 `lesson_context`（记录，不硬判）；`agent_llm_telemetry.jsonl` 新增行的 `conversation_id/model/usage/error`（error 非空=记录并披露；无行=记录边界；二者都不单独推翻 done+reply+lesson_context 三件套）。
-- 证据：`responses/*s4_question*.json`、`evidence/s4_context_snapshot.json`、`evidence/s4_context_snapshots_appended.jsonl`、`summary.s4`。
+- 可选证据：`agent_prompt_render.jsonl` 命中字段/行数；`agent_llm_telemetry.jsonl` 新增行的 `conversation_id/model/usage/error`（error 非空=记录并披露；无行=记录边界；二者都不单独推翻 done+reply+lesson_context 三件套）。
+- 证据：`responses/*s4_question*.json`、`evidence/s4_prompt_render.jsonl`、`evidence/s4_lesson_context.json`、可选 `evidence/s4_context_snapshot.json`、`summary.s4`。
 
 ### S5 失败语义（不假通过）
 
@@ -161,7 +164,7 @@
 | G1 | `select_clip` 是 UI-only 动作，不写内核/agent 选择态，也没有 HTTP 读回当前选择的接口 | `agent/internal/harness/harness.go:2837-2847`（`invokeLocal` 返回 `ui_action`）；`agent/internal/tools/catalog.go:1235`（RiskDirect） | 记录 `ui_action`；失败只记 `select_clip_error`；实际绑定走 `/agent/chat` context。S3 用 `clip_ids/scope` 证明 |
 | G2 | W01 导入只复制/编译设计源，不建设计轨/clip；`track.add` 只建 audio 轨且忽略名字（内核命名 `Track N`） | `agent/internal/projectpackage/legame.go:374-481`；`VitApp/Source/Service/TrackService.cpp:509-547`；slot 索引语义 `agent/internal/chat/edu_jam_chat.go:887-900` | 从编译卡取 `track_index`；用 `track.add` 补齐到目标索引并记录；不声称设计轨名/角色已物化；只建到目标槽所需数量 |
 | G3 | auto-intro 的“已播报”标记是进程内每会话 map，无 API 读/写 | `agent/internal/chat/edu_jam_chat.go:1478-1501` | S4 探针识别 `edu_jam_recovery_broadcast` 后再发正式问题；S6 用新会话触发 auto-intro；不重复消耗 LLM |
-| G4 | 模型输入证据依赖 agent 侧 JSONL，无 HTTP 端点；路径可被 env 覆写 | `agent/internal/contextruntime/context.go:213-261`（`VIT_CONTEXT_SNAPSHOT_PATH`/default）；`agent/internal/llm/telemetry.go:62-81` | S0 记录偏移；S4 读新增行；文件缺失/无 `lesson_context` = exit 5，不伪 PASS |
+| G4 | 模型输入取证：`agent_context_snapshots.jsonl` 在 free-state message loop 可能 stale；`agent_prompt_render.jsonl` 是每轮诊断，但**当前只记 system 消息**，`lesson_context` 在 user 模型快照；无 HTTP 端点 | `agent/internal/agentloop/message_loop.go:4864-4910`（只写 SystemPrompt）；`agent/internal/planner/planner.go:223-224` / `agent/internal/agentloop/message_loop.go:3852-3854`（snapshot 在 user 消息）；`agent/internal/contextruntime/context.go:213-261`（snapshot 路径/env） | S0 记录 `agent_prompt_render.jsonl` 路径+偏移；S4 只读新增行，解析行内任意字段的 `lesson_context` 并保存 `evidence/s4_prompt_render.jsonl`；context snapshot 仅可选 fallback；无则 exit 5，不伪 PASS |
 | G5 | 本设计编译卡的 clip 节点只有 `clip_exists`/`track_non_empty`，没有 judge 叶；first/second 的音符差异不改变 pass/fail | 编译卡（`n2-rhythm`/`n3-contours`/`n4-develop` 均为 `structure: clip_exists, clip: melody-track`）；`agent/internal/legamedesign/compile_card.go:640-682` | S3 用 `clip_ids[target]=second`+`clip_scope=selected`+"两 clip 音符签名不同"取证；明确记录“无 notes judge 差分”，不伪造 |
 | G6 | `project.new`/`save_as` 后活动工程留在 A，没有 HTTP “关闭工程/恢复上一工程”命令 | `agent/internal/tools/catalog.go:1067-1072`；`VitApp/Source/Service/VitHeadlessService.cpp:1119-1199` | 不擅自重开用户工程（避免写 RunRoot 外）；在 summary 记录“active project=A”；由 owner 停栈/重开 |
 | G7 | 脚本不拥有栈进程，无法自行证明 process/TCP/UDP 全零 | — | teardown 只断言“无 active turn + 会话关闭 + 文件/authority 还原”；进程/端口零由 owner 停栈后核 |
@@ -202,7 +205,9 @@ run_<stamp>/
 | 静态卫生 | `Select-String -Path <script> -Pattern 'Start-Process|Start-Job|TcpListener|HttpListener|WebRequest|netstat|Get-NetTCPConnection|Stop-Process'` | **0 hits** |
 
 - 解析测试在 `powershell.exe`（Windows PowerShell 5.1）下执行；脚本以 UTF-8 BOM 保存，保证 5.1 正确解码中文 chat 命令。
+- 授权负例（不启栈）：`-AgentBaseUrl http://127.0.0.1:1 -StackAuthorized -RuntimeOwner <selfcheck>` → **exit 2**，`summary.json` 落盘、`failure_class=http`；teardown 因栈不可达记 failed，不伪 PASS。
 - 额外单测（同次零栈）：编译卡解析器对 W01 真实编译卡输出 `slots=5/nodes=8`，`n2-rhythm: clip=melody-track/track_index=2`；用户轨过滤对 5 服务轨 + 2 用户轨返回 2；snapshot/restore 对存在/不存在文件均哈希一致。
+- S4 取证自检（新增）：合成 prompt render 行（top-level `lesson_context` 与 `system_prompt` 内嵌 JSON）均能提取 schema/card/node/clip；首轮实际 `evidence/s4_prompt_render.jsonl` 行不含 `lesson_context`（与 FINDING 一致），脚本按 exit 5 诊断，不伪 PASS。
 - 未运行真实栈；未消耗 LLM。
 
 ## 9. 真栈轮候选命令
