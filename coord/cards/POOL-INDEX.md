@@ -8,7 +8,7 @@
 
 - done：**425 G0-LEGAME-BIND-1（W01-C 真栈 PASS）**、**422 CONV-CROSS-COMBO-1（B2b 真栈 PASS，166 断言）**、**432 W02-A1（A1a/A1b/A1c 全 PASS；A1c 真栈 run_2039）**；397/409–421/423–428/430–431 见 gate 与 brief。
 - doing：ARRLOOP-AUTHBRIDGE-1、WAVESHELL-LOADING-FORENSICS-1、LAUNCHER-ZEROFRICTION-1、SRC-PRESET-AGENT-1、YUE-INSTRUMENTAL-PATH-1、GODOT-RETRY-LAUNCHER-1、WINDOW-TRANSITION-OBSERVER-1。
-- todo 首排：W02 后续切片（结构检查器/完整作业旅程）或 W14/W19（候发卡）。
+- todo 首排：433 W02-A2 设计（A2a 作品反馈优先；A2b 结构检查候 R1–R6 裁定）。
 - 真栈：空闲；425 的 default_project 权威偏差见 `coord/runs/G0-LEGAME-BIND-1/real-stack/run_20261119_1818/DEVICE-NOTES.md`。
 
 ## 一、主线（混音/自由态/A-F/仪器）——GLM 主管决策流管辖
