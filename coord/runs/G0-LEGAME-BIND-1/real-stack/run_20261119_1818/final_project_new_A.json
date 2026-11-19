@@ -1,0 +1,291 @@
+﻿{
+    "status":  "ok",
+    "agent_action_id":  "act_c7329e3b7022fc91",
+    "tool":  "project.new",
+    "command_name":  "new_project",
+    "risk_level":  "confirm",
+    "requires_confirmation":  false,
+    "result":  {
+                   "command_ack":  {
+                                       "ack":  {
+                                                   "message":  "Blank project created",
+                                                   "stage":  "completed"
+                                               },
+                                       "command":  "legacy.command",
+                                       "legacy_command":  "new_project",
+                                       "resync_hint":  true,
+                                       "revision":  0,
+                                       "source":  "vsp.command.response",
+                                       "stage":  "completed",
+                                       "transaction_id":  "tx_1795083607556523000_159"
+                                   },
+                   "current_project_path":  "",
+                   "message":  "Blank project created",
+                   "project_id":  "vitproj_18ed1a45b0484525bd6f48cfa73066ff",
+                   "project_lifecycle":  "new",
+                   "project_path":  "",
+                   "project_uuid":  "vitproj_18ed1a45b0484525bd6f48cfa73066ff",
+                   "project_workspace":  {
+                                             "active_branch":  "main",
+                                             "active_node_id":  "",
+                                             "active_worktree":  "",
+                                             "branches":  {
+
+                                                          },
+                                             "commit_count":  0,
+                                             "conversation_graph":  {
+                                                                        "project_path":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261119T102007_81588c64\\Unsaved.vit",
+                                                                        "project_uuid":  "vitproj_18ed1a45b0484525bd6f48cfa73066ff",
+                                                                        "active_branch":  "main",
+                                                                        "nodes":  [
+
+                                                                                  ]
+                                                                    },
+                                             "conversation_messages":  [
+
+                                                                       ],
+                                             "detached":  false,
+                                             "draft":  false,
+                                             "head":  "",
+                                             "history_dir":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261119T102007_81588c64\\.vit_history\\.sessions\\vitproj_18ed1a45b0484525bd6f48cfa73066ff\\session_20261119T102007_e2c8cc62\\workspace",
+                                             "initialized":  true,
+                                             "project_label":  "Unsaved",
+                                             "project_path":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261119T102007_81588c64\\Unsaved.vit",
+                                             "project_uuid":  "vitproj_18ed1a45b0484525bd6f48cfa73066ff",
+                                             "refs":  {
+
+                                                      },
+                                             "root_project_path":  "",
+                                             "state_dir":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261119T102007_81588c64\\.vit_history\\.sessions\\vitproj_18ed1a45b0484525bd6f48cfa73066ff\\session_20261119T102007_e2c8cc62\\workspace\\state",
+                                             "unsaved":  false,
+                                             "warnings":  [
+
+                                                          ],
+                                             "worktrees":  [
+                                                               {
+                                                                   "created_at":  "2026-11-19T10:20:07.6345858Z",
+                                                                   "is_root":  true,
+                                                                   "label":  "主工作树",
+                                                                   "name":  "main",
+                                                                   "path":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261119T102007_81588c64",
+                                                                   "project_file_path":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261119T102007_81588c64\\Unsaved.vit",
+                                                                   "project_path":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261119T102007_81588c64\\Unsaved.vit",
+                                                                   "root_project_path":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261119T102007_81588c64\\Unsaved.vit"
+                                                               }
+                                                           ]
+                                         },
+                   "state_delta":  {
+                                       "ack":  {
+                                                   "message":  "State delta captured",
+                                                   "stage":  "completed"
+                                               },
+                                       "base_revision":  10,
+                                       "changed_clips":  null,
+                                       "changed_tracks":  null,
+                                       "ops":  [
+                                                   {
+                                                       "op":  "replace",
+                                                       "path":  "/project",
+                                                       "value":  {
+                                                                     "clip_count":  0,
+                                                                     "legacy_graph_active_revision":  0,
+                                                                     "legacy_graph_last_diff_kind":  "edit_loaded",
+                                                                     "legacy_graph_lifecycle_state":  "idle",
+                                                                     "legacy_graph_pending_revision":  0,
+                                                                     "legacy_graph_publish_mode":  "initialised",
+                                                                     "legacy_graph_revision":  0,
+                                                                     "parent_project_uuid":  "",
+                                                                     "project_id":  "project_current",
+                                                                     "project_path":  "",
+                                                                     "project_uuid":  "vitproj_18ed1a45b0484525bd6f48cfa73066ff",
+                                                                     "scope":  "project.timeline",
+                                                                     "track_count":  0
+                                                                 }
+                                                   }
+                                               ],
+                                       "ops_count":  1,
+                                       "project_epoch":  "epoch_7e1105456ba21c37",
+                                       "resync":  false,
+                                       "resync_hint":  false,
+                                       "revision":  11,
+                                       "scope":  "project.timeline",
+                                       "snapshot_hash":  "65e21d47393e4d5f",
+                                       "source":  "vsp.state.delta",
+                                       "stage":  "completed",
+                                       "type":  "state.delta"
+                                   },
+                   "state_resync":  {
+                                        "ack":  {
+                                                    "message":  "State resynchronised",
+                                                    "stage":  "completed"
+                                                },
+                                        "base_revision":  0,
+                                        "changed_clips":  null,
+                                        "changed_tracks":  null,
+                                        "ops_count":  0,
+                                        "project":  {
+                                                        "clip_count":  0,
+                                                        "legacy_graph_active_revision":  0,
+                                                        "legacy_graph_last_diff_kind":  "edit_loaded",
+                                                        "legacy_graph_lifecycle_state":  "idle",
+                                                        "legacy_graph_pending_revision":  0,
+                                                        "legacy_graph_publish_mode":  "initialised",
+                                                        "legacy_graph_revision":  0,
+                                                        "parent_project_uuid":  "",
+                                                        "project_id":  "project_current",
+                                                        "project_path":  "",
+                                                        "project_uuid":  "vitproj_18ed1a45b0484525bd6f48cfa73066ff",
+                                                        "scope":  "project.timeline",
+                                                        "track_count":  0
+                                                    },
+                                        "project_epoch":  "epoch_7e1105456ba21c37",
+                                        "resync":  true,
+                                        "resync_hint":  false,
+                                        "revision":  11,
+                                        "scope":  "project.timeline",
+                                        "snapshot_hash":  "65e21d47393e4d5f",
+                                        "source":  "vsp.state.resync",
+                                        "stage":  "completed",
+                                        "tracks":  [
+
+                                                   ],
+                                        "type":  "state.snapshot"
+                                    },
+                   "status":  "ok",
+                   "vsp":  {
+                               "command_ack":  {
+                                                   "ack":  {
+                                                               "message":  "Blank project created",
+                                                               "stage":  "completed"
+                                                           },
+                                                   "command":  "legacy.command",
+                                                   "legacy_command":  "new_project",
+                                                   "resync_hint":  true,
+                                                   "revision":  0,
+                                                   "source":  "vsp.command.response",
+                                                   "stage":  "completed",
+                                                   "transaction_id":  "tx_1795083607556523000_159"
+                                               },
+                               "state_delta":  {
+                                                   "ack":  {
+                                                               "message":  "State delta captured",
+                                                               "stage":  "completed"
+                                                           },
+                                                   "base_revision":  10,
+                                                   "changed_clips":  null,
+                                                   "changed_tracks":  null,
+                                                   "ops":  [
+                                                               {
+                                                                   "op":  "replace",
+                                                                   "path":  "/project",
+                                                                   "value":  {
+                                                                                 "clip_count":  0,
+                                                                                 "legacy_graph_active_revision":  0,
+                                                                                 "legacy_graph_last_diff_kind":  "edit_loaded",
+                                                                                 "legacy_graph_lifecycle_state":  "idle",
+                                                                                 "legacy_graph_pending_revision":  0,
+                                                                                 "legacy_graph_publish_mode":  "initialised",
+                                                                                 "legacy_graph_revision":  0,
+                                                                                 "parent_project_uuid":  "",
+                                                                                 "project_id":  "project_current",
+                                                                                 "project_path":  "",
+                                                                                 "project_uuid":  "vitproj_18ed1a45b0484525bd6f48cfa73066ff",
+                                                                                 "scope":  "project.timeline",
+                                                                                 "track_count":  0
+                                                                             }
+                                                               }
+                                                           ],
+                                                   "ops_count":  1,
+                                                   "project_epoch":  "epoch_7e1105456ba21c37",
+                                                   "resync":  false,
+                                                   "resync_hint":  false,
+                                                   "revision":  11,
+                                                   "scope":  "project.timeline",
+                                                   "snapshot_hash":  "65e21d47393e4d5f",
+                                                   "source":  "vsp.state.delta",
+                                                   "stage":  "completed",
+                                                   "type":  "state.delta"
+                                               },
+                               "state_resync":  {
+                                                    "ack":  {
+                                                                "message":  "State resynchronised",
+                                                                "stage":  "completed"
+                                                            },
+                                                    "base_revision":  0,
+                                                    "changed_clips":  null,
+                                                    "changed_tracks":  null,
+                                                    "ops_count":  0,
+                                                    "project":  {
+                                                                    "clip_count":  0,
+                                                                    "legacy_graph_active_revision":  0,
+                                                                    "legacy_graph_last_diff_kind":  "edit_loaded",
+                                                                    "legacy_graph_lifecycle_state":  "idle",
+                                                                    "legacy_graph_pending_revision":  0,
+                                                                    "legacy_graph_publish_mode":  "initialised",
+                                                                    "legacy_graph_revision":  0,
+                                                                    "parent_project_uuid":  "",
+                                                                    "project_id":  "project_current",
+                                                                    "project_path":  "",
+                                                                    "project_uuid":  "vitproj_18ed1a45b0484525bd6f48cfa73066ff",
+                                                                    "scope":  "project.timeline",
+                                                                    "track_count":  0
+                                                                },
+                                                    "project_epoch":  "epoch_7e1105456ba21c37",
+                                                    "resync":  true,
+                                                    "resync_hint":  false,
+                                                    "revision":  11,
+                                                    "scope":  "project.timeline",
+                                                    "snapshot_hash":  "65e21d47393e4d5f",
+                                                    "source":  "vsp.state.resync",
+                                                    "stage":  "completed",
+                                                    "tracks":  [
+
+                                                               ],
+                                                    "type":  "state.snapshot"
+                                                },
+                               "transport":  "vsp",
+                               "version":  "1.0"
+                           }
+               },
+    "project_history":  {
+                            "active_branch":  "main",
+                            "active_node_id":  "",
+                            "active_worktree":  "",
+                            "available":  true,
+                            "branches":  {
+
+                                         },
+                            "commit_count":  0,
+                            "detached":  false,
+                            "draft":  true,
+                            "head":  "",
+                            "initialized":  true,
+                            "project_label":  "未保存工程",
+                            "project_path":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261119T102007_81588c64\\Unsaved.vit",
+                            "project_uuid":  "vitproj_18ed1a45b0484525bd6f48cfa73066ff",
+                            "recent_checkpoints":  [
+
+                                                   ],
+                            "refs":  {
+
+                                     },
+                            "root_project_path":  "",
+                            "unsaved":  true,
+                            "warnings":  [
+                                             "未保存工程正在使用草稿历史"
+                                         ],
+                            "worktree_count":  1,
+                            "worktrees":  [
+                                              {
+                                                  "created_at":  "2026-11-19T10:20:07.6360847Z",
+                                                  "is_root":  true,
+                                                  "label":  "主工作树",
+                                                  "name":  "main",
+                                                  "path":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261119T102007_81588c64",
+                                                  "project_file_path":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261119T102007_81588c64\\Unsaved.vit",
+                                                  "project_path":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261119T102007_81588c64\\Unsaved.vit",
+                                                  "root_project_path":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261119T102007_81588c64\\Unsaved.vit"
+                                              }
+                                          ]
+                        }
+}

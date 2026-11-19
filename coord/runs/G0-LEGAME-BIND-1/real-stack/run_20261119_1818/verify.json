@@ -1,0 +1,29 @@
+﻿{
+    "card":  "G0-LEGAME-BIND-1",
+    "checked_at":  "2026-11-19T18:25:02.1864035+08:00",
+    "summary_path":  "D:\\Vit_DAW\\coord\\runs\\G0-LEGAME-BIND-1\\real-stack\\run_20261119_1818\\legame_final\\summary.json",
+    "summary_status":  "passed",
+    "import_card":  "music-creation-unit2-demo",
+    "cache_key":  {
+                      "design_source_sha256":  "dbf3781a67c86f7f7341b0771ab9207bdff7a618ac666b9aad9cd7e5b1356fb7",
+                      "compiler_version":  "legamedesign-compile.v0",
+                      "assembly_input_hash":  "e7c652d91dd00c7290ae95800b99161c30163e802ec0c1423bf0c6005a4fef52",
+                      "card_schema_version":  "vit.level_card.v0"
+                  },
+    "reopen_stop":  "edu_jam_entered",
+    "reopen_level":  "music-creation-unit2-demo",
+    "revise_title":  "revise-smoke-182018",
+    "revise_hash_changed":  true,
+    "ab_uuid_distinct":  true,
+    "binding_paths_distinct":  true,
+    "card_paths_distinct":  true,
+    "recents_restored":  true,
+    "recents_before":  "16E1CCE85A64303078B874E6296D5CC44C829CED98222E4A3B7CDF9347564B0B",
+    "recents_after":  "16E1CCE85A64303078B874E6296D5CC44C829CED98222E4A3B7CDF9347564B0B",
+    "llm_telemetry_exists":  false,
+    "agent_sha256":  "3D9BAC1C147343ECABF0B9F475954A08F95BC54F33721B37628FE4C0548B1CB3",
+    "kernel_sha256":  "A59473614152882B21433DCEE684F8B13AE0BD5B632A97CD5E2C8765BB18348E",
+    "hub_sha256":  "B10CC41295066C48BB446B255D12D1A58D2D8D64F164D875083667B464C71F68",
+    "authority_default_project_after_sha256":  "E9B668A0FA8556ACDDC180E5DDF3E540FC4A577C0F90ABA5CB6E56C0A6F9D1E9",
+    "authority_settings_after_sha256":  "72F0F5112EF926ED77F59F015E6CE492142F8FDF1828E5082E970AA949EDFBB8"
+}

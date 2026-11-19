@@ -1,0 +1,13 @@
+﻿{
+    "tmp":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_1818",
+    "A":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_1818\\A.vit",
+    "B":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_1818\\B.vit",
+    "uuid_a":  "vitproj_7ef2f8f19c944155a131f1a6f1e70560",
+    "uuid_b":  "vitproj_55a9647cb56e4991b536f75a412f1fe5",
+    "open_a_status":  "ok",
+    "open_b_status":  "ok",
+    "package_dirs":  [
+                         ".vit_agent",
+                         ".vit_history"
+                     ]
+}

@@ -1,0 +1,94 @@
+﻿{
+    "status":  "kernel_error",
+    "agent_action_id":  "act_b07f497bd44b4050",
+    "tool":  "project.open",
+    "command_name":  "open_project",
+    "risk_level":  "confirm",
+    "requires_confirmation":  false,
+    "result":  {
+                   "command_ack":  {
+                                       "ack":  {
+                                                   "message":  "open_project requires a non-empty file_path",
+                                                   "stage":  "rejected"
+                                               },
+                                       "command":  "legacy.command",
+                                       "error":  {
+                                                     "code":  "validation_error",
+                                                     "message":  "open_project requires a non-empty file_path",
+                                                     "retryable":  false
+                                                 },
+                                       "legacy_command":  "open_project",
+                                       "resync_hint":  true,
+                                       "revision":  0,
+                                       "source":  "vsp.command.response",
+                                       "stage":  "rejected",
+                                       "transaction_id":  "tx_1795083483462757600_72"
+                                   },
+                   "message":  "open_project requires a non-empty file_path",
+                   "status":  "error",
+                   "vsp":  {
+                               "command_ack":  {
+                                                   "ack":  {
+                                                               "message":  "open_project requires a non-empty file_path",
+                                                               "stage":  "rejected"
+                                                           },
+                                                   "command":  "legacy.command",
+                                                   "error":  {
+                                                                 "code":  "validation_error",
+                                                                 "message":  "open_project requires a non-empty file_path",
+                                                                 "retryable":  false
+                                                             },
+                                                   "legacy_command":  "open_project",
+                                                   "resync_hint":  true,
+                                                   "revision":  0,
+                                                   "source":  "vsp.command.response",
+                                                   "stage":  "rejected",
+                                                   "transaction_id":  "tx_1795083483462757600_72"
+                                               },
+                               "transport":  "vsp",
+                               "version":  "1.0"
+                           }
+               },
+    "project_history":  {
+                            "active_branch":  "main",
+                            "active_node_id":  "",
+                            "active_worktree":  "",
+                            "available":  true,
+                            "branches":  {
+
+                                         },
+                            "commit_count":  0,
+                            "detached":  false,
+                            "draft":  false,
+                            "head":  "",
+                            "initialized":  true,
+                            "project_label":  "B",
+                            "project_path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_1818\\B.vit",
+                            "project_uuid":  "vitproj_55a9647cb56e4991b536f75a412f1fe5",
+                            "recent_checkpoints":  [
+
+                                                   ],
+                            "refs":  {
+
+                                     },
+                            "root_project_path":  "",
+                            "unsaved":  false,
+                            "warnings":  [
+
+                                         ],
+                            "worktree_count":  1,
+                            "worktrees":  [
+                                              {
+                                                  "created_at":  "2026-11-19T10:18:03.4762572Z",
+                                                  "is_root":  true,
+                                                  "label":  "主工作树",
+                                                  "name":  "main",
+                                                  "path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_1818",
+                                                  "project_file_path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_1818\\B.vit",
+                                                  "project_path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_1818\\B.vit",
+                                                  "root_project_path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_1818\\B.vit"
+                                              }
+                                          ]
+                        },
+    "error":  "open_project requires a non-empty file_path"
+}

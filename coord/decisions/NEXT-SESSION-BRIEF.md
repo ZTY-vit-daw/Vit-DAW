@@ -1,26 +1,29 @@
 # NEXT-SESSION-BRIEF（下次会话入口；gate 时更新）
 
-- 更新：2026-11-18 22:20（Asia/Shanghai）；上次 gate：`coord/reports/2026-11-18-gate-2215.md`。
-- main：`288465f8`（本文件提交后以实际 HEAD 为准）；webui dist：`FA293DB3B8713F05F27D531F82B5FF7063244F94681CDC9769B402C01397304E`。
-- 栈：空闲（无 Vit/agent/内核/Godot 进程；端口/UDP 全 0）；子代理全部 inactive，可续聊。
+- 更新：2026-11-19 18:30（Asia/Shanghai）；上次 gate：`coord/reports/2026-11-18-gate-2215.md`。
+- main：`745b6265`（本文件提交后以实际 HEAD 为准）；webui dist 不变 `FA293DB3…304E`。
+- 栈：空闲（teardown 后 Vit 系进程 0；TCP 7878/7879/8787/5555/5556/9333=0；UDP 4445=0）；无运行中子代理/后台 job。
 
 ## 用户已定事项
 
-- 入口左栏 + 右侧对话窗口 A 方案（窗口壳持久化）已验收；左栏内容动效定稿 **800ms**，不再调；
-- 设置唯一入口=左栏 footer；新对话无节点可从 HEAD 分叉；加载卡在消息前；
-- 契约 R1–R6 已冻结（`docs/LEGAME_DESIGN_CONTRACT_V0.md` v0-frozen）。
+- 2026-11-19：**425 真栈腿授权**；本会话由 lead 亲自执行，不用 GPT/Codex 执行流。
+- 425 真栈 S0–S7 **PASS**，W01（解析/编译/工程绑定）收口；卡已 done；裁定 `coord/rulings/2026-11-19-G0-LEGAME-BIND-1-realstack-pass.md`。
+- LLM 配置：`~/.vit/config.json` 已是 DeepSeek 直连（`https://api.deepseek.com/v1`，key 与桌面 `DS apikey.txt` 一致；`/models` 验证通过）。启动栈时清除 `OPENAI_*`/`VIT_AGENT_LLM_*` 环境覆写即可保持。
+- 入口左栏 + 右侧对话窗口 A 方案已验收；左栏内容动效 800ms 定稿；设置唯一入口=左栏 footer；新对话无节点从 HEAD 分叉；加载卡在消息前；契约 R1–R6 冻结。
 
 ## 未结/下一首排
 
-1. **425 W01-C 真栈腿**（唯一明确执行项）：`scripts/run_legame_bind_smoke.ps1` S0–S7；前置=准备真实栈 A/B 工程、登记栈位+书面授权；通过后 425 done。
-2. **422 CONV-CROSS-COMBO-1**：B2b 跨工作树真栈组合验证（421/419 已合入零栈 PASS）；需隔离 fixture + 工作树副本 + 真栈 runbook。
-3. **W02 最小切片**（每轮课程上下文/作业检查/自然推进）设计+实现卡；随后 W14/W19；展演核心缺口见 11-12 审计 20 包。
-4. 用户节点：390 YuE instrumental 人耳、384 M2/点音色、材料听核。
+1. **422 CONV-CROSS-COMBO-1**（todo）：B2b 跨工作树真栈组合验证；先写 runbook+脚本（零栈），再候栈窗口；421/419 已合入。
+2. **W02 最小切片**（设计+实现）：每轮课程上下文/选中 clip 绑定/结构检查/自然推进；依赖 W01 已收口，先核对 374/375 对 W08/W18 的覆盖边界；建议拆 a（上下文+clip 契约）/b（检查+真实 LLM 反馈+恢复）。
+3. **425 装置债**：berth 启动前复制并还原 `Settings.xml`/`default_project.xml`；425 脚本内建 A/B 创建或 setup 前置隔离；`default_project.xml` 已被内核改为空白默认（预跑为六 stems 测试残留，非用户工程；仅存哈希无法逐字节还原）——候用户确认接受。详见 `coord/runs/G0-LEGAME-BIND-1/real-stack/run_20261119_1818/DEVICE-NOTES.md`。
+4. 用户节点：390 YuE instrumental 真栈生成+人耳；384 M2/点音色演示；材料听核。
+5. 旧池未动：doing 8 / blocked 6；POOL-INDEX 397–431 回填留 gate。
 
 ## 读入口（按序，不读全史）
 
-`NEXT-SESSION-BRIEF` → `coord/cards/POOL-INDEX.md` → 相关 doing/blocked 卡与 `coord/rulings/2026-11-18-*` → 需要时再读契约/代码。
+`NEXT-SESSION-BRIEF` → `coord/cards/POOL-INDEX.md` → 相关 doing/blocked 卡与 `coord/rulings/2026-11-19-*` → 需要时再读契约/代码。
 
 ## 规则
 
 - 先读 `coord/decisions/2026-11-18-agent-economy-rules.md` 与 `coord/agents/ROSTER.md`；同产线优先复用子代理；回执≤15行、证据落 coord/runs；主管不逐行读 diff。
+- 真栈腿：berth 前**复制**权威文件（Settings.xml/default_project.xml）与 recents 快照；teardown 还原并哈希亲证；单 owner、单正式轮、失败即停。

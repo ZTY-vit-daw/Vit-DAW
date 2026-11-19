@@ -1,0 +1,41 @@
+﻿{
+    "status":  "needs_confirmation",
+    "agent_action_id":  "act_3092630b024d1058",
+    "tool":  "project.new",
+    "command_name":  "new_project",
+    "risk_level":  "confirm",
+    "requires_confirmation":  true,
+    "preview":  "new_project [confirm]: Create a new project.\n{\"agent_action_id\":\"act_3092630b024d1058\",\"cmd\":\"new_project\",\"tool_call_id\":\"tool_68c4fb6923ab233f\"}",
+    "project_history":  {
+                            "active_branch":  "",
+                            "active_node_id":  "",
+                            "active_worktree":  "",
+                            "available":  false,
+                            "branches":  {
+
+                                         },
+                            "commit_count":  0,
+                            "current_project_path":  "",
+                            "detached":  false,
+                            "draft":  false,
+                            "head":  "",
+                            "initialized":  false,
+                            "project_path":  "",
+                            "project_uuid":  "",
+                            "recent_checkpoints":  [
+
+                                                   ],
+                            "refs":  {
+
+                                     },
+                            "root_project_path":  "",
+                            "unsaved":  false,
+                            "warnings":  [
+
+                                         ],
+                            "worktree_count":  0,
+                            "worktrees":  [
+
+                                          ]
+                        }
+}

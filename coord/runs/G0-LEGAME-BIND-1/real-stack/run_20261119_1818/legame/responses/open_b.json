@@ -1,0 +1,305 @@
+﻿{
+    "status":  "ok",
+    "agent_action_id":  "act_0eff08b12280b7b4",
+    "tool":  "project.open",
+    "command_name":  "open_project",
+    "risk_level":  "confirm",
+    "requires_confirmation":  false,
+    "result":  {
+                   "agent_history_generation":  "save_20261119T101718_5687c633",
+                   "command_ack":  {
+                                       "ack":  {
+                                                   "message":  "Project opened",
+                                                   "stage":  "completed"
+                                               },
+                                       "command":  "legacy.command",
+                                       "legacy_command":  "open_project",
+                                       "resync_hint":  true,
+                                       "revision":  0,
+                                       "source":  "vsp.command.response",
+                                       "stage":  "completed",
+                                       "transaction_id":  "tx_1795083521823871400_127"
+                                   },
+                   "current_project_path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_1818\\B.vit",
+                   "message":  "Project opened",
+                   "parent_project_uuid":  "vitproj_85e6c21e76cc45daa37886b56484386d",
+                   "project_id":  "vitproj_55a9647cb56e4991b536f75a412f1fe5",
+                   "project_lifecycle":  "open",
+                   "project_path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_1818\\B.vit",
+                   "project_uuid":  "vitproj_55a9647cb56e4991b536f75a412f1fe5",
+                   "project_workspace":  {
+                                             "active_branch":  "main",
+                                             "active_node_id":  "",
+                                             "active_worktree":  "",
+                                             "branches":  {
+
+                                                          },
+                                             "commit_count":  0,
+                                             "conversation_graph":  {
+                                                                        "project_path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_1818\\B.vit",
+                                                                        "project_uuid":  "vitproj_55a9647cb56e4991b536f75a412f1fe5",
+                                                                        "active_branch":  "main",
+                                                                        "nodes":  [
+
+                                                                                  ]
+                                                                    },
+                                             "conversation_messages":  [
+
+                                                                       ],
+                                             "detached":  false,
+                                             "draft":  false,
+                                             "head":  "",
+                                             "history_dir":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_1818\\.vit_history\\.sessions\\vitproj_55a9647cb56e4991b536f75a412f1fe5\\session_20261119T101841_b88d53de\\workspace",
+                                             "initialized":  true,
+                                             "project_label":  "B",
+                                             "project_package_restore":  {
+                                                                             "status":  "v2",
+                                                                             "package_path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_1818\\.vit_agent\\vitproj_55a9647cb56e4991b536f75a412f1fe5",
+                                                                             "manifest_verified":  true,
+                                                                             "history_restored":  false,
+                                                                             "analysis_manifest_restored":  false,
+                                                                             "feature_snapshot_restored":  false,
+                                                                             "l3_feature_log_restored":  false,
+                                                                             "acoustic_packages_restored":  0,
+                                                                             "mixboard_sessions_restored":  0,
+                                                                             "reason":  "agent_store_v2_authoritative"
+                                                                         },
+                                             "project_path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_1818\\B.vit",
+                                             "project_uuid":  "vitproj_55a9647cb56e4991b536f75a412f1fe5",
+                                             "refs":  {
+
+                                                      },
+                                             "root_project_path":  "",
+                                             "state_dir":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_1818\\.vit_history\\.sessions\\vitproj_55a9647cb56e4991b536f75a412f1fe5\\session_20261119T101841_b88d53de\\workspace\\state",
+                                             "unsaved":  false,
+                                             "warnings":  [
+
+                                                          ],
+                                             "worktrees":  [
+                                                               {
+                                                                   "created_at":  "2026-11-19T10:18:41.9116455Z",
+                                                                   "is_root":  true,
+                                                                   "label":  "主工作树",
+                                                                   "name":  "main",
+                                                                   "path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_1818",
+                                                                   "project_file_path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_1818\\B.vit",
+                                                                   "project_path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_1818\\B.vit",
+                                                                   "root_project_path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_1818\\B.vit"
+                                                               }
+                                                           ]
+                                         },
+                   "state_delta":  {
+                                       "ack":  {
+                                                   "message":  "State delta captured",
+                                                   "stage":  "completed"
+                                               },
+                                       "base_revision":  8,
+                                       "changed_clips":  null,
+                                       "changed_tracks":  null,
+                                       "ops":  [
+                                                   {
+                                                       "op":  "replace",
+                                                       "path":  "/project",
+                                                       "value":  {
+                                                                     "clip_count":  0,
+                                                                     "legacy_graph_active_revision":  0,
+                                                                     "legacy_graph_last_diff_kind":  "edit_loaded",
+                                                                     "legacy_graph_lifecycle_state":  "idle",
+                                                                     "legacy_graph_pending_revision":  0,
+                                                                     "legacy_graph_publish_mode":  "initialised",
+                                                                     "legacy_graph_revision":  0,
+                                                                     "parent_project_uuid":  "vitproj_85e6c21e76cc45daa37886b56484386d",
+                                                                     "project_id":  "project_current",
+                                                                     "project_path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_1818\\B.vit",
+                                                                     "project_uuid":  "vitproj_55a9647cb56e4991b536f75a412f1fe5",
+                                                                     "scope":  "project.timeline",
+                                                                     "track_count":  0
+                                                                 }
+                                                   }
+                                               ],
+                                       "ops_count":  1,
+                                       "project_epoch":  "epoch_54f72fcd0db338b5",
+                                       "resync":  false,
+                                       "resync_hint":  false,
+                                       "revision":  9,
+                                       "scope":  "project.timeline",
+                                       "snapshot_hash":  "f93365994ef02549",
+                                       "source":  "vsp.state.delta",
+                                       "stage":  "completed",
+                                       "type":  "state.delta"
+                                   },
+                   "state_resync":  {
+                                        "ack":  {
+                                                    "message":  "State resynchronised",
+                                                    "stage":  "completed"
+                                                },
+                                        "base_revision":  0,
+                                        "changed_clips":  null,
+                                        "changed_tracks":  null,
+                                        "ops_count":  0,
+                                        "project":  {
+                                                        "clip_count":  0,
+                                                        "legacy_graph_active_revision":  0,
+                                                        "legacy_graph_last_diff_kind":  "edit_loaded",
+                                                        "legacy_graph_lifecycle_state":  "idle",
+                                                        "legacy_graph_pending_revision":  0,
+                                                        "legacy_graph_publish_mode":  "initialised",
+                                                        "legacy_graph_revision":  0,
+                                                        "parent_project_uuid":  "vitproj_85e6c21e76cc45daa37886b56484386d",
+                                                        "project_id":  "project_current",
+                                                        "project_path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_1818\\B.vit",
+                                                        "project_uuid":  "vitproj_55a9647cb56e4991b536f75a412f1fe5",
+                                                        "scope":  "project.timeline",
+                                                        "track_count":  0
+                                                    },
+                                        "project_epoch":  "epoch_54f72fcd0db338b5",
+                                        "resync":  true,
+                                        "resync_hint":  false,
+                                        "revision":  9,
+                                        "scope":  "project.timeline",
+                                        "snapshot_hash":  "f93365994ef02549",
+                                        "source":  "vsp.state.resync",
+                                        "stage":  "completed",
+                                        "tracks":  [
+
+                                                   ],
+                                        "type":  "state.snapshot"
+                                    },
+                   "status":  "ok",
+                   "vsp":  {
+                               "command_ack":  {
+                                                   "ack":  {
+                                                               "message":  "Project opened",
+                                                               "stage":  "completed"
+                                                           },
+                                                   "command":  "legacy.command",
+                                                   "legacy_command":  "open_project",
+                                                   "resync_hint":  true,
+                                                   "revision":  0,
+                                                   "source":  "vsp.command.response",
+                                                   "stage":  "completed",
+                                                   "transaction_id":  "tx_1795083521823871400_127"
+                                               },
+                               "state_delta":  {
+                                                   "ack":  {
+                                                               "message":  "State delta captured",
+                                                               "stage":  "completed"
+                                                           },
+                                                   "base_revision":  8,
+                                                   "changed_clips":  null,
+                                                   "changed_tracks":  null,
+                                                   "ops":  [
+                                                               {
+                                                                   "op":  "replace",
+                                                                   "path":  "/project",
+                                                                   "value":  {
+                                                                                 "clip_count":  0,
+                                                                                 "legacy_graph_active_revision":  0,
+                                                                                 "legacy_graph_last_diff_kind":  "edit_loaded",
+                                                                                 "legacy_graph_lifecycle_state":  "idle",
+                                                                                 "legacy_graph_pending_revision":  0,
+                                                                                 "legacy_graph_publish_mode":  "initialised",
+                                                                                 "legacy_graph_revision":  0,
+                                                                                 "parent_project_uuid":  "vitproj_85e6c21e76cc45daa37886b56484386d",
+                                                                                 "project_id":  "project_current",
+                                                                                 "project_path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_1818\\B.vit",
+                                                                                 "project_uuid":  "vitproj_55a9647cb56e4991b536f75a412f1fe5",
+                                                                                 "scope":  "project.timeline",
+                                                                                 "track_count":  0
+                                                                             }
+                                                               }
+                                                           ],
+                                                   "ops_count":  1,
+                                                   "project_epoch":  "epoch_54f72fcd0db338b5",
+                                                   "resync":  false,
+                                                   "resync_hint":  false,
+                                                   "revision":  9,
+                                                   "scope":  "project.timeline",
+                                                   "snapshot_hash":  "f93365994ef02549",
+                                                   "source":  "vsp.state.delta",
+                                                   "stage":  "completed",
+                                                   "type":  "state.delta"
+                                               },
+                               "state_resync":  {
+                                                    "ack":  {
+                                                                "message":  "State resynchronised",
+                                                                "stage":  "completed"
+                                                            },
+                                                    "base_revision":  0,
+                                                    "changed_clips":  null,
+                                                    "changed_tracks":  null,
+                                                    "ops_count":  0,
+                                                    "project":  {
+                                                                    "clip_count":  0,
+                                                                    "legacy_graph_active_revision":  0,
+                                                                    "legacy_graph_last_diff_kind":  "edit_loaded",
+                                                                    "legacy_graph_lifecycle_state":  "idle",
+                                                                    "legacy_graph_pending_revision":  0,
+                                                                    "legacy_graph_publish_mode":  "initialised",
+                                                                    "legacy_graph_revision":  0,
+                                                                    "parent_project_uuid":  "vitproj_85e6c21e76cc45daa37886b56484386d",
+                                                                    "project_id":  "project_current",
+                                                                    "project_path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_1818\\B.vit",
+                                                                    "project_uuid":  "vitproj_55a9647cb56e4991b536f75a412f1fe5",
+                                                                    "scope":  "project.timeline",
+                                                                    "track_count":  0
+                                                                },
+                                                    "project_epoch":  "epoch_54f72fcd0db338b5",
+                                                    "resync":  true,
+                                                    "resync_hint":  false,
+                                                    "revision":  9,
+                                                    "scope":  "project.timeline",
+                                                    "snapshot_hash":  "f93365994ef02549",
+                                                    "source":  "vsp.state.resync",
+                                                    "stage":  "completed",
+                                                    "tracks":  [
+
+                                                               ],
+                                                    "type":  "state.snapshot"
+                                                },
+                               "transport":  "vsp",
+                               "version":  "1.0"
+                           }
+               },
+    "project_history":  {
+                            "active_branch":  "main",
+                            "active_node_id":  "",
+                            "active_worktree":  "",
+                            "available":  true,
+                            "branches":  {
+
+                                         },
+                            "commit_count":  0,
+                            "detached":  false,
+                            "draft":  false,
+                            "head":  "",
+                            "initialized":  true,
+                            "project_label":  "B",
+                            "project_path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_1818\\B.vit",
+                            "project_uuid":  "vitproj_55a9647cb56e4991b536f75a412f1fe5",
+                            "recent_checkpoints":  [
+
+                                                   ],
+                            "refs":  {
+
+                                     },
+                            "root_project_path":  "",
+                            "unsaved":  false,
+                            "warnings":  [
+
+                                         ],
+                            "worktree_count":  1,
+                            "worktrees":  [
+                                              {
+                                                  "created_at":  "2026-11-19T10:18:41.9141749Z",
+                                                  "is_root":  true,
+                                                  "label":  "主工作树",
+                                                  "name":  "main",
+                                                  "path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_1818",
+                                                  "project_file_path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_1818\\B.vit",
+                                                  "project_path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_1818\\B.vit",
+                                                  "root_project_path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_1818\\B.vit"
+                                              }
+                                          ]
+                        }
+}

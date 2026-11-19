@@ -1,0 +1,26 @@
+﻿{
+    "torn_down_at":  "2026-11-19T18:21:02.6230117+08:00",
+    "agent_pid":  5880,
+    "leftover_processes":  [
+
+                           ],
+    "listening_ports":  [
+
+                        ],
+    "udp4445":  [
+
+                ],
+    "recents_path":  "C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\global_project_config.json",
+    "recents_after_sha256":  "63D0F3F7FCB4E874E15012D545C45284A5208750213918EB62359CAF58ECDF7B",
+    "recents_before_sha256":  "63D0F3F7FCB4E874E15012D545C45284A5208750213918EB62359CAF58ECDF7B",
+    "recents_restored":  true,
+    "authority_before":  {
+                             "D:\\Vit_DAW\\VitApp\\Workspace\\Settings\\Settings.xml":  "72F0F5112EF926ED77F59F015E6CE492142F8FDF1828E5082E970AA949EDFBB8",
+                             "D:\\Vit_DAW\\VitApp\\Workspace\\default_project.xml":  "5BC9C75665DC779CCF8EC45CB5C113197597498269E8AC9ED80A490BB5A55616"
+                         },
+    "authority_after":  {
+                            "D:\\Vit_DAW\\VitApp\\Workspace\\Settings\\Settings.xml":  "72F0F5112EF926ED77F59F015E6CE492142F8FDF1828E5082E970AA949EDFBB8",
+                            "D:\\Vit_DAW\\VitApp\\Workspace\\default_project.xml":  "E9B668A0FA8556ACDDC180E5DDF3E540FC4A577C0F90ABA5CB6E56C0A6F9D1E9"
+                        },
+    "authority_same":  false
+}

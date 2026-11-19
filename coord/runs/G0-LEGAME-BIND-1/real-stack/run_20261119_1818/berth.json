@@ -1,0 +1,48 @@
+﻿{
+    "card":  "G0-LEGAME-BIND-1",
+    "run":  "D:\\Vit_DAW\\coord\\runs\\G0-LEGAME-BIND-1\\real-stack\\run_20261119_1818",
+    "started_at":  "2026-11-19T18:16:44.4829345+08:00",
+    "owner":  "lead",
+    "agent_pid":  5880,
+    "agent_sha256":  "3D9BAC1C147343ECABF0B9F475954A08F95BC54F33721B37628FE4C0548B1CB3",
+    "env":  {
+                "VIT_AGENT_SPAWN_RUNTIME":  "1",
+                "VIT_DAW_DEV_ROOT":  "D:/Vit_DAW",
+                "VIT_AGENT_HTTP_ADDR":  "127.0.0.1:7878",
+                "VIT_AGENT_VSP_HUB_URL":  "http://127.0.0.1:8787/vsp"
+            },
+    "agent_up":  true,
+    "kernel_up":  true,
+    "hub_up":  true,
+    "recents_before_sha256":  "63D0F3F7FCB4E874E15012D545C45284A5208750213918EB62359CAF58ECDF7B",
+    "authority_before":  {
+                             "D:\\Vit_DAW\\VitApp\\Workspace\\Settings\\Settings.xml":  "72F0F5112EF926ED77F59F015E6CE492142F8FDF1828E5082E970AA949EDFBB8",
+                             "D:\\Vit_DAW\\VitApp\\Workspace\\default_project.xml":  "5BC9C75665DC779CCF8EC45CB5C113197597498269E8AC9ED80A490BB5A55616"
+                         },
+    "process_tree":  [
+                         {
+                             "Name":  "VitAgent.exe",
+                             "ProcessId":  5880,
+                             "ParentProcessId":  26384,
+                             "CreationDate":  "\/Date(1795083402491)\/"
+                         },
+                         {
+                             "Name":  "conhost.exe",
+                             "ProcessId":  19864,
+                             "ParentProcessId":  5880,
+                             "CreationDate":  "\/Date(1795083402503)\/"
+                         },
+                         {
+                             "Name":  "VspHub.exe",
+                             "ProcessId":  12532,
+                             "ParentProcessId":  5880,
+                             "CreationDate":  "\/Date(1795083402856)\/"
+                         },
+                         {
+                             "Name":  "VitApp.exe",
+                             "ProcessId":  5592,
+                             "ParentProcessId":  5880,
+                             "CreationDate":  "\/Date(1795083403511)\/"
+                         }
+                     ]
+}

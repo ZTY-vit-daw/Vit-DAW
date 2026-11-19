@@ -21,3 +21,15 @@
 - 交付：R2 元数据启用、M1 导入装配、binding UUID、四元组缓存、重开/移动/revise fail-closed、真栈 runbook。
 - 零栈证据：A/B 隔离、重开不切版、revise 新卡、enabled=false 惰性、R5 无覆盖不落卡。
 - 真栈腿未跑（runbook 待授权）；卡保持 doing。裁定：[zerostack-pass](../../rulings/2026-11-18-G0-LEGAME-BIND-1-zerostack-pass.md)。
+
+## 真栈腿（2026-11-19，lead 亲跑）
+
+- 栈位：main `9f65db40` 登记；berth=`agent/bin/VitAgent.exe` + `VIT_AGENT_SPAWN_RUNTIME=1`（agent 自拉 headless kernel+VspHub，无 VitShell/GUI）。
+- 二进制：VitAgent `3D9BAC1C…`（main 33650e22 构建）、kernel `A5947361…`、hub `B10CC412…`。
+- 装置修（已合入 main）：`029e1c6c` 默认端口 7878+agent 面预检；`745b6265` `args`/`confirmed`、`project.open file_path`、`current_project` 字段、S5 自然语句、S6 会话延续、UTF-8 BOM。
+- 轮次：attempt1 编码解析失败；attempt2 S0–S4 PASS / S5 `edu_jam_no_session`（测试期望缺陷：命令词跳过 auto-intro）；attempt3 正式轮 **S0–S7 PASS**。
+- 正式轮证据：[summary.json](../../runs/G0-LEGAME-BIND-1/real-stack/run_20261119_1818/legame_final/summary.json)（status=passed；A/B UUID `vitproj_4ce90ea8…` / `vitproj_73ce04f5…`；binding/card 路径相异；重开 cache_key 一致；revise 后 design_source_sha256 变化且新标题生效；recents 还原哈希一致；零 LLM 遥测）。
+- 权威输入：Settings.xml 未变；**default_project.xml 被内核改写**（berth 前 `5BC9C756…` → 当前 `E9B668A0…`；仅存哈希未复制，无法逐字节还原；预跑内容为六 stems 测试残留，非用户工程）。装置缺陷记录见 [DEVICE-NOTES](../../runs/G0-LEGAME-BIND-1/real-stack/run_20261119_1818/DEVICE-NOTES.md)；后续真栈腿须在 berth 前复制权威文件并在 teardown 还原。
+- 栈：teardown 后 Vit 系进程/TCP 六口/UDP 4445 全零；recents 还原 `63D0F3F7…`。
+- 裁定：[realstack-pass](../../rulings/2026-11-19-G0-LEGAME-BIND-1-realstack-pass.md)。
+

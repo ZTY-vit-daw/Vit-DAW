@@ -1,0 +1,47 @@
+﻿{
+    "schema_version":  "vit_legame_bind_smoke.v1",
+    "card":  "G0-LEGAME-BIND-1",
+    "status":  "failed",
+    "runtime_owner":  "lead/pc-20261119",
+    "created_at":  "2026-11-19T18:18:39.1617453+08:00",
+    "run_root":  "D:\\Vit_DAW\\coord\\runs\\G0-LEGAME-BIND-1\\real-stack\\run_20261119_1818\\legame",
+    "project_a":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_1818\\A.vit",
+    "project_b":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_1818\\B.vit",
+    "design_source_dir":  "D:\\Vit_DAW\\coord\\lesson-designs\\music-creation-unit2",
+    "import":  {
+                   "stop_reason":  "edu_jam_legame_imported",
+                   "card_id":  "music-creation-unit2-demo",
+                   "package_dir":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_1818\\A.vit_project",
+                   "card_path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_1818\\A.vit_project\\legame\\cards\\music-creation-unit2-demo\\music-creation-unit2-demo.compiled.level.yaml",
+                   "cache_key":  {
+                                     "design_source_sha256":  "dbf3781a67c86f7f7341b0771ab9207bdff7a618ac666b9aad9cd7e5b1356fb7",
+                                     "compiler_version":  "legamedesign-compile.v0",
+                                     "assembly_input_hash":  "e7c652d91dd00c7290ae95800b99161c30163e802ec0c1423bf0c6005a4fef52",
+                                     "card_schema_version":  "vit.level_card.v0"
+                                 },
+                   "warnings":  23,
+                   "infos":  16
+               },
+    "enter":  {
+                  "level_id":  "music-creation-unit2-demo",
+                  "stop_reason":  "edu_jam_entered"
+              },
+    "a_b_isolation":  {
+                          "uuid_a":  "vitproj_7ef2f8f19c944155a131f1a6f1e70560",
+                          "uuid_b":  "vitproj_55a9647cb56e4991b536f75a412f1fe5",
+                          "binding_a":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_1818\\.vit_agent\\vitproj_7ef2f8f19c944155a131f1a6f1e70560\\legame_binding.json",
+                          "binding_b":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_1818\\.vit_agent\\vitproj_55a9647cb56e4991b536f75a412f1fe5\\legame_binding.json",
+                          "card_a":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_1818\\A.vit_project\\legame\\cards\\music-creation-unit2-demo\\music-creation-unit2-demo.compiled.level.yaml",
+                          "card_b":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_1818\\B.vit_project\\legame\\cards\\music-creation-unit2-demo\\music-creation-unit2-demo.compiled.level.yaml"
+                      },
+    "reopen":  null,
+    "revise":  null,
+    "recents":  {
+                    "path":  "C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\global_project_config.json",
+                    "restored":  true,
+                    "hash_before":  "2AEF53849A6DC1E51E5163809D4D9B9C7F67456ACF0376CF3876782905FEE49C",
+                    "hash_after":  "2AEF53849A6DC1E51E5163809D4D9B9C7F67456ACF0376CF3876782905FEE49C"
+                },
+    "error":  "重开后状态回执 stop_reason=edu_jam_no_session",
+    "completed_at":  "2026-11-19T18:18:44.8859197+08:00"
+}

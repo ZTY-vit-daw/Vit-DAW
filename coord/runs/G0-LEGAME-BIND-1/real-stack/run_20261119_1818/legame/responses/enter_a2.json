@@ -1,0 +1,79 @@
+﻿{
+    "conversation_id":  "legame-bind-a-owner-2",
+    "task_id":  "task_352c9769f6d3bb90",
+    "goal_id":  "goal_18a9cd79f0e8d7ea",
+    "run_id":  "run_9214b1fa753a3a06",
+    "original_intent":  "乐局状态",
+    "reply":  "当前没有进行中的乐局。可以说「开始乐局」开局。",
+    "agent_mode":  "default",
+    "needs_confirmation":  false,
+    "workflow":  "edu_jam",
+    "workflow_data":  {
+                          "schema_version":  "vit.edu_jam_session.v0",
+                          "status":  "none"
+                      },
+    "goal_status":  "completed",
+    "goal_summary":  "乐局状态",
+    "stop_reason":  "edu_jam_no_session",
+    "project_history":  {
+                            "active_branch":  "main",
+                            "active_node_id":  "n_20261119T101844_d8eece08",
+                            "active_worktree":  "",
+                            "available":  true,
+                            "branches":  {
+                                             "main":  "c_20261119T101844_d317d3ae"
+                                         },
+                            "commit_count":  1,
+                            "conversation_messages":  [
+                                                          {
+                                                              "content":  "乐局状态",
+                                                              "logical_message_id":  "n_20261119T101844_1f8385ad",
+                                                              "message_kind":  "user",
+                                                              "node_id":  "n_20261119T101844_1f8385ad",
+                                                              "role":  "user"
+                                                          },
+                                                          {
+                                                              "content":  "当前没有进行中的乐局。可以说「开始乐局」开局。",
+                                                              "logical_message_id":  "n_20261119T101844_d8eece08",
+                                                              "message_kind":  "assistant",
+                                                              "node_id":  "n_20261119T101844_d8eece08",
+                                                              "role":  "assistant"
+                                                          }
+                                                      ],
+                            "detached":  false,
+                            "draft":  false,
+                            "head":  "c_20261119T101844_d317d3ae",
+                            "initialized":  true,
+                            "project_label":  "A",
+                            "project_path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_1818\\A.vit",
+                            "project_uuid":  "vitproj_7ef2f8f19c944155a131f1a6f1e70560",
+                            "refs":  {
+                                         "refs/heads/main":  "c_20261119T101844_d317d3ae"
+                                     },
+                            "root_project_path":  "",
+                            "unsaved":  false,
+                            "warnings":  [
+
+                                         ],
+                            "worktrees":  [
+                                              {
+                                                  "commit_id":  "c_20261119T101844_d317d3ae",
+                                                  "created_at":  "2026-11-19T10:18:44.8273757Z",
+                                                  "is_root":  true,
+                                                  "label":  "主工作树",
+                                                  "name":  "main",
+                                                  "origin_commit_id":  "c_20261119T101844_d317d3ae",
+                                                  "path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_1818",
+                                                  "project_file_path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_1818\\A.vit",
+                                                  "project_path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_1818\\A.vit",
+                                                  "root_project_path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_1818\\A.vit"
+                                              }
+                                          ]
+                        },
+    "context_flow":  "project",
+    "lifecycle":  "durable",
+    "persistence":  "project_history",
+    "message_kind":  "assistant",
+    "turn_id":  "run_9214b1fa753a3a06",
+    "logical_message_id":  "n_20261119T101844_d8eece08"
+}

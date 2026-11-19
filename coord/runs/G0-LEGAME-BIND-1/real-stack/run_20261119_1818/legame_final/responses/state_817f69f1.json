@@ -1,0 +1,444 @@
+﻿{
+    "active_goal":  {
+                        "agent_plan":  {
+                                           "goal_id":  "goal_a4601afcf5609ac4",
+                                           "run_id":  "run_8a48caf1f6279f4e",
+                                           "status":  "completed",
+                                           "summary":  "导入乐局设计源 D:\\Vit_DAW\\coord\\lesson-designs\\music-creation-unit2 tempo=80 turns=60 calls=120",
+                                           "project_history":  {
+                                                                   "active_branch":  "main",
+                                                                   "active_node_id":  "n_20261119T102015_e0be06b5",
+                                                                   "active_worktree":  "",
+                                                                   "available":  true,
+                                                                   "baseline_commit":  "c_20261119T102015_fb92b233",
+                                                                   "baseline_created":  true,
+                                                                   "branches":  {
+                                                                                    "main":  "c_20261119T102015_45e3f5a7"
+                                                                                },
+                                                                   "commit_count":  2,
+                                                                   "detached":  false,
+                                                                   "draft":  false,
+                                                                   "goal_active_branch":  "main",
+                                                                   "goal_detached":  false,
+                                                                   "head":  "c_20261119T102015_45e3f5a7",
+                                                                   "initialized":  true,
+                                                                   "project_label":  "A",
+                                                                   "project_path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_final\\A.vit",
+                                                                   "project_uuid":  "vitproj_4ce90ea8e53c42098079e5612d80dd46",
+                                                                   "recent_checkpoints":  [
+                                                                                              {
+                                                                                                  "branch":  "main",
+                                                                                                  "checkpoint_kind":  "manual",
+                                                                                                  "created_at":  "2026-11-19T10:20:15.7005168Z",
+                                                                                                  "goal_id":  "goal_a4601afcf5609ac4",
+                                                                                                  "id":  "c_20261119T102015_45e3f5a7",
+                                                                                                  "message":  "Vit: 乐局设计源已导入并编译装配：\n- 卡 id：music-creation-unit2-demo\n- 设计源：legame/design.v1.yaml\n- 编译卡：legame/cards/music-creation-unit2-demo/music-creation-unit2-demo.compiled.level.yaml\n- W 诊断 23 条 / I 提示 16 条（待备料/降级清单见 compile manifest）\n下一句普通对话将自动开场（或说「开始乐局」）。"
+                                                                                              },
+                                                                                              {
+                                                                                                  "branch":  "main",
+                                                                                                  "checkpoint_kind":  "manual",
+                                                                                                  "created_at":  "2026-11-19T10:20:15.0825947Z",
+                                                                                                  "goal_id":  "goal_a4601afcf5609ac4",
+                                                                                                  "id":  "c_20261119T102015_fb92b233",
+                                                                                                  "message":  "Conversation ask"
+                                                                                              }
+                                                                                          ],
+                                                                   "refs":  {
+                                                                                "refs/heads/main":  "c_20261119T102015_45e3f5a7"
+                                                                            },
+                                                                   "root_project_path":  "",
+                                                                   "unsaved":  false,
+                                                                   "warnings":  [
+
+                                                                                ],
+                                                                   "worktree_count":  1,
+                                                                   "worktrees":  [
+                                                                                     {
+                                                                                         "commit_id":  "c_20261119T102015_45e3f5a7",
+                                                                                         "created_at":  "2026-11-19T10:20:15.9146973Z",
+                                                                                         "is_root":  true,
+                                                                                         "label":  "主工作树",
+                                                                                         "name":  "main",
+                                                                                         "origin_commit_id":  "c_20261119T102015_45e3f5a7",
+                                                                                         "path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_final",
+                                                                                         "project_file_path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_final\\A.vit",
+                                                                                         "project_path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_final\\A.vit",
+                                                                                         "root_project_path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_final\\A.vit"
+                                                                                     }
+                                                                                 ]
+                                                               }
+                                       },
+                        "goal":  {
+                                     "goal_id":  "goal_a4601afcf5609ac4",
+                                     "run_id":  "run_8a48caf1f6279f4e",
+                                     "task":  {
+                                                  "task_id":  "task_e69d3ee26e3a656d",
+                                                  "goal_id":  "goal_a4601afcf5609ac4",
+                                                  "original_intent":  "导入乐局设计源 D:\\Vit_DAW\\coord\\lesson-designs\\music-creation-unit2 tempo=80 turns=60 calls=120",
+                                                  "status":  "settled",
+                                                  "run":  {
+                                                              "run_id":  "run_8a48caf1f6279f4e",
+                                                              "task_id":  "task_e69d3ee26e3a656d",
+                                                              "next_slice":  1,
+                                                              "next_turn":  1
+                                                          },
+                                                  "created_at":  "2026-11-19T18:20:15.0799401+08:00",
+                                                  "updated_at":  "2026-11-19T18:20:15.7030201+08:00"
+                                              },
+                                     "status":  "completed",
+                                     "summary":  "导入乐局设计源 D:\\Vit_DAW\\coord\\lesson-designs\\music-creation-unit2 tempo=80 turns=60 calls=120",
+                                     "created_at":  "2026-11-19T18:20:15.0799401+08:00",
+                                     "updated_at":  "2026-11-19T18:20:15.7030201+08:00",
+                                     "cancel_requested":  false,
+                                     "project_history":  {
+                                                             "baseline_commit_id":  "c_20261119T102015_fb92b233",
+                                                             "baseline_created":  true,
+                                                             "active_branch":  "main",
+                                                             "head":  "c_20261119T102015_fb92b233"
+                                                         }
+                                 },
+                        "project_history":  {
+                                                "active_branch":  "main",
+                                                "active_node_id":  "n_20261119T102015_e0be06b5",
+                                                "active_worktree":  "",
+                                                "available":  true,
+                                                "baseline_commit":  "c_20261119T102015_fb92b233",
+                                                "baseline_created":  true,
+                                                "branches":  {
+                                                                 "main":  "c_20261119T102015_45e3f5a7"
+                                                             },
+                                                "commit_count":  2,
+                                                "detached":  false,
+                                                "draft":  false,
+                                                "goal_active_branch":  "main",
+                                                "goal_detached":  false,
+                                                "head":  "c_20261119T102015_45e3f5a7",
+                                                "initialized":  true,
+                                                "project_label":  "A",
+                                                "project_path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_final\\A.vit",
+                                                "project_uuid":  "vitproj_4ce90ea8e53c42098079e5612d80dd46",
+                                                "recent_checkpoints":  [
+                                                                           {
+                                                                               "branch":  "main",
+                                                                               "checkpoint_kind":  "manual",
+                                                                               "created_at":  "2026-11-19T10:20:15.7005168Z",
+                                                                               "goal_id":  "goal_a4601afcf5609ac4",
+                                                                               "id":  "c_20261119T102015_45e3f5a7",
+                                                                               "message":  "Vit: 乐局设计源已导入并编译装配：\n- 卡 id：music-creation-unit2-demo\n- 设计源：legame/design.v1.yaml\n- 编译卡：legame/cards/music-creation-unit2-demo/music-creation-unit2-demo.compiled.level.yaml\n- W 诊断 23 条 / I 提示 16 条（待备料/降级清单见 compile manifest）\n下一句普通对话将自动开场（或说「开始乐局」）。"
+                                                                           },
+                                                                           {
+                                                                               "branch":  "main",
+                                                                               "checkpoint_kind":  "manual",
+                                                                               "created_at":  "2026-11-19T10:20:15.0825947Z",
+                                                                               "goal_id":  "goal_a4601afcf5609ac4",
+                                                                               "id":  "c_20261119T102015_fb92b233",
+                                                                               "message":  "Conversation ask"
+                                                                           }
+                                                                       ],
+                                                "refs":  {
+                                                             "refs/heads/main":  "c_20261119T102015_45e3f5a7"
+                                                         },
+                                                "root_project_path":  "",
+                                                "unsaved":  false,
+                                                "warnings":  [
+
+                                                             ],
+                                                "worktree_count":  1,
+                                                "worktrees":  [
+                                                                  {
+                                                                      "commit_id":  "c_20261119T102015_45e3f5a7",
+                                                                      "created_at":  "2026-11-19T10:20:15.9146973Z",
+                                                                      "is_root":  true,
+                                                                      "label":  "主工作树",
+                                                                      "name":  "main",
+                                                                      "origin_commit_id":  "c_20261119T102015_45e3f5a7",
+                                                                      "path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_final",
+                                                                      "project_file_path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_final\\A.vit",
+                                                                      "project_path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_final\\A.vit",
+                                                                      "root_project_path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_final\\A.vit"
+                                                                  }
+                                                              ]
+                                            }
+                    },
+    "current_project":  {
+                            "path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_final\\A.vit",
+                            "uuid":  "vitproj_4ce90ea8e53c42098079e5612d80dd46"
+                        },
+    "direct_commands":  [
+                            "add_audio_track",
+                            "add_track",
+                            "aigc_register_job",
+                            "analyze_midi_transformations",
+                            "append_ghost_track",
+                            "arm_track",
+                            "artifact_extract",
+                            "artifact_list",
+                            "artifact_read",
+                            "automation.get_curve",
+                            "browser_fetch",
+                            "browser_search",
+                            "cancel_render",
+                            "ccb_observation_catalog",
+                            "ccb_observation_request",
+                            "clip.fade.read",
+                            "clip.gain.read",
+                            "clip.strip_silence.analyze",
+                            "clip.strip_silence.suggest",
+                            "control_rename_macro",
+                            "control_set_macro_values",
+                            "control_set_node_value",
+                            "folder_track.create",
+                            "genapi_jobs_list",
+                            "genapi_jobs_status",
+                            "genapi_providers",
+                            "get_audio_device_types",
+                            "get_audio_devices",
+                            "get_midi_clip_data",
+                            "get_midi_clip_notes",
+                            "get_plugin_parameters",
+                            "get_project_state",
+                            "get_recent_projects",
+                            "get_wave_input_devices",
+                            "goal_cancel",
+                            "goal_status",
+                            "goal_tick",
+                            "list_tracks",
+                            "logs_read",
+                            "logs_search",
+                            "loudness_watch_configure",
+                            "loudness_watch_status",
+                            "media.inspect_files",
+                            "media_index_authorized_folder",
+                            "media_register_assets",
+                            "mix_apply_tick",
+                            "mix_derive",
+                            "mix_observe",
+                            "mix_propose_tick",
+                            "mix_read",
+                            "mix_report",
+                            "mix_request_observation",
+                            "mix_rollback_tick",
+                            "open_plugin_ui",
+                            "ping",
+                            "play",
+                            "plugin_grabber_apply_compressor_controls",
+                            "plugin_grabber_apply_de_esser_controls",
+                            "plugin_grabber_apply_delay_controls",
+                            "plugin_grabber_apply_eq_edits",
+                            "plugin_grabber_apply_gate_expander_controls",
+                            "plugin_grabber_apply_limiter_controls",
+                            "plugin_grabber_apply_multiband_controls",
+                            "plugin_grabber_apply_reverb_controls",
+                            "plugin_grabber_apply_transient_shaper_controls",
+                            "plugin_grabber_explain_controls",
+                            "plugin_grabber_inspect_compressor",
+                            "plugin_grabber_inspect_de_esser",
+                            "plugin_grabber_inspect_delay",
+                            "plugin_grabber_inspect_gate_expander",
+                            "plugin_grabber_inspect_limiter",
+                            "plugin_grabber_inspect_multiband",
+                            "plugin_grabber_inspect_reverb",
+                            "plugin_grabber_inspect_spectral_dynamics",
+                            "plugin_grabber_inspect_transient_shaper",
+                            "plugin_grabber_set_eq_point",
+                            "plugin_list_available",
+                            "plugin_search",
+                            "plugin_semantic_get",
+                            "plugin_semantic_search",
+                            "project.audio_analysis_cancel",
+                            "project.audio_analysis_start",
+                            "project.audio_analysis_status",
+                            "project.get_audio_settings",
+                            "project.import_preflight",
+                            "project.markers.list",
+                            "project.markers.rename",
+                            "project.markers.upsert",
+                            "project.set_audio_settings",
+                            "project.validate_audio_settings_change",
+                            "project_health_check",
+                            "project_snapshot_export",
+                            "project_undo_state",
+                            "redo",
+                            "ref_diff",
+                            "ref_query",
+                            "rename_track",
+                            "render_profile_bind",
+                            "render_profile_list",
+                            "return_to_zero",
+                            "route_wave_input_to_track",
+                            "seek",
+                            "select_clip",
+                            "select_plugin",
+                            "select_track",
+                            "set_async_ghost_state",
+                            "set_click",
+                            "set_mute",
+                            "set_pan",
+                            "set_plugin_param",
+                            "set_solo",
+                            "set_tempo",
+                            "set_time_signature",
+                            "set_volume",
+                            "show_plugin_editor",
+                            "start_recording",
+                            "stop",
+                            "stop_recording",
+                            "toggle_click",
+                            "track.group.create",
+                            "track.group.list",
+                            "track.group.set_members",
+                            "track.group.update",
+                            "track.move_to_folder",
+                            "track.send.list",
+                            "track.send.set_amount",
+                            "transport_clear_loop",
+                            "transport_option_stop_return_to_start",
+                            "transport_set_loop",
+                            "undo",
+                            "version_diff",
+                            "version_list",
+                            "version_project_new",
+                            "version_project_opened",
+                            "version_project_save_prepare",
+                            "version_project_saved",
+                            "version_restore_preview",
+                            "version_show",
+                            "version_status",
+                            "version_worktree_list",
+                            "warm_waveform_bake",
+                            "workspace_blob_info",
+                            "workspace_edit_preview",
+                            "workspace_file_info",
+                            "workspace_glob",
+                            "workspace_grep",
+                            "workspace_read_file"
+                        ],
+    "goal":  {
+                 "goal_id":  "goal_a4601afcf5609ac4",
+                 "run_id":  "run_8a48caf1f6279f4e",
+                 "task":  {
+                              "task_id":  "task_e69d3ee26e3a656d",
+                              "goal_id":  "goal_a4601afcf5609ac4",
+                              "original_intent":  "导入乐局设计源 D:\\Vit_DAW\\coord\\lesson-designs\\music-creation-unit2 tempo=80 turns=60 calls=120",
+                              "status":  "settled",
+                              "run":  {
+                                          "run_id":  "run_8a48caf1f6279f4e",
+                                          "task_id":  "task_e69d3ee26e3a656d",
+                                          "next_slice":  1,
+                                          "next_turn":  1
+                                      },
+                              "created_at":  "2026-11-19T18:20:15.0799401+08:00",
+                              "updated_at":  "2026-11-19T18:20:15.7030201+08:00"
+                          },
+                 "status":  "completed",
+                 "summary":  "导入乐局设计源 D:\\Vit_DAW\\coord\\lesson-designs\\music-creation-unit2 tempo=80 turns=60 calls=120",
+                 "created_at":  "2026-11-19T18:20:15.0799401+08:00",
+                 "updated_at":  "2026-11-19T18:20:15.7030201+08:00",
+                 "cancel_requested":  false,
+                 "project_history":  {
+                                         "baseline_commit_id":  "c_20261119T102015_fb92b233",
+                                         "baseline_created":  true,
+                                         "active_branch":  "main",
+                                         "head":  "c_20261119T102015_fb92b233"
+                                     }
+             },
+    "project_history":  {
+                            "active_branch":  "main",
+                            "active_node_id":  "n_20261119T102015_e0be06b5",
+                            "active_worktree":  "",
+                            "available":  true,
+                            "baseline_commit":  "c_20261119T102015_fb92b233",
+                            "baseline_created":  true,
+                            "branches":  {
+                                             "main":  "c_20261119T102015_45e3f5a7"
+                                         },
+                            "commit_count":  2,
+                            "detached":  false,
+                            "draft":  false,
+                            "goal_active_branch":  "main",
+                            "goal_detached":  false,
+                            "head":  "c_20261119T102015_45e3f5a7",
+                            "initialized":  true,
+                            "project_label":  "A",
+                            "project_path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_final\\A.vit",
+                            "project_uuid":  "vitproj_4ce90ea8e53c42098079e5612d80dd46",
+                            "recent_checkpoints":  [
+                                                       {
+                                                           "branch":  "main",
+                                                           "checkpoint_kind":  "manual",
+                                                           "created_at":  "2026-11-19T10:20:15.7005168Z",
+                                                           "goal_id":  "goal_a4601afcf5609ac4",
+                                                           "id":  "c_20261119T102015_45e3f5a7",
+                                                           "message":  "Vit: 乐局设计源已导入并编译装配：\n- 卡 id：music-creation-unit2-demo\n- 设计源：legame/design.v1.yaml\n- 编译卡：legame/cards/music-creation-unit2-demo/music-creation-unit2-demo.compiled.level.yaml\n- W 诊断 23 条 / I 提示 16 条（待备料/降级清单见 compile manifest）\n下一句普通对话将自动开场（或说「开始乐局」）。"
+                                                       },
+                                                       {
+                                                           "branch":  "main",
+                                                           "checkpoint_kind":  "manual",
+                                                           "created_at":  "2026-11-19T10:20:15.0825947Z",
+                                                           "goal_id":  "goal_a4601afcf5609ac4",
+                                                           "id":  "c_20261119T102015_fb92b233",
+                                                           "message":  "Conversation ask"
+                                                       }
+                                                   ],
+                            "refs":  {
+                                         "refs/heads/main":  "c_20261119T102015_45e3f5a7"
+                                     },
+                            "root_project_path":  "",
+                            "unsaved":  false,
+                            "warnings":  [
+
+                                         ],
+                            "worktree_count":  1,
+                            "worktrees":  [
+                                              {
+                                                  "commit_id":  "c_20261119T102015_45e3f5a7",
+                                                  "created_at":  "2026-11-19T10:20:15.9146973Z",
+                                                  "is_root":  true,
+                                                  "label":  "主工作树",
+                                                  "name":  "main",
+                                                  "origin_commit_id":  "c_20261119T102015_45e3f5a7",
+                                                  "path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_final",
+                                                  "project_file_path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_final\\A.vit",
+                                                  "project_path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_final\\A.vit",
+                                                  "root_project_path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_final\\A.vit"
+                                              }
+                                          ]
+                        },
+    "shadow":  {
+                   "analysis_manifest":  null,
+                   "delta_seq_gaps":  0,
+                   "effective_project_path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_final\\A.vit",
+                   "engine_track_count":  0,
+                   "graph_revision":  null,
+                   "groups":  [
+
+                              ],
+                   "initialized":  true,
+                   "internal_track_count":  0,
+                   "last_delta_seq":  23,
+                   "nodes_by_uid":  0,
+                   "observability":  null,
+                   "orphan_uid_keys":  5,
+                   "parent_project_uuid":  "vitproj_18ed1a45b0484525bd6f48cfa73066ff",
+                   "pending_job_data":  null,
+                   "project_epoch":  "epoch_b9974d28e79c67de",
+                   "project_health":  null,
+                   "project_id":  "vitproj_4ce90ea8e53c42098079e5612d80dd46",
+                   "project_path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\legame_bind_425_final\\A.vit",
+                   "project_revision":  15,
+                   "project_uuid":  "vitproj_4ce90ea8e53c42098079e5612d80dd46",
+                   "snapshot_hash":  "1a2678d1a7f76f6d",
+                   "state_epoch":  53,
+                   "track_count":  0,
+                   "track_group_count":  0,
+                   "track_groups":  [
+
+                                    ],
+                   "tracks":  [
+
+                              ],
+                   "user_track_count":  0
+               },
+    "status":  "ok",
+    "tool_count":  303
+}
