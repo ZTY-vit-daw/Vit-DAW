@@ -168,7 +168,7 @@ POST /agent/invoke {tool:"version.conversation_open",
 ~~~
 
 断言 tool 回执：
-- status=ok；project_file_path==B；worktree.name==cross-b、is_root=false、same_worktree=false；
+- status=ok；project_file_path==B；worktree.name==cross-b、same_worktree=false；目标是否 root 读顶层 result.worktree_is_root=false。注意 result.worktree 是 raw Project History row，不保证有 is_root 键；不要把行内缺键当 true。
 - target_materialized=true、kernel_reloaded=true、refresh.kernel_reloaded=true、refresh.reason=="version_conversation_open"、refresh.shadow_refreshed=true；
 - mode=="branch_checkout"、branch=="cross-combo"、detached=false、head==seed、target_commit_id==seed；
 - active_branch=="cross-combo"、active_node_id==BranchNodeId、active_worktree=="cross-b"；branch_warning 为空；
@@ -211,7 +211,7 @@ POST /agent/invoke {tool:"version.conversation_open",
 | S1 | S1-project-new-ok/lifecycle/uuid、S1-project-save-ok/path/uuid/file-exists、S1-project-workspace-usable/identity（project_workspace 存在时另有 projection/agentstore 条件断言）、S1-history-path/initialized、S1-kernel-project-a、S1-kernel-uuid-a |
 | S2 | S2-worktree-create-ok/name/path/under-runroot/file/source-checkpoint/source-warning/create-no-reload、S2-status-b-*、S2-branch-create-ok/name/commit/reload、S2-branch-open-project-count/target、S2-branch-active/head/head-field/node-*、S2-kernel-b-after-branch、S2-open-a-ok/count/target、S2-kernel-back-a、S2-back-to-a-ui |
 | S3 | S3-a/b-file-present、S3-kernel-before、S3-ui-before、S3-status-b-path/initialized/branch/node/head/branch-head、S3-b/a-file-unchanged、S3-kernel-after、S3-ui-after、S3-no-open-project |
-| S4 | S4-result/status/project-file-path/worktree-name/not-root/same-worktree-false、S4-target-materialized/kernel-reloaded/refresh-*/mode/branch/detached/head/target-commit/active-*、S4-branch-warning、S4-switch-autosave、S4-single-open-project/open-project-target、S4-kernel-project-b/ui-project-b/state-path-b/ui-path-b、S4-daw-track-count/graph-revision/initialized、S4-history-*、S4-a-file-unchanged |
+| S4 | S4-result/status/project-file-path/worktree-name/not-root（顶层 worktree_is_root=false）/same-worktree-false、S4-target-materialized/kernel-reloaded/refresh-*/mode/branch/detached/head/target-commit/active-*、S4-branch-warning、S4-switch-autosave、S4-single-open-project/open-project-target、S4-kernel-project-b/ui-project-b/state-path-b/ui-path-b、S4-daw-track-count/graph-revision/initialized、S4-history-*、S4-a-file-unchanged |
 | S5 | 每个探针 -http/-status/-result/-target-disclosed/-target-not-materialized/-kernel-not-reloaded/-error-text/-no-open-project/-kernel-current |
 | S6 | S6-recents-restored/authority-restored/apparatus-zero/runroot-only/teardown-ok |
 
@@ -331,6 +331,13 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\run_conv_cross_com
 - 目标 .vit_agent/vitproj_5de94fa8e7af4283ad01ba5c74e18037/manifest.v2.json 实际存在，identity 正确，无 staging 残留；属已知瞬态 Windows rename warning（agent/internal/history/working_session_test.go:451 同型）。
 - 修订：S1 不要求 project_workspace 非空/无 warning；warning 记入 summary.warnings 与 isolation.workspace_warning；以目标 manifest identity 断言 workspace 可用，不可用才 fail project_save_workspace_unusable；其余断言不放宽。
 - 本轮修订只做 Parser/no-auth/-DryRun 自检，未启栈；真栈待主管第二轮。
+
+### 12.2 2026-11-19 19:20 第三轮 S4 字段误读
+
+- 真栈 run：D:/Vit_DAW/coord/runs/CONV-CROSS-COMBO-1/real-stack/run_20261119_1920；S1/S2/S3 PASS（S1 warning 修生效）。
+- S4 停在 S4-worktree-not-root：result.worktree 是 raw Project History row，没有 is_root 键；旧脚本以缺键默认 true 误判。顶层 result.worktree_is_root=false 已由 conversationOpen 设置。
+- 修订：S4-worktree-not-root 改读顶层 result.worktree_is_root=false；worktree.name/same_worktree/project_file_path/branch/node/head/target_materialized/kernel_reloaded/单次 open_project 等断言不变。
+- 本轮只做 Parser/no-auth/-DryRun 自检，未启栈；真栈待主管第三轮。
 
 ---
 （上游：coord/rulings/2026-11-18-CONV-OPEN-TOOL-1-pass.md、coord/rulings/2026-11-18-CONV-RAIL-CROSS-1-pass.md；卡：coord/cards/doing/2026-11-18-CONV-CROSS-COMBO-1.md；执行器：scripts/run_conv_cross_combo_smoke.ps1。）
