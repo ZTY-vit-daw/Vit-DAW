@@ -1,0 +1,4 @@
+ok  	vit-daw-agent/internal/contextruntime	1.008s
+ok  	vit-daw-agent/internal/chat	140.128s
+TEST_EXIT=0
+BUILD_EXIT=0

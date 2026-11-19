@@ -60,5 +60,14 @@
 - 验收：contextruntime 有/无键 additive/omitempty + 旧快照反序列化；chat 非命令轮有活跃局注入、命令轮/无局不注入；字段与上界断言；`go test ./internal/contextruntime ./internal/chat -count=1`；`go build ./...`。
 - 回执≤15行；只推 branch，不合入 main。
 
+## A1b 验收（2026-11-19 19:54）
+
+- commit `a18bf801` + `405423dd`（分支 `codex/w02-a1b-context-432`）→ main `f0bdf590`/`7ef087be`；6 文件。
+- 主管亲跑：`go test ./internal/contextruntime ./internal/chat -count=1` exit 0（1.008s / 140.128s）；`go build ./...` exit 0。
+- contextruntime additive `lesson_context`（omitempty）；chat 非命令轮活跃局注入；命令/无局/终态不注入；track 与 `conversation.intent` 同序。
+- 证据：[RECEIPT](../../runs/W02-A1b/RECEIPT.md)、[裁定](../../rulings/2026-11-19-W02-A1b-lesson-context-pass.md)。
+- 432 保持 doing；A1c（真实栈选中 clip + LLM 反馈 + 恢复）待发。
+
+
 
 
