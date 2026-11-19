@@ -92,6 +92,13 @@ func (r *Runner) buildModelContextSnapshot(state *runState, full contextruntime.
 			RecentObservation: neutralObservation,
 			ProjectChange:     messageLoopProjectChangeContext(state),
 		}, contextruntime.Options{Now: r.now, SkipPluginSemanticLoad: true})
+		// W02-A1b/A1c: the bounded lesson overlay is additive, plug-in-free
+		// context. The neutral rebuild reads only the pre-family request
+		// allow-list, so without this copy the real free-state model input
+		// silently loses the lesson card/node/selected clip (A1c
+		// run_20261119_2020 S4). Plugin identity stays stripped by the neutral
+		// Context/State/Trace projections above.
+		modelSnapshot.LessonContext = full.LessonContext
 	}
 	projected := contextruntime.ProjectModelSnapshot(contextruntime.ModelProjectionInput{
 		Snapshot:          modelSnapshot,
@@ -100,7 +107,44 @@ func (r *Runner) buildModelContextSnapshot(state *runState, full contextruntime.
 		ObservationLedger: messageLoopFreeStateObservationLedger(state),
 		Profile:           messageLoopModelContextProfile(state),
 	}, contextruntime.Options{Now: r.now, SkipPluginSemanticLoad: true})
+	// W02-A1b/A1c: the profile allow-list owns CCB/plugin sections, not the
+	// bounded lesson overlay. Free-state turns run the selection/materialize/
+	// post-action profiles, which would otherwise delete the overlay that the
+	// neutral rebuild just preserved; keep it in every profile and drop the
+	// now-stale degrade entry so the bookkeeping matches the emitted snapshot.
+	if len(full.LessonContext) > 0 {
+		projected["lesson_context"] = full.LessonContext
+		dropLessonContextOmission(projected)
+	}
 	return contextruntime.ModelJSON(projected)
+}
+
+// dropLessonContextOmission removes the stale "lesson_context" entry that
+// applyModelContextProfile recorded before the overlay is re-attached, so the
+// model-visible context_degradation never claims the lesson context was
+// omitted when it is present.
+func dropLessonContextOmission(snapshot map[string]any) {
+	degradation, ok := snapshot["context_degradation"].(map[string]any)
+	if !ok {
+		return
+	}
+	omitted, ok := degradation["omitted_sections"].([]string)
+	if !ok {
+		return
+	}
+	filtered := make([]string, 0, len(omitted))
+	for _, section := range omitted {
+		if section != "lesson_context" {
+			filtered = append(filtered, section)
+		}
+	}
+	if len(filtered) == len(omitted) {
+		return
+	}
+	degradation["omitted_sections"] = filtered
+	if len(filtered) == 0 {
+		degradation["status"] = "none"
+	}
 }
 
 func messageLoopFreeStateObservationLedger(state *runState) map[string]any {
