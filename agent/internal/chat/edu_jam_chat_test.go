@@ -689,7 +689,7 @@ func TestEduJamObserveAddressesUserTracksPastServiceTracks(t *testing.T) {
 	}
 	server := newEduJamTestServer(t, fake)
 
-	obs, _, err := server.observeEduJam(context.Background(), eduJamLoadFixtureCard(t))
+	obs, _, err := server.observeEduJam(context.Background(), eduJamLoadFixtureCard(t), "", nil)
 	if err != nil {
 		t.Fatalf("observeEduJam: %v", err)
 	}
@@ -729,7 +729,7 @@ func TestEduJamObserveNeverSelectsServiceTrackClips(t *testing.T) {
 	}
 	server := newEduJamTestServer(t, fake)
 
-	obs, _, err := server.observeEduJam(context.Background(), eduJamLoadFixtureCard(t))
+	obs, _, err := server.observeEduJam(context.Background(), eduJamLoadFixtureCard(t), "", nil)
 	if err != nil {
 		t.Fatalf("observeEduJam: %v", err)
 	}
@@ -742,5 +742,154 @@ func TestEduJamObserveNeverSelectsServiceTrackClips(t *testing.T) {
 				t.Fatalf("service track clip leaked into slot observation: slot=%s note=%v", slot, n)
 			}
 		}
+	}
+}
+
+// ---- W02-A1a：选中 clip 绑定（请求上下文 → 推进检查读面）----
+
+// TestEduJamAdvanceUsesSelectedClipInCurrentNodeSlot 双 clip 同槽用例：选中第二个
+// clip 时 n1 判定必须读第二个（theme 完好）；首个是损坏表——若实现仍读轨道首个
+// clip，n1 必失败。回执同时披露 clip_scope=selected 与实读 clip id。
+func TestEduJamAdvanceUsesSelectedClipInCurrentNodeSlot(t *testing.T) {
+	theme := eduJamThemeNotes(t)
+	fake := &eduJamFakeKernel{
+		tracks: eduJamRealShapeTracks(
+			eduJamFakeTrack("t1", eduJamFakeClip("c_take_first", 26.0), eduJamFakeClip("c_take_second", 26.0)),
+			eduJamFakeTrack("t2"),
+			eduJamFakeTrack("t3"),
+		),
+		notes: map[string][]any{
+			"c_take_first":  eduJamNoteRows(eduJamCorruptedNotes(t)),
+			"c_take_second": eduJamNoteRows(theme),
+		},
+	}
+	server := newEduJamTestServer(t, fake)
+	ctx := context.Background()
+	conv := "conv-edu-clip-selected"
+	if _, handled := server.handleEduJamChat(ctx, conv, "chat", "开始乐局", eduJamChatCtx()); !handled {
+		t.Fatalf("enter not handled")
+	}
+	if resp, handled := server.handleEduJamChat(ctx, conv, "chat", "写好了", eduJamChatCtx()); !handled || resp.WorkflowData["node_done"] != "n0_photo_score_open" {
+		t.Fatalf("n0 advance unexpected: handled=%v data=%v reply=%s", handled, resp.WorkflowData, resp.Reply)
+	}
+	// n1：选中第二 clip（theme）→ 判定通过；若读首个（损坏表）则必然 attempt_failed。
+	resp, handled := server.handleEduJamChat(ctx, conv, "chat", "写好了", map[string]any{"selected_clip_id": "c_take_second"})
+	if !handled || resp.StopReason != "edu_jam_node_done" || resp.WorkflowData["node_done"] != "n1_read_and_fix" {
+		t.Fatalf("selected-clip n1 advance unexpected: handled=%v stop=%s data=%v reply=%s", handled, resp.StopReason, resp.WorkflowData, resp.Reply)
+	}
+	if got := resp.WorkflowData["clip_scope"]; got != edu.ClipScopeSelected {
+		t.Fatalf("clip_scope=%v want %s (data=%v)", got, edu.ClipScopeSelected, resp.WorkflowData)
+	}
+	ids, ok := resp.WorkflowData["clip_ids"].(map[string]string)
+	if !ok || ids["melody_imported"] != "c_take_second" {
+		t.Fatalf("clip_ids must disclose the actually-read clip: %v", resp.WorkflowData["clip_ids"])
+	}
+	if got := resp.WorkflowData["selected_clip_id"]; got != "c_take_second" {
+		t.Fatalf("selected_clip_id disclosure=%v", got)
+	}
+}
+
+// TestEduJamAdvanceWithoutSelectionUsesFirstClip 无选中共例：保持既有口径=槽内
+// 首个 MIDI clip（此处首个=theme 可判过、第二个=损坏表）；scope=first。
+func TestEduJamAdvanceWithoutSelectionUsesFirstClip(t *testing.T) {
+	theme := eduJamThemeNotes(t)
+	fake := &eduJamFakeKernel{
+		tracks: eduJamRealShapeTracks(
+			eduJamFakeTrack("t1", eduJamFakeClip("c_first_ok", 26.0), eduJamFakeClip("c_second_bad", 26.0)),
+			eduJamFakeTrack("t2"),
+			eduJamFakeTrack("t3"),
+		),
+		notes: map[string][]any{
+			"c_first_ok":   eduJamNoteRows(theme),
+			"c_second_bad": eduJamNoteRows(eduJamCorruptedNotes(t)),
+		},
+	}
+	server := newEduJamTestServer(t, fake)
+	ctx := context.Background()
+	conv := "conv-edu-clip-first"
+	if _, handled := server.handleEduJamChat(ctx, conv, "chat", "开始乐局", eduJamChatCtx()); !handled {
+		t.Fatalf("enter not handled")
+	}
+	if _, handled := server.handleEduJamChat(ctx, conv, "chat", "写好了", eduJamChatCtx()); !handled {
+		t.Fatalf("n0 advance not handled")
+	}
+	// 无选中：n1 读首个 clip 判过（若错读第二个必失败）。
+	resp, handled := server.handleEduJamChat(ctx, conv, "chat", "写好了", eduJamChatCtx())
+	if !handled || resp.StopReason != "edu_jam_node_done" || resp.WorkflowData["node_done"] != "n1_read_and_fix" {
+		t.Fatalf("no-selection n1 advance unexpected: handled=%v stop=%s data=%v reply=%s", handled, resp.StopReason, resp.WorkflowData, resp.Reply)
+	}
+	if got := resp.WorkflowData["clip_scope"]; got != edu.ClipScopeFirst {
+		t.Fatalf("clip_scope=%v want %s (data=%v)", got, edu.ClipScopeFirst, resp.WorkflowData)
+	}
+	ids, ok := resp.WorkflowData["clip_ids"].(map[string]string)
+	if !ok || ids["melody_imported"] != "c_first_ok" {
+		t.Fatalf("clip_ids must disclose the first MIDI clip: %v", resp.WorkflowData["clip_ids"])
+	}
+}
+
+// TestEduJamAdvanceCrossSlotSelectionDisclosesUnmatched 跨槽选中共例：当前节点
+// n1 判定槽=melody_imported，学生选中的 clip 在 melody_corrupted → 不得冒充本关
+// 判定输入（否则读到损坏表会失败）；回执必须披露 selection_unmatched + 实读 clip。
+func TestEduJamAdvanceCrossSlotSelectionDisclosesUnmatched(t *testing.T) {
+	theme := eduJamThemeNotes(t)
+	fake := &eduJamFakeKernel{
+		tracks: eduJamRealShapeTracks(
+			eduJamFakeTrack("t1", eduJamFakeClip("c_target", 26.0)),
+			eduJamFakeTrack("t2", eduJamFakeClip("c_other_slot", 26.0)),
+			eduJamFakeTrack("t3"),
+		),
+		notes: map[string][]any{
+			"c_target":     eduJamNoteRows(theme),
+			"c_other_slot": eduJamNoteRows(eduJamCorruptedNotes(t)),
+		},
+	}
+	server := newEduJamTestServer(t, fake)
+	ctx := context.Background()
+	conv := "conv-edu-clip-cross-slot"
+	if _, handled := server.handleEduJamChat(ctx, conv, "chat", "开始乐局", eduJamChatCtx()); !handled {
+		t.Fatalf("enter not handled")
+	}
+	if _, handled := server.handleEduJamChat(ctx, conv, "chat", "写好了", eduJamChatCtx()); !handled {
+		t.Fatalf("n0 advance not handled")
+	}
+	// 选中 melody_corrupted 槽的 clip：n1 仍用 melody_imported 首 clip（theme）判过。
+	resp, handled := server.handleEduJamChat(ctx, conv, "chat", "写好了", map[string]any{"selected_clip_id": "c_other_slot"})
+	if !handled || resp.StopReason != "edu_jam_node_done" || resp.WorkflowData["node_done"] != "n1_read_and_fix" {
+		t.Fatalf("cross-slot selection must fall back to the node slot's first clip: handled=%v stop=%s data=%v reply=%s", handled, resp.StopReason, resp.WorkflowData, resp.Reply)
+	}
+	if got := resp.WorkflowData["clip_scope"]; got != edu.ClipScopeSelectionUnmatched {
+		t.Fatalf("clip_scope=%v want %s (data=%v)", got, edu.ClipScopeSelectionUnmatched, resp.WorkflowData)
+	}
+	if got := resp.WorkflowData["selected_clip_id"]; got != "c_other_slot" {
+		t.Fatalf("unmatched disclosure must name the requested selection: %v", got)
+	}
+	ids, ok := resp.WorkflowData["clip_ids"].(map[string]string)
+	if !ok || ids["melody_imported"] != "c_target" || ids["melody_corrupted"] != "c_other_slot" {
+		t.Fatalf("clip_ids must disclose per-slot actually-read clips: %v", resp.WorkflowData["clip_ids"])
+	}
+}
+
+// TestEduJamRequestSelectedClipIDResolution 覆盖三个选择键的解析与优先级
+// （piano_roll_focus_clip_id > selected_clip_id > selected_clip_ids[0]）。
+func TestEduJamRequestSelectedClipIDResolution(t *testing.T) {
+	cases := []struct {
+		name string
+		ctx  map[string]any
+		want string
+	}{
+		{"none", map[string]any{}, ""},
+		{"nil", nil, ""},
+		{"selected_clip_id", map[string]any{"selected_clip_id": "c1"}, "c1"},
+		{"piano_roll_focus_wins", map[string]any{"selected_clip_id": "c1", "piano_roll_focus_clip_id": "c2"}, "c2"},
+		{"selected_clip_ids_any", map[string]any{"selected_clip_ids": []any{"c3", "c4"}}, "c3"},
+		{"selected_clip_ids_strings", map[string]any{"selected_clip_ids": []string{"c5"}}, "c5"},
+		{"blank_values", map[string]any{"selected_clip_id": "  ", "piano_roll_focus_clip_id": ""}, ""},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := eduJamRequestSelectedClipID(tc.ctx); got != tc.want {
+				t.Fatalf("selected clip=%q want %q (ctx=%v)", got, tc.want, tc.ctx)
+			}
+		})
 	}
 }

@@ -162,7 +162,7 @@ func parseEduJamCommand(text string) (face string, levelHint, eventName, eventKe
 func (s *Server) handleEduJamChat(ctx context.Context, conversationID, mode, text string, chatContext map[string]any) (ChatResponse, bool) {
 	trimmed := strings.TrimSpace(text)
 	if face, levelHint, eventName, eventKey, direct, ok := parseEduJamCommand(trimmed); ok {
-		return s.serveEduJamCommand(ctx, conversationID, mode, face, levelHint, eventName, eventKey, direct)
+		return s.serveEduJamCommand(ctx, conversationID, mode, face, levelHint, eventName, eventKey, direct, chatContext)
 	}
 	session, card, ok := s.eduJamActiveSessionCard(conversationID)
 	if !ok {
@@ -190,7 +190,7 @@ func (s *Server) handleEduJamChat(ctx context.Context, conversationID, mode, tex
 	return ChatResponse{}, false
 }
 
-func (s *Server) serveEduJamCommand(ctx context.Context, conversationID, mode, face, levelHint, eventName, eventKey string, direct bool) (ChatResponse, bool) {
+func (s *Server) serveEduJamCommand(ctx context.Context, conversationID, mode, face, levelHint, eventName, eventKey string, direct bool, requestContext map[string]any) (ChatResponse, bool) {
 	switch face {
 	case "enter":
 		return s.eduJamEnter(ctx, conversationID, mode, levelHint)
@@ -199,7 +199,7 @@ func (s *Server) serveEduJamCommand(ctx context.Context, conversationID, mode, f
 	case "status":
 		return s.eduJamStatusReply(conversationID, mode)
 	case "check":
-		return s.eduJamAdvance(ctx, conversationID, mode)
+		return s.eduJamAdvance(ctx, conversationID, mode, requestContext)
 	case "event":
 		return s.eduJamRecordEvent(conversationID, mode, eventName, eventKey)
 	case "confirm":
@@ -424,7 +424,7 @@ func (s *Server) eduJamRecordEvent(conversationID, mode, eventName, eventKey str
 
 // ---- 推进检查（形态 i 闭环：读 clip → 判定 → 回话）----
 
-func (s *Server) eduJamAdvance(ctx context.Context, conversationID, mode string) (ChatResponse, bool) {
+func (s *Server) eduJamAdvance(ctx context.Context, conversationID, mode string, requestContext map[string]any) (ChatResponse, bool) {
 	base := s.eduJamBaseResponse(conversationID, mode)
 	session, ok := s.eduJamSessionFor(conversationID)
 	if !ok {
@@ -446,10 +446,13 @@ func (s *Server) eduJamAdvance(ctx context.Context, conversationID, mode string)
 	}
 	// 终局待确认态：推进面转为重跑闭合判定（结构可能已补齐）。
 	if session.Status == eduJamStatusAwaitingClosure {
-		return s.eduJamClosurePass(ctx, base, session, card)
+		return s.eduJamClosurePass(ctx, base, session, card, requestContext)
 	}
-	// 观察组装（全部来自内核真值；读不到真值即不判定）。
-	obs, _, obsErr := s.observeEduJam(ctx, card)
+	// 观察组装（全部来自内核真值；读不到真值即不判定）。当前节点先于观察解析：
+	// 选中 clip 的绑定范围=当前节点 done_when 引用的 runtime 轨槽（跨槽选中不得
+	// 冒充本关判定输入，见 observeEduJam）。
+	nodeID := eduJamCurrentNodeID(session, card)
+	obs, _, obsErr := s.observeEduJam(ctx, card, nodeID, requestContext)
 	if obsErr != nil {
 		base.Reply = "判定需要内核真值，本次读取失败（fail-closed，不盲判）：" + obsErr.Error()
 		base.GoalStatus = "failed"
@@ -464,7 +467,6 @@ func (s *Server) eduJamAdvance(ctx context.Context, conversationID, mode string)
 	obs.At = now
 	obs.Events = window
 
-	nodeID := eduJamCurrentNodeID(session, card)
 	eval, evalErr := edu.EvaluateNodeConditions(card, nodeID, obs)
 	if evalErr != nil {
 		base.Reply = "节点条件评估失败（卡引用断裂，fail-closed 上交）：" + evalErr.Error()
@@ -485,7 +487,7 @@ func (s *Server) eduJamAdvance(ctx context.Context, conversationID, mode string)
 	if advErr == edu.ErrJamCompleted {
 		// 防御分支：active 态但无当前节点且全节点 done（闭合未确认的重入）→ 走闭合判定。
 		s.storeEduJamSession(session)
-		return s.eduJamClosurePass(ctx, base, session, card)
+		return s.eduJamClosurePass(ctx, base, session, card, requestContext)
 	}
 
 	if eval.Satisfied {
@@ -493,7 +495,7 @@ func (s *Server) eduJamAdvance(ctx context.Context, conversationID, mode string)
 		session.EventsConsumed = len(session.EventLog)
 		s.storeEduJamSession(session)
 		if jamNext.AllNodesDone(card) {
-			return s.eduJamClosurePass(ctx, base, session, card)
+			return s.eduJamClosurePass(ctx, base, session, card, requestContext)
 		}
 		s.persistCurrentProjectWorkspace()
 		nextIdx, _, hasNext := jamNext.CurrentJamNode(card)
@@ -507,7 +509,10 @@ func (s *Server) eduJamAdvance(ctx context.Context, conversationID, mode string)
 		}
 		base.Reply = reply
 		base.StopReason = "edu_jam_node_done"
-		base.WorkflowData = s.eduJamWorkflowData(session, map[string]any{"node_done": nodeID, "leaves": eduJamLeafSummaries(eval.Leaves)})
+		extra := eduJamObservationClipDisclosure(obs, requestContext)
+		extra["node_done"] = nodeID
+		extra["leaves"] = eduJamLeafSummaries(eval.Leaves)
+		base.WorkflowData = s.eduJamWorkflowData(session, extra)
 		return base, true
 	}
 
@@ -525,7 +530,11 @@ func (s *Server) eduJamAdvance(ctx context.Context, conversationID, mode string)
 	}
 	base.Reply = reply
 	base.StopReason = "edu_jam_attempt_failed"
-	base.WorkflowData = s.eduJamWorkflowData(session, map[string]any{"node": nodeID, "attempt": attempt, "leaves": eduJamLeafSummaries(eval.Leaves)})
+	extra := eduJamObservationClipDisclosure(obs, requestContext)
+	extra["node"] = nodeID
+	extra["attempt"] = attempt
+	extra["leaves"] = eduJamLeafSummaries(eval.Leaves)
+	base.WorkflowData = s.eduJamWorkflowData(session, extra)
 	return base, true
 }
 
@@ -587,8 +596,10 @@ func eduJamHintRung(card *edu.LevelCard, nodeID string, attempt int) string {
 
 // eduJamClosurePass 重跑结构闭合判定：通过 → awaiting_closure + 问询；未通过 →
 // 保持 active 并如实给出缺口（fail-honest，不静默放宽）。
-func (s *Server) eduJamClosurePass(ctx context.Context, base ChatResponse, session eduJamSession, card *edu.LevelCard) (ChatResponse, bool) {
-	obs, projectState, obsErr := s.observeEduJam(ctx, card)
+func (s *Server) eduJamClosurePass(ctx context.Context, base ChatResponse, session eduJamSession, card *edu.LevelCard, requestContext map[string]any) (ChatResponse, bool) {
+	// 闭合判定与推进检查同读面同语义：请求上下文一并透传（全节点已 done 时无当前
+	// 节点，选中 clip 无法绑定到判定槽 → 如实披露 selection_unmatched，不静默）。
+	obs, projectState, obsErr := s.observeEduJam(ctx, card, eduJamCurrentNodeID(session, card), requestContext)
 	if obsErr != nil {
 		base.Reply = "闭合判定需要内核真值，本次读取失败（fail-closed）：" + obsErr.Error()
 		base.GoalStatus = "failed"
@@ -603,7 +614,9 @@ func (s *Server) eduJamClosurePass(ctx context.Context, base ChatResponse, sessi
 		s.persistCurrentProjectWorkspace()
 		base.Reply = "全节点已过，但结构闭合还没达成：\n- " + strings.Join(gaps, "\n- ") + "\n补齐后再说「写好了」重跑闭合判定。"
 		base.StopReason = "edu_jam_closure_blocked"
-		base.WorkflowData = s.eduJamWorkflowData(session, map[string]any{"closure_gaps": gaps})
+		extra := eduJamObservationClipDisclosure(obs, requestContext)
+		extra["closure_gaps"] = gaps
+		base.WorkflowData = s.eduJamWorkflowData(session, extra)
 		return base, true
 	}
 	session.Status = eduJamStatusAwaitingClosure
@@ -615,10 +628,10 @@ func (s *Server) eduJamClosurePass(ctx context.Context, base ChatResponse, sessi
 			"要收下这一局吗？确认后我们一起命名并导出（说「确认收尾」，或直接说「直接导出」）。",
 		card.Title)
 	base.StopReason = "edu_jam_closure_inquiry"
-	base.WorkflowData = s.eduJamWorkflowData(session, map[string]any{
-		"semantic_template": card.Finale.Ask.SemanticTemplate,
-		"closure":           "structure_complete",
-	})
+	extra := eduJamObservationClipDisclosure(obs, requestContext)
+	extra["semantic_template"] = card.Finale.Ask.SemanticTemplate
+	extra["closure"] = "structure_complete"
+	base.WorkflowData = s.eduJamWorkflowData(session, extra)
 	return base, true
 }
 
@@ -830,7 +843,12 @@ func eduJamPullbackGoal(session eduJamSession, card *edu.LevelCard) (string, boo
 
 // ---- 观察组装（内核真值 → edu.Observation）----
 
-func (s *Server) observeEduJam(ctx context.Context, card *edu.LevelCard) (edu.Observation, map[string]any, error) {
+// observeEduJam 组装推进/闭合判定用的观察。requestContext 携带学生选择面
+// （selected_clip_id / piano_roll_focus_clip_id / selected_clip_ids）：选中 clip
+// 属当前节点判定槽 → 用该 clip 读 notes（clip_scope=selected）；否则回落槽内
+// 首个 MIDI clip 并以 selection_unmatched 如实披露；无选中=first。nodeID=当前
+// 节点（全节点已 done 的闭合判定传空串）。
+func (s *Server) observeEduJam(ctx context.Context, card *edu.LevelCard, nodeID string, requestContext map[string]any) (edu.Observation, map[string]any, error) {
 	send := s.eduJamKernelSendFunc()
 	if send == nil {
 		return edu.Observation{}, nil, fmt.Errorf("kernel read face unavailable (no kernel client)")
@@ -848,7 +866,12 @@ func (s *Server) observeEduJam(ctx context.Context, card *edu.LevelCard) (edu.Ob
 		At:            time.Now().UTC().Format(time.RFC3339),
 		Slots:         map[string][]edu.Note{},
 		TrackNonEmpty: map[string]bool{},
+		ClipIDs:       map[string]string{},
 	}
+	// 选中 clip 的绑定范围=当前节点 done_when 引用的判定槽（跨槽选中不冒充）。
+	selectedClipID := eduJamRequestSelectedClipID(requestContext)
+	nodeSlotSet := eduJamNodeClipSlots(card, nodeID)
+	selectedClipUsed := false
 	// tempo_set 观察口径：music_context 披露 tempo 已被设置（tempo_setting_count>=1
 	// 且 tempo 可用）。注意内核把初始默认 tempo 也计 1（276 烟测实证）——对 n2 这类
 	// 事件+结构双叶节点，真正的门是 user_confirmed 事件；本谓词只是诚实观察值。
@@ -872,17 +895,16 @@ func (s *Server) observeEduJam(ctx context.Context, card *edu.LevelCard) (edu.Ob
 		}
 		clips := mapRowsFromAny(tracks[idx]["clips"])
 		obs.TrackNonEmpty[slotName] = len(clips) > 0
-		clipID := ""
-		for _, clip := range clips {
-			if strings.Contains(strings.ToLower(firstStringFromMap(clip, "clip_type", "type")), "midi") {
-				clipID = firstStringFromMap(clip, "id", "clip_id", "item_id")
-				if clipID != "" {
-					break
-				}
-			}
-		}
-		if clipID == "" {
+		midiClipIDs := eduJamMidiClipIDs(clips)
+		if len(midiClipIDs) == 0 {
 			continue // 无 MIDI clip → 键缺席=clip_exists=false
+		}
+		// 选中 clip 只在**当前节点判定槽**内生效：跨槽选中不得冒充本关判定输入
+		// （否则学生选中参照轨会把判定数据换成别的轨）；未匹配由 ClipScope 披露。
+		clipID := midiClipIDs[0]
+		if selectedClipID != "" && nodeSlotSet[slotName] && containsString(midiClipIDs, selectedClipID) {
+			clipID = selectedClipID
+			selectedClipUsed = true
 		}
 		notesCtx, notesCancel := context.WithTimeout(ctx, 10*time.Second)
 		reply, err := send(notesCtx, map[string]any{"cmd": "get_midi_clip_notes", "clip_id": clipID})
@@ -898,8 +920,116 @@ func (s *Server) observeEduJam(ctx context.Context, card *edu.LevelCard) (edu.Ob
 			return edu.Observation{}, nil, fmt.Errorf("slot %s: %w", slotName, err)
 		}
 		obs.Slots[slotName] = notes
+		obs.ClipIDs[slotName] = clipID
+	}
+	// 绑定范围披露（闭集）：未匹配=回落首个并如实标记，不静默假装选中。
+	switch {
+	case selectedClipID == "":
+		obs.ClipScope = edu.ClipScopeFirst
+	case selectedClipUsed:
+		obs.ClipScope = edu.ClipScopeSelected
+	default:
+		obs.ClipScope = edu.ClipScopeSelectionUnmatched
 	}
 	return obs, state, nil
+}
+
+// eduJamRequestSelectedClipID 解析请求上下文里的学生选中 clip（纯读取，不改写
+// 上下文）。优先级=仓库 chat 纪律（server.go 的 current_selection 说明同文）：
+// piano_roll_focus_clip_id（卷帘焦点=更具体的 MIDI 编辑意图）> selected_clip_id >
+// selected_clip_ids[0]。无选中/空值返回 ""。
+func eduJamRequestSelectedClipID(requestContext map[string]any) string {
+	if len(requestContext) == 0 {
+		return ""
+	}
+	if id := cleanContextText(requestContext["piano_roll_focus_clip_id"]); id != "" {
+		return id
+	}
+	if id := cleanContextText(requestContext["selected_clip_id"]); id != "" {
+		return id
+	}
+	if ids := contextStringSlice(requestContext["selected_clip_ids"]); len(ids) > 0 {
+		return ids[0]
+	}
+	return ""
+}
+
+// eduJamNodeClipSlots 返回当前节点 done_when 引用的 runtime 轨槽名集合（judge
+// 目标槽 target.clip / structure clip_exists.clip / track_non_empty.track）。只有
+// 这些**判定输入槽**可被选中 clip 绑定；reference.clip 是参照槽，不由学生选择
+// 改写（避免选中参照轨反把判定基准换掉）。无当前节点/无槽引用=空集。
+func eduJamNodeClipSlots(card *edu.LevelCard, nodeID string) map[string]bool {
+	out := map[string]bool{}
+	if card == nil || strings.TrimSpace(nodeID) == "" {
+		return out
+	}
+	for i := range card.Nodes {
+		if card.Nodes[i].ID != nodeID {
+			continue
+		}
+		eduJamCollectDoneWhenSlots(&card.Nodes[i].DoneWhen, out)
+		break
+	}
+	return out
+}
+
+func eduJamCollectDoneWhenSlots(dw *edu.DoneWhen, out map[string]bool) {
+	if dw == nil {
+		return
+	}
+	if leaf := dw.Leaf; leaf != nil {
+		if slot := strings.TrimSpace(leaf.Target.Clip); slot != "" {
+			out[slot] = true
+		}
+		if slot := strings.TrimSpace(leaf.Clip); slot != "" {
+			out[slot] = true
+		}
+		if slot := strings.TrimSpace(leaf.Track); slot != "" {
+			out[slot] = true
+		}
+	}
+	for i := range dw.All {
+		eduJamCollectDoneWhenSlots(&dw.All[i], out)
+	}
+	for i := range dw.Any {
+		eduJamCollectDoneWhenSlots(&dw.Any[i], out)
+	}
+}
+
+// eduJamMidiClipIDs 按内核 clips 声明序返回 MIDI clip id（保持既有「槽内首个
+// MIDI clip」口径：clip_type 含 midi；id 缺省行跳过）。
+func eduJamMidiClipIDs(clips []map[string]any) []string {
+	ids := make([]string, 0, len(clips))
+	for _, clip := range clips {
+		if !strings.Contains(strings.ToLower(firstStringFromMap(clip, "clip_type", "type")), "midi") {
+			continue
+		}
+		if id := firstStringFromMap(clip, "id", "clip_id", "item_id"); id != "" {
+			ids = append(ids, id)
+		}
+	}
+	return ids
+}
+
+// eduJamObservationClipDisclosure 把观察面的 clip 绑定结果投影成推进/闭合回执的
+// workflow_data 披露（additive 键）：实际读取的 clip（槽→id）、绑定范围、请求中
+// 的选中 clip。未匹配/失败时同样出现——不静默假装选中。
+func eduJamObservationClipDisclosure(obs edu.Observation, requestContext map[string]any) map[string]any {
+	extra := map[string]any{}
+	if obs.ClipScope != "" {
+		extra["clip_scope"] = obs.ClipScope
+	}
+	if len(obs.ClipIDs) > 0 {
+		ids := make(map[string]string, len(obs.ClipIDs))
+		for slot, id := range obs.ClipIDs {
+			ids[slot] = id
+		}
+		extra["clip_ids"] = ids
+	}
+	if selected := eduJamRequestSelectedClipID(requestContext); selected != "" {
+		extra["selected_clip_id"] = selected
+	}
+	return extra
 }
 
 // eduJamUserTrackRows 从 get_project_state 的原始 tracks 行（真实内核轨树文档
