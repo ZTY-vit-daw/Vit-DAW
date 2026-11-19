@@ -2,7 +2,7 @@
 param(
     # 真栈腿入口（W01-C）：未授权不运行。默认仅打印 runbook 并 exit 3。
     [string]$RepoRoot = "D:/Vit_DAW",
-    [string]$AgentBaseUrl = "http://127.0.0.1:8787",
+    [string]$AgentBaseUrl = "http://127.0.0.1:7878",
     [string]$DesignSourceDir = "D:/Vit_DAW/coord/lesson-designs/music-creation-unit2",
     [string]$ProjectA = "",
     [string]$ProjectB = "",
@@ -252,6 +252,9 @@ try {
     Write-Step "S0 preflight（agent HTTP + 栈身份；本脚本不启停栈）"
     $health = Invoke-AgentJson -Name "health" -Method "Get" -Path "/health" -Body $null
     Assert-True ($null -ne $health) "agent /health 不可达"
+    # VspHub(8787) 也有 /health；必须证明 agent 面可达（/agent/state），
+    # 否则 S1 的 /agent/chat 才会以 404 暴露端口错配。
+    try { $null = Get-ProjectState } catch { Fail ("agent 面不可达（" + $AgentBaseUrl + "）：" + $_.Exception.Message) }
 
     Write-Step "S1 导入设计源到工程 A（编译装配进包）"
     $null = Open-Project -Name "open_a" -ProjectPath $ProjectA
