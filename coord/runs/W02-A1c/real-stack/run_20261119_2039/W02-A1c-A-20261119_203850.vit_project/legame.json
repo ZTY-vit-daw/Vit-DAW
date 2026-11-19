@@ -1,0 +1,10 @@
+{
+	"schema_version": "vit.legame_package.v1",
+	"enabled": true,
+	"design": "legame/design.v1.yaml",
+	"overrides": {
+		"tempo_bpm": 80,
+		"max_turns": 60,
+		"max_llm_calls": 120
+	}
+}

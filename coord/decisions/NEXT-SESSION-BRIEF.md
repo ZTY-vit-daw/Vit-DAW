@@ -1,8 +1,8 @@
 # NEXT-SESSION-BRIEF（下次会话入口；gate 时更新）
 
-- 更新：2026-11-19 19:54（Asia/Shanghai）；上次 gate：`coord/reports/2026-11-18-gate-2215.md`。
-- main：`fddb1dc6`（本文件提交后以实际 HEAD 为准）；webui dist 不变 `FA293DB3…304E`。
-- 栈：空闲（teardown 后 Vit 系进程 0；TCP 7878/7879/8787/5555/5556/9333=0；UDP 4445=0）；w02clip / combo422 / w02ctx 均已完成。
+- 更新：2026-11-19 20:40（Asia/Shanghai）；上次 gate：`coord/reports/2026-11-18-gate-2215.md`。
+- main：`20cb3657`（本文件提交后以实际 HEAD 为准）；webui dist 不变 `FA293DB3…304E`。
+- 栈：空闲（teardown 后 Vit 系进程 0；TCP 7878/7879/8787/5555/5556/9333=0；UDP 4445=0）；w02clip / combo422 / w02ctx / w02real 均已完成。
 
 ## 用户已定事项
 
@@ -14,10 +14,10 @@
 ## 未结/下一首排
 
 1. **422 CONV-CROSS-COMBO-1**：**done（2026-11-19 真栈 PASS，166 断言，单次 reload=1）**；裁定 `coord/rulings/2026-11-19-CONV-CROSS-COMBO-1-pass.md`。
-2. **W02 最小切片**：432 W02-A1 在 [doing](../cards/doing/2026-11-19-W02-A1-LESSON-CTX-CLIP-1.md)；A1a PASS（c73f53b2）、A1b PASS + free-state 修正（fddb1dc6）；A1c 首轮 S0–S3 PASS/S4 发现 A1b 生产路径缺口，产品已修；装置 S4 取证改 prompt render 后重跑第二轮。W18 不在 A1 依赖内。
+2. **W02-A1 最小切片**：**done（A1a/A1b/A1c 全 PASS；A1c 真栈 run_2039，S4 prompt render 亲证 lesson_context）**；裁定 `coord/rulings/2026-11-19-W02-A1c-pass.md`。下一段 W02（结构检查器/完整作业旅程）或 W14/W19 候发卡。
 3. **425 装置债**：berth 启动前复制并还原 `Settings.xml`/`default_project.xml`；425 脚本内建 A/B 创建或 setup 前置隔离；`default_project.xml` 已被内核改为空白默认（预跑为六 stems 测试残留，非用户工程；仅存哈希无法逐字节还原）——**用户 2026-11-19 已裁定接受空白默认**。详见 `coord/runs/G0-LEGAME-BIND-1/real-stack/run_20261119_1818/DEVICE-NOTES.md`。
 4. 用户节点：390 YuE instrumental 真栈生成+人耳；384 M2/点音色演示；材料听核。
-5. 旧池未动：doing 8 / blocked 6；POOL-INDEX 397–431 回填留 gate。
+5. 旧池未动：doing 7 / blocked 6；POOL-INDEX 397–431 回填留 gate。
 
 ## 读入口（按序，不读全史）
 

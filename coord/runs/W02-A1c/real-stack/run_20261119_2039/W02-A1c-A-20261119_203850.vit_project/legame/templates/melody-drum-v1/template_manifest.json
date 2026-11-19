@@ -1,0 +1,178 @@
+{
+  "schema_version": "vit.course_template.v1",
+  "id": "melody-drum-v1",
+  "card": "SRC-TEMPLATE-1",
+  "lesson_design": {
+    "source": "../../../design.v1.yaml",
+    "schema": "vit.legame_design.v0",
+    "design_id": "music-creation-unit2-demo",
+    "revision": 3
+  },
+  "template_file": "template.v1.xml",
+  "template_sha256": "aac8f5acb3355e6ecb18548b72d04db91538128e9acd09463ca9a6fa3b779900",
+  "template_project_uuid": "vitproj_srctemplate1melodydrumv1a0000000001",
+  "format": {
+    "kind": "tracktion_clear_xml",
+    "note": "clear-XML Tracktion EDIT；open/save/reopen 走内核正常 clear-XML 分支（VitHeadlessService ipcOpenProjectAt 明 XML 迁移分支/ipcSaveProjectToCurrentPath）。W01-C 创建用户乐局时另存 .vit（app-bound 加密容器，现行内核语义），不改模板资产形态。MIDICLIP start/length=秒（tracktion TimePosition 直读；382 取证 verdict=template_xml_unit_mismatch 后由 384 腿D修正：8 拍=6.0s/16 拍=12.0s@80bpm，builder 按 tempo 换算生成）。",
+    "portability": "零音频媒体引用（纯 MIDI clip，无 source/file 路径面）→无本机绝对路径依赖；VST 插件经 VST3 uniqueId(190e4fbd)+uid(f3b82eb0) 由宿主插件管理器解析，PLUGIN filename 属性仅为提示（advisory），非装载依据。"
+  },
+  "sources": {
+    "melody_voice": {
+      "track": "melody-track",
+      "track_name": "我的旋律",
+      "plugin": {
+        "name": "Surge XT",
+        "identifier": "VST3-Surge XT-1e1bcfb-190e4fbd",
+        "unique_id": "190e4fbd",
+        "uid": "f3b82eb0",
+        "manufacturer": "Surge Synth Team",
+        "state_sha256": "b9daa1f85040bae52bcc643ffe099486e6c46ed9f89974f4044bbbb87051a463",
+        "state_provenance": "384 腿D真栈 craft 采集（kernel a5947361：XML-boot→instantiate Surge XT→patch 内参数 soft-keys 写入读回→save→VIT_DUMP_CLEAR_XML sidecar 提取；states/melody_soft_keys_v1.state.txt 逐字固化；参数清单在 coord/runs/SRC-PRESET-AGENT-1/legD_stack_20261116_2230/capture_craft_states.py；异于 init b42e1e53… 亲证=参数入序列化）"
+      },
+      "midi_channel": 1,
+      "gm_mapping": {
+        "kind": "soft_key_approximation_declaration",
+        "gm_program": 1,
+        "gm_name": "Acoustic Grand Piano",
+        "note": "384 腿D换血：谱例无乐器标注→钢琴类（GM 1）缺省；本机「会响的钢琴」不存在（Waves 全系渲染静音 309 RT-SILENT 四腿铁证；Surge 出厂库无声学钢琴）→实现=Surge XT patch 内参数柔化合成键近似（单振荡+低通 0.38+延音 0.55，替换单音锯齿 stand-in）；GM 键位/音色分离声明+M2 人耳复听节点裁定。VST3 program change 不在参数面（298）——预设固化=state blob 逐字固化。"
+      }
+    },
+    "theme_voice": {
+      "track": "theme-track",
+      "track_name": "我的八小节主题",
+      "plugin_ref": "melody_voice",
+      "midi_channel": 1,
+      "gm_mapping_ref": "melody_voice"
+    },
+    "groove_voice": {
+      "track": "rhythm-track",
+      "track_name": "辅助律动（鼓）",
+      "midi_channel": 10,
+      "gm_mapping": {
+        "kind": "percussion_notation_declaration",
+        "percussion_keys": {
+          "36": "kick",
+          "38": "snare",
+          "42": "closed_hat",
+          "46": "open_hat"
+        },
+        "note": "384 腿D重写：每小节 kick@0+hat@0.5+kick@1+snare@1.5+open-hat@1.75，第 4 小节snare 双击 fill；GM 打击键位记谱（channel 10，46=Open Hi-Hat 增补）；音色=Surge patch 内参数打击化 craft（chromatic 近似——短包络+噪声分量，非 GM 鼓采样；键位/音色分离声明维持，M2 人耳复听节点裁定）。"
+      },
+      "plugin": {
+        "name": "Surge XT",
+        "identifier": "VST3-Surge XT-1e1bcfb-190e4fbd",
+        "unique_id": "190e4fbd",
+        "uid": "f3b82eb0",
+        "manufacturer": "Surge Synth Team",
+        "state_sha256": "8ec4a56d5b6dc9b69d884abd6c42f8606d9b4c6ed4bce44e3c047c75855cf8c1",
+        "state_provenance": "384 腿D真栈 craft 采集（同上装置；patch 内参数打击化：attack 0/decay 0.18/sustain 0/release 0.08/噪声 0.4/低通 0.5；states/groove_percussion_v1.state.txt；异于 init 与 melody state 亲证）"
+      }
+    }
+  },
+  "grooves": [
+    {
+      "id": "groove-2-4-basic",
+      "clip_alias": "groove-2-4-basic",
+      "track": "rhythm-track",
+      "time_signature": "2/4",
+      "bars": 4,
+      "beats": 8,
+      "pattern_summary": "每小节 kick@0+hat@0.5+kick@1+snare@1.5+open-hat@1.75；第 4 小节 snare 双击+open-hat 收尾 fill",
+      "note_count": 21
+    }
+  ],
+  "clips": [
+    {
+      "alias": "rhythm-lab",
+      "track": "melody-track",
+      "time_signature": "2/4",
+      "bars": 4,
+      "beats": 8,
+      "kind": "placeholder_pitch",
+      "placeholder_pitch": 60,
+      "note": "占位音高 scaffold（节奏稿=旋律轨 clip 裁定）；学生改音即 B4 编辑面"
+    },
+    {
+      "alias": "eight-bar-theme",
+      "track": "theme-track",
+      "time_signature": "2/4",
+      "bars": 8,
+      "beats": 16,
+      "kind": "placeholder_pitch",
+      "placeholder_pitch": 60,
+      "note": "八小节主题 scaffold（先节奏后音高同 clip）"
+    }
+  ],
+  "workspace_timing": {
+    "time_signature": "2/4",
+    "key_signature": "C",
+    "tempo_bpm": 80.0,
+    "pickup_beats": 0,
+    "tempo_provenance": "design.v1.yaml tempo_bpm=null → 模板取缺省 80（R5：null=编译期覆盖参数）；W01 编译器可在乐局创建时覆盖。"
+  },
+  "w01_seam": {
+    "contract": "docs/LEGAME_DESIGN_CONTRACT_V0.md workspace.timing 字段（G0-LEGAME-CONTRACT-1，池序 370）",
+    "binding_target": "W01-C 工程包装配绑定卡（G0-LEGAME-BIND-1 草案；impl-cards-draft.md）",
+    "field_map": [
+      {
+        "design_field": "workspace.timing.time_signature",
+        "template_pin": "EDIT/TEMPOSEQUENCE/TIMESIG@numerator=2,@denominator=4",
+        "apply_at_creation": "无需命令——模板已固化（内核无生产 set_time_signature 命令，审计 H4；两层拍号语义材料侧自带覆盖）"
+      },
+      {
+        "design_field": "workspace.timing.key_signature",
+        "template_pin": "EDIT@vit_music_key_signature=C",
+        "apply_at_creation": "模板已固化；如需变更走内核 set_project_key 命令（CommandDispatcher.cpp:2699，root/scale 语义）"
+      },
+      {
+        "design_field": "workspace.timing.tempo_bpm",
+        "template_pin": "EDIT/TEMPOSEQUENCE/TEMPO@bpm=80.0",
+        "apply_at_creation": "模板取缺省 80；W01 编译器按 R5 覆盖时走内核 set_tempo 命令（set_tempo 持久化已修：KERNEL-SETTEMPO-PERSIST-1）"
+      },
+      {
+        "design_field": "workspace.timing.pickup_beats",
+        "template_pin": "（未固化=0）",
+        "apply_at_creation": "本课 pickup=0；非零 pickup 的模板支持待 W01-C 需要时另行裁定"
+      }
+    ],
+    "track_map": [
+      {
+        "design_track": "reference-track",
+        "track_name": "参考与示范",
+        "instrument": false
+      },
+      {
+        "design_track": "melody-track",
+        "track_name": "我的旋律",
+        "instrument": true
+      },
+      {
+        "design_track": "rhythm-track",
+        "track_name": "辅助律动（鼓）",
+        "instrument": true
+      },
+      {
+        "design_track": "theme-track",
+        "track_name": "我的八小节主题",
+        "instrument": true
+      },
+      {
+        "design_track": "result-track",
+        "track_name": "我的成曲版本",
+        "instrument": false
+      }
+    ],
+    "out_of_scope": "q1 四条 4/4 轮廓 clip、材料区引用与 checks 绑定不在本模板（W01-C 装配面/谱面域另卡）"
+  },
+  "exclusions": {
+    "waves_family": "Waves WaveShell1-VST3 全系乐器不采纳（309 M1=RT-SILENT 四 harness 全静音，授权/壳层闭源面未修）",
+    "fake_preset_switching": "不虚构 preset/program 切换参数（298 证 automatable 面 0 个 preset/program 参数）"
+  },
+  "gate": {
+    "id": "DG1-B",
+    "spec": "docs/STACKGATE_DG1_DG3_V1.md §3.2（B1-B7）",
+    "device": "scripts/src_template_smoke.py（dev_agent_smoke.ps1 -SrcTemplateSmoke 挂腿，berth 形态）"
+  },
+  "built_by": "scripts/src_template_build.py（确定性生成：固定 item id+md5 note id；同输入→同 sha256；384 腿D版：拍→秒换算+soft-keys/percussion 双 craft state 装配）",
+  "built_at": "2026-11-16"
+}

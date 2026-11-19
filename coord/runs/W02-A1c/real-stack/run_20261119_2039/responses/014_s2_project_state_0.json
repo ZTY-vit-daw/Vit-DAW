@@ -1,0 +1,178 @@
+﻿{
+    "status":  "ok",
+    "agent_action_id":  "act_6aec9742456f69e1",
+    "tool":  "project.state",
+    "command_name":  "get_project_state",
+    "risk_level":  "direct",
+    "requires_confirmation":  false,
+    "result":  {
+                   "analysis_manifest":  null,
+                   "delta_seq_gaps":  0,
+                   "effective_project_path":  "D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2039\\W02-A1c-A-20261119_203850.vit",
+                   "graph_revision":  null,
+                   "groups":  [
+
+                              ],
+                   "initialized":  true,
+                   "last_delta_seq":  5,
+                   "nodes_by_uid":  0,
+                   "observability":  null,
+                   "orphan_uid_keys":  2,
+                   "parent_project_uuid":  "vitproj_46d43cb0466647b393c55cffcaa162fd",
+                   "pending_job_data":  null,
+                   "project_epoch":  "epoch_d325da6a0d3a4d60",
+                   "project_health":  null,
+                   "project_id":  "vitproj_8842a2f10a05438d8f0692215e758054",
+                   "project_observe":  {
+                                           "ack":  {
+                                                       "message":  "State snapshot captured",
+                                                       "stage":  "completed"
+                                                   },
+                                           "base_revision":  0,
+                                           "changed_clips":  null,
+                                           "changed_tracks":  null,
+                                           "ops_count":  0,
+                                           "project":  {
+                                                           "clip_count":  0,
+                                                           "legacy_graph_active_revision":  0,
+                                                           "legacy_graph_last_diff_kind":  "edit_loaded",
+                                                           "legacy_graph_lifecycle_state":  "idle",
+                                                           "legacy_graph_pending_revision":  0,
+                                                           "legacy_graph_publish_mode":  "initialised",
+                                                           "legacy_graph_revision":  0,
+                                                           "parent_project_uuid":  "vitproj_46d43cb0466647b393c55cffcaa162fd",
+                                                           "project_id":  "project_current",
+                                                           "project_path":  "D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2039\\W02-A1c-A-20261119_203850.vit",
+                                                           "project_uuid":  "vitproj_8842a2f10a05438d8f0692215e758054",
+                                                           "scope":  "project.timeline",
+                                                           "track_count":  0
+                                                       },
+                                           "project_epoch":  "epoch_d325da6a0d3a4d60",
+                                           "resync":  false,
+                                           "resync_hint":  false,
+                                           "revision":  3,
+                                           "scope":  "project.timeline",
+                                           "snapshot_hash":  "d3183d864dbb2a77",
+                                           "source":  "vsp.state.snapshot",
+                                           "stage":  "completed",
+                                           "tracks":  [
+
+                                                      ],
+                                           "type":  "state.snapshot"
+                                       },
+                   "project_path":  "D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2039\\W02-A1c-A-20261119_203850.vit",
+                   "project_revision":  3,
+                   "project_uuid":  "vitproj_8842a2f10a05438d8f0692215e758054",
+                   "snapshot_hash":  "d3183d864dbb2a77",
+                   "state_epoch":  10,
+                   "status":  "ok",
+                   "track_count":  0,
+                   "track_group_count":  0,
+                   "track_groups":  [
+
+                                    ],
+                   "tracks":  [
+
+                              ],
+                   "user_track_count":  0,
+                   "vsp":  {
+                               "project_observe":  {
+                                                       "ack":  {
+                                                                   "message":  "State snapshot captured",
+                                                                   "stage":  "completed"
+                                                               },
+                                                       "base_revision":  0,
+                                                       "changed_clips":  null,
+                                                       "changed_tracks":  null,
+                                                       "ops_count":  0,
+                                                       "project":  {
+                                                                       "clip_count":  0,
+                                                                       "legacy_graph_active_revision":  0,
+                                                                       "legacy_graph_last_diff_kind":  "edit_loaded",
+                                                                       "legacy_graph_lifecycle_state":  "idle",
+                                                                       "legacy_graph_pending_revision":  0,
+                                                                       "legacy_graph_publish_mode":  "initialised",
+                                                                       "legacy_graph_revision":  0,
+                                                                       "parent_project_uuid":  "vitproj_46d43cb0466647b393c55cffcaa162fd",
+                                                                       "project_id":  "project_current",
+                                                                       "project_path":  "D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2039\\W02-A1c-A-20261119_203850.vit",
+                                                                       "project_uuid":  "vitproj_8842a2f10a05438d8f0692215e758054",
+                                                                       "scope":  "project.timeline",
+                                                                       "track_count":  0
+                                                                   },
+                                                       "project_epoch":  "epoch_d325da6a0d3a4d60",
+                                                       "resync":  false,
+                                                       "resync_hint":  false,
+                                                       "revision":  3,
+                                                       "scope":  "project.timeline",
+                                                       "snapshot_hash":  "d3183d864dbb2a77",
+                                                       "source":  "vsp.state.snapshot",
+                                                       "stage":  "completed",
+                                                       "tracks":  [
+
+                                                                  ],
+                                                       "type":  "state.snapshot"
+                                                   },
+                               "transport":  "vsp",
+                               "version":  "1.0"
+                           }
+               },
+    "project_history":  {
+                            "active_branch":  "main",
+                            "active_node_id":  "n_20261119T123855_1be94d94",
+                            "active_worktree":  "",
+                            "available":  true,
+                            "branches":  {
+                                             "main":  "c_20261119T123852_bc85cc06"
+                                         },
+                            "commit_count":  2,
+                            "detached":  false,
+                            "draft":  false,
+                            "head":  "c_20261119T123852_bc85cc06",
+                            "initialized":  true,
+                            "project_label":  "W02-A1c-A-20261119_203850",
+                            "project_path":  "D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2039\\W02-A1c-A-20261119_203850.vit",
+                            "project_uuid":  "vitproj_8842a2f10a05438d8f0692215e758054",
+                            "recent_checkpoints":  [
+                                                       {
+                                                           "branch":  "main",
+                                                           "checkpoint_kind":  "manual",
+                                                           "created_at":  "2026-11-19T12:38:52.5455779Z",
+                                                           "goal_id":  "goal_629afd745523eaa0",
+                                                           "id":  "c_20261119T123852_bc85cc06",
+                                                           "message":  "Vit: 乐局设计源已导入并编译装配：\n- 卡 id：music-creation-unit2-demo\n- 设计源：legame/design.v1.yaml\n- 编译卡：legame/cards/music-creation-unit2-demo/music-creation-unit2-demo.compiled.level.yaml\n- W 诊断 23 条 / I 提示 16 条（待备料/降级清单见 compile manifest）\n下一句普通对话将自动开场（或说「开始乐局」）。"
+                                                       },
+                                                       {
+                                                           "branch":  "main",
+                                                           "checkpoint_kind":  "manual",
+                                                           "created_at":  "2026-11-19T12:38:51.9419664Z",
+                                                           "goal_id":  "goal_629afd745523eaa0",
+                                                           "id":  "c_20261119T123851_da4d9780",
+                                                           "message":  "Conversation ask"
+                                                       }
+                                                   ],
+                            "refs":  {
+                                         "refs/heads/main":  "c_20261119T123852_bc85cc06"
+                                     },
+                            "root_project_path":  "",
+                            "unsaved":  false,
+                            "warnings":  [
+
+                                         ],
+                            "worktree_count":  1,
+                            "worktrees":  [
+                                              {
+                                                  "commit_id":  "c_20261119T123852_bc85cc06",
+                                                  "created_at":  "2026-11-19T12:38:55.1916936Z",
+                                                  "is_root":  true,
+                                                  "label":  "主工作树",
+                                                  "name":  "main",
+                                                  "origin_commit_id":  "c_20261119T123852_bc85cc06",
+                                                  "path":  "D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2039",
+                                                  "project_file_path":  "D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2039\\W02-A1c-A-20261119_203850.vit",
+                                                  "project_path":  "D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2039\\W02-A1c-A-20261119_203850.vit",
+                                                  "root_project_path":  "D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2039\\W02-A1c-A-20261119_203850.vit"
+                                              }
+                                          ]
+                        }
+}

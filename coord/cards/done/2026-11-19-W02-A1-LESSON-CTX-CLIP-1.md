@@ -85,6 +85,15 @@
 - 修复（**文件域扩展**）：`agent/internal/agentloop/helpers.go` + 测试；neutral 重建后保留 `full.LessonContext`，仍剥离 plugin 身份；free-state neutral 快照断言 `lesson_context` 在、plugin 键不在。
 - A1c 候修复后第二轮；不原样重跑。证据：[FINDING](../../runs/W02-A1c/real-stack/run_20261119_2020/FINDING.md)、[s4_prompt_render](../../runs/W02-A1c/real-stack/run_20261119_2020/evidence/s4_prompt_render.jsonl)。
 
+## A1c 验收（2026-11-19 20:40）
+
+- 正式轮 `run_20261119_2039`：`status=passed`、S0–S6 全过、exit 0；S4 `prompt_render_has_lesson_context=true`，`model_snapshot` 含 schema/card/node/selected clip `1014`；S5a `first`/S5b `selection_unmatched` 均 `selected_used=false`；S6 `edu_jam_entered`+opened_at 回写；recents/authority 还原；teardown 全零。
+- 装置 commits `b3790e5b`/`20cb3657`；产品 `b291e934`/`dcee3135`（main `fddb1dc6`/`65b27efe`）。
+- 轮次：2020 首轮 S0–S3 PASS/S4 发现 free-state + 诊断缺口 → 修 → 2039 PASS。
+- 边界：S5b 是“跨槽选中不冒充 selected pass”的负控制，节点仍由目标槽首个 clip 通过（`selection_unmatched` 已披露）；S6 是同进程 auto-intro/新局，非跨进程恢复；LLM telemetry 无新增行，以 prompt render+done+reply 为主证据；GUI 像素不驱动。
+- **432 整卡 done**（A1a/A1b/A1c）；W02-A1 最小切片完成。裁定：[A1c pass](../../rulings/2026-11-19-W02-A1c-pass.md)。
+
+
 
 
 

@@ -1,0 +1,102 @@
+﻿{
+    "authority_mode":  "manual_confirmation",
+    "capability_routes":  [
+
+                          ],
+    "checked_at":  "2026-11-19T20:39:05.0345559+08:00",
+    "checkout_blocked":  false,
+    "continuations":  [
+
+                      ],
+    "current_project":  {
+                            "path":  "D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2039\\W02-A1c-A-20261119_203850.vit",
+                            "uuid":  "vitproj_8842a2f10a05438d8f0692215e758054"
+                        },
+    "goal":  {
+                 "goal_id":  "goal_d7d1574fcf6bee6e",
+                 "run_id":  "run_37c08353fbb8cf25",
+                 "task":  {
+                              "task_id":  "task_72c324bb8a90de6a",
+                              "goal_id":  "goal_d7d1574fcf6bee6e",
+                              "original_intent":  "结束乐局",
+                              "status":  "settled",
+                              "run":  {
+                                          "run_id":  "run_37c08353fbb8cf25",
+                                          "task_id":  "task_72c324bb8a90de6a",
+                                          "next_slice":  1,
+                                          "next_turn":  1
+                                      },
+                              "created_at":  "2026-11-19T20:39:04.459046+08:00",
+                              "updated_at":  "2026-11-19T20:39:04.9406243+08:00"
+                          },
+                 "status":  "completed",
+                 "summary":  "结束乐局",
+                 "created_at":  "2026-11-19T20:39:04.459046+08:00",
+                 "updated_at":  "2026-11-19T20:39:04.9406243+08:00",
+                 "cancel_requested":  false
+             },
+    "kernel":  {
+                   "connected":  true,
+                   "endpoint":  "tcp://127.0.0.1:5555",
+                   "latency_ms":  1,
+                   "message":  "pong",
+                   "reply_status":  "ok",
+                   "status":  "online"
+               },
+    "note_sessions":  [
+
+                      ],
+    "pid":  20492,
+    "service":  "VitAgent",
+    "shadow":  {
+                   "delta_seq_gaps":  0,
+                   "graph_revision":  null,
+                   "initialized":  true,
+                   "last_delta_seq":  78,
+                   "project_path":  "D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2039\\W02-A1c-A-20261119_203850.vit",
+                   "track_count":  0,
+                   "user_track_count":  0
+               },
+    "status":  "ok",
+    "task":  {
+                 "task_id":  "task_72c324bb8a90de6a",
+                 "goal_id":  "goal_d7d1574fcf6bee6e",
+                 "original_intent":  "结束乐局",
+                 "status":  "settled",
+                 "run":  {
+                             "run_id":  "run_37c08353fbb8cf25",
+                             "task_id":  "task_72c324bb8a90de6a",
+                             "next_slice":  1,
+                             "next_turn":  1
+                         },
+                 "created_at":  "2026-11-19T20:39:04.459046+08:00",
+                 "updated_at":  "2026-11-19T20:39:04.9406243+08:00"
+             },
+    "task_trajectory":  {
+                            "run":  {
+                                        "current_slice_id":  "",
+                                        "current_turn_id":  "",
+                                        "run_id":  "run_37c08353fbb8cf25",
+                                        "slices":  null,
+                                        "turns":  null
+                                    },
+                            "schema_version":  "vit.task_runtime_trajectory.v1",
+                            "semantic":  {
+
+                                         },
+                            "task":  {
+                                         "conversation_id":  "",
+                                         "created_at":  "2026-11-19T20:39:04.459046+08:00",
+                                         "goal_id":  "goal_d7d1574fcf6bee6e",
+                                         "goal_status":  "completed",
+                                         "original_intent":  "结束乐局",
+                                         "run_id":  "run_37c08353fbb8cf25",
+                                         "status":  "settled",
+                                         "task_id":  "task_72c324bb8a90de6a",
+                                         "updated_at":  "2026-11-19T20:39:04.9406243+08:00"
+                                     },
+                            "transitions":  [
+
+                                            ]
+                        }
+}

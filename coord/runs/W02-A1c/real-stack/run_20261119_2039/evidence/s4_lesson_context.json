@@ -1,0 +1,37 @@
+﻿{
+    "allowed":  [
+                    "add_midi_notes",
+                    "add_midi_notes_bulk",
+                    "apply_midi_note_patch",
+                    "create_midi_clip",
+                    "delete_midi_notes",
+                    "import_midi_to_track",
+                    "mutate_midi_notes",
+                    "project.markers.upsert"
+                ],
+    "assets":  [
+                   {
+                       "id":  "prototype-midi",
+                       "kind":  "midi_reference"
+                   },
+                   {
+                       "id":  "theme-reference-rhythm",
+                       "kind":  "midi_reference"
+                   }
+               ],
+    "card":  {
+                 "id":  "music-creation-unit2-demo",
+                 "title":  "把旋律的起伏写成自己的作品"
+             },
+    "node":  {
+                 "goal":  "自由曲线/平直线/平缓进行/跌宕起伏各写两小节，逐条听并解释安排",
+                 "id":  "n3-contours",
+                 "title":  "四种走向，四个两小节"
+             },
+    "schema_version":  "vit.edu_jam.lesson_context.v1",
+    "selected_clip":  {
+                          "clip_id":  "1014",
+                          "track_id":  "1010"
+                      },
+    "truncated":  true
+}

@@ -1,0 +1,129 @@
+﻿{
+    "status":  "ok",
+    "agent_action_id":  "act_f5da3cc3a47c4099",
+    "tool":  "midi.read_notes",
+    "command_name":  "get_midi_clip_notes",
+    "risk_level":  "direct",
+    "requires_confirmation":  false,
+    "result":  {
+                   "clip_id":  "1014",
+                   "command_ack":  {
+                                       "ack":  {
+                                                   "message":  "MIDI clip notes",
+                                                   "stage":  "completed"
+                                               },
+                                       "command":  "legacy.command",
+                                       "legacy_command":  "get_midi_clip_notes",
+                                       "resync_hint":  false,
+                                       "revision":  0,
+                                       "source":  "vsp.command.response",
+                                       "stage":  "completed",
+                                       "transaction_id":  "tx_1795091936602321300_145"
+                                   },
+                   "message":  "MIDI clip notes",
+                   "notes":  [
+                                 {
+                                     "channel":  1,
+                                     "id":  "blk_2d78c828f76a4076a8bd59df2b0c197b",
+                                     "length":  2,
+                                     "pitch":  67,
+                                     "start":  0,
+                                     "velocity":  100
+                                 },
+                                 {
+                                     "channel":  1,
+                                     "id":  "blk_4e373a5e27c4457887e2bc1e3c55b5ab",
+                                     "length":  0.5,
+                                     "pitch":  71,
+                                     "start":  2,
+                                     "velocity":  70
+                                 },
+                                 {
+                                     "channel":  1,
+                                     "id":  "blk_dde2fdef15a24dc19146bf2b26e9d86e",
+                                     "length":  1.5,
+                                     "pitch":  74,
+                                     "start":  2.5,
+                                     "velocity":  60
+                                 }
+                             ],
+                   "status":  "ok",
+                   "time_unit":  "beats",
+                   "track_id":  "1010",
+                   "vsp":  {
+                               "command_ack":  {
+                                                   "ack":  {
+                                                               "message":  "MIDI clip notes",
+                                                               "stage":  "completed"
+                                                           },
+                                                   "command":  "legacy.command",
+                                                   "legacy_command":  "get_midi_clip_notes",
+                                                   "resync_hint":  false,
+                                                   "revision":  0,
+                                                   "source":  "vsp.command.response",
+                                                   "stage":  "completed",
+                                                   "transaction_id":  "tx_1795091936602321300_145"
+                                               },
+                               "transport":  "vsp",
+                               "version":  "1.0"
+                           }
+               },
+    "project_history":  {
+                            "active_branch":  "main",
+                            "active_node_id":  "n_20261119T123855_1be94d94",
+                            "active_worktree":  "",
+                            "available":  true,
+                            "branches":  {
+                                             "main":  "c_20261119T123852_bc85cc06"
+                                         },
+                            "commit_count":  2,
+                            "detached":  false,
+                            "draft":  false,
+                            "head":  "c_20261119T123852_bc85cc06",
+                            "initialized":  true,
+                            "project_label":  "W02-A1c-A-20261119_203850",
+                            "project_path":  "D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2039\\W02-A1c-A-20261119_203850.vit",
+                            "project_uuid":  "vitproj_8842a2f10a05438d8f0692215e758054",
+                            "recent_checkpoints":  [
+                                                       {
+                                                           "branch":  "main",
+                                                           "checkpoint_kind":  "manual",
+                                                           "created_at":  "2026-11-19T12:38:52.5455779Z",
+                                                           "goal_id":  "goal_629afd745523eaa0",
+                                                           "id":  "c_20261119T123852_bc85cc06",
+                                                           "message":  "Vit: 乐局设计源已导入并编译装配：\n- 卡 id：music-creation-unit2-demo\n- 设计源：legame/design.v1.yaml\n- 编译卡：legame/cards/music-creation-unit2-demo/music-creation-unit2-demo.compiled.level.yaml\n- W 诊断 23 条 / I 提示 16 条（待备料/降级清单见 compile manifest）\n下一句普通对话将自动开场（或说「开始乐局」）。"
+                                                       },
+                                                       {
+                                                           "branch":  "main",
+                                                           "checkpoint_kind":  "manual",
+                                                           "created_at":  "2026-11-19T12:38:51.9419664Z",
+                                                           "goal_id":  "goal_629afd745523eaa0",
+                                                           "id":  "c_20261119T123851_da4d9780",
+                                                           "message":  "Conversation ask"
+                                                       }
+                                                   ],
+                            "refs":  {
+                                         "refs/heads/main":  "c_20261119T123852_bc85cc06"
+                                     },
+                            "root_project_path":  "",
+                            "unsaved":  false,
+                            "warnings":  [
+
+                                         ],
+                            "worktree_count":  1,
+                            "worktrees":  [
+                                              {
+                                                  "commit_id":  "c_20261119T123852_bc85cc06",
+                                                  "created_at":  "2026-11-19T12:38:56.6113222Z",
+                                                  "is_root":  true,
+                                                  "label":  "主工作树",
+                                                  "name":  "main",
+                                                  "origin_commit_id":  "c_20261119T123852_bc85cc06",
+                                                  "path":  "D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2039",
+                                                  "project_file_path":  "D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2039\\W02-A1c-A-20261119_203850.vit",
+                                                  "project_path":  "D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2039\\W02-A1c-A-20261119_203850.vit",
+                                                  "root_project_path":  "D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2039\\W02-A1c-A-20261119_203850.vit"
+                                              }
+                                          ]
+                        }
+}

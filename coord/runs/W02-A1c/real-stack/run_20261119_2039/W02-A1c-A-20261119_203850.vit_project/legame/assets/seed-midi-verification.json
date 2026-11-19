@@ -1,0 +1,25 @@
+{
+  "checks": [
+    {
+      "file": "assets/midi/exercise2-prototype_demo-C_80bpm.mid",
+      "smf_parse": "PASS",
+      "notes": 7,
+      "pitch_onset_duration_match": "PASS",
+      "time_signature": "PASS",
+      "sha256": "PASS",
+      "end_quarter_beats": 8.0,
+      "sound_check": "not_performed"
+    },
+    {
+      "file": "assets/midi/sanshilipu-first8_rhythm-only_GM37_80bpm.mid",
+      "smf_parse": "PASS",
+      "notes": 22,
+      "pitch_onset_duration_match": "PASS",
+      "time_signature": "PASS",
+      "sha256": "PASS",
+      "end_quarter_beats": 16.0,
+      "sound_check": "not_performed"
+    }
+  ],
+  "scope": "independent_SMF_parse_and_source_symbol_match_not_sound_check"
+}

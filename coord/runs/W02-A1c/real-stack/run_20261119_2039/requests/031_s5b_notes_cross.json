@@ -1,0 +1,1 @@
+{"tool":"add_midi_notes_bulk","args":{"time_unit":"beats","clip_id":"1015","notes":[{"pitch":48,"length":0.5,"velocity":50,"start":0},{"pitch":50,"length":2,"velocity":55,"start":0.5}]},"source":"w02_a1c_smoke","confirmed":true}

@@ -1,0 +1,347 @@
+{
+  "schema_version": "vit_project_package.v1",
+  "project_uuid": "vitproj_8842a2f10a05438d8f0692215e758054",
+  "origin_project_uuid": "vitproj_8842a2f10a05438d8f0692215e758054",
+  "project_path": "D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2039\\W02-A1c-A-20261119_203850.vit",
+  "project_file": "W02-A1c-A-20261119_203850.vit",
+  "generation_id": "legame_import",
+  "save_kind": "legame_import",
+  "package_mode": "loose_sidecar",
+  "created_at": "2026-11-19T12:38:52.4642111Z",
+  "updated_at": "2026-11-19T12:38:52.5185683Z",
+  "files": [
+    {
+      "path": "legame.json",
+      "sha256": "06f1960b7d7dfc21e94d090efbd6831e2eee85f353be7fd04e3e2af8c7165855",
+      "size": 182
+    },
+    {
+      "path": "legame/LESSON-V1.md",
+      "sha256": "4278e0417bc9d63bc34db03486d43d122fd1fff4e7dfe1a9c758690181afc48b",
+      "size": 13876
+    },
+    {
+      "path": "legame/README.md",
+      "sha256": "dfc8fa7f133efaa94cb74a3107f18b0c77d63f9e37406e176d0c4aa459752a37",
+      "size": 3739
+    },
+    {
+      "path": "legame/TEXTBOOK-ALIGNMENT-AND-MATERIALS.md",
+      "sha256": "d3f186d03ec1806eb3341c1c892d0dcd35e8d3571b9e79d371090aaed77526ec",
+      "size": 7267
+    },
+    {
+      "path": "legame/TEXTBOOK-NOTES.md",
+      "sha256": "07bd54d61125a73c177aace85bfcf860113f8d913dca223106322edd3bf0efc8",
+      "size": 10240
+    },
+    {
+      "path": "legame/assets/catalog.yaml",
+      "sha256": "b37cd1bb87955866a378c54a598a177cb8574e4121d117f218c04f28032c32df",
+      "size": 11258
+    },
+    {
+      "path": "legame/assets/midi/analysis-huainian_first4_Bb_72bpm.mid",
+      "sha256": "46be06e37bbe0cddd92065be55f2cc462bf48e2a235cda751abc233ac26a89c5",
+      "size": 222
+    },
+    {
+      "path": "legame/assets/midi/analysis-xiaocao_first8_G_80bpm.mid",
+      "sha256": "eb604d73b1f0130c2cb8e3fd2e2f106a52811ed2ed3bc2fecc4292478668ed63",
+      "size": 291
+    },
+    {
+      "path": "legame/assets/midi/contour-flat_chengsheng-first8_Bb_120bpm.mid",
+      "sha256": "609bbf076020cb2e2622ceb636f8c47317bc4289ed667d60e29e8faa8ff3cd0c",
+      "size": 302
+    },
+    {
+      "path": "legame/assets/midi/contour-free_february-first4_Ab_72bpm.mid",
+      "sha256": "6f6f199d1724d8676457849deba1960e1d14481179460a8191d086f953019cf9",
+      "size": 351
+    },
+    {
+      "path": "legame/assets/midi/contour-smooth_morning-first4_C_72bpm.mid",
+      "sha256": "b4623f6286c8b3e35fbd66047c0255b20f87f7ddb048b2bf98ed4dc8b4224f66",
+      "size": 248
+    },
+    {
+      "path": "legame/assets/midi/contour-wave_seaport-first4_Bb_60bpm.mid",
+      "sha256": "d3eea6386270adaf808ee25774db300729fcb9c130982380d4c335ca739e3853",
+      "size": 283
+    },
+    {
+      "path": "legame/assets/midi/develop-augment-meter_3-4_C_80bpm.mid",
+      "sha256": "93bb451f52206bf1882db7e82761af0c13d69953fabe922f901d37c9c48c69e1",
+      "size": 178
+    },
+    {
+      "path": "legame/assets/midi/develop-ornament_jiaxing1_C_80bpm.mid",
+      "sha256": "259456d0b645bd845d9b162f8fcac3fdf249592c052ecf052a5e116933a4e893",
+      "size": 191
+    },
+    {
+      "path": "legame/assets/midi/develop-rhythm_change1_C_80bpm.mid",
+      "sha256": "606ad40d68f207c7cdfccc052b376dc57eedd89565ed03e244901643808518cf",
+      "size": 171
+    },
+    {
+      "path": "legame/assets/midi/develop-shift-rhythm_yiwei1_C_80bpm.mid",
+      "sha256": "d30a9e422d0fa23ae7594054e9ba1ef848e551a7dd20acd23b1177db99e7c9e7",
+      "size": 233
+    },
+    {
+      "path": "legame/assets/midi/exercise2-prototype_demo-C_80bpm.mid",
+      "sha256": "d20bfa68da68b8d6eae0812612109fadf2040485eb10c1f9300bf391409c2972",
+      "size": 156
+    },
+    {
+      "path": "legame/assets/midi/pitch-large-leap_excerpt_D_72bpm.mid",
+      "sha256": "26ad7b7b86bbe6ee1a2d573419f4fee2ed522bc587307293f4e4ec7c115b9cfe",
+      "size": 258
+    },
+    {
+      "path": "legame/assets/midi/pitch-repeat_annotated-phrase_F_96bpm.mid",
+      "sha256": "0019d86936a401425aa75fb3313ac9dfd25a6442484d38947d2e8f150cdfd1c8",
+      "size": 175
+    },
+    {
+      "path": "legame/assets/midi/pitch-small-leap_first4_F_100bpm.mid",
+      "sha256": "a44fb005ca1bfe60b155b4c4f0106d35b06b5408300ae60c232d024f66612068",
+      "size": 217
+    },
+    {
+      "path": "legame/assets/midi/pitch-step-down_first4_G_60bpm.mid",
+      "sha256": "765b5b752a10e27c9d4e9a0e278a4a5533366b750729c807ab9f215b84ceb846",
+      "size": 203
+    },
+    {
+      "path": "legame/assets/midi/pitch-step-up_textbook-excerpt_C_96bpm.mid",
+      "sha256": "71427ce9f5c7d3f71c2ff51c5570154c82a863d9733bce603848c8cd7bb19d1b",
+      "size": 268
+    },
+    {
+      "path": "legame/assets/midi/reference-sanshilipu-melody_first8_C_80bpm.mid",
+      "sha256": "2fda563b68aa2a7cc5c6bef5a9f3a0a94b34f96496ec0060ab37eeeaa24612da",
+      "size": 301
+    },
+    {
+      "path": "legame/assets/midi/rhythm-even_uniform-4bars_GM37_80bpm.mid",
+      "sha256": "bc6d2fa5bbc3878d58ad8d3d124062bcce290716a8ef3ab2503056bbb155d148",
+      "size": 232
+    },
+    {
+      "path": "legame/assets/midi/rhythm-long-short_4bars_GM37_80bpm.mid",
+      "sha256": "69c324faf6bcfaf11185b9b4c3f3c88afe44d940e4261f779a427d4ce4970161",
+      "size": 317
+    },
+    {
+      "path": "legame/assets/midi/rhythm-short-long_4bars_GM37_80bpm.mid",
+      "sha256": "ded3df0b3ef4ae8f446840b218059dfc8f71bb04d52feca9f4c5147aeaa09155",
+      "size": 299
+    },
+    {
+      "path": "legame/assets/midi/rhythm-syncopation_4bars_GM37_80bpm.mid",
+      "sha256": "1d6db376f9efa11d3dc9f3f95477b40a9d2e6422299f0e8a0cb3f4bbae250ca7",
+      "size": 352
+    },
+    {
+      "path": "legame/assets/midi/sanshilipu-first8_rhythm-only_GM37_80bpm.mid",
+      "sha256": "c654898499232c8e234e776474042bbe7fcb45c13debe719d6c8e8bd0c4dfe40",
+      "size": 291
+    },
+    {
+      "path": "legame/assets/seed-midi-manifest.json",
+      "sha256": "1eed7e0361b1438526fa77cc6e82b9322390bc1d0c4cefb6b65a1d022de182d5",
+      "size": 4926
+    },
+    {
+      "path": "legame/assets/seed-midi-verification.json",
+      "sha256": "6245232120b319a3f2742e0877df8938890c865b6d2ed0e19342cacacd83d5ad",
+      "size": 718
+    },
+    {
+      "path": "legame/cards/music-creation-unit2-demo/assets/midi/exercise2-prototype_demo-C_80bpm.mid",
+      "sha256": "d20bfa68da68b8d6eae0812612109fadf2040485eb10c1f9300bf391409c2972",
+      "size": 156
+    },
+    {
+      "path": "legame/cards/music-creation-unit2-demo/assets/midi/sanshilipu-first8_rhythm-only_GM37_80bpm.mid",
+      "sha256": "c654898499232c8e234e776474042bbe7fcb45c13debe719d6c8e8bd0c4dfe40",
+      "size": 291
+    },
+    {
+      "path": "legame/cards/music-creation-unit2-demo/music-creation-unit2-demo.compile.manifest.json",
+      "sha256": "318b41e7b2422dedd3b73c7d82a57ea4fc82ffefd99097ea74f380ba159ae5fc",
+      "size": 12064
+    },
+    {
+      "path": "legame/cards/music-creation-unit2-demo/music-creation-unit2-demo.compiled.level.yaml",
+      "sha256": "9e94fb2ddbc8bd516d1cd7df0eeac1e02c174ade13d12c557aa777a239f62584",
+      "size": 14257
+    },
+    {
+      "path": "legame/design.v1.yaml",
+      "sha256": "dbf3781a67c86f7f7341b0771ab9207bdff7a618ac666b9aad9cd7e5b1356fb7",
+      "size": 29444
+    },
+    {
+      "path": "legame/source/pages.json",
+      "sha256": "4fc352d6291ba965639ebd6031b3c9a90c32907c3b67f11a66d13a39743912ca",
+      "size": 28470
+    },
+    {
+      "path": "legame/source/pages/pdf-002_contents.png",
+      "sha256": "5c01f7f0664f96d542cd3b96bd23b67c4f3d44efc7574dc77b20e23bbc154242",
+      "size": 133731
+    },
+    {
+      "path": "legame/source/pages/pdf-020_unit-cover.png",
+      "sha256": "71675919eb8e149d5816254ad7ff5696b3289b96aa674a2f735930d87fbf56ca",
+      "size": 298605
+    },
+    {
+      "path": "legame/source/pages/pdf-021_book-016.png",
+      "sha256": "c8e9db280e7520e4cb818c5e8277584b91169c12ffeaa0436408f42fcf8e7675",
+      "size": 155155
+    },
+    {
+      "path": "legame/source/pages/pdf-022_book-017.png",
+      "sha256": "868e48eae630d2946e4eae9ffabe9684594678f24a3c5043944561c40091d2be",
+      "size": 120191
+    },
+    {
+      "path": "legame/source/pages/pdf-023_book-018.png",
+      "sha256": "b81ed64445206bc7ce1c547fd22e0c904a0656cba61d4bc8b992a9befb0516ef",
+      "size": 208459
+    },
+    {
+      "path": "legame/source/pages/pdf-024_book-019.png",
+      "sha256": "12875dca6d0df1cdd8a9d2821cdb55361f9f4047ec9b6bcaeb6c3567a500aeb7",
+      "size": 173178
+    },
+    {
+      "path": "legame/source/pages/pdf-025_book-020.png",
+      "sha256": "f8ca5fa87f95b2f524c40264a1e524d5b1ae25cc97ea248fc315c677c9613b76",
+      "size": 176282
+    },
+    {
+      "path": "legame/source/pages/pdf-026_book-021.png",
+      "sha256": "8a8ac25aa3d2e13efbba43003617c008caa90acb3672a1ba8bdf3682390da964",
+      "size": 206218
+    },
+    {
+      "path": "legame/source/pages/pdf-027_book-022.png",
+      "sha256": "dcc9e81be19053919d1fdfa74c2fe85f417c5d5797e6acbec4b052f32c19a7ae",
+      "size": 232446
+    },
+    {
+      "path": "legame/source/pages/pdf-028_book-023.png",
+      "sha256": "4f363c6a25c5ceb312cf37f041d0496f45ddbbbe827f468652e347e15be0d590",
+      "size": 141248
+    },
+    {
+      "path": "legame/source/pages/pdf-029_book-024.png",
+      "sha256": "6e381e6318035fa3336d91094ae99d311dee78cae98fadc5d2faef795d85694d",
+      "size": 89742
+    },
+    {
+      "path": "legame/source/pages/pdf-030_book-025.png",
+      "sha256": "764b79ef5464f9b1c73d839a49338c9903c59ac5244111ca9573fd7127d4d3bf",
+      "size": 152182
+    },
+    {
+      "path": "legame/source/pages/pdf-031_book-026.png",
+      "sha256": "c2e5fa7748c4e11e952c65a90c1a2e2bf1ff19365e14e2f9e6b9270ce1f10fd6",
+      "size": 137332
+    },
+    {
+      "path": "legame/source/pages/pdf-032_book-027.png",
+      "sha256": "a49ddb8500fcc903554906ade10b5772b025c42c0b769c1b3ff8e8ce0b4454cc",
+      "size": 228776
+    },
+    {
+      "path": "legame/source/pages/pdf-033_book-028.png",
+      "sha256": "fa1e3bc56874c6e79fb8a5f41632ce19b30f4b188506506198cf782bea24d522",
+      "size": 182939
+    },
+    {
+      "path": "legame/source/pages/pdf-034_book-029.png",
+      "sha256": "c55f27bfeb6dea35563a7934e98c639794534ef9c9d53be1628f488eca16b1c5",
+      "size": 105373
+    },
+    {
+      "path": "legame/source/pages/pdf-035_book-030.png",
+      "sha256": "3f1a0c7216ee1e0367108a38ffe7091d911da3dfcdfeae50351899b9624d6e77",
+      "size": 92824
+    },
+    {
+      "path": "legame/source/selected-symbolic-materials.json",
+      "sha256": "efcee1a87a58e750fca3585ebb6100cd4c2fa7ed555f9e84d5bb5beeef4fd46d",
+      "size": 2681
+    },
+    {
+      "path": "legame/source/unit2-contact-sheet.png",
+      "sha256": "7a0aef1a8c2917bb0e1f0b85edcdb48c7bbc16cc7d0197308ea3ae111cf2c455",
+      "size": 561146
+    },
+    {
+      "path": "legame/source/unit2-extracted-text.md",
+      "sha256": "fa4dd7987995b5f545a532110e1fbf5196b09410ebd771a07ff8ea77d6c0dfdd",
+      "size": 11954
+    },
+    {
+      "path": "legame/templates/melody-drum-v1/README.md",
+      "sha256": "1f747d0c16082c39ec5b3c81423283dcfe34c9fa644f6865bb6f0c67df5e8aef",
+      "size": 1925
+    },
+    {
+      "path": "legame/templates/melody-drum-v1/states/groove_percussion_v1.state.txt",
+      "sha256": "51e2b36becf7d6b66f97a4519e6a2d14c93045631524fff7c29f706ad8e74dd4",
+      "size": 89734
+    },
+    {
+      "path": "legame/templates/melody-drum-v1/states/melody_soft_keys_v1.state.txt",
+      "sha256": "8fd872f66bc1c394eece11a0aa326ce8d2e38b68882d16b074260579c3d482c4",
+      "size": 89738
+    },
+    {
+      "path": "legame/templates/melody-drum-v1/template.v1.xml",
+      "sha256": "2b487058877ec0887fd20b23c7e2034a012e978116d59b335849a410fe0c6cbb",
+      "size": 280722
+    },
+    {
+      "path": "legame/templates/melody-drum-v1/template_manifest.json",
+      "sha256": "9f517bc80e599d511c319a8a3afaa463177c3d3f4ee910a5030944dc9d6a8e45",
+      "size": 8638
+    },
+    {
+      "path": "legame/tools/build_seed_midi.py",
+      "sha256": "8a9ce9d69b0b314b32aae7dc8a9b04d12fadbba7191ad6ae97992818c992815c",
+      "size": 4114
+    },
+    {
+      "path": "legame/tools/extract_unit2.py",
+      "sha256": "beb8a17f905c0f4bc0ad79d8401b4d615d888c87fedd120c27d646fa484a8382",
+      "size": 5900
+    },
+    {
+      "path": "legame/verification.json",
+      "sha256": "7658a704bd065e7ee08758635679c3f6c9df7f675d75d416a479098d9547aa5e",
+      "size": 1937
+    }
+  ],
+  "acoustic_package_count": 0,
+  "mixboard_session_count": 0,
+  "media_entry_count": 0,
+  "legame": {
+    "schema_version": "vit.legame_package.v1",
+    "enabled": true,
+    "design": "legame/design.v1.yaml",
+    "overrides": {
+      "tempo_bpm": 80,
+      "max_turns": 60,
+      "max_llm_calls": 120
+    }
+  }
+}

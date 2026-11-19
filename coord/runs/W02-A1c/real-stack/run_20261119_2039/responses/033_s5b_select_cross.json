@@ -1,0 +1,84 @@
+﻿{
+    "status":  "ok",
+    "agent_action_id":  "act_6400389accb1b918",
+    "tool":  "clip.select",
+    "command_name":  "select_clip",
+    "risk_level":  "direct",
+    "requires_confirmation":  false,
+    "result":  {
+                   "clip_id":  "1015",
+                   "clip_name":  "New MIDI Clip",
+                   "start_beats":  null,
+                   "start_seconds":  null,
+                   "status":  "ok",
+                   "track_id":  "1007",
+                   "track_name":  "Track 1",
+                   "ui_action":  "select_clip"
+               },
+    "project_history":  {
+                            "active_branch":  "main",
+                            "active_node_id":  "n_20261119T123902_f5b0bd47",
+                            "active_worktree":  "",
+                            "available":  true,
+                            "branches":  {
+                                             "main":  "c_20261119T123857_8732e0b2"
+                                         },
+                            "commit_count":  3,
+                            "detached":  false,
+                            "draft":  false,
+                            "head":  "c_20261119T123857_8732e0b2",
+                            "initialized":  true,
+                            "project_label":  "W02-A1c-A-20261119_203850",
+                            "project_path":  "D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2039\\W02-A1c-A-20261119_203850.vit",
+                            "project_uuid":  "vitproj_8842a2f10a05438d8f0692215e758054",
+                            "recent_checkpoints":  [
+                                                       {
+                                                           "branch":  "main",
+                                                           "checkpoint_kind":  "manual",
+                                                           "created_at":  "2026-11-19T12:38:57.1908943Z",
+                                                           "goal_id":  "goal_a3d907de8798464f",
+                                                           "id":  "c_20261119T123857_8732e0b2",
+                                                           "message":  "Vit: 第 n2-rhythm 关通过 ✓\n进入第 4 关 ·四种走向，四个两小节\n目标：自由曲线/平直线/平缓进行/跌宕起伏各写两小节，逐条听并解释安排\n（提示阶梯已就位：先自己试，卡住再说「乐局状态」）"
+                                                       },
+                                                       {
+                                                           "branch":  "main",
+                                                           "checkpoint_kind":  "manual",
+                                                           "created_at":  "2026-11-19T12:38:52.5455779Z",
+                                                           "goal_id":  "goal_629afd745523eaa0",
+                                                           "id":  "c_20261119T123852_bc85cc06",
+                                                           "message":  "Vit: 乐局设计源已导入并编译装配：\n- 卡 id：music-creation-unit2-demo\n- 设计源：legame/design.v1.yaml\n- 编译卡：legame/cards/music-creation-unit2-demo/music-creation-unit2-demo.compiled.level.yaml\n- W 诊断 23 条 / I 提示 16 条（待备料/降级清单见 compile manifest）\n下一句普通对话将自动开场（或说「开始乐局」）。"
+                                                       },
+                                                       {
+                                                           "branch":  "main",
+                                                           "checkpoint_kind":  "manual",
+                                                           "created_at":  "2026-11-19T12:38:51.9419664Z",
+                                                           "goal_id":  "goal_629afd745523eaa0",
+                                                           "id":  "c_20261119T123851_da4d9780",
+                                                           "message":  "Conversation ask"
+                                                       }
+                                                   ],
+                            "refs":  {
+                                         "refs/heads/main":  "c_20261119T123857_8732e0b2"
+                                     },
+                            "root_project_path":  "",
+                            "unsaved":  false,
+                            "warnings":  [
+
+                                         ],
+                            "worktree_count":  1,
+                            "worktrees":  [
+                                              {
+                                                  "commit_id":  "c_20261119T123857_8732e0b2",
+                                                  "created_at":  "2026-11-19T12:39:02.6843241Z",
+                                                  "is_root":  true,
+                                                  "label":  "主工作树",
+                                                  "name":  "main",
+                                                  "origin_commit_id":  "c_20261119T123857_8732e0b2",
+                                                  "path":  "D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2039",
+                                                  "project_file_path":  "D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2039\\W02-A1c-A-20261119_203850.vit",
+                                                  "project_path":  "D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2039\\W02-A1c-A-20261119_203850.vit",
+                                                  "root_project_path":  "D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2039\\W02-A1c-A-20261119_203850.vit"
+                                              }
+                                          ]
+                        }
+}

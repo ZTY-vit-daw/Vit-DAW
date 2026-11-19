@@ -1,0 +1,501 @@
+﻿{
+    "status":  "ok",
+    "agent_action_id":  "act_5fb02dfe685f1131",
+    "tool":  "track.add",
+    "command_name":  "add_track",
+    "risk_level":  "undoable",
+    "requires_confirmation":  false,
+    "undo_label":  "Agent: add_track",
+    "result":  {
+                   "command_ack":  {
+                                       "ack":  {
+                                                   "message":  "Track added",
+                                                   "stage":  "completed"
+                                               },
+                                       "command":  "track.create",
+                                       "legacy_command":  "add_track",
+                                       "resync_hint":  true,
+                                       "revision":  0,
+                                       "source":  "vsp.command.response",
+                                       "stage":  "completed",
+                                       "transaction_id":  "tx_1795091935237737400_39"
+                                   },
+                   "message":  "Track added",
+                   "state_delta":  {
+                                       "ack":  {
+                                                   "message":  "State delta captured",
+                                                   "stage":  "completed"
+                                               },
+                                       "base_revision":  3,
+                                       "changed_clips":  null,
+                                       "changed_tracks":  [
+                                                              "1007"
+                                                          ],
+                                       "ops":  [
+                                                   {
+                                                       "op":  "replace",
+                                                       "path":  "/project",
+                                                       "value":  {
+                                                                     "clip_count":  0,
+                                                                     "legacy_graph_active_revision":  0,
+                                                                     "legacy_graph_last_diff_kind":  "edit_loaded",
+                                                                     "legacy_graph_lifecycle_state":  "idle",
+                                                                     "legacy_graph_pending_revision":  0,
+                                                                     "legacy_graph_publish_mode":  "initialised",
+                                                                     "legacy_graph_revision":  0,
+                                                                     "parent_project_uuid":  "vitproj_46d43cb0466647b393c55cffcaa162fd",
+                                                                     "project_id":  "project_current",
+                                                                     "project_path":  "D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2039\\W02-A1c-A-20261119_203850.vit",
+                                                                     "project_uuid":  "vitproj_8842a2f10a05438d8f0692215e758054",
+                                                                     "scope":  "project.timeline",
+                                                                     "track_count":  1
+                                                                 }
+                                                   },
+                                                   {
+                                                       "op":  "add",
+                                                       "path":  "/tracks/1007",
+                                                       "track_id":  "1007",
+                                                       "value":  {
+                                                                     "armed":  false,
+                                                                     "can_contain_child_tracks":  false,
+                                                                     "child_track_count":  0,
+                                                                     "child_track_ids":  [
+
+                                                                                         ],
+                                                                     "clip_count":  0,
+                                                                     "clips":  [
+
+                                                                               ],
+                                                                     "depth":  0,
+                                                                     "descendant_track_count":  0,
+                                                                     "descendant_track_ids":  [
+
+                                                                                              ],
+                                                                     "direct_child_track_ids":  [
+
+                                                                                                ],
+                                                                     "fader_db":  0,
+                                                                     "folder_behavior":  null,
+                                                                     "gain_db":  0,
+                                                                     "has_child_tracks":  false,
+                                                                     "id":  "1007",
+                                                                     "is_armed":  false,
+                                                                     "is_audio":  true,
+                                                                     "is_audio_track":  true,
+                                                                     "is_folder_container":  false,
+                                                                     "is_folder_track":  false,
+                                                                     "is_submix_folder":  false,
+                                                                     "mute":  false,
+                                                                     "name":  "Track 1",
+                                                                     "pan":  0,
+                                                                     "pan_value":  0,
+                                                                     "parent_folder_track_id":  null,
+                                                                     "parent_track_id":  null,
+                                                                     "plugin_count":  2,
+                                                                     "plugin_param_digest":  "krev1_no_external_plugins",
+                                                                     "plugins":  [
+                                                                                     {
+                                                                                         "id":  "1008",
+                                                                                         "name":  "Volume \u0026 Pan Plugin",
+                                                                                         "type":  "volume"
+                                                                                     },
+                                                                                     {
+                                                                                         "id":  "1009",
+                                                                                         "name":  "Level Meter",
+                                                                                         "type":  "level"
+                                                                                     }
+                                                                                 ],
+                                                                     "routing_bus_enabled":  false,
+                                                                     "solo":  false,
+                                                                     "track_depth":  0,
+                                                                     "track_id":  "1007",
+                                                                     "track_state_revision":  "33ce815c6d61743c",
+                                                                     "track_type":  "hybrid",
+                                                                     "volume_db":  0
+                                                                 }
+                                                   }
+                                               ],
+                                       "ops_count":  2,
+                                       "project_epoch":  "epoch_d325da6a0d3a4d60",
+                                       "resync":  false,
+                                       "resync_hint":  false,
+                                       "revision":  4,
+                                       "scope":  "project.timeline",
+                                       "snapshot_hash":  "9153e28023c3ab07",
+                                       "source":  "vsp.state.delta",
+                                       "stage":  "completed",
+                                       "type":  "state.delta"
+                                   },
+                   "state_resync":  {
+                                        "ack":  {
+                                                    "message":  "State resynchronised",
+                                                    "stage":  "completed"
+                                                },
+                                        "base_revision":  0,
+                                        "changed_clips":  null,
+                                        "changed_tracks":  null,
+                                        "ops_count":  0,
+                                        "project":  {
+                                                        "clip_count":  0,
+                                                        "legacy_graph_active_revision":  0,
+                                                        "legacy_graph_last_diff_kind":  "edit_loaded",
+                                                        "legacy_graph_lifecycle_state":  "idle",
+                                                        "legacy_graph_pending_revision":  0,
+                                                        "legacy_graph_publish_mode":  "initialised",
+                                                        "legacy_graph_revision":  0,
+                                                        "parent_project_uuid":  "vitproj_46d43cb0466647b393c55cffcaa162fd",
+                                                        "project_id":  "project_current",
+                                                        "project_path":  "D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2039\\W02-A1c-A-20261119_203850.vit",
+                                                        "project_uuid":  "vitproj_8842a2f10a05438d8f0692215e758054",
+                                                        "scope":  "project.timeline",
+                                                        "track_count":  1
+                                                    },
+                                        "project_epoch":  "epoch_d325da6a0d3a4d60",
+                                        "resync":  true,
+                                        "resync_hint":  false,
+                                        "revision":  4,
+                                        "scope":  "project.timeline",
+                                        "snapshot_hash":  "9153e28023c3ab07",
+                                        "source":  "vsp.state.resync",
+                                        "stage":  "completed",
+                                        "tracks":  [
+                                                       {
+                                                           "armed":  false,
+                                                           "can_contain_child_tracks":  false,
+                                                           "child_track_count":  0,
+                                                           "child_track_ids":  [
+
+                                                                               ],
+                                                           "clip_count":  0,
+                                                           "clips":  [
+
+                                                                     ],
+                                                           "depth":  0,
+                                                           "descendant_track_count":  0,
+                                                           "descendant_track_ids":  [
+
+                                                                                    ],
+                                                           "direct_child_track_ids":  [
+
+                                                                                      ],
+                                                           "fader_db":  0,
+                                                           "folder_behavior":  null,
+                                                           "gain_db":  0,
+                                                           "has_child_tracks":  false,
+                                                           "id":  "1007",
+                                                           "is_armed":  false,
+                                                           "is_audio":  true,
+                                                           "is_audio_track":  true,
+                                                           "is_folder_container":  false,
+                                                           "is_folder_track":  false,
+                                                           "is_submix_folder":  false,
+                                                           "mute":  false,
+                                                           "name":  "Track 1",
+                                                           "pan":  0,
+                                                           "pan_value":  0,
+                                                           "parent_folder_track_id":  null,
+                                                           "parent_track_id":  null,
+                                                           "plugin_count":  2,
+                                                           "plugin_param_digest":  "krev1_no_external_plugins",
+                                                           "plugins":  [
+                                                                           {
+                                                                               "id":  "1008",
+                                                                               "name":  "Volume \u0026 Pan Plugin",
+                                                                               "type":  "volume"
+                                                                           },
+                                                                           {
+                                                                               "id":  "1009",
+                                                                               "name":  "Level Meter",
+                                                                               "type":  "level"
+                                                                           }
+                                                                       ],
+                                                           "routing_bus_enabled":  false,
+                                                           "solo":  false,
+                                                           "track_depth":  0,
+                                                           "track_id":  "1007",
+                                                           "track_state_revision":  "33ce815c6d61743c",
+                                                           "track_type":  "hybrid",
+                                                           "volume_db":  0
+                                                       }
+                                                   ],
+                                        "type":  "state.snapshot"
+                                    },
+                   "status":  "ok",
+                   "track_id":  "1007",
+                   "track_name":  "Track 1",
+                   "vsp":  {
+                               "command_ack":  {
+                                                   "ack":  {
+                                                               "message":  "Track added",
+                                                               "stage":  "completed"
+                                                           },
+                                                   "command":  "track.create",
+                                                   "legacy_command":  "add_track",
+                                                   "resync_hint":  true,
+                                                   "revision":  0,
+                                                   "source":  "vsp.command.response",
+                                                   "stage":  "completed",
+                                                   "transaction_id":  "tx_1795091935237737400_39"
+                                               },
+                               "state_delta":  {
+                                                   "ack":  {
+                                                               "message":  "State delta captured",
+                                                               "stage":  "completed"
+                                                           },
+                                                   "base_revision":  3,
+                                                   "changed_clips":  null,
+                                                   "changed_tracks":  [
+                                                                          "1007"
+                                                                      ],
+                                                   "ops":  [
+                                                               {
+                                                                   "op":  "replace",
+                                                                   "path":  "/project",
+                                                                   "value":  {
+                                                                                 "clip_count":  0,
+                                                                                 "legacy_graph_active_revision":  0,
+                                                                                 "legacy_graph_last_diff_kind":  "edit_loaded",
+                                                                                 "legacy_graph_lifecycle_state":  "idle",
+                                                                                 "legacy_graph_pending_revision":  0,
+                                                                                 "legacy_graph_publish_mode":  "initialised",
+                                                                                 "legacy_graph_revision":  0,
+                                                                                 "parent_project_uuid":  "vitproj_46d43cb0466647b393c55cffcaa162fd",
+                                                                                 "project_id":  "project_current",
+                                                                                 "project_path":  "D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2039\\W02-A1c-A-20261119_203850.vit",
+                                                                                 "project_uuid":  "vitproj_8842a2f10a05438d8f0692215e758054",
+                                                                                 "scope":  "project.timeline",
+                                                                                 "track_count":  1
+                                                                             }
+                                                               },
+                                                               {
+                                                                   "op":  "add",
+                                                                   "path":  "/tracks/1007",
+                                                                   "track_id":  "1007",
+                                                                   "value":  {
+                                                                                 "armed":  false,
+                                                                                 "can_contain_child_tracks":  false,
+                                                                                 "child_track_count":  0,
+                                                                                 "child_track_ids":  [
+
+                                                                                                     ],
+                                                                                 "clip_count":  0,
+                                                                                 "clips":  [
+
+                                                                                           ],
+                                                                                 "depth":  0,
+                                                                                 "descendant_track_count":  0,
+                                                                                 "descendant_track_ids":  [
+
+                                                                                                          ],
+                                                                                 "direct_child_track_ids":  [
+
+                                                                                                            ],
+                                                                                 "fader_db":  0,
+                                                                                 "folder_behavior":  null,
+                                                                                 "gain_db":  0,
+                                                                                 "has_child_tracks":  false,
+                                                                                 "id":  "1007",
+                                                                                 "is_armed":  false,
+                                                                                 "is_audio":  true,
+                                                                                 "is_audio_track":  true,
+                                                                                 "is_folder_container":  false,
+                                                                                 "is_folder_track":  false,
+                                                                                 "is_submix_folder":  false,
+                                                                                 "mute":  false,
+                                                                                 "name":  "Track 1",
+                                                                                 "pan":  0,
+                                                                                 "pan_value":  0,
+                                                                                 "parent_folder_track_id":  null,
+                                                                                 "parent_track_id":  null,
+                                                                                 "plugin_count":  2,
+                                                                                 "plugin_param_digest":  "krev1_no_external_plugins",
+                                                                                 "plugins":  [
+                                                                                                 {
+                                                                                                     "id":  "1008",
+                                                                                                     "name":  "Volume \u0026 Pan Plugin",
+                                                                                                     "type":  "volume"
+                                                                                                 },
+                                                                                                 {
+                                                                                                     "id":  "1009",
+                                                                                                     "name":  "Level Meter",
+                                                                                                     "type":  "level"
+                                                                                                 }
+                                                                                             ],
+                                                                                 "routing_bus_enabled":  false,
+                                                                                 "solo":  false,
+                                                                                 "track_depth":  0,
+                                                                                 "track_id":  "1007",
+                                                                                 "track_state_revision":  "33ce815c6d61743c",
+                                                                                 "track_type":  "hybrid",
+                                                                                 "volume_db":  0
+                                                                             }
+                                                               }
+                                                           ],
+                                                   "ops_count":  2,
+                                                   "project_epoch":  "epoch_d325da6a0d3a4d60",
+                                                   "resync":  false,
+                                                   "resync_hint":  false,
+                                                   "revision":  4,
+                                                   "scope":  "project.timeline",
+                                                   "snapshot_hash":  "9153e28023c3ab07",
+                                                   "source":  "vsp.state.delta",
+                                                   "stage":  "completed",
+                                                   "type":  "state.delta"
+                                               },
+                               "state_resync":  {
+                                                    "ack":  {
+                                                                "message":  "State resynchronised",
+                                                                "stage":  "completed"
+                                                            },
+                                                    "base_revision":  0,
+                                                    "changed_clips":  null,
+                                                    "changed_tracks":  null,
+                                                    "ops_count":  0,
+                                                    "project":  {
+                                                                    "clip_count":  0,
+                                                                    "legacy_graph_active_revision":  0,
+                                                                    "legacy_graph_last_diff_kind":  "edit_loaded",
+                                                                    "legacy_graph_lifecycle_state":  "idle",
+                                                                    "legacy_graph_pending_revision":  0,
+                                                                    "legacy_graph_publish_mode":  "initialised",
+                                                                    "legacy_graph_revision":  0,
+                                                                    "parent_project_uuid":  "vitproj_46d43cb0466647b393c55cffcaa162fd",
+                                                                    "project_id":  "project_current",
+                                                                    "project_path":  "D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2039\\W02-A1c-A-20261119_203850.vit",
+                                                                    "project_uuid":  "vitproj_8842a2f10a05438d8f0692215e758054",
+                                                                    "scope":  "project.timeline",
+                                                                    "track_count":  1
+                                                                },
+                                                    "project_epoch":  "epoch_d325da6a0d3a4d60",
+                                                    "resync":  true,
+                                                    "resync_hint":  false,
+                                                    "revision":  4,
+                                                    "scope":  "project.timeline",
+                                                    "snapshot_hash":  "9153e28023c3ab07",
+                                                    "source":  "vsp.state.resync",
+                                                    "stage":  "completed",
+                                                    "tracks":  [
+                                                                   {
+                                                                       "armed":  false,
+                                                                       "can_contain_child_tracks":  false,
+                                                                       "child_track_count":  0,
+                                                                       "child_track_ids":  [
+
+                                                                                           ],
+                                                                       "clip_count":  0,
+                                                                       "clips":  [
+
+                                                                                 ],
+                                                                       "depth":  0,
+                                                                       "descendant_track_count":  0,
+                                                                       "descendant_track_ids":  [
+
+                                                                                                ],
+                                                                       "direct_child_track_ids":  [
+
+                                                                                                  ],
+                                                                       "fader_db":  0,
+                                                                       "folder_behavior":  null,
+                                                                       "gain_db":  0,
+                                                                       "has_child_tracks":  false,
+                                                                       "id":  "1007",
+                                                                       "is_armed":  false,
+                                                                       "is_audio":  true,
+                                                                       "is_audio_track":  true,
+                                                                       "is_folder_container":  false,
+                                                                       "is_folder_track":  false,
+                                                                       "is_submix_folder":  false,
+                                                                       "mute":  false,
+                                                                       "name":  "Track 1",
+                                                                       "pan":  0,
+                                                                       "pan_value":  0,
+                                                                       "parent_folder_track_id":  null,
+                                                                       "parent_track_id":  null,
+                                                                       "plugin_count":  2,
+                                                                       "plugin_param_digest":  "krev1_no_external_plugins",
+                                                                       "plugins":  [
+                                                                                       {
+                                                                                           "id":  "1008",
+                                                                                           "name":  "Volume \u0026 Pan Plugin",
+                                                                                           "type":  "volume"
+                                                                                       },
+                                                                                       {
+                                                                                           "id":  "1009",
+                                                                                           "name":  "Level Meter",
+                                                                                           "type":  "level"
+                                                                                       }
+                                                                                   ],
+                                                                       "routing_bus_enabled":  false,
+                                                                       "solo":  false,
+                                                                       "track_depth":  0,
+                                                                       "track_id":  "1007",
+                                                                       "track_state_revision":  "33ce815c6d61743c",
+                                                                       "track_type":  "hybrid",
+                                                                       "volume_db":  0
+                                                                   }
+                                                               ],
+                                                    "type":  "state.snapshot"
+                                                },
+                               "transport":  "vsp",
+                               "version":  "1.0"
+                           }
+               },
+    "project_history":  {
+                            "active_branch":  "main",
+                            "active_node_id":  "n_20261119T123855_1be94d94",
+                            "active_worktree":  "",
+                            "available":  true,
+                            "branches":  {
+                                             "main":  "c_20261119T123852_bc85cc06"
+                                         },
+                            "commit_count":  2,
+                            "detached":  false,
+                            "draft":  false,
+                            "head":  "c_20261119T123852_bc85cc06",
+                            "initialized":  true,
+                            "project_label":  "W02-A1c-A-20261119_203850",
+                            "project_path":  "D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2039\\W02-A1c-A-20261119_203850.vit",
+                            "project_uuid":  "vitproj_8842a2f10a05438d8f0692215e758054",
+                            "recent_checkpoints":  [
+                                                       {
+                                                           "branch":  "main",
+                                                           "checkpoint_kind":  "manual",
+                                                           "created_at":  "2026-11-19T12:38:52.5455779Z",
+                                                           "goal_id":  "goal_629afd745523eaa0",
+                                                           "id":  "c_20261119T123852_bc85cc06",
+                                                           "message":  "Vit: 乐局设计源已导入并编译装配：\n- 卡 id：music-creation-unit2-demo\n- 设计源：legame/design.v1.yaml\n- 编译卡：legame/cards/music-creation-unit2-demo/music-creation-unit2-demo.compiled.level.yaml\n- W 诊断 23 条 / I 提示 16 条（待备料/降级清单见 compile manifest）\n下一句普通对话将自动开场（或说「开始乐局」）。"
+                                                       },
+                                                       {
+                                                           "branch":  "main",
+                                                           "checkpoint_kind":  "manual",
+                                                           "created_at":  "2026-11-19T12:38:51.9419664Z",
+                                                           "goal_id":  "goal_629afd745523eaa0",
+                                                           "id":  "c_20261119T123851_da4d9780",
+                                                           "message":  "Conversation ask"
+                                                       }
+                                                   ],
+                            "refs":  {
+                                         "refs/heads/main":  "c_20261119T123852_bc85cc06"
+                                     },
+                            "root_project_path":  "",
+                            "unsaved":  false,
+                            "warnings":  [
+
+                                         ],
+                            "worktree_count":  1,
+                            "worktrees":  [
+                                              {
+                                                  "commit_id":  "c_20261119T123852_bc85cc06",
+                                                  "created_at":  "2026-11-19T12:38:55.2823062Z",
+                                                  "is_root":  true,
+                                                  "label":  "主工作树",
+                                                  "name":  "main",
+                                                  "origin_commit_id":  "c_20261119T123852_bc85cc06",
+                                                  "path":  "D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2039",
+                                                  "project_file_path":  "D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2039\\W02-A1c-A-20261119_203850.vit",
+                                                  "project_path":  "D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2039\\W02-A1c-A-20261119_203850.vit",
+                                                  "root_project_path":  "D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2039\\W02-A1c-A-20261119_203850.vit"
+                                              }
+                                          ]
+                        }
+}

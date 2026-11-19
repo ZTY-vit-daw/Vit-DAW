@@ -1,0 +1,264 @@
+{
+  "schema_version": "vit.legame_compile_manifest.v0",
+  "mapping_table_version": "vit.legame_design.v0.mapping.v0",
+  "cache_key": {
+    "design_source_sha256": "dbf3781a67c86f7f7341b0771ab9207bdff7a618ac666b9aad9cd7e5b1356fb7",
+    "compiler_version": "legamedesign-compile.v0",
+    "assembly_input_hash": "e7c652d91dd00c7290ae95800b99161c30163e802ec0c1423bf0c6005a4fef52",
+    "card_schema_version": "vit.level_card.v0"
+  },
+  "card_file": "music-creation-unit2-demo.compiled.level.yaml",
+  "card_sha256": "9e94fb2ddbc8bd516d1cd7df0eeac1e02c174ade13d12c557aa777a239f62584",
+  "warnings": [
+    {
+      "rule": "W-MAT",
+      "path": "materials[6].file",
+      "message": "file:null=登记未备料（合法；不阻塞编译，但不得编译为可播放资产，§4.5）"
+    },
+    {
+      "rule": "W-MAT",
+      "path": "materials[7].file",
+      "message": "file:null=登记未备料（合法；不阻塞编译，但不得编译为可播放资产，§4.5）"
+    },
+    {
+      "rule": "W-MAT",
+      "path": "materials[14].file",
+      "message": "file:null=登记未备料（合法；不阻塞编译，但不得编译为可播放资产，§4.5）"
+    },
+    {
+      "rule": "W-MAT",
+      "path": "materials[0].file",
+      "message": "未进卡资产（待备料清单，§4.5/T-13）：kind=text 非可播放材料（文本/图像/符号/材料组只进材料库加载面，不进卡 assets，§4.5）"
+    },
+    {
+      "rule": "W-MAT",
+      "path": "materials[1].file",
+      "message": "未进卡资产（待备料清单，§4.5/T-13）：kind=image 非可播放材料（文本/图像/符号/材料组只进材料库加载面，不进卡 assets，§4.5）"
+    },
+    {
+      "rule": "W-MAT",
+      "path": "materials[2].file",
+      "message": "未进卡资产（待备料清单，§4.5/T-13）：kind=image 非可播放材料（文本/图像/符号/材料组只进材料库加载面，不进卡 assets，§4.5）"
+    },
+    {
+      "rule": "W-MAT",
+      "path": "materials[3].file",
+      "message": "未进卡资产（待备料清单，§4.5/T-13）：kind=image 非可播放材料（文本/图像/符号/材料组只进材料库加载面，不进卡 assets，§4.5）"
+    },
+    {
+      "rule": "W-MAT",
+      "path": "materials[4].file",
+      "message": "未进卡资产（待备料清单，§4.5/T-13）：kind=symbolic_reference 非可播放材料（文本/图像/符号/材料组只进材料库加载面，不进卡 assets，§4.5）"
+    },
+    {
+      "rule": "W-MAT",
+      "path": "materials[5].file",
+      "message": "未进卡资产（待备料清单，§4.5/T-13）：kind=symbolic_reference 非可播放材料（文本/图像/符号/材料组只进材料库加载面，不进卡 assets，§4.5）"
+    },
+    {
+      "rule": "W-MAT",
+      "path": "materials[8].file",
+      "message": "未进卡资产（待备料清单，§4.5/T-13）：kind=material_group 非可播放材料（文本/图像/符号/材料组只进材料库加载面，不进卡 assets，§4.5）"
+    },
+    {
+      "rule": "W-MAT",
+      "path": "materials[9].file",
+      "message": "未进卡资产（待备料清单，§4.5/T-13）：kind=material_group 非可播放材料（文本/图像/符号/材料组只进材料库加载面，不进卡 assets，§4.5）"
+    },
+    {
+      "rule": "W-MAT",
+      "path": "materials[10].file",
+      "message": "未进卡资产（待备料清单，§4.5/T-13）：kind=material_group 非可播放材料（文本/图像/符号/材料组只进材料库加载面，不进卡 assets，§4.5）"
+    },
+    {
+      "rule": "W-MAT",
+      "path": "materials[11].file",
+      "message": "未进卡资产（待备料清单，§4.5/T-13）：kind=material_group 非可播放材料（文本/图像/符号/材料组只进材料库加载面，不进卡 assets，§4.5）"
+    },
+    {
+      "rule": "W-CHK",
+      "path": "checks",
+      "message": "T-14: deterministic check \"c-q1-structure\" 在卡 objective 判定面无结构叶（白名单只用于 done_when）→ 证据降 verbal_rubric（advisory，W-CHK）"
+    },
+    {
+      "rule": "W-MAP",
+      "path": "objectives[1].evidence_checks",
+      "message": "T-15/R4: 目标 \"g2-contours\" 多证据（2 条）拆分进卡：[g2-contours#1 g2-contours#2]（W）"
+    },
+    {
+      "rule": "W-CHK",
+      "path": "checks",
+      "message": "T-14: deterministic check \"c-q2-structure\" 在卡 objective 判定面无结构叶（白名单只用于 done_when）→ 证据降 verbal_rubric（advisory，W-CHK）"
+    },
+    {
+      "rule": "W-MAP",
+      "path": "objectives[2].evidence_checks",
+      "message": "T-15/R4: 目标 \"g3-develop\" 多证据（3 条）拆分进卡：[g3-develop#1 g3-develop#2 g3-develop#3]（W）"
+    },
+    {
+      "rule": "W-CHK",
+      "path": "checks",
+      "message": "T-14: deterministic check \"c-q3-structure\" 在卡 objective 判定面无结构叶（白名单只用于 done_when）→ 证据降 verbal_rubric（advisory，W-CHK）"
+    },
+    {
+      "rule": "W-MAP",
+      "path": "objectives[3].evidence_checks",
+      "message": "T-15/R4: 目标 \"g4-theme\" 多证据（2 条）拆分进卡：[g4-theme#1 g4-theme#2]（W）"
+    },
+    {
+      "rule": "W-CHK",
+      "path": "checks",
+      "message": "T-14: deterministic check \"c-generation-record\" 在卡 objective 判定面无结构叶（白名单只用于 done_when）→ 证据降 verbal_rubric（advisory，W-CHK）"
+    },
+    {
+      "rule": "W-CHK",
+      "path": "checks",
+      "message": "T-14: deterministic check \"c-generated-pair\" 在卡 objective 判定面无结构叶（白名单只用于 done_when）→ 证据降 verbal_rubric（advisory，W-CHK）"
+    },
+    {
+      "rule": "W-MAP",
+      "path": "objectives[4].evidence_checks",
+      "message": "T-15/R4: 目标 \"task-song\" 多证据（3 条）拆分进卡：[task-song#1 task-song#2 task-song#3]（W）"
+    },
+    {
+      "rule": "W-MAP",
+      "path": "guidance.pullback_after_turns",
+      "message": "T-18/§6.4: 设计源未声明 pullback_after_turns → 编译注入保守值 6（W，模板值须评审可见）"
+    }
+  ],
+  "receipt": {
+    "pending_questions": [
+      "课程按任务量与证据推进，展演5分钟录播/截图/产物；不等待课时时长确认",
+      "当前源格式/音乐控件/可信工程检查接线未实现，不能直接加载本文件",
+      "材料库22项中已生成2份基础MIDI但未实际音源听核，余20项待定截段/转写；MusicXML/音频与鼓旋律音源仍待准备",
+      "material_group及按ID加载是拟议设计语义，需要准备层实现，不能只给现有运行时一个catalog文件便声称能播放",
+      "实践1/2空谱的2/4写法（暂定8拍=四小节，待导师确认）；发展示例的变拍（如3/4）由agent演示/材料自带显示，不改工程拍号",
+      "各check需绑定真正的检查或复核实现；主观评议不转成唯一音符标准答案",
+      "八小节参考节奏允许变化的范围需导师核对",
+      "生成任务失败后保存并结束该阶段的状态分支需明确实现，不假报成功",
+      "YuE2目标长度、辅助结构/和声，以及辅助律动鼓轨是否进入生成条件，需细化；实际运行前确定次数和止损"
+    ],
+    "track_mapping": [
+      {
+        "track_id": "reference-track",
+        "track_index": 1,
+        "kind": "reference"
+      },
+      {
+        "track_id": "melody-track",
+        "track_index": 2,
+        "kind": "workspace"
+      },
+      {
+        "track_id": "rhythm-track",
+        "track_index": 3,
+        "kind": "blank_to_fill"
+      },
+      {
+        "track_id": "theme-track",
+        "track_index": 4,
+        "kind": "workspace"
+      },
+      {
+        "track_id": "result-track",
+        "track_index": 5,
+        "kind": "workspace"
+      }
+    ],
+    "admitted_assets": [
+      {
+        "material_id": "prototype-midi",
+        "file": "assets/midi/exercise2-prototype_demo-C_80bpm.mid",
+        "sha256": "d20bfa68da68b8d6eae0812612109fadf2040485eb10c1f9300bf391409c2972",
+        "catalog_id": "develop-prototype",
+        "catalog_status": "generated_symbolic_checked",
+        "sound_check": "not_performed"
+      },
+      {
+        "material_id": "theme-reference-rhythm",
+        "file": "assets/midi/sanshilipu-first8_rhythm-only_GM37_80bpm.mid",
+        "sha256": "c654898499232c8e234e776474042bbe7fcb45c13debe719d6c8e8bd0c4dfe40",
+        "catalog_id": "reference-sanshilipu-rhythm",
+        "catalog_status": "generated_symbolic_checked",
+        "sound_check": "not_performed"
+      }
+    ],
+    "excluded_materials": [
+      {
+        "material_id": "source-summary",
+        "kind": "text",
+        "file": "TEXTBOOK-NOTES.md",
+        "reason": "kind=text 非可播放材料（文本/图像/符号/材料组只进材料库加载面，不进卡 assets，§4.5）"
+      },
+      {
+        "material_id": "source-rhythm",
+        "kind": "image",
+        "file": "source/pages/pdf-026_book-021.png",
+        "reason": "kind=image 非可播放材料（文本/图像/符号/材料组只进材料库加载面，不进卡 assets，§4.5）"
+      },
+      {
+        "material_id": "source-practice12",
+        "kind": "image",
+        "file": "source/pages/pdf-034_book-029.png",
+        "reason": "kind=image 非可播放材料（文本/图像/符号/材料组只进材料库加载面，不进卡 assets，§4.5）"
+      },
+      {
+        "material_id": "source-practice3",
+        "kind": "image",
+        "file": "source/pages/pdf-035_book-030.png",
+        "reason": "kind=image 非可播放材料（文本/图像/符号/材料组只进材料库加载面，不进卡 assets，§4.5）"
+      },
+      {
+        "material_id": "prototype-symbols",
+        "kind": "symbolic_reference",
+        "file": "source/selected-symbolic-materials.json",
+        "reason": "kind=symbolic_reference 非可播放材料（文本/图像/符号/材料组只进材料库加载面，不进卡 assets，§4.5）"
+      },
+      {
+        "material_id": "theme-rhythm-symbols",
+        "kind": "symbolic_reference",
+        "file": "source/selected-symbolic-materials.json",
+        "reason": "kind=symbolic_reference 非可播放材料（文本/图像/符号/材料组只进材料库加载面，不进卡 assets，§4.5）"
+      },
+      {
+        "material_id": "listening-xiaocao",
+        "kind": "midi_or_audio",
+        "reason": "file:null 登记未备料（不阻塞编译，但不得编译为可播放资产，§4.5）"
+      },
+      {
+        "material_id": "listening-huainian",
+        "kind": "midi_or_audio",
+        "reason": "file:null 登记未备料（不阻塞编译，但不得编译为可播放资产，§4.5）"
+      },
+      {
+        "material_id": "pitch-examples",
+        "kind": "material_group",
+        "file": "assets/catalog.yaml",
+        "reason": "kind=material_group 非可播放材料（文本/图像/符号/材料组只进材料库加载面，不进卡 assets，§4.5）"
+      },
+      {
+        "material_id": "rhythm-examples",
+        "kind": "material_group",
+        "file": "assets/catalog.yaml",
+        "reason": "kind=material_group 非可播放材料（文本/图像/符号/材料组只进材料库加载面，不进卡 assets，§4.5）"
+      },
+      {
+        "material_id": "contour-examples",
+        "kind": "material_group",
+        "file": "assets/catalog.yaml",
+        "reason": "kind=material_group 非可播放材料（文本/图像/符号/材料组只进材料库加载面，不进卡 assets，§4.5）"
+      },
+      {
+        "material_id": "development-examples",
+        "kind": "material_group",
+        "file": "assets/catalog.yaml",
+        "reason": "kind=material_group 非可播放材料（文本/图像/符号/材料组只进材料库加载面，不进卡 assets，§4.5）"
+      },
+      {
+        "material_id": "theme-reference-melody",
+        "kind": "midi_or_audio",
+        "reason": "file:null 登记未备料（不阻塞编译，但不得编译为可播放资产，§4.5）"
+      }
+    ]
+  }
+}

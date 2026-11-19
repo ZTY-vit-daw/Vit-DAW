@@ -1,0 +1,431 @@
+schema_version: vit.level_card.v0
+id: music-creation-unit2-demo
+title: 把旋律的起伏写成自己的作品
+story: 本局任务：试写四种旋律线，发展一个喜欢的片段，再参照给定节奏创作八小节主题并听见成曲。最终交付：四条两小节片段、一个发展稿、八小节主题、现场试听与生成版本、作业报表和过程摘要。
+lead_default: human
+players:
+    - human
+    - model
+timing:
+    bpm_default: 80
+    time_signature: 2/4
+    beats_per_bar: 2
+    pickup_beats: 0
+    clip_origins:
+        eight-bar-theme:
+            start_beats_global: 0
+            first_bar: 1
+        rhythm-lab:
+            start_beats_global: 0
+            first_bar: 1
+    bar_span:
+        first_bar: 1
+        last_bar: 8
+assets:
+    - id: prototype-midi
+      kind: midi_reference
+      file: assets/midi/exercise2-prototype_demo-C_80bpm.mid
+      sha256: d20bfa68da68b8d6eae0812612109fadf2040485eb10c1f9300bf391409c2972
+      key:
+        tonic: 0
+        mode: major
+      notes_ref: notes.prototype-midi
+    - id: theme-reference-rhythm
+      kind: midi_reference
+      file: assets/midi/sanshilipu-first8_rhythm-only_GM37_80bpm.mid
+      sha256: c654898499232c8e234e776474042bbe7fcb45c13debe719d6c8e8bd0c4dfe40
+      key:
+        tonic: 0
+        mode: major
+      notes_ref: notes.theme-reference-rhythm
+runtime_slots:
+    melody-track:
+        track_index: 2
+        kind: workspace
+        preload: null
+        initial_state: empty
+    reference-track:
+        track_index: 1
+        kind: reference
+        preload: null
+        initial_state: empty
+    result-track:
+        track_index: 5
+        kind: workspace
+        preload: null
+        initial_state: empty
+    rhythm-track:
+        track_index: 3
+        kind: blank_to_fill
+        preload: null
+        initial_state: empty
+    theme-track:
+        track_index: 4
+        kind: workspace
+        preload: null
+        initial_state: empty
+notes:
+    prototype-midi:
+        - pitch: 60
+          start: 0
+          length: 1
+        - pitch: 64
+          start: 1
+          length: 1
+        - pitch: 62
+          start: 2
+          length: 1
+        - pitch: 67
+          start: 3
+          length: 1
+        - pitch: 64
+          start: 4
+          length: 1
+        - pitch: 69
+          start: 5
+          length: 1
+        - pitch: 67
+          start: 6
+          length: 2
+    theme-reference-rhythm:
+        - pitch: 37
+          start: 0
+          length: 0.5
+        - pitch: 37
+          start: 0.5
+          length: 1
+        - pitch: 37
+          start: 1.5
+          length: 0.5
+        - pitch: 37
+          start: 2
+          length: 0.5
+        - pitch: 37
+          start: 2.5
+          length: 1
+        - pitch: 37
+          start: 3.5
+          length: 0.5
+        - pitch: 37
+          start: 4
+          length: 0.75
+        - pitch: 37
+          start: 4.75
+          length: 0.25
+        - pitch: 37
+          start: 5
+          length: 0.5
+        - pitch: 37
+          start: 5.5
+          length: 0.5
+        - pitch: 37
+          start: 6
+          length: 2
+        - pitch: 37
+          start: 8
+          length: 0.5
+        - pitch: 37
+          start: 8.5
+          length: 1
+        - pitch: 37
+          start: 9.5
+          length: 0.5
+        - pitch: 37
+          start: 10
+          length: 0.5
+        - pitch: 37
+          start: 10.5
+          length: 1
+        - pitch: 37
+          start: 11.5
+          length: 0.5
+        - pitch: 37
+          start: 12
+          length: 0.75
+        - pitch: 37
+          start: 12.75
+          length: 0.25
+        - pitch: 37
+          start: 13
+          length: 0.5
+        - pitch: 37
+          start: 13.5
+          length: 0.5
+        - pitch: 37
+          start: 14
+          length: 2
+objectives:
+    - id: g1-understand
+      text: 能定位音高进行与节奏差别，并用音乐证据说明自己的听感
+      check:
+        kind: verbal_rubric
+        rubric:
+            - 能指向片段并说出音高或节奏差别及听感理由
+            - 片段引用、学生解释与帮助记录
+            - 情绪不设唯一答案
+    - id: g2-contours#1
+      text: 四种旋律线各写两小节，能解释自己有意安排的走向
+      check:
+        kind: verbal_rubric
+        rubric:
+            - 四条各两小节4/4谱稿真实存在，时值/休止与声明范围合法
+            - 四份工程音符/记谱数据和保存修订
+    - id: g2-contours#2
+      text: 四种旋律线各写两小节，能解释自己有意安排的走向
+      check:
+        kind: verbal_rubric
+        rubric:
+            - 能结合实际走向、音域、音程解释四种尝试，指出有意安排
+            - 允许特征重叠
+            - 学生选段/解释和实际谱稿，不用情绪标签自动判艺术质量
+    - id: g3-develop#1
+      text: 用至少一种原题示例手法发展喜欢的片段，唱或哼出来并说明保留和变化
+      check:
+        kind: verbal_rubric
+        rubric:
+            - 原型和发展稿已分别保存，存在可检查的实际变化
+            - 两版音乐数据、片段范围和差分
+            - 不限定变体必须逐音匹配
+    - id: g3-develop#2
+      text: 用至少一种原题示例手法发展喜欢的片段，唱或哼出来并说明保留和变化
+      check:
+        kind: verbal_rubric
+        rubric:
+            - 选择至少一种教材示例方法发展片段，并解释保留与改变
+            - 实际差分、所选手法与学生说明
+    - id: g3-develop#3
+      text: 用至少一种原题示例手法发展喜欢的片段，唱或哼出来并说明保留和变化
+      check:
+        event: user_feedback_given
+    - id: g4-theme#1
+      text: 参照《三十里铺》前两句节奏，运用旋律线写出八小节自己的主题
+      check:
+        kind: verbal_rubric
+        rubric:
+            - 2/4八小节主题真实保存，声明音乐长度与音符/休止合法且可播放
+            - 实际工程/记谱数据与版本
+            - 不能只看最后音符结束点忽略休止
+    - id: g4-theme#2
+      text: 参照《三十里铺》前两句节奏，运用旋律线写出八小节自己的主题
+      check:
+        kind: verbal_rubric
+        rubric:
+            - 与《三十里铺》前两句节奏有可说明的参照关系，能解释至少一处旋律线选择和试听后的决定
+            - 参考节奏、学生谱/变化、选段说明
+            - 完全节奏匹配仅作事实而非唯一答案
+    - id: task-song#1
+      text: 以选定学生主题生成纯器乐编曲，改变风格尝试新版本并比较
+      check:
+        kind: verbal_rubric
+        rubric:
+            - 实际生成阶段及用户结束选择有记录
+            - 成功和失败分别呈现，失败不改写成成功
+            - 固定源谱、实际请求/job终态、结果资产或错误记录
+    - id: task-song#2
+      text: 以选定学生主题生成纯器乐编曲，改变风格尝试新版本并比较
+      check:
+        kind: verbal_rubric
+        rubric:
+            - 展演目标为同一源谱产生两个可播放风格版本，旧版仍保留
+            - 两组真实job/实际条件/音频/replay与源谱版本对应
+            - 这是展演结果，不是学会的证明
+    - id: task-song#3
+      text: 以选定学生主题生成纯器乐编曲，改变风格尝试新版本并比较
+      check:
+        event: user_chose
+nodes:
+    - id: n0-intent
+      title: 这段音乐想说什么
+      lead: human
+      goal: 给一个画面或感受，也可先探索；知道将自己写主题再听成曲
+      model_does:
+        - 简述任务地图和可选起点
+      hint_ladder:
+        - 开放问一句
+        - 给少量起点
+        - 允许先探索
+      done_when:
+        event: user_confirmed
+    - id: n1-listen
+      title: 旋律怎样进行
+      lead: human
+      goal: 用教材同音、上下行级进、小跳/大跳原例观察音高运动，定位并解释听感
+      model_does:
+        - 按ID加载/循环原例
+        - 解释相邻音运动及歌唱性
+        - 引用原页/标记
+        - 已懂部分缩短但不凭空省略知识
+      hint_ladder:
+        - 先自由听
+        - 循环一个小节
+        - 显示音符/时值差异
+        - 不同材料局部示范
+      done_when:
+        event: user_feedback_given
+      teaching:
+        note: 音高和节奏；声乐器乐与歌唱性；同音/上下行级进/小跳大跳；五声音阶例外
+        objectives:
+            - g1-understand
+    - id: n2-rhythm
+      title: 我的节奏先发声
+      lead: human
+      goal: 2/4共8拍写节奏（四小节暂定），Tap选速度，旋律轨占位音高实际试听，修改或说明保留
+      model_does:
+        - 打开节奏模式/Tap
+        - 接线旋律音源（可选补辅助律动鼓轨）
+        - 播放与反馈
+      hint_ladder:
+        - 让学生敲/写
+        - 显示拍位置
+        - 比较局部时值
+        - 另例示范
+      done_when:
+        structure: clip_exists
+        clip: melody-track
+      teaching:
+        note: 均分；前长后短；前短后长；切分；Tap单位与拍号分开
+    - id: n3-contours
+      title: 四种走向，四个两小节
+      lead: human
+      goal: 自由曲线/平直线/平缓进行/跌宕起伏各写两小节，逐条听并解释安排
+      model_does:
+        - 加载四种教材原例并叠加轮廓
+        - 结合小草/怀念战友分析方法组合
+        - 显示四行空谱
+        - 局部补充示范另标来源
+        - 回读检查
+      hint_ladder:
+        - 先让写和听
+        - 问想变哪一处
+        - 定位一小段
+        - 必要时另例示范
+      done_when:
+        structure: clip_exists
+        clip: melody-track
+      teaching:
+        note: 同音/级进/跳进如何形成轮廓；五声音阶例外；形态可重叠
+        objectives:
+            - g2-contours#2
+    - id: n4-develop
+      title: 让喜欢的片段长出新样子
+      lead: human
+      goal: 用至少一种原题手法发展自己的片段，唱/哼并比较原型和变体
+      model_does:
+        - 呈现四种方法工具箱
+        - 小节定位
+        - 解释实际差分
+        - 提示唱/哼
+      hint_ladder:
+        - 先问保留/改变
+        - 听原题示例
+        - 缩到一个节奏或音
+        - 局部帮助
+      done_when:
+        structure: clip_exists
+        clip: melody-track
+      teaching:
+        note: 加花；改节奏；节奏放大并变拍；旋律移位并变节奏
+        objectives:
+            - g3-develop#2
+            - g3-develop#3
+    - id: n5-theme
+      title: 八小节，我自己的主题
+      lead: human
+      goal: 参照《三十里铺》前两句节奏，先节奏后音高完成2/4八小节主题，试听并解释选择
+      model_does:
+        - 展示原题和节奏支架
+        - 核查2/4坐标
+        - 追问与试听
+        - 记录工程证据
+      hint_ladder:
+        - 先规划一句
+        - 循环学生自己的句子
+        - 问具体变化位置
+        - 必要时不同材料示范
+      done_when:
+        structure: clip_exists
+        clip: theme-track
+      teaching:
+        note: 节奏参照而非复制原曲音高；轮廓组织；试听后再决定
+        objectives:
+            - g4-theme#2
+    - id: n6-song
+      title: 我的主题，两个编曲世界
+      lead: human
+      goal: 纯器乐成曲并尝试另一风格；演示预设两版，课堂生成失败不抹掉前面作业
+      model_does:
+        - 保持原稿转换条件
+        - 补充约定编曲结构/和声
+        - 提交任务
+        - 报真实状态
+        - 组织比较
+      hint_ladder:
+        - 让学生给风格词
+        - 给少量配器示例
+        - 展示实际请求摘要
+      done_when:
+        structure: track_non_empty
+        track: result-track
+      teaching:
+        note: 学生主题与辅助编曲区分；同一旋律的不同表达
+        objectives:
+            - task-song#2
+            - task-song#3
+    - id: n7-reflect
+      title: 我写了什么，我学会了什么
+      lead: human
+      goal: 指出一个自己作出的决定、一处有意变化和下次想试的内容，保存作业与过程
+      model_does:
+        - 按目标汇总实际证据
+        - 区分有帮助完成和待复核
+        - 提供两份报告
+      hint_ladder:
+        - 先让学生说
+        - 打开其前后版本
+        - 用一个具体片段帮助回忆
+      done_when:
+        structure: track_non_empty
+        track: result-track
+      teaching:
+        note: 方法如何服务表达；学习证据与成曲品质分开
+guidance:
+    pullback_after_turns: 6
+    soft: 以学生作品贯穿的共同创作；短讲解和即时实践交替，三题逐步完成；先问意图和具体位置，再局部对比/示范；逐渐减少帮助并记录实际帮助；节点内允许提问/重听/重试；返回修改产生新版本，不清除前面的证据；主旋律与节奏决定由学生作出；模型负责材料、定位、解释与已约定辅助编曲
+    avoid: []
+write_boundary:
+    allow:
+        - add_midi_notes
+        - add_midi_notes_bulk
+        - apply_midi_note_patch
+        - create_midi_clip
+        - delete_midi_notes
+        - import_midi_to_track
+        - mutate_midi_notes
+        - project.markers.upsert
+        - set_tempo
+    confirm_downgrade: none
+finale:
+    completion_before_export: true
+    closure_check:
+        structure_complete:
+            all_nodes_done: true
+            no_placeholder_blanks:
+                - rhythm-track
+        soft_signals:
+            user_closing_language:
+                role: weighted
+                required: true
+    ritual:
+        - name_together
+        - export
+        - settle
+    settle:
+        memory_writes:
+            - report.assignment_report
+            - report.key_context_summary
+        objectives_check: c-q1-structure,c-q2-structure,c-q3-structure,c-generation-record,c-reports
+        trajectory_archive: true
+budget:
+    max_turns: 60
+    max_llm_calls: 120
+    on_stop_loss: preserve_and_pause
