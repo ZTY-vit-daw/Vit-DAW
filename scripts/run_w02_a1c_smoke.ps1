@@ -69,6 +69,149 @@ function Get-PropOr {
     return $value
 }
 
+# Extract the JSON object value of one named property from a text blob. The
+# prompt render may embed the model context snapshot inside system_prompt or
+# turn_directives as pretty-printed JSON; brace matching must respect strings.
+function Get-JsonObjectForProperty {
+    param([string]$Text, [string]$Property)
+    if ([string]::IsNullOrEmpty($Text)) { return $null }
+    $needle = '"' + $Property + '"'
+    $searchFrom = 0
+    while ($searchFrom -lt $Text.Length) {
+        $idx = $Text.IndexOf($needle, $searchFrom)
+        if ($idx -lt 0) { return $null }
+        $colon = $Text.IndexOf([char]58, $idx + $needle.Length)
+        if ($colon -ge 0) {
+            $afterColon = $Text.Substring($colon + 1, [Math]::Min(80, $Text.Length - $colon - 1)).TrimStart()
+            if ($afterColon.StartsWith("{") -or $afterColon.StartsWith("[")) {
+                $start = $Text.IndexOf([char]123, $colon + 1)
+                if ($start -ge 0) {
+                    $depth = 0
+                    $inString = $false
+                    $escape = $false
+                    for ($i = $start; $i -lt $Text.Length; $i++) {
+                        $ch = $Text[$i]
+                        if ($inString) {
+                            if ($escape) { $escape = $false }
+                            elseif ($ch -eq [char]92) { $escape = $true }
+                            elseif ($ch -eq [char]34) { $inString = $false }
+                        }
+                        else {
+                            if ($ch -eq [char]34) { $inString = $true }
+                            elseif ($ch -eq [char]123) { $depth++ }
+                            elseif ($ch -eq [char]125) {
+                                $depth--
+                                if ($depth -eq 0) { return $Text.Substring($start, $i - $start + 1) }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        $searchFrom = $idx + $needle.Length
+    }
+    return $null
+}
+
+# Search an already-parsed JSON object for a non-null lesson_context property,
+# including nested context_snapshot/model_snapshot objects.
+function Find-LessonContextInObject {
+    param($Object, [int]$Depth = 0)
+    if ($null -eq $Object -or $Depth -gt 6) { return $null }
+    $direct = Get-Prop $Object "lesson_context"
+    if ($null -ne $direct) { return $direct }
+    if ($Object -is [System.Collections.IDictionary]) {
+        foreach ($key in $Object.Keys) {
+            $value = $Object[$key]
+            if ($value -is [System.Collections.IDictionary] -or $value -is [System.Management.Automation.PSCustomObject]) {
+                $found = Find-LessonContextInObject -Object $value -Depth ($Depth + 1)
+                if ($null -ne $found) { return $found }
+            }
+        }
+        return $null
+    }
+    if ($Object -is [System.Management.Automation.PSCustomObject]) {
+        foreach ($prop in $Object.PSObject.Properties) {
+            if ($prop.Name -eq "lesson_context" -and $null -ne $prop.Value) { return $prop.Value }
+            $value = $prop.Value
+            if ($value -is [System.Collections.IDictionary] -or $value -is [System.Management.Automation.PSCustomObject]) {
+                $found = Find-LessonContextInObject -Object $value -Depth ($Depth + 1)
+                if ($null -ne $found) { return $found }
+            }
+        }
+    }
+    return $null
+}
+
+# Parse one agent_prompt_render.jsonl row and return the bounded lesson context
+# if the row (or any embedded prompt string) carries it. Returns $null when the
+# row exists but does not contain the model snapshot lesson overlay.
+function Get-LessonContextFromPromptRenderRow {
+    param([string]$Line)
+    if ([string]::IsNullOrWhiteSpace($Line)) { return $null }
+    $row = $null
+    try { $row = $Line | ConvertFrom-Json } catch { return $null }
+    $direct = Get-Prop $row "lesson_context"
+    if ($null -ne $direct) {
+        return [pscustomobject]@{ lesson = $direct; field = "lesson_context" }
+    }
+    foreach ($prop in $row.PSObject.Properties) {
+        $value = $prop.Value
+        if ($value -is [string]) {
+            $json = Get-JsonObjectForProperty -Text $value -Property "lesson_context"
+            if (-not [string]::IsNullOrWhiteSpace($json)) {
+                try {
+                    $lesson = $json | ConvertFrom-Json
+                    return [pscustomobject]@{ lesson = $lesson; field = $prop.Name }
+                }
+                catch { }
+            }
+        }
+        elseif ($value -is [System.Collections.IDictionary] -or $value -is [System.Management.Automation.PSCustomObject]) {
+            $found = Find-LessonContextInObject -Object $value
+            if ($null -ne $found) {
+                return [pscustomobject]@{ lesson = $found; field = $prop.Name }
+            }
+        }
+    }
+    return $null
+}
+
+# Read only newly appended prompt-render lines and return the last row for this
+# conversation that actually carries lesson_context. The file is huge, so the
+# shared FileStream reader is used; it never loads the whole file.
+function Find-PromptRenderLesson {
+    param([string]$Path, [long]$Offset, [string]$ConversationId)
+    $text = Read-AppendedText -Path $Path -Offset $Offset -MaxBytes 16777216
+    if ($null -eq $text) { return $null }
+    $match = $null
+    $lineCount = 0
+    $lastConversationLine = ""
+    foreach ($line in [regex]::Split($text, '\r?\n')) {
+        $trimmed = $line.TrimStart([char]0xFEFF).Trim()
+        if ($trimmed -eq "") { continue }
+        try { $row = $trimmed | ConvertFrom-Json } catch { continue }
+        if ([string](Get-Prop $row "conversation_id") -ne $ConversationId) { continue }
+        $lineCount++
+        $lastConversationLine = $trimmed
+        $found = Get-LessonContextFromPromptRenderRow -Line $trimmed
+        if ($null -ne $found) {
+            $match = [pscustomobject]@{
+                line = $trimmed
+                row = $row
+                lesson = $found.lesson
+                field = $found.field
+                appended = $text
+                conversation_lines = $lineCount
+            }
+        }
+    }
+    if ($null -eq $match) {
+        return [pscustomobject]@{ line = $lastConversationLine; row = $null; lesson = $null; field = ""; appended = $text; conversation_lines = $lineCount }
+    }
+    return $match
+}
+
 function Get-Bool {
     param($Value)
     if ($null -eq $Value) { return $false }
@@ -587,7 +730,7 @@ function Print-RunbookSummary {
     Write-Host "  S3 写好了 with selected_clip_id=second: assert clip_scope=selected and" -ForegroundColor Yellow
     Write-Host "     clip_ids[target]=second; first clip must not impersonate." -ForegroundColor Yellow
     Write-Host "  S4 one real-LLM natural question: stop_reason=done, non-empty reply," -ForegroundColor Yellow
-    Write-Host "     new agent_context_snapshots line with lesson_context card/node/clip." -ForegroundColor Yellow
+    Write-Host "     new agent_prompt_render line with lesson_context card/node/clip." -ForegroundColor Yellow
     Write-Host "  S5 no-selection control (scope=first) + cross-slot selection" -ForegroundColor Yellow
     Write-Host "     (scope=selection_unmatched); never counted as selected pass." -ForegroundColor Yellow
     Write-Host "  S6 结束乐局 -> project.open A -> natural sentence: auto-intro/recovery" -ForegroundColor Yellow
@@ -615,7 +758,7 @@ function Print-DryRunPlan {
     Write-Host "    S1.5 record card event nodes until the first clip_exists/track_non_empty node"
     Write-Host "    S2 create required user tracks by runtime_slots track_index; create two MIDI clips; select_clip(second)"
     Write-Host "    S3 写好了 with selected_clip_id=second; assert clip_scope=selected, clip_ids[target]=second, first not used"
-    Write-Host "    S4 one real-LLM natural question; assert stop_reason=done, reply non-empty, lesson_context in a new snapshot"
+    Write-Host "    S4 one real-LLM natural question; assert stop_reason=done, reply non-empty, lesson_context in new agent_prompt_render.jsonl row"
     Write-Host "    S5 no-selection scope=first control; cross-slot selection scope=selection_unmatched (never selected pass)"
     Write-Host "    S6 结束乐局 -> project.open A -> natural sentence -> auto-intro/recovery; teardown restores files/authority"
     Write-Host "  Exit codes: 0 PASS, 1 assertion, 2 environment/teardown, 3 unauthorized, 4 LLM class, 5 evidence/API gap"
@@ -1126,30 +1269,62 @@ try {
     }
     $s4.question = $question
     $s4.current_node = $currentNode
-    $s4.context_snapshot_path = $contextSnapshotPath
-    $s4.context_offset = $contextOffset
+    $s4.prompt_render_path = $promptRenderPath
+    $s4.prompt_offset = $promptOffset
+    $s4.legacy_context_snapshot_path = $contextSnapshotPath
+    $s4.legacy_context_offset = $contextOffset
 
-    Start-Sleep -Milliseconds 1000
-    $appended = Read-AppendedText -Path $contextSnapshotPath -Offset $contextOffset -MaxBytes 4194304
-    if ($null -eq $appended) { Fail "evidence" ("context snapshot file not found: " + $contextSnapshotPath) }
-    Set-Content -LiteralPath (Join-Path $evidenceDir "s4_context_snapshots_appended.jsonl") -Value $appended -Encoding UTF8
-    $matchedSnapshot = $null
-    $matchedLine = ""
-    foreach ($line in [regex]::Split($appended, "\r?\n")) {
-        $trimmed = $line.TrimStart([char]0xFEFF).Trim()
-        if ($trimmed -eq "") { continue }
-        try { $snapshot = $trimmed | ConvertFrom-Json } catch { continue }
-        if ([string](Get-Prop $snapshot "conversation_id") -ne $conversationId) { continue }
-        $lesson = Get-Prop $snapshot "lesson_context"
-        if ($null -eq $lesson) { continue }
-        $snapshotUser = [string](Get-Prop $snapshot "user_text")
-        if (-not [string]::IsNullOrWhiteSpace($snapshotUser) -and -not $snapshotUser.Contains("第几关")) { continue }
-        $matchedSnapshot = $snapshot
-        $matchedLine = $trimmed
-        break
+    Start-Sleep -Milliseconds 500
+    $promptMatch = Find-PromptRenderLesson -Path $promptRenderPath -Offset $promptOffset -ConversationId $conversationId
+    if ($null -eq $promptMatch) { Fail "evidence" ("prompt render file not found/readable: " + $promptRenderPath) }
+    $promptHasLesson = ($null -ne $promptMatch.lesson)
+    $s4.prompt_render_has_lesson_context = $promptHasLesson
+    $s4.prompt_render_conversation_lines = $promptMatch.conversation_lines
+    if (-not [string]::IsNullOrWhiteSpace($promptMatch.line)) {
+        Set-Content -LiteralPath (Join-Path $evidenceDir "s4_prompt_render.jsonl") -Value $promptMatch.line -Encoding UTF8
     }
-    Assert-True ($null -ne $matchedSnapshot) ("no appended context snapshot with lesson_context for conversation " + $conversationId + " after S4; file=" + $contextSnapshotPath)
-    $lessonContext = Get-Prop $matchedSnapshot "lesson_context"
+    if ($null -ne $promptMatch.appended -and $promptMatch.appended.Length -gt 0) {
+        Set-Content -LiteralPath (Join-Path $evidenceDir "s4_prompt_render_appended.jsonl") -Value $promptMatch.appended -Encoding UTF8
+    }
+
+    $lessonContext = $null
+    $matchedLine = ""
+    $evidenceSource = ""
+    $evidenceField = ""
+    if ($promptHasLesson) {
+        $lessonContext = $promptMatch.lesson
+        $matchedLine = $promptMatch.line
+        $evidenceSource = "agent_prompt_render.jsonl"
+        $evidenceField = $promptMatch.field
+    }
+    else {
+        # Legacy fallback only: agent_context_snapshots.jsonl is NOT required.
+        $fallbackAppended = Read-AppendedText -Path $contextSnapshotPath -Offset $contextOffset -MaxBytes 4194304
+        if ($null -ne $fallbackAppended -and $fallbackAppended.Length -gt 0) {
+            Set-Content -LiteralPath (Join-Path $evidenceDir "s4_context_snapshots_appended.jsonl") -Value $fallbackAppended -Encoding UTF8
+            foreach ($line in [regex]::Split($fallbackAppended, '\r?\n')) {
+                $trimmed = $line.TrimStart([char]0xFEFF).Trim()
+                if ($trimmed -eq "") { continue }
+                try { $snapshot = $trimmed | ConvertFrom-Json } catch { continue }
+                if ([string](Get-Prop $snapshot "conversation_id") -ne $conversationId) { continue }
+                $candidateLesson = Get-Prop $snapshot "lesson_context"
+                if ($null -eq $candidateLesson) { continue }
+                $lessonContext = $candidateLesson
+                $matchedLine = $trimmed
+                $evidenceSource = "agent_context_snapshots.jsonl"
+                $evidenceField = "lesson_context"
+                break
+            }
+        }
+    }
+
+    if ($null -eq $lessonContext) {
+        $diagnostic = "S4 model-input evidence missing for conversation " + $conversationId + ": prompt_render_lines=" + [string]$promptMatch.conversation_lines + " prompt_has_lesson_context=" + [string]$promptHasLesson + " fallback_context_snapshot=" + $contextSnapshotPath + ". The current agent_prompt_render diagnostic logs only the system message (agentloop/message_loop.go:4864-4910); lesson_context is in the user model snapshot (planner/planner.go:223-224, agentloop/message_loop.go:3852-3854). Product diagnostic must log the user/model snapshot or the message loop must append a context snapshot."
+        Fail "evidence" $diagnostic
+    }
+    $s4.lesson_context_source = $evidenceSource
+    $s4.lesson_context_field = $evidenceField
+
     $lessonCard = Get-Prop $lessonContext "card"
     $lessonNode = Get-Prop $lessonContext "node"
     $lessonClip = Get-Prop $lessonContext "selected_clip"
@@ -1165,7 +1340,14 @@ try {
     if (-not [string]::IsNullOrWhiteSpace($lessonClipTrack)) {
         Assert-True ($lessonClipTrack -eq $targetTrackId) ("lesson_context selected_clip.track_id=" + $lessonClipTrack + " expected=" + $targetTrackId)
     }
-    Set-Content -LiteralPath (Join-Path $evidenceDir "s4_context_snapshot.json") -Value $matchedLine -Encoding UTF8
+    $lessonJson = $lessonContext | ConvertTo-Json -Depth 20
+    if ($evidenceSource -eq "agent_prompt_render.jsonl") {
+        Set-Content -LiteralPath (Join-Path $evidenceDir "s4_lesson_context.json") -Value $lessonJson -Encoding UTF8
+    }
+    else {
+        Set-Content -LiteralPath (Join-Path $evidenceDir "s4_context_snapshot.json") -Value $matchedLine -Encoding UTF8
+        Set-Content -LiteralPath (Join-Path $evidenceDir "s4_lesson_context.json") -Value $lessonJson -Encoding UTF8
+    }
     $s4.lesson_context = [ordered]@{
         schema_version = $lessonSchema
         card_id = $lessonCardId
@@ -1174,18 +1356,10 @@ try {
         selected_clip_track_id = $lessonClipTrack
     }
 
-    $promptAppended = Read-AppendedText -Path $promptRenderPath -Offset $promptOffset -MaxBytes 8388608
-    $promptHasLesson = $false
-    if ($null -ne $promptAppended -and $promptAppended.Length -gt 0) {
-        $promptHasLesson = $promptAppended.Contains("lesson_context")
-        Set-Content -LiteralPath (Join-Path $evidenceDir "s4_prompt_render_appended.txt") -Value $promptAppended -Encoding UTF8
-    }
-    $s4.prompt_render_has_lesson_context = $promptHasLesson
-
     $telemetryAppended = Read-AppendedText -Path $telemetryPath -Offset $telemetryOffset -MaxBytes 2097152
     $telemetryMatched = $null
     if ($null -ne $telemetryAppended -and $telemetryAppended.Length -gt 0) {
-        foreach ($line in [regex]::Split($telemetryAppended, "\r?\n")) {
+        foreach ($line in [regex]::Split($telemetryAppended, '\r?\n')) {
             $trimmed = $line.Trim()
             if ($trimmed -eq "") { continue }
             try { $record = $trimmed | ConvertFrom-Json } catch { continue }
@@ -1206,11 +1380,10 @@ try {
         }
     }
     else {
-        $s4.telemetry = [ordered]@{ found = $false; note = "no new telemetry row for this conversation; context snapshot + done is the primary evidence" }
+        $s4.telemetry = [ordered]@{ found = $false; note = "no new telemetry row for this conversation; prompt render + done is the primary evidence" }
     }
-    Write-Ok ("S4: stop=done reply_len=" + [string]$reply.Length + " lesson_context card=" + $lessonCardId + " node=" + $lessonNodeId + " clip=" + $lessonClipId)
+    Write-Ok ("S4: stop=done reply_len=" + [string]$reply.Length + " lesson_source=" + $evidenceSource + " card=" + $lessonCardId + " node=" + $lessonNodeId + " clip=" + $lessonClipId)
     Write-Ok ("S4: reply keywords=" + ($keywordHits -join ","))
-
     Write-Step "S5a no-selection control (scope=first, not a selected pass)"
     $s5aResponse = Invoke-AgentChat -Name "s5a_no_selection" -ConversationID $conversationId -Message "写好了" -Context @{}
     $s5aStop = [string](Get-Prop $s5aResponse "stop_reason")
