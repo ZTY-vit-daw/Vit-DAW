@@ -1,8 +1,15 @@
-﻿[CmdletBinding()]
+[CmdletBinding()]
 param(
     # Reset the W02-A1 hand-test fixture: <HandtestRoot>/pristine -> <HandtestRoot>/live.
     # Card: W02-A1-HANDTEST-V0 (pool 434). ASCII only so Windows PowerShell 5.1
     # decodes it even without a BOM.
+    #
+    # Scope (lead adjudication B, 2026-11-19): the HAND TEST is same-stack
+    # (-SameStackPrep), and its reset is "re-run prep" in the running stack -
+    # NOT this script. This file restore is only for the legacy reopen-mode
+    # fixture, or for a manually placed <HandtestRoot>/live directory. A file
+    # restore never brings the lesson session back (PROJ-OPEN-RESUME-1), so the
+    # same-stack flow must re-run prep after any close/reopen.
     [Parameter(Mandatory = $true)][string]$HandtestRoot,
     [switch]$DryRun
 )
@@ -111,4 +118,5 @@ if ($liveDigest -ne $pristineDigest) { Fail-Env ("live/pristine tree digest mism
 
 Write-Host ("reset ok: live=" + $live + " files=" + [string]$liveFiles.Count + " bytes=" + [string]$liveBytes + " .vit sha256=" + $liveSha.Substring(0, 12) + "..") -ForegroundColor Green
 Write-Host "Next: start VitShell (product entry), open the live .vit, select the PREP conversation (not a new conversation), select the second clip, say 写好了."
+Write-Host "Reminder: same-stack hand test (-SameStackPrep) resets by RE-RUNNING prep; a file restore does not restore the lesson session."
 exit 0
