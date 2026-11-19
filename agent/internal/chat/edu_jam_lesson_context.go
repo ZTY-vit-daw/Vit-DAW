@@ -11,8 +11,10 @@ package chat
 //
 // 上界（与 contextruntime 同源常量）：title ≤200 runes、goal ≤500 runes、
 // assets/allowed ≤8；任一被截断时 truncated=true。selected_clip 复用 A1a 的
-// 三键解析（卷帘焦点 > 单选 > 多选首项），track 取 selected_track_id，缺省
-// 回落 selected_clip_track_id。
+// 三键解析（卷帘焦点 > 单选 > 多选首项），track 与仓库既有
+// conversation.intent.selectedClipTrackID 同序：piano_roll_focus_track_id >
+// selected_clip_track_id > focused_track_id > selected_track_id > track_id，
+// 避免 clip 与不同轨配对误导模型上下文。
 
 import (
 	"strings"
@@ -126,22 +128,34 @@ func eduJamLessonAllowed(allow []string) []string {
 	return out
 }
 
-// eduJamLessonSelectedClip 复用 A1a 的选中 clip 三键解析，并补上 clip 所属轨：
-// selected_track_id 优先，缺省回落 selected_clip_track_id。无选中返回 nil。
+// eduJamLessonSelectedClip 复用 A1a 的选中 clip 三键解析，并补上 clip 所属轨。
+// 无选中返回 nil。
 func eduJamLessonSelectedClip(requestContext map[string]any) map[string]any {
 	clipID := eduJamRequestSelectedClipID(requestContext)
 	if clipID == "" {
 		return nil
 	}
 	row := map[string]any{"clip_id": clipID}
-	trackID := cleanContextText(requestContext["selected_track_id"])
-	if trackID == "" {
-		trackID = cleanContextText(requestContext["selected_clip_track_id"])
-	}
-	if trackID != "" {
+	if trackID := eduJamLessonTrackID(requestContext); trackID != "" {
 		row["track_id"] = trackID
 	}
 	return row
+}
+
+// eduJamLessonTrackID 与 conversation.intent.selectedClipTrackID（intent.go:462）
+// 同序：卷帘焦点轨 > 选中 clip 所属轨 > 焦点轨 > 选中轨 > 通用轨。契约修正
+// （lead 2026-11-19）：此前 selected_track_id 优先会把 clip 配到别的轨。
+func eduJamLessonTrackID(requestContext map[string]any) string {
+	for _, key := range []string{
+		"piano_roll_focus_track_id", "selected_clip_track_id", "focused_track_id",
+		"selected_track_id", "track_id",
+	} {
+		text := strings.TrimSpace(strings.Trim(cleanContextText(requestContext[key]), "\""))
+		if text != "" && text != "<nil>" {
+			return text
+		}
+	}
+	return ""
 }
 
 // eduJamLessonText 按 rune 上界裁剪文本；返回是否发生截断。

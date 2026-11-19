@@ -152,12 +152,45 @@ func TestEduJamLessonContextSelectedClipResolution(t *testing.T) {
 			"selected_clip_id": "c_single", "piano_roll_focus_clip_id": "c_focus",
 		}, "c_focus", ""},
 		{"multi_first", map[string]any{"selected_clip_ids": []any{"c_multi", "c_other"}}, "c_multi", ""},
-		{"selected_track_wins", map[string]any{
-			"selected_clip_id": "c1", "selected_track_id": "track_selected", "selected_clip_track_id": "track_clip",
-		}, "c1", "track_selected"},
-		{"clip_track_fallback", map[string]any{
-			"selected_clip_id": "c1", "selected_clip_track_id": "track_clip",
+		// track 优先级与 conversation.intent.selectedClipTrackID 同序：
+		// piano_roll_focus_track_id > selected_clip_track_id > focused_track_id >
+		// selected_track_id > track_id。
+		{"focus_track_wins_all_keys", map[string]any{
+			"selected_clip_id":          "c1",
+			"piano_roll_focus_track_id": "track_focus",
+			"selected_clip_track_id":    "track_clip",
+			"focused_track_id":          "track_focused",
+			"selected_track_id":         "track_selected",
+			"track_id":                  "track_generic",
+		}, "c1", "track_focus"},
+		{"clip_track_second", map[string]any{
+			"selected_clip_id":       "c1",
+			"selected_clip_track_id": "track_clip",
+			"focused_track_id":       "track_focused",
+			"selected_track_id":      "track_selected",
+			"track_id":               "track_generic",
 		}, "c1", "track_clip"},
+		{"focused_track_third", map[string]any{
+			"selected_clip_id":  "c1",
+			"focused_track_id":  "track_focused",
+			"selected_track_id": "track_selected",
+			"track_id":          "track_generic",
+		}, "c1", "track_focused"},
+		{"selected_track_fourth", map[string]any{
+			"selected_clip_id":  "c1",
+			"selected_track_id": "track_selected",
+			"track_id":          "track_generic",
+		}, "c1", "track_selected"},
+		{"generic_track_last", map[string]any{
+			"selected_clip_id": "c1", "track_id": "track_generic",
+		}, "c1", "track_generic"},
+		{"no_track_keys", map[string]any{"selected_clip_id": "c1"}, "c1", ""},
+		{"blank_track_values", map[string]any{
+			"selected_clip_id":          "c1",
+			"piano_roll_focus_track_id": " ",
+			"selected_clip_track_id":    "",
+			"selected_track_id":         "  ",
+		}, "c1", ""},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
