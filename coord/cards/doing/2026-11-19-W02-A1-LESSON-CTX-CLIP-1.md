@@ -67,6 +67,7 @@
 - contextruntime additive `lesson_context`（omitempty）；chat 非命令轮活跃局注入；命令/无局/终态不注入；track 与 `conversation.intent` 同序。
 - 证据：[RECEIPT](../../runs/W02-A1b/RECEIPT.md)、[裁定](../../rulings/2026-11-19-W02-A1b-lesson-context-pass.md)。
 - 432 保持 doing；A1c（真实栈选中 clip + LLM 反馈 + 恢复）待发。
+- **A1b 覆盖修正**：`b291e934`（free-state neutral 保留 `full.LessonContext` + profile 白名单后挂回）→ main `fddb1dc6`；A1c 首轮 S4 prompt render 证据缺失已归因并修复。
 
 ## A1c 领取（2026-11-19 19:56）
 

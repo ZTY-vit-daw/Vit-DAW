@@ -24,3 +24,11 @@
 ## 下一步
 
 - A1c：真实栈选中 clip + 真实 LLM 提问/反馈 + 失败不伪通过 + 重开恢复；候栈窗口。
+
+## 修正（2026-11-19 20:29）
+
+- A1c 首轮真栈发现：真实 S4 走 free-state message loop，`agent_prompt_render.jsonl` 的模型输入有 `free_state=True`/`selected_clip` 但无 `lesson_context`。A1b 原单测走 `chat.buildAssembly`，未覆盖 agentloop neutral 路径。
+- 修正 `b291e934`（文件域扩展 `agent/internal/agentloop/helpers.go` + test）：neutral 重建后保留 `full.LessonContext`；`ProjectModelSnapshot` profile 白名单后再挂回并清除过期的 `omitted_sections` 条目。
+- 主管亲跑：`go test ./internal/agentloop ./internal/chat -count=1` exit 0（5.022s / 117.326s）；`go build ./...` exit 0；合入 main `fddb1dc6`。
+- A1b 覆盖扩展到 free-state 路径；A1c 仍需按修好的 prompt-render 取证重跑。
+
