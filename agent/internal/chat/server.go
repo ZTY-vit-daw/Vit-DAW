@@ -76,6 +76,9 @@ type Server struct {
 	semanticSettlementStateOverride semanticSettlementState
 	shadow                          *shadow.Project
 	llm                             *llm.Client
+	// tutorSim is the TUTOR-SIM-1 in-memory session runtime (created in New;
+	// direct Server literals in tests set it explicitly).
+	tutorSim *tutorSimRuntime
 	logger                          *logx.Logger
 	harness                         *harness.Harness
 	prefixAssembler                 promptruntime.PrefixService
@@ -599,6 +602,7 @@ func New(kernelClient *kernel.Client, shadowProject *shadow.Project, logger *log
 		auditionKernel:                   kernelClient,
 		shadow:                           shadowProject,
 		llm:                              &llm.Client{},
+		tutorSim:                         newTutorSimRuntime(),
 		logger:                           logger,
 		harness:                          harness.New(kernelClient, shadowProject, logger),
 		prefixAssembler:                  promptruntime.NewPrefixService(),
@@ -741,6 +745,8 @@ func (s *Server) Routes() http.Handler {
 	mux.HandleFunc("/agent/ui/state", s.handleUIState)
 	mux.HandleFunc("/agent/ui/context", s.handleUIContext)
 	mux.HandleFunc("/agent/chat", s.handleChat)
+	mux.HandleFunc("/agent/tutor/start", s.handleTutorStart)
+	mux.HandleFunc("/agent/tutor/status", s.handleTutorStatus)
 	mux.HandleFunc("/agent/launcher/greeting", s.handleLauncherGreeting)
 	mux.HandleFunc("/agent/launcher/recent-projects", s.handleLauncherRecentProjects)
 	mux.HandleFunc("/agent/note/archive", s.handleNoteArchive)
@@ -2655,6 +2661,13 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 		conversationID = "chat_" + randomID()
 	}
 	logConversationID = conversationID
+	// TUTOR-SIM-1: a conversation owned by an in-memory tutor session is handled
+	// here, before goal creation / pending / semantic entry / harness nodes.
+	// The lookup misses for every ordinary conversation, so that path is
+	// unchanged.
+	if s.handleTutorSimChatTurn(w, r, conversationID, req.Message) {
+		return
+	}
 	// FIX-ASK-SILENT-GAP-1 ④⑤：ask 受理即发首个用户可见忙碌事件。放在一切
 	// 前导段（UI 上下文快照/工作区激活，有轨工程实测 2-4s）之前——退化服务下
 	// 语义入口分类可能占住十几秒，用户在此之前不能面对静默空窗。note 会话不

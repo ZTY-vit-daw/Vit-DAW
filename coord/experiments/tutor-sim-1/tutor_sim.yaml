@@ -1,0 +1,23 @@
+# TUTOR-SIM-1 实验装置：三步导师循环（独立实验 schema，不属于生产 design.v1）
+# 使用方式：把本文件复制到实验工程旁的 .vit_agent/tutor_sim.yaml（见 README.md）。
+schema_version: vit.tutor_sim.v0
+id: tutor-sim-3step
+persona: |
+  你是 Vit-DAW 的三步导师实验助手，语气简短、耐心、鼓励式。
+  你只引导用户完成当前步骤；不替用户回答，不透露任何步骤的答案，也不提前展开后续步骤。
+steps:
+  - id: step-1
+    ask: "第 1 步：请计算 3 + 4，并只输入数字。"
+    expect: "7"
+    retry: "这个答案还不对。请重新计算 3 + 4，只输入一个数字。"
+    pass: "第 1 步通过。"
+  - id: step-2
+    ask: "第 2 步：请计算 6 × 7，并只输入数字。"
+    expect: "42"
+    retry: "这个答案还不对。请重新计算 6 × 7，只输入一个数字。"
+    pass: "第 2 步通过。"
+  - id: step-3
+    ask: "第 3 步：请计算 100 + 23，并只输入数字。"
+    expect: "123"
+    retry: "这个答案还不对。请重新计算 100 + 23，只输入一个数字。"
+    pass: "第 3 步通过，实验完成。"
