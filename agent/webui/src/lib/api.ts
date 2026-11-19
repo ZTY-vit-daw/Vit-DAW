@@ -134,6 +134,45 @@ export function sendChat(payload: ChatRequest): Promise<ChatResponse> {
   });
 }
 
+/* ------------------------------------------------------------------ */
+/* TUTOR-SIM-2（池序 436）：导师实验自动开场端点                        */
+/* ------------------------------------------------------------------ */
+
+/** 两个字段均可选：空 project_path 时服务端回落到当前工程；空 conversation_id 时服务端生成。 */
+export interface TutorSimStartPayload {
+  project_path?: string;
+  conversation_id?: string;
+}
+
+/** POST /agent/tutor/start 回执（status=ok|unavailable|error）。 */
+export interface TutorSimStartResponse {
+  status?: string;
+  reason?: string;
+  error?: string;
+  failure_class?: string;
+  conversation_id?: string;
+  experiment_id?: string;
+  schema_version?: string;
+  project_path?: string;
+  sidecar_path?: string;
+  step_index?: number;
+  step_total?: number;
+  step_id?: string;
+  reply?: string;
+}
+
+/**
+ * 启动导师实验开场。不可用（工程无 sidecar / LLM 配置缺失）由回执 status 表达；
+ * 网络/HTTP 失败仍以异常抛出，由 projectService 的接缝统一降级为 unavailable，
+ * 不把异常抛进 UI。
+ */
+export function startTutorSim(payload: TutorSimStartPayload = {}): Promise<TutorSimStartResponse> {
+  return requestJSON<TutorSimStartResponse>("/agent/tutor/start", {
+    method: "POST",
+    body: JSON.stringify(payload)
+  });
+}
+
 export function respondInteraction(payload: InteractionRespondRequest): Promise<ChatResponse> {
   return requestJSON<ChatResponse>("/agent/interaction/respond", {
     method: "POST",

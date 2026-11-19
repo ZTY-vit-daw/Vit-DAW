@@ -406,6 +406,16 @@ export function ProjectSurface({
   const [notice, setNotice] = useState("");
   const serviceRef = useRef<ProjectService | null>(fixtureService);
   const contextRunRef = useRef(0);
+  // TUTOR-SIM-2（436）：自动开场「每工程一次」守卫 + 导师 conversation_id 寻址。
+  // - started：已请求过 start 的工程路径集合（重渲染/重进同一工程不重复请求）；
+  // - conversations：工程 → 服务端签发的导师会话 id（切换回来仍能续聊）；
+  // - currentPath：当前生效工程路径（切换工程后旧回执不得落进新工程线程）；
+  // - mounted：卸载后不再落任何异步回执（StrictMode 双跑时 setup 会复位为 true）。
+  const tutorStartedProjectsRef = useRef<Set<string>>(new Set());
+  const tutorConversationsRef = useRef<Map<string, string>>(new Map());
+  const tutorConversationRef = useRef<string | null>(null);
+  const tutorCurrentPathRef = useRef("");
+  const mountedRef = useRef(true);
 
   // ── CONV-RAIL-1（418，B2a）/ CONV-RAIL-CROSS-1（421，B2b）：对话流左栏 + 只读预览 ──
   // 数据源=App 注入的 /agent/ui/state（project_history 对话图 + checkout_blocked）；
@@ -844,6 +854,45 @@ export function ProjectSurface({
       });
   }, [fixture, refreshConversationState]);
 
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  // TUTOR-SIM-2（436）：工程自动开场。active 且工程路径就绪时，每工程恰好请求一次
+  // /agent/tutor/start（只经 ProjectService 接缝）；status=ok 才把 LLM 开场作为
+  // assistant 消息加入当前线程并记录导师 conversation_id 供 composer 发送。
+  // unavailable / 异常一律静默（普通工程零变化、不新增状态/进度控件）。
+  const tutorProjectPath = (state.context?.path ?? "").trim();
+  useEffect(() => {
+    // 当前工程路径先行落 ref：切换工程后旧请求的回执按路径不一致丢弃。
+    tutorCurrentPathRef.current = tutorProjectPath;
+    if (!active || !tutorProjectPath) return;
+    if (tutorStartedProjectsRef.current.has(tutorProjectPath)) {
+      tutorConversationRef.current = tutorConversationsRef.current.get(tutorProjectPath) ?? null;
+      return;
+    }
+    const service = serviceRef.current;
+    if (!service) return;
+    tutorStartedProjectsRef.current.add(tutorProjectPath);
+    tutorConversationRef.current = null;
+    void service
+      .startTutorSim(tutorProjectPath)
+      .then((outcome) => {
+        // 卸载或已切到别的工程：旧回执既不落线程，也不覆盖新工程的会话 id。
+        if (!mountedRef.current || tutorCurrentPathRef.current !== tutorProjectPath) return;
+        if (outcome.status !== "ok" || !outcome.conversationID) return;
+        tutorConversationsRef.current.set(tutorProjectPath, outcome.conversationID);
+        tutorConversationRef.current = outcome.conversationID;
+        const reply = outcome.reply.trim();
+        if (!reply) return;
+        dispatch({ type: "vitReplied", id: nextProjectItemID("msg-tutor"), text: reply });
+      })
+      .catch(() => undefined);
+  }, [active, tutorProjectPath]);
+
   const send = useCallback(
     async (text: string) => {
       const trimmed = text.trim();
@@ -856,7 +905,8 @@ export function ProjectSurface({
       try {
         // SHELL-6：完整回执载荷 → 线程卡批（消息/结果卡/directive 占位/确认
         // 承接卡——映射单点在 projectThreadItemsFromOutcome，不变式在那里断言）。
-        const outcome = await service.sendMessage(trimmed);
+        // TUTOR-SIM-2：导师会话在场时用服务端签发的 conversation_id 走 tutor 分支。
+        const outcome = await service.sendMessage(trimmed, tutorConversationRef.current ?? undefined);
         const mapped = projectThreadItemsFromOutcome(outcome);
         dispatch({ type: "outcomeItemsArrived", items: mapped.items });
         // directive 到达即自动经桥执行（SHELL-5 语义平移到工程面；治理确认
