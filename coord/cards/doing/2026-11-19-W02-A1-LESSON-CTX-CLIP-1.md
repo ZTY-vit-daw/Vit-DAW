@@ -68,6 +68,16 @@
 - 证据：[RECEIPT](../../runs/W02-A1b/RECEIPT.md)、[裁定](../../rulings/2026-11-19-W02-A1b-lesson-context-pass.md)。
 - 432 保持 doing；A1c（真实栈选中 clip + LLM 反馈 + 恢复）待发。
 
+## A1c 领取（2026-11-19 19:56）
+
+- owner=`w02real`（DeepSeek-V4.1-Flash，PC，独立 worktree）；分支 `codex/w02-a1c-real-432`；worktree `C:/Users/timoz/.codex/worktrees/pc432-real/Vit_DAW`；基线 main `9318717b`。
+- 本轮只写零栈 runbook + 真栈执行器；真栈轮候 lead 登记，不启栈、不改产品代码。
+- 场景（S0–S6）：preflight/权威文件快照；建 A 工程+导入设计源+开始乐局；在目标轨建两个可区分 MIDI clip（`create_midi_clip`/`add_midi_notes_bulk`）并选中第二个；「写好了」断言判定读取选中 clip（`clip_ids`/`clip_scope=selected`，首个 clip 不能冒充）；自然提问走真实 LLM 并断言模型输入含 `lesson_context`、回复非空（内容按宽容关键词记录，不硬套文案）；空/越界选中不假通过；重开/恢复按可证程度记录；teardown 全零。
+- 文件域：`coord/runs/W02-A1c/`、`scripts/run_w02_a1c_smoke.ps1`；不改产品代码/设计源/卡片。
+- 真 LLM 纪律：单次正式轮、写明成功条件/失败分类/止损；LLM 超时/环境中断与断言失败分开记；不原样重跑。
+- 验收：PowerShell 解析、无授权 exit 3、dry-run exit 0；不启栈；API 缺口如实登记；回执≤15行。
+
+
 
 
 
