@@ -37,6 +37,45 @@ export interface ProjectContextView {
   path?: string;
 }
 
+/* ------------------------------------------------------------------ */
+/* TUTOR-SIM-3（437）：导师进度/步骤输入卡视图                            */
+/* ------------------------------------------------------------------ */
+
+/** 导师实验进度（唯一数据源 = 服务端 workflow_data 的结构化字段；
+ * 禁止从 LLM 回复文本或旧 eduJamRenderStatus 文本反推）。 */
+export interface TutorProgressView {
+  stepIndex: number;
+  stepTotal: number;
+  completed: boolean;
+}
+
+/** 步骤输入卡视图：步骤寻址 + 最近 assistant 回复作为当前问题/引导。
+ * prompt 只来自服务端 reply；服务端判定答案永不下发、永不显示。 */
+export interface TutorStepView extends TutorProgressView {
+  prompt: string;
+}
+
+/** 严格校验 workflow_data 的 step_index/step_total/completed；任何缺失或越界
+ * 都不更新进度（保留上一次真实服务端状态，不用 LLM 文本补齐）。 */
+export function tutorProgressFromSteps(
+  stepIndex: unknown,
+  stepTotal: unknown,
+  completed: unknown
+): TutorProgressView | null {
+  if (typeof stepIndex !== "number" || !Number.isInteger(stepIndex)) return null;
+  if (typeof stepTotal !== "number" || !Number.isInteger(stepTotal)) return null;
+  if (stepTotal < 1 || stepIndex < 1 || stepIndex > stepTotal) return null;
+  if (typeof completed !== "boolean") return null;
+  return { stepIndex, stepTotal, completed };
+}
+
+/** workflow_data → 进度视图（只读结构化字段；不接受字符串数字/缺字段）。 */
+export function tutorProgressFromWorkflowData(data: unknown): TutorProgressView | null {
+  if (!data || typeof data !== "object" || Array.isArray(data)) return null;
+  const record = data as Record<string, unknown>;
+  return tutorProgressFromSteps(record.step_index, record.step_total, record.completed);
+}
+
 /** 执行轨迹（SPEC-V5 §4.2.1 / §8.2）：busy 有当前步，done/error 收成回执行。 */
 export interface TrajectoryView {
   state: "idle" | "busy" | "done" | "error";
@@ -141,6 +180,7 @@ export type ProjectEvent =
   | { type: "abPrepareSucceeded"; id: string; bypassRef: string; processedRef: string }
   | { type: "abPrepareFailed"; id: string; reason: string }
   | { type: "outcomeItemsArrived"; items: ProjectThreadItem[] }
+  | { type: "tutorViewUpdated"; projectPath: string; view: TutorStepView }
   | { type: "governanceRequested"; id: string; view: ProjectGovernanceView }
   | { type: "governanceAnswered"; id: string; choice: string }
   | { type: "confirmAnswered"; id: string; choice: "approve" | "cancel" }
@@ -156,6 +196,9 @@ export interface ProjectSurfaceState {
   composerFocused: boolean;
   /** 应用于途中的宏卡 id（防重复应用；不改变卡片四态）。 */
   pendingMacroId: string | null;
+  /** TUTOR-SIM-3：按工程路径索引的导师控件视图。普通工程无条目 → 零 UI；
+   * 切换工程只显示当前路径的条目，旧工程状态不串台。 */
+  tutorViews: Record<string, TutorStepView>;
 }
 
 export function emptyProjectState(): ProjectSurfaceState {
@@ -165,7 +208,8 @@ export function emptyProjectState(): ProjectSurfaceState {
     inputDisabled: false,
     replying: false,
     composerFocused: false,
-    pendingMacroId: null
+    pendingMacroId: null,
+    tutorViews: {}
   };
 }
 
@@ -401,6 +445,19 @@ export function reduceProject(state: ProjectSurfaceState, event: ProjectEvent): 
       if (event.items.length === 0) return state;
       return { ...state, thread: [...state.thread, ...event.items] };
     }
+    case "tutorViewUpdated": {
+      // TUTOR-SIM-3：每工程保留一份最新结构化视图；空路径/非法步骤不落状态。
+      const path = event.projectPath.trim();
+      if (!path) return state;
+      const progress = tutorProgressFromSteps(event.view.stepIndex, event.view.stepTotal, event.view.completed);
+      if (!progress) return state;
+      const previous = state.tutorViews[path];
+      const prompt = event.view.prompt.trim() || previous?.prompt || "";
+      return {
+        ...state,
+        tutorViews: { ...state.tutorViews, [path]: { ...progress, prompt } }
+      };
+    }
     case "governanceRequested": {
       // 幂等：同一 request_id 只挂一张卡（宿主重发不叠卡）。
       const exists = state.thread.some(
@@ -471,6 +528,10 @@ export interface ProjectChatOutcome {
   cards?: LauncherProjectCard[];
   /** chat 确认协议位（needs_confirmation）：必须伴随可点确认卡（不变式）。 */
   needsConfirmation?: boolean;
+  /** TUTOR-SIM-3：服务端 workflow 标记（"tutor_sim" 命中时更新步骤控件）。 */
+  workflow?: string | null;
+  /** TUTOR-SIM-3：导师进度结构化载荷（只读投影；不渲染原始 JSON/状态文本）。 */
+  workflowData?: Record<string, unknown> | null;
 }
 
 /** TUTOR-SIM-2（436）：自动开场接缝回执。

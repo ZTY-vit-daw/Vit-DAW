@@ -97,7 +97,10 @@ export function createProjectLiveService(): ProjectService {
         text: (response.reply ?? "").trim() || "Vit 没有返回内容——换个说法再试一次。",
         directive: response.launcher_directive ?? null,
         cards: cardsToEntries(response.project_result_cards),
-        needsConfirmation: Boolean(response.needs_confirmation)
+        needsConfirmation: Boolean(response.needs_confirmation),
+        // TUTOR-SIM-3：workflow 标记 + workflow_data 原样上抛；进度卡只消费结构化字段。
+        workflow: response.workflow ?? null,
+        workflowData: response.workflow_data ?? null
       };
     },
     async startTutorSim(projectPath: string): Promise<TutorStartOutcome> {

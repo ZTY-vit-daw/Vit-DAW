@@ -111,6 +111,34 @@ function messages(container: HTMLElement): Element[] {
   return Array.from(container.querySelectorAll("[data-message-author]"));
 }
 
+/** TUTOR-SIM-3：进度卡的结构化属性（断言数据来自 workflow_data 而非回复文本）。 */
+function progressAttrs(container: HTMLElement): { step: string | null; total: string | null; completed: string | null } {
+  const node = container.querySelector("[data-tutor-progress]");
+  return {
+    step: node?.getAttribute("data-tutor-progress-step") ?? null,
+    total: node?.getAttribute("data-tutor-progress-total") ?? null,
+    completed: node?.getAttribute("data-tutor-progress-completed") ?? null
+  };
+}
+
+function tutorStepInput(container: HTMLElement): HTMLInputElement {
+  const input = container.querySelector("[data-tutor-step-input]") as HTMLInputElement | null;
+  expect(input).not.toBeNull();
+  return input as HTMLInputElement;
+}
+
+/** 步骤卡提交：写受控输入后派发 form submit（与真实按钮提交同一 React 通道）。 */
+function submitTutorStep(container: HTMLElement, text: string): void {
+  const input = tutorStepInput(container);
+  expect(input.disabled).toBe(false);
+  typeInput(input, text);
+  const form = container.querySelector("[data-tutor-step-form]");
+  expect(form).not.toBeNull();
+  act(() => {
+    form?.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+  });
+}
+
 function threadWith(...items: ProjectThreadItem[]): ProjectThreadItem[] {
   return items;
 }
@@ -233,6 +261,12 @@ describe("TUTOR-SIM-2：active 工程自动开场", () => {
     expect(tutorStartCalls).toEqual([OTHER_PATH]);
     expect(messages(container)).toHaveLength(1);
     expect(container.textContent).toContain("普通工程线程保留。");
+    // TUTOR-SIM-3：普通工程无导师进度/步骤卡。
+    expect(container.querySelector("[data-project-tutor]")).toBeNull();
+    expect(container.querySelector("[data-tutor-progress]")).toBeNull();
+    expect(container.querySelector("[data-tutor-step]")).toBeNull();
+    expect(container.textContent).not.toContain("第 1/3 步");
+    expect(container.textContent).not.toContain("workflow_data");
 
     sendFromComposer(container, "你好");
     await flush();
@@ -335,5 +369,120 @@ describe("TUTOR-SIM-2：竞态与泄漏", () => {
     expect(second.container.textContent).toContain(OTHER_OPENING);
     expect(second.container.textContent).not.toContain(OPENING);
     expect(messages(second.container)).toHaveLength(1);
+  });
+});
+
+describe("TUTOR-SIM-3：进度卡与步骤输入卡", () => {
+  it("start 1/3；错输入仍 1/3；7→2/3；42→3/3；123 completed/禁用；提交均带导师会话", async () => {
+    const tutorStartCalls: string[] = [];
+    const submits: Array<{ text: string; conversationID?: string }> = [];
+    let stepIndex = 1;
+    let completed = false;
+    const base = createProjectFixtureService({
+      context: CONTEXT,
+      tutorStart: OK_OPENING,
+      tutorStartCalls
+    });
+    const service: ProjectService = {
+      ...base,
+      async sendMessage(text: string, conversationID?: string) {
+        submits.push({ text, conversationID });
+        let passed = false;
+        if (stepIndex === 1 && text === "7") {
+          stepIndex = 2;
+          passed = true;
+        } else if (stepIndex === 2 && text === "42") {
+          stepIndex = 3;
+          passed = true;
+        } else if (stepIndex === 3 && text === "123") {
+          completed = true;
+          passed = true;
+        }
+        // 回复文本故意不带步骤数字：进度只能来自 workflow_data。
+        return {
+          text: passed ? "通过，继续下一步。" : "还没通过，再试一次。",
+          workflow: "tutor_sim",
+          workflowData: { step_index: stepIndex, step_total: 3, completed }
+        };
+      }
+    };
+    const { container } = mount(<ProjectSurface fixture={{ context: CONTEXT, service }} />);
+    await flush();
+
+    // start ok → 1/3，步骤卡显示开场问题。
+    expect(progressAttrs(container)).toEqual({ step: "1", total: "3", completed: "false" });
+    expect(container.querySelector("[data-tutor-step-prompt]")?.textContent).toContain(OPENING);
+    expect(tutorStepInput(container).disabled).toBe(false);
+
+    // 错输入 → workflow_data 仍 1/3（不推进），输入保持可用。
+    submitTutorStep(container, "6");
+    await flush();
+    expect(progressAttrs(container)).toEqual({ step: "1", total: "3", completed: "false" });
+    expect(container.textContent).toContain("还没通过，再试一次。");
+    expect(container.querySelector("[data-tutor-step-prompt]")?.textContent).toContain("还没通过，再试一次。");
+    expect(tutorStepInput(container).disabled).toBe(false);
+
+    // 7 → 2/3。
+    submitTutorStep(container, "7");
+    await flush();
+    expect(progressAttrs(container)).toEqual({ step: "2", total: "3", completed: "false" });
+
+    // 42 → 3/3。
+    submitTutorStep(container, "42");
+    await flush();
+    expect(progressAttrs(container)).toEqual({ step: "3", total: "3", completed: "false" });
+
+    // 123 → completed：进度 3/3 已完成，输入与提交禁用。
+    submitTutorStep(container, "123");
+    await flush();
+    expect(progressAttrs(container)).toEqual({ step: "3", total: "3", completed: "true" });
+    expect(container.textContent).toContain("实验已完成");
+    expect(container.textContent).toContain("无需继续输入");
+    expect(tutorStepInput(container).disabled).toBe(true);
+    const submitButton = container.querySelector("[data-tutor-step-submit]") as HTMLButtonElement | null;
+    expect(submitButton?.disabled).toBe(true);
+
+    // 每次步骤提交都走同一个导师 conversation_id。
+    expect(submits.map((item) => item.text)).toEqual(["6", "7", "42", "123"]);
+    expect(submits.every((item) => item.conversationID === "tutor_conv_436")).toBe(true);
+  });
+
+  it("进度只认 workflow_data：回复文本写 3/3 也不改变 1/3", async () => {
+    const base = createProjectFixtureService({ context: CONTEXT, tutorStart: OK_OPENING });
+    const service: ProjectService = {
+      ...base,
+      async sendMessage() {
+        return {
+          text: "模型措辞：现在已经是第 3/3 步。",
+          workflow: "tutor_sim",
+          workflowData: { step_index: 1, step_total: 3, completed: false }
+        };
+      }
+    };
+    const { container } = mount(<ProjectSurface fixture={{ context: CONTEXT, service }} />);
+    await flush();
+
+    submitTutorStep(container, "6");
+    await flush();
+    expect(progressAttrs(container)).toEqual({ step: "1", total: "3", completed: "false" });
+    expect(container.querySelector("[data-tutor-step-prompt]")?.textContent).toContain("第 3/3 步");
+  });
+
+  it("无 workflow 标记的普通回执不更新步骤卡/进度", async () => {
+    const base = createProjectFixtureService({ context: CONTEXT, tutorStart: OK_OPENING });
+    const service: ProjectService = {
+      ...base,
+      async sendMessage() {
+        return { text: "普通回复，无 workflow。" };
+      }
+    };
+    const { container } = mount(<ProjectSurface fixture={{ context: CONTEXT, service }} />);
+    await flush();
+    expect(progressAttrs(container)).toEqual({ step: "1", total: "3", completed: "false" });
+
+    submitTutorStep(container, "7");
+    await flush();
+    expect(progressAttrs(container)).toEqual({ step: "1", total: "3", completed: "false" });
+    expect(container.querySelector("[data-tutor-step-prompt]")?.textContent).toContain(OPENING);
   });
 });

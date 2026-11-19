@@ -132,6 +132,18 @@ describe("TUTOR-SIM-2：composer 会话寻址", () => {
     expect(api.sendChat).toHaveBeenCalledWith({ conversation_id: "tutor_live_436", message: "7" });
   });
 
+  it("透传 workflow/workflow_data 供 tutor 进度卡消费", async () => {
+    api.sendChat.mockResolvedValueOnce({
+      reply: "进入下一步。",
+      workflow: "tutor_sim",
+      workflow_data: { step_index: 2, step_total: 3, completed: false }
+    });
+    const service = createProjectLiveService();
+    const outcome = await service.sendMessage("7", "tutor_live_436");
+    expect(outcome.workflow).toBe("tutor_sim");
+    expect(outcome.workflowData).toEqual({ step_index: 2, step_total: 3, completed: false });
+  });
+
   it("无导师会话：维持本 surface 既有普通会话", async () => {
     api.sendChat.mockResolvedValueOnce({ reply: "收到" });
     const service = createProjectLiveService();
