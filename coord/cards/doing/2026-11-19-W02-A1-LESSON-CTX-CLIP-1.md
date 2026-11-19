@@ -51,4 +51,14 @@
 - 边界：跨槽选中=披露+回落首 clip（卡面口径）；用户可见文案未加 disclosure；真实栈 A1c 未做。
 - 432 保持 doing；下一步 A1b（有界课程上下文注入，先定 prompt 路径）或 A1c。
 
+## A1b 领取（2026-11-19 19:31）
+
+- **路径裁定**：`contextruntime` additive `lesson_context`（Option B），不走 promptruntime section——模型实际输入是 context snapshot，additive 字段可直接断言，改动面小于 prompt 装配。
+- owner=`w02ctx`（DeepSeek-V4.1-Flash，PC，独立 worktree）；分支 `codex/w02-a1b-context-432`；worktree `C:/Users/timoz/.codex/worktrees/pc432-context/Vit_DAW`；基线 main `92c675be`。
+- 文件域：`agent/internal/contextruntime/context.go`、`agent/internal/contextruntime/context_test.go`、`agent/internal/chat/edu_jam_chat.go`、`agent/internal/chat/edu_jam_chat_test.go`；可新增 `agent/internal/chat/edu_jam_lesson_context.go`（+test）。不改设计源 schema/其他包。
+- 内容上界：card id/title、node id/title/goal、assets id/kind（≤8）、selected clip id/track、write_boundary allow（≤8）；不注入整份 `design.v1.yaml`/notes 数组/原图。
+- 验收：contextruntime 有/无键 additive/omitempty + 旧快照反序列化；chat 非命令轮有活跃局注入、命令轮/无局不注入；字段与上界断言；`go test ./internal/contextruntime ./internal/chat -count=1`；`go build ./...`。
+- 回执≤15行；只推 branch，不合入 main。
+
+
 
