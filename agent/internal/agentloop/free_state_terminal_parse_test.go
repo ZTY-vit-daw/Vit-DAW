@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"vit-daw-agent/internal/config"
+	"vit-daw-agent/internal/contextruntime"
 )
 
 // BOUNDARY-1 v2 Phase 3: prompt-render evidence (§3.1) and strict terminal
@@ -172,8 +173,155 @@ func TestMessageLoopPromptRenderEvidencePersisted(t *testing.T) {
 		if !strings.Contains(row.TurnDirectives, freeStateTerminalTurnSentence) {
 			t.Fatal("persisted render evidence lost the per-turn terminal directive")
 		}
+		// A1c S4 diagnostic gap: the model context renders in the user turn,
+		// so the row must also carry the exact compact model snapshot (the
+		// lesson/observation sections never appear in system_prompt).
+		if row.ModelSnapshot == "" {
+			t.Fatal("persisted render evidence lost the model snapshot")
+		}
+		if !strings.Contains(row.ModelSnapshot, "\"schema_version\":\"vit_context_snapshot.v1\"") {
+			t.Fatalf("model snapshot is not the contextruntime projection: %s", row.ModelSnapshot)
+		}
 	}
 	if rows != 1 {
 		t.Fatalf("render rows = %d, want one per model turn", rows)
+	}
+}
+
+// readMessageLoopPromptRenderRows reads back the prompt-render diagnostic rows
+// written under the test's VIT_AGENT_PROMPT_RENDER_PATH override.
+func readMessageLoopPromptRenderRows(t *testing.T, path string) []messageLoopPromptRenderDiagnostic {
+	t.Helper()
+	file, err := os.Open(path)
+	if err != nil {
+		t.Fatalf("prompt render evidence missing: %v", err)
+	}
+	defer file.Close()
+	rows := []messageLoopPromptRenderDiagnostic{}
+	scanner := bufio.NewScanner(file)
+	scanner.Buffer(make([]byte, 0, 1024*1024), 16*1024*1024)
+	for scanner.Scan() {
+		var row messageLoopPromptRenderDiagnostic
+		if err := json.Unmarshal(scanner.Bytes(), &row); err != nil {
+			t.Fatalf("malformed render row: %v", err)
+		}
+		rows = append(rows, row)
+	}
+	if err := scanner.Err(); err != nil {
+		t.Fatalf("read render rows: %v", err)
+	}
+	return rows
+}
+
+// A1c S4 diagnostic gap: lesson_context renders in the model snapshot (user
+// turn), not in system_prompt. The prompt-render row must carry the snapshot so
+// the real-stack probe can assert card/node/selected clip reached the model.
+func TestMessageLoopPromptRenderDiagnosticCarriesLessonContext(t *testing.T) {
+	dir := t.TempDir()
+	renderPath := filepath.Join(dir, "prompt_render.jsonl")
+	t.Setenv("VIT_AGENT_PROMPT_RENDER_PATH", renderPath)
+	lesson := map[string]any{
+		"schema_version": contextruntime.LessonContextSchemaVersion,
+		"card":           map[string]any{"id": "first-run-twinkle", "title": "一个旋律的变奏"},
+		"node":           map[string]any{"id": "n1_read_and_fix", "title": "读谱纠错", "goal": "把识别错的音改对"},
+		"assets":         []map[string]any{{"id": "theme", "kind": "midi_reference"}},
+		"selected_clip":  map[string]any{"clip_id": "c_take_second", "track_id": "t1"},
+		"allowed":        []string{"mutate_midi_notes"},
+		"truncated":      false,
+	}
+	client := &fakeMessageCompleter{responses: []string{
+		`{"final":true,"reply":"这一关要把识别错的音改对。","free_state":{"schema_version":"free_state_decision.v1","status":"capability_blocked","evidence_status":"insufficient","summary":"lesson question answered from bounded context"}}`,
+	}}
+	loop := &MessageLoop{
+		Runtime: loopTestRuntime(),
+		Client:  client,
+		Config:  config.EngineConfig{BaseURL: "http://example.invalid", APIKey: "test", DefaultModel: "test"},
+		Budget:  Budget{MaxTurns: 1, MaxToolCalls: 1, MaxConsecutiveErrors: 2},
+	}
+	res := loop.Start(context.Background(), Input{
+		GoalID:       "goal-render-lesson",
+		RunID:        "run-render-lesson",
+		UserText:     "这一关为什么要把这个音改对？",
+		Summary:      "这一关为什么要把这个音改对？",
+		AllowedTools: []string{"ccb.observation_catalog"},
+		Context: map[string]any{
+			"task_contract":                 map[string]any{"kind": "improvement"},
+			"free_state_phase":              "fs4_diagnostic_round",
+			contextruntime.LessonContextKey: lesson,
+			"free_state_reasoning_loop": map[string]any{
+				"schema_version": "free_state_reasoning_loop.v1", "status": "reasoning", "original_intent": "这一关为什么要把这个音改对？",
+				"terminal_turn_locked": true, "terminal_turn_reason": "budget_critical",
+			},
+		},
+	})
+	if res.FreeStateDecision == nil {
+		t.Fatalf("fixture loop did not finish: status=%q err=%q", res.Status, res.Error)
+	}
+	rows := readMessageLoopPromptRenderRows(t, renderPath)
+	if len(rows) != 1 {
+		t.Fatalf("render rows = %d, want one per model turn", len(rows))
+	}
+	row := rows[0]
+	if row.Tag != "message_loop_neutral_family_selection" {
+		t.Fatalf("render row tag = %q", row.Tag)
+	}
+	if row.ModelSnapshot == "" {
+		t.Fatal("render row lost the model snapshot")
+	}
+	for _, want := range []string{
+		`"lesson_context"`,
+		`"vit.edu_jam.lesson_context.v1"`,
+		`"first-run-twinkle"`,
+		`"n1_read_and_fix"`,
+		`"clip_id":"c_take_second"`,
+		`"track_id":"t1"`,
+	} {
+		if !strings.Contains(row.ModelSnapshot, want) {
+			t.Fatalf("render row model_snapshot missing %s: %s", want, row.ModelSnapshot)
+		}
+	}
+	if !strings.Contains(row.SystemPrompt, "free_state_decision.v1") {
+		t.Fatal("persisted system prompt lost its decision contract body")
+	}
+}
+
+// Ordinary (non-free-state) turns must persist a non-empty model snapshot too:
+// the diagnostic field is the model-context evidence for every loop turn.
+func TestMessageLoopPromptRenderDiagnosticCarriesModelSnapshotOnOrdinaryTurns(t *testing.T) {
+	dir := t.TempDir()
+	renderPath := filepath.Join(dir, "prompt_render.jsonl")
+	t.Setenv("VIT_AGENT_PROMPT_RENDER_PATH", renderPath)
+	client := &fakeMessageCompleter{responses: []string{`{"final":true,"reply":"continued"}`}}
+	loop := &MessageLoop{
+		Runtime: loopTestRuntime(),
+		Client:  client,
+		Config:  config.EngineConfig{BaseURL: "http://example.invalid", APIKey: "test", DefaultModel: "test"},
+		Budget:  Budget{MaxTurns: 2, MaxToolCalls: 2, MaxConsecutiveErrors: 2},
+	}
+	res := loop.Start(context.Background(), Input{
+		GoalID:   "goal-render-ordinary",
+		RunID:    "run-render-ordinary",
+		UserText: "show me the project state",
+		Summary:  "show me the project state",
+		Context:  map[string]any{"initialized": true, "selected_track_id": "t1"},
+	})
+	if res.Reply != "continued" {
+		t.Fatalf("ordinary loop result = status=%q reply=%q stop=%q", res.Status, res.Reply, res.StopReason)
+	}
+	rows := readMessageLoopPromptRenderRows(t, renderPath)
+	if len(rows) != 1 {
+		t.Fatalf("render rows = %d, want one per model turn", len(rows))
+	}
+	row := rows[0]
+	if row.Tag != "message_loop_system" {
+		t.Fatalf("ordinary render row tag = %q", row.Tag)
+	}
+	if row.ModelSnapshot == "" {
+		t.Fatal("ordinary render row lost the model snapshot")
+	}
+	for _, want := range []string{`"schema_version":"vit_context_snapshot.v1"`, `"user_text":"show me the project state"`} {
+		if !strings.Contains(row.ModelSnapshot, want) {
+			t.Fatalf("ordinary render row model_snapshot missing %s: %s", want, row.ModelSnapshot)
+		}
 	}
 }
