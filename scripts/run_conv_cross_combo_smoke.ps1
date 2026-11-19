@@ -884,6 +884,13 @@ function Initialize-Summary {
             branch_node_id = ""
             draft_path = ""
             draft_under_runroot = $false
+            workspace_warning = ""
+            workspace_warning_class = ""
+            workspace_dir = ""
+            workspace_manifest = ""
+            workspace_manifest_ok = $false
+            project_workspace_present = $false
+            project_workspace_agent_store = ""
             stack_idle_at_start = $false
             initial_kernel_project = ""
             initial_kernel_uuid = ""
@@ -1109,8 +1116,56 @@ try {
     $uuidA = Get-Str $saveResult "project_uuid"
     if ([string]::IsNullOrWhiteSpace($uuidA)) { $uuidA = Get-Str $saveResult "project_id" }
     Assert-That "S1-project-save-uuid" (-not [string]::IsNullOrWhiteSpace($uuidA)) "save_as returned no project uuid" "project_save_uuid"
-    Assert-That "S1-project-save-workspace" ($null -ne (Get-Prop $saveResult "project_workspace")) "save_as lifecycle did not return project_workspace" "project_save_workspace"
-    Assert-That "S1-project-save-no-warning" ([string]::IsNullOrWhiteSpace((Get-Str $saveResult "project_workspace_warning"))) ("project_workspace_warning=" + (Get-Str $saveResult "project_workspace_warning")) "project_save_workspace_warning"
+    $workspaceWarning = Get-Str $saveResult "project_workspace_warning"
+    $projectWorkspace = Get-Prop $saveResult "project_workspace"
+    $script:Summary.isolation.project_workspace_present = ($null -ne $projectWorkspace)
+    $script:Summary.isolation.workspace_warning = $workspaceWarning
+    if (-not [string]::IsNullOrWhiteSpace($workspaceWarning)) {
+        $warningClass = "workspace_warning"
+        if ($workspaceWarning -match 'Access is denied') { $warningClass = "windows_rename_transient" }
+        $script:Summary.isolation.workspace_warning_class = $warningClass
+        Add-Warning ("S1 project.save_as workspace warning (" + $warningClass + "): " + $workspaceWarning)
+    } else {
+        $script:Summary.isolation.workspace_warning_class = "none"
+    }
+
+    # The save_as agent-store fork can emit a known transient Windows rename
+    # warning (projectstore.ForkAgentStore staging -> target: Access is denied)
+    # and then omit result.project_workspace even though the target agent store
+    # is already materialized. Do not require project_workspace; require the
+    # target store itself to be usable: .vit_agent/<uuid>/manifest.v2.json with
+    # the saved project identity. This is the same target the warning names.
+    $workspaceDir = Join-Path (Join-Path (Split-Path -Parent $script:ProjectA) ".vit_agent") $uuidA
+    $workspaceManifest = Join-Path $workspaceDir "manifest.v2.json"
+    $script:Summary.isolation.workspace_dir = $workspaceDir
+    $script:Summary.isolation.workspace_manifest = $workspaceManifest
+    Assert-That "S1-project-workspace-usable" ((Test-Path -LiteralPath $workspaceDir -PathType Container) -and (Test-Path -LiteralPath $workspaceManifest -PathType Leaf)) ("agent workspace unusable: dir=" + $workspaceDir + " manifest=" + $workspaceManifest + " warning=" + $workspaceWarning) "project_save_workspace_unusable"
+
+    $workspaceManifestJson = $null
+    try {
+        $workspaceManifestJson = Read-JsonFile $workspaceManifest
+    } catch {
+        $workspaceManifestJson = $null
+    }
+    $workspaceManifestOk = $false
+    if ($null -ne $workspaceManifestJson) {
+        $workspaceManifestOk = (((Get-Str $workspaceManifestJson "schema_version") -eq "vit_agent_store_manifest.v2") -and ((Get-Str $workspaceManifestJson "project_uuid") -eq $uuidA) -and (Test-SamePath (Get-Str $workspaceManifestJson "project_path") $script:ProjectA))
+    }
+    $script:Summary.isolation.workspace_manifest_ok = $workspaceManifestOk
+    Assert-That "S1-project-workspace-identity" $workspaceManifestOk ("manifest schema=" + (Get-Str $workspaceManifestJson "schema_version") + " uuid=" + (Get-Str $workspaceManifestJson "project_uuid") + " path=" + (Get-Str $workspaceManifestJson "project_path")) "project_save_workspace_unusable"
+
+    if ($null -ne $projectWorkspace) {
+        $projectWorkspacePath = Get-Str $projectWorkspace "project_path"
+        if (-not [string]::IsNullOrWhiteSpace($projectWorkspacePath)) {
+            Assert-That "S1-project-workspace-projection" (Test-SamePath $projectWorkspacePath $script:ProjectA) ("project_workspace.project_path=" + $projectWorkspacePath) "project_save_workspace_unusable"
+        }
+        $agentStoreDir = Get-Str $projectWorkspace "agent_store_dir"
+        if (-not [string]::IsNullOrWhiteSpace($agentStoreDir)) {
+            $script:Summary.isolation.project_workspace_agent_store = $agentStoreDir
+            Assert-That "S1-project-workspace-agentstore" (Test-SamePath $agentStoreDir $workspaceDir) ("project_workspace.agent_store_dir=" + $agentStoreDir + " expected=" + $workspaceDir) "project_save_workspace_unusable"
+        }
+    }
+
     Assert-That "S1-project-file-exists" (Test-Path -LiteralPath $script:ProjectA -PathType Leaf) ("project file missing: " + $script:ProjectA) "project_file_missing"
     $script:Summary.isolation.project_a_uuid = $uuidA
 

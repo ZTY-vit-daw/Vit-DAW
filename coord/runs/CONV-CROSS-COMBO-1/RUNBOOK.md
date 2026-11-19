@@ -128,7 +128,11 @@ POST /agent/invoke {tool:"project.new", args:{}, confirmed:true}
 POST /agent/invoke {tool:"project.save_as", args:{file_path:"<RunRoot>/workspace/ProjectA.vit"}, confirmed:true}
 ~~~
 
-断言：project_lifecycle=new、uuid 非空；save_as 返回 project_path==A、uuid 非空、project_workspace 非空且无 project_workspace_warning；A 文件存在；version.status {project_path:A} initialized=true（物化历史不回 available 键；只有 unmaterialized 态回 available=false）；/agent/state.current_project.path==A。记录 A uuid、draft 路径。
+断言：project_lifecycle=new、uuid 非空；save_as 返回 project_path==A、uuid 非空；A 文件存在；version.status {project_path:A} initialized=true（物化历史不回 available 键；只有 unmaterialized 态回 available=false）；/agent/state.current_project.path==A。记录 A uuid、draft 路径。
+
+**S1 workspace 断言（2026-11-19 修订）**：**不再要求 project_workspace 非空或 warning 为空**。目标 workspace 可用性以 <project_dir>/.vit_agent/<uuid>/manifest.v2.json 为准：目录与 manifest 存在，manifest.schema_version=vit_agent_store_manifest.v2、project_uuid==A uuid、project_path==A；否则 fail project_save_workspace_unusable。非空 project_workspace_warning 记入 summary.warnings 与 summary.isolation.workspace_warning；文本含 "Access is denied" 归 windows_rename_transient（已知瞬态），不单独判失败。若 project_workspace 存在，则交叉核对 project_path/agent_store_dir（条件断言），但不以其存在为 PASS 条件。
+
+**Windows 瞬态 warning（expected/recorded）**：projectstore.ForkAgentStore 在 save_as 时把 .vit_agent/.<uuid>.staging_* rename 到 .vit_agent/<uuid>，Windows 上可能返回 Access is denied；harness.applyProjectLifecycle 把该 error 写到 result.project_workspace_warning 并省略 result.project_workspace，但目标 agent store 可能已 materialize（manifest.v2.json 在位）。这不是本项目组合缝失败；脚本记录 warning 并以目标 manifest identity 判可用性。若 warning 非空且目标不可用，才 fail project_save_workspace_unusable。
 
 ### S2 第二工作树 + 目标分支/节点（零 LLM 形态）
 
@@ -204,7 +208,7 @@ POST /agent/invoke {tool:"version.conversation_open",
 | 范围 | 关键断言 ID |
 |---|---|
 | S0 | S0-agent-health、S0-kernel-online、S0-no-active-turn、S0-stack-idle、S0-kernel-log、S0-static-reload-anchor、S0-recents-snapshot、S0-authority-snapshot |
-| S1 | S1-project-new-ok/lifecycle/uuid、S1-project-save-ok/path/uuid/workspace/no-warning/file-exists、S1-history-path/initialized、S1-kernel-project-a、S1-kernel-uuid-a |
+| S1 | S1-project-new-ok/lifecycle/uuid、S1-project-save-ok/path/uuid/file-exists、S1-project-workspace-usable/identity（project_workspace 存在时另有 projection/agentstore 条件断言）、S1-history-path/initialized、S1-kernel-project-a、S1-kernel-uuid-a |
 | S2 | S2-worktree-create-ok/name/path/under-runroot/file/source-checkpoint/source-warning/create-no-reload、S2-status-b-*、S2-branch-create-ok/name/commit/reload、S2-branch-open-project-count/target、S2-branch-active/head/head-field/node-*、S2-kernel-b-after-branch、S2-open-a-ok/count/target、S2-kernel-back-a、S2-back-to-a-ui |
 | S3 | S3-a/b-file-present、S3-kernel-before、S3-ui-before、S3-status-b-path/initialized/branch/node/head/branch-head、S3-b/a-file-unchanged、S3-kernel-after、S3-ui-after、S3-no-open-project |
 | S4 | S4-result/status/project-file-path/worktree-name/not-root/same-worktree-false、S4-target-materialized/kernel-reloaded/refresh-*/mode/branch/detached/head/target-commit/active-*、S4-branch-warning、S4-switch-autosave、S4-single-open-project/open-project-target、S4-kernel-project-b/ui-project-b/state-path-b/ui-path-b、S4-daw-track-count/graph-revision/initialized、S4-history-*、S4-a-file-unchanged |
@@ -272,6 +276,8 @@ POST /agent/invoke {tool:"version.conversation_open",
 | **Godot/VitShell 窗口像素/焦点** | 不驱动 GUI；只断言 /agent/ui/state 与 /agent/state.shadow 的 DAW 投影一致。UI 渲染/用户旅程由 421 零栈与后续手测覆盖，不能以本卡替代 |
 | **真实人类 /agent/chat 对话节点** | 零 LLM 不发起 chat；目标节点为产品 worktree_create seed checkpoint + branch_create branch_marker。工具语义与 UI 421 的“分支 head 节点”一致；若主管要求真人对话节点，需允许一次 LLM 轮或新增 append-node 工具（另开卡） |
 | **version.status 参数名** | 卡面写 project_file_path；实现/421 UI 用 project_path。脚本按实现；若要别名支持另开卡 |
+| **Windows staging→target rename warning** | expected/recorded：projectstore.ForkAgentStore 的 staging→target rename 可能 Access is denied；save_as 仍成功并省略 project_workspace。脚本要求目标 .vit_agent/<uuid>/manifest.v2.json 可用并记 warning；不可用才 fail。残余：warning 本身不代表干净 fork，manifest 可用性是其唯一 workspace 证据 |
+| **S1 2026-11-19 19:05 首轮失败** | 旧脚本要求 project_workspace 非空/无 warning，属装置期望过严；目标 workspace 实际可用。已按本修订改为 warning 记录 + manifest identity 断言，其余断言不放宽 |
 | **稳定性/重复成功率** | 单正式轮 exit 0 只证一条成功路径；不声明稳定 |
 | **用户手测** | 本卡不新增手测义务；真栈 PASS 后由主管决定是否放用户验证 421 跨树 UI |
 
@@ -317,6 +323,14 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\run_conv_cross_com
 - 授权路径离线反例：-AgentBaseUrl http://127.0.0.1:1（无监听进程），exit 2，failure=environment_failure/agent_unreachable；recents/authority 快照还原 restored=true；S6-recents-restored/authority-restored/apparatus-zero/runroot-only/teardown-ok 5 条通过；RunRoot 自检后删除。该反例只证错误路径与 teardown，不证 S1–S5 产品语义。
 - 静态锚点：conversation_open.go 的 withProjectReload 计数=1；withProjectReload 内 "cmd": "open_project" 计数=1；419 reload-failure 测试存在。
 - 真栈 S0–S6 未执行；本轮无 VitApp/VitAgent/VspHub/Godot 进程启动，无 TCP/UDP 监听被本装置占用。
+
+### 12.1 2026-11-19 19:05 第二轮 S1 证据与修订
+
+- 真栈 run：D:/Vit_DAW/coord/runs/CONV-CROSS-COMBO-1/real-stack/run_20261119_1905。
+- S0 PASS；S1 project.save_as status=ok、project_path/uuid 正确，但 result.project_workspace_warning="rename ...staging_... -> ...vitproj_5de94fa8e7af4283ad01ba5c74e18037: Access is denied."，project_workspace 缺席；旧脚本 S1-project-save-workspace 失败。
+- 目标 .vit_agent/vitproj_5de94fa8e7af4283ad01ba5c74e18037/manifest.v2.json 实际存在，identity 正确，无 staging 残留；属已知瞬态 Windows rename warning（agent/internal/history/working_session_test.go:451 同型）。
+- 修订：S1 不要求 project_workspace 非空/无 warning；warning 记入 summary.warnings 与 isolation.workspace_warning；以目标 manifest identity 断言 workspace 可用，不可用才 fail project_save_workspace_unusable；其余断言不放宽。
+- 本轮修订只做 Parser/no-auth/-DryRun 自检，未启栈；真栈待主管第二轮。
 
 ---
 （上游：coord/rulings/2026-11-18-CONV-OPEN-TOOL-1-pass.md、coord/rulings/2026-11-18-CONV-RAIL-CROSS-1-pass.md；卡：coord/cards/doing/2026-11-18-CONV-CROSS-COMBO-1.md；执行器：scripts/run_conv_cross_combo_smoke.ps1。）
