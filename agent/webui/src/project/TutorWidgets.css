@@ -1,0 +1,102 @@
+/*
+ * TUTOR-SIM-3（池序 437）：导师进度/步骤输入卡样式。
+ * 作用域 .v5-project 之下；令牌来自 src/styles/tokens.css（v5 基座）。
+ * 只服务这两个对话流内控件，不改既有 project.css / 组件库规则。
+ */
+
+.v5-project-tutor {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.v5-project-tutor-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--v5-ui-plate);
+  border: 1px solid var(--v5-ui-border);
+  border-radius: var(--v5-radius-control);
+  font-size: var(--v5-t-caption);
+  color: var(--v5-ui-text);
+}
+
+.v5-project-tutor-progress-label {
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.v5-project-tutor-step {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: var(--v5-read-bg);
+  border: 1px solid var(--v5-ui-border);
+  border-radius: 8px;
+}
+
+.v5-project-tutor-step-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.v5-project-tutor-step-title {
+  font-size: var(--v5-t-caption);
+  font-weight: 700;
+  color: var(--v5-ui-text);
+}
+
+.v5-project-tutor-step-done {
+  font-size: var(--v5-t-caption);
+  font-weight: 700;
+  color: var(--v5-ui-text);
+}
+
+.v5-project-tutor-step-prompt {
+  margin: 0;
+  font-size: var(--v5-t-secondary);
+  line-height: 1.5;
+  color: var(--v5-ui-text);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.v5-project-tutor-step-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.v5-project-tutor-step-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--v5-composer-edge);
+  border-radius: var(--v5-radius-control);
+  background: var(--v5-read-bg);
+  color: var(--v5-ui-text);
+  font: inherit;
+  font-size: var(--v5-t-secondary);
+}
+
+.v5-project-tutor-step-input:focus-visible {
+  outline: 2px solid var(--v5-anchored-blue);
+  outline-offset: 1px;
+}
+
+.v5-project-tutor-step-input:disabled {
+  background: var(--v5-ui-canvas);
+  color: var(--v5-ui-muted);
+}
+
+.v5-project-tutor-step-note {
+  margin: 0;
+  font-size: var(--v5-t-caption);
+  line-height: 1.5;
+  color: var(--v5-ui-muted);
+}

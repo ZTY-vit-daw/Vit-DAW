@@ -37,6 +37,8 @@ import {
   nextProjectItemID,
   projectThreadItemsFromOutcome,
   reduceProject,
+  tutorProgressFromSteps,
+  tutorProgressFromWorkflowData,
   type ABActionView,
   type MacroCardView,
   type ProjectComposerState,
@@ -50,6 +52,8 @@ import {
 } from "./projectData";
 import { createProjectLiveService } from "./projectService";
 import { abReadyLabel } from "./projectFixtures";
+// TUTOR-SIM-3（437）：导师进度卡 + 步骤输入卡（对话流内控件；数据只来自 workflow_data）。
+import { TutorProgressCard, TutorStepCard } from "./TutorWidgets";
 // SHELL-6（池序 367）：工程面交互链复用 launcher 面的桥客户端与纯文案/视图件
 //（import-only，零修改 launcher/）。同一 ask_vit_launcher 契约、同一
 // vit_governance_required 页内治理载荷——宿主（VitShell LauncherBridge）对
@@ -887,6 +891,16 @@ export function ProjectSurface({
         tutorConversationsRef.current.set(tutorProjectPath, outcome.conversationID);
         tutorConversationRef.current = outcome.conversationID;
         const reply = outcome.reply.trim();
+        // TUTOR-SIM-3：start 回执的 step_index/step_total 直接生成 1/Y 进度与步骤卡；
+        // 字段非法时不落控件（fail-closed，不用回复文本猜测步骤）。
+        const startProgress = tutorProgressFromSteps(outcome.stepIndex, outcome.stepTotal, false);
+        if (startProgress) {
+          dispatch({
+            type: "tutorViewUpdated",
+            projectPath: tutorProjectPath,
+            view: { ...startProgress, prompt: reply }
+          });
+        }
         if (!reply) return;
         dispatch({ type: "vitReplied", id: nextProjectItemID("msg-tutor"), text: reply });
       })
@@ -907,6 +921,18 @@ export function ProjectSurface({
         // 承接卡——映射单点在 projectThreadItemsFromOutcome，不变式在那里断言）。
         // TUTOR-SIM-2：导师会话在场时用服务端签发的 conversation_id 走 tutor 分支。
         const outcome = await service.sendMessage(trimmed, tutorConversationRef.current ?? undefined);
+        // TUTOR-SIM-3：tutor 会话回执的 workflow_data 是进度唯一数据源（LLM 文本只做
+        // 步骤问题/反馈）。字段缺失/非法时保留上一次服务端状态。
+        if (outcome.workflow === "tutor_sim") {
+          const progress = tutorProgressFromWorkflowData(outcome.workflowData);
+          if (progress && tutorProjectPath) {
+            dispatch({
+              type: "tutorViewUpdated",
+              projectPath: tutorProjectPath,
+              view: { ...progress, prompt: outcome.text }
+            });
+          }
+        }
         const mapped = projectThreadItemsFromOutcome(outcome);
         dispatch({ type: "outcomeItemsArrived", items: mapped.items });
         // directive 到达即自动经桥执行（SHELL-5 语义平移到工程面；治理确认
@@ -925,7 +951,7 @@ export function ProjectSurface({
         void refreshConversationState();
       }
     },
-    [state.inputDisabled, state.replying, launchBusy, executeDirective, previewing, refreshConversationState]
+    [state.inputDisabled, state.replying, launchBusy, executeDirective, previewing, refreshConversationState, tutorProjectPath]
   );
 
   // 确认卡/建议入口要调 send：以 ref 解回调环（send 定义于桥执行块之后）。
@@ -957,6 +983,8 @@ export function ProjectSurface({
   const rootClass = ["v5-design v5-project", fill ? "v5-project--fill" : ""].filter(Boolean).join(" ");
   const contextName = state.context?.name ?? "";
   const contextSource = state.context?.source ?? "none";
+  // TUTOR-SIM-3：只渲染当前工程的导师控件（普通工程无条目 → 零 UI 变化）。
+  const tutorView = tutorProjectPath ? state.tutorViews[tutorProjectPath] ?? null : null;
 
   // CONV-RAIL-CROSS-1（421，B2b）：工程面左栏内容 = 工作区→工作树→分支对话流树
   //（数据=App 注入的 ui state + 其它工作树 version.status 懒加载缓存）；点击任何
@@ -1366,6 +1394,18 @@ export function ProjectSurface({
                 />
               );
             })}
+            {tutorView ? (
+              // key=工程路径：切换工程时重建步骤卡，未提交的草稿不跨工程泄漏。
+              <div key={tutorProjectPath} className="v5-project-tutor" data-project-tutor>
+                <TutorProgressCard view={tutorView} />
+                <TutorStepCard
+                  key={`tutor-step-${tutorView.stepIndex}`}
+                  view={tutorView}
+                  pending={state.replying}
+                  onSubmit={(value) => void send(value)}
+                />
+              </div>
+            ) : null}
             {notice ? (
               <p className="v5-project-notice" data-project-notice>
                 {notice}

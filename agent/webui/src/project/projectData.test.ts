@@ -13,6 +13,7 @@ import {
   reduceProject,
   replyAsksConfirmation,
   requestMacroApply,
+  tutorProgressFromWorkflowData,
   type MacroCardView,
   type ProjectSurfaceState,
   type ProjectThreadItem
@@ -403,6 +404,47 @@ describe("SHELL-6：projectThreadItemsFromOutcome 不变式（需要确认⇒可
   });
 });
 
+describe("TUTOR-SIM-3：workflow_data 进度解析", () => {
+  it("只看结构化 step_index/step_total/completed", () => {
+    expect(tutorProgressFromWorkflowData({ step_index: 1, step_total: 3, completed: false })).toEqual({
+      stepIndex: 1,
+      stepTotal: 3,
+      completed: false
+    });
+    expect(tutorProgressFromWorkflowData({ step_index: 2, step_total: 3, completed: false })).toEqual({
+      stepIndex: 2,
+      stepTotal: 3,
+      completed: false
+    });
+    expect(tutorProgressFromWorkflowData({ step_index: 3, step_total: 3, completed: true })).toEqual({
+      stepIndex: 3,
+      stepTotal: 3,
+      completed: true
+    });
+  });
+
+  it("缺字段/字符串数字/越界/非布尔 completed 一律 null（不猜测）", () => {
+    const invalid: unknown[] = [
+      null,
+      undefined,
+      {},
+      [],
+      "第 1/3 步",
+      { step_index: 0, step_total: 3, completed: false },
+      { step_index: 4, step_total: 3, completed: false },
+      { step_index: 2, step_total: 0, completed: false },
+      { step_index: "2", step_total: 3, completed: false },
+      { step_index: 2, step_total: "3", completed: false },
+      { step_index: 2, step_total: 3 },
+      { step_index: 2, step_total: 3, completed: "false" },
+      { step_index: 2.5, step_total: 3, completed: false }
+    ];
+    for (const value of invalid) {
+      expect(tutorProgressFromWorkflowData(value)).toBeNull();
+    }
+  });
+});
+
 describe("SHELL-6：治理/确认卡 reducer", () => {
   it("governanceRequested 幂等（同一 request_id 不叠卡）；作答一次固定", () => {
     let s = emptyProjectState();
@@ -414,6 +456,54 @@ describe("SHELL-6：治理/确认卡 reducer", () => {
     s = reduceProject(s, { type: "governanceAnswered", id: "g1", choice: "cancel" });
     const gov = s.thread.find((item) => item.kind === "governance");
     expect(gov && gov.kind === "governance" && gov.answered).toBe("switch");
+  });
+
+  it("TUTOR-SIM-3：tutorViewUpdated 按工程隔离，空路径/非法进度零变化", () => {
+    let s = emptyProjectState();
+    s = reduceProject(s, {
+      type: "tutorViewUpdated",
+      projectPath: "D:/fixtures/tutor-a.vit",
+      view: { stepIndex: 1, stepTotal: 3, completed: false, prompt: "第 1 步问题" }
+    });
+    s = reduceProject(s, {
+      type: "tutorViewUpdated",
+      projectPath: "D:/fixtures/tutor-b.vit",
+      view: { stepIndex: 2, stepTotal: 3, completed: false, prompt: "B 工程" }
+    });
+    expect(s.tutorViews["D:/fixtures/tutor-a.vit"]).toEqual({
+      stepIndex: 1,
+      stepTotal: 3,
+      completed: false,
+      prompt: "第 1 步问题"
+    });
+    expect(s.tutorViews["D:/fixtures/tutor-b.vit"]?.stepIndex).toBe(2);
+
+    // 空 prompt 保留上一次问题（服务端空回复不回空问题）。
+    s = reduceProject(s, {
+      type: "tutorViewUpdated",
+      projectPath: "D:/fixtures/tutor-a.vit",
+      view: { stepIndex: 2, stepTotal: 3, completed: false, prompt: "" }
+    });
+    expect(s.tutorViews["D:/fixtures/tutor-a.vit"]).toEqual({
+      stepIndex: 2,
+      stepTotal: 3,
+      completed: false,
+      prompt: "第 1 步问题"
+    });
+
+    const before = s;
+    s = reduceProject(s, {
+      type: "tutorViewUpdated",
+      projectPath: "",
+      view: { stepIndex: 3, stepTotal: 3, completed: true, prompt: "x" }
+    });
+    expect(s).toBe(before);
+    s = reduceProject(s, {
+      type: "tutorViewUpdated",
+      projectPath: "D:/fixtures/tutor-a.vit",
+      view: { stepIndex: 9, stepTotal: 3, completed: false, prompt: "越界" }
+    });
+    expect(s).toBe(before);
   });
 
   it("confirmAnswered 一次固定，不重放", () => {
