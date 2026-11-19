@@ -529,7 +529,7 @@ func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Resu
 		// ordinary runs alike), with the round identity and the stable
 		// section tag — closing the CONVDIAG "final-window rendering is
 		// unverifiable" gap.
-		appendMessageLoopPromptRenderDiagnostic(state, assembly)
+		appendMessageLoopPromptRenderDiagnostic(state, assembly, modelSnapshotJSON)
 		assemblyChars := 0
 		messageCharParts := make([]string, 0, len(assembly.Messages))
 		for index, message := range assembly.Messages {
@@ -4856,12 +4856,18 @@ type messageLoopPromptRenderDiagnostic struct {
 	// the user turn. Rows written before the split have no field (empty on
 	// read); their per-turn pieces were still inside system_prompt.
 	TurnDirectives string `json:"turn_directives,omitempty"`
+	// ModelSnapshot is the exact compact model-context JSON sent to the model
+	// for this turn (the buildModelContextSnapshot output, i.e. the planner /
+	// user-section payload). system_prompt alone cannot prove lesson or
+	// observation context reached the model because those sections render in
+	// the user turn; A1c S4's first run read lesson=False for that reason.
+	ModelSnapshot string `json:"model_snapshot,omitempty"`
 }
 
 // appendMessageLoopPromptRenderDiagnostic writes the per-turn prompt-render
 // evidence (BOUNDARY-1 §3.1). D1 runs and ordinary runs both flow through
 // this one assembly point, so both are covered.
-func appendMessageLoopPromptRenderDiagnostic(state *runState, assembly promptruntime.Assembly) {
+func appendMessageLoopPromptRenderDiagnostic(state *runState, assembly promptruntime.Assembly, modelSnapshot string) {
 	path := messageLoopPromptRenderPath()
 	if path == "" || state == nil {
 		return
@@ -4896,6 +4902,7 @@ func appendMessageLoopPromptRenderDiagnostic(state *runState, assembly promptrun
 		Fingerprint:    assembly.Fingerprint,
 		SystemPrompt:   system,
 		TurnDirectives: directives,
+		ModelSnapshot:  modelSnapshot,
 	}
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 		return
