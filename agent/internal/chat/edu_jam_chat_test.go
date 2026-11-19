@@ -937,7 +937,9 @@ func TestEduJamLessonContextInjectedOnOrdinaryTurn(t *testing.T) {
 		t.Fatalf("fixture allows 9 boundary entries; truncated = %v", lesson["truncated"])
 	}
 	clip, _ := lesson["selected_clip"].(map[string]any)
-	if clip["clip_id"] != "c_focus" || clip["track_id"] != "track_selected" {
+	// selected_clip_track_id 属于 conversation.intent.selectedClipTrackID 的第二
+	// 优先级，优先于 selected_track_id（本用例两键同时在场）。
+	if clip["clip_id"] != "c_focus" || clip["track_id"] != "track_clip" {
 		t.Fatalf("selected_clip = %v", clip)
 	}
 	raw, err := json.Marshal(lesson)
