@@ -15,7 +15,8 @@ import type {
   ProjectChatOutcome,
   ProjectContextView,
   ProjectService,
-  ProjectThreadItem
+  ProjectThreadItem,
+  TutorStartOutcome
 } from "./projectData";
 
 export interface ProjectFixtureConfig {
@@ -27,6 +28,12 @@ export interface ProjectFixtureConfig {
   chatOutcome?: ProjectChatOutcome;
   /** 发送过的消息台账（SHELL-6 确认卡点击发送断言用；由调用方读）。 */
   sentMessages?: string[];
+  /** TUTOR-SIM-2：发送时使用的 conversation_id 台账（断言导师会话寻址）。 */
+  sentConversationIDs?: (string | undefined)[];
+  /** TUTOR-SIM-2：自动开场回执；省略 = unavailable（fixture 不触网）。 */
+  tutorStart?: TutorStartOutcome;
+  /** TUTOR-SIM-2：自动开场调用台账（工程路径；断言每工程一次）。 */
+  tutorStartCalls?: string[];
   /** 应用宏的 fixture 回执（成功带 snapshotRef / 失败带 reason）。 */
   applyOutcome?: MacroApplyOutcome;
   /** 撤销是否成功（false 时抛错，用于样例失败态）。 */
@@ -56,12 +63,20 @@ export function createProjectFixtureService(config: ProjectFixtureConfig = {}): 
       if (!config.context) throw new Error("fixture 未配置工程上下文（context）");
       return config.context;
     },
-    async sendMessage(text: string): Promise<ProjectChatOutcome> {
+    async sendMessage(text: string, conversationID?: string): Promise<ProjectChatOutcome> {
       await delay(latency);
       sendCount += 1;
       config.sentMessages?.push(text);
+      config.sentConversationIDs?.push(conversationID);
       if (config.chatOutcome) return config.chatOutcome;
       return { text: config.reply ?? `（fixture 回执）收到：「${text}」。` };
+    },
+    async startTutorSim(projectPath: string): Promise<TutorStartOutcome> {
+      // fixture 服务替身不触网：默认返回 unavailable（普通工程语义）。
+      await delay(latency);
+      config.tutorStartCalls?.push(projectPath);
+      if (config.tutorStart) return config.tutorStart;
+      return { status: "unavailable", reason: "fixture_tutor_sim_unavailable" };
     },
     async stopReply(): Promise<void> {
       await delay(latency);

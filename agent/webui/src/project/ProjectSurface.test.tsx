@@ -234,6 +234,16 @@ describe("fixture 服务替身", () => {
     const svc = createProjectFixtureService({});
     await expect(svc.fetchContext()).rejects.toThrow("fixture 未配置工程上下文");
   });
+
+  it("TUTOR-SIM-2：默认 startTutorSim 返回 unavailable（fixture 替身不触网）", async () => {
+    const tutorStartCalls: string[] = [];
+    const svc = createProjectFixtureService({ tutorStartCalls });
+    await expect(svc.startTutorSim("D:/fixtures/tutor-sim-436.vit")).resolves.toEqual({
+      status: "unavailable",
+      reason: "fixture_tutor_sim_unavailable"
+    });
+    expect(tutorStartCalls).toEqual(["D:/fixtures/tutor-sim-436.vit"]);
+  });
 });
 
 /* ── SHELL-6（池序 367）：工程面交互卡渲染——治理三键卡/确认承接卡/

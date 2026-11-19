@@ -32,6 +32,9 @@ export interface ProjectContextView {
   source: "agent" | "fixture";
   /** 可选的次要信息（一行元信息最多两项，§3）。 */
   detail?: string;
+  /** TUTOR-SIM-2（436）：工程文件绝对路径（live 来自 ui_state.project.project_path）。
+   * 自动开场的「每工程一次」触发器；fixture/旧调用不传 = 不触发。 */
+  path?: string;
 }
 
 /** 执行轨迹（SPEC-V5 §4.2.1 / §8.2）：busy 有当前步，done/error 收成回执行。 */
@@ -470,11 +473,28 @@ export interface ProjectChatOutcome {
   needsConfirmation?: boolean;
 }
 
+/** TUTOR-SIM-2（436）：自动开场接缝回执。
+ * unavailable = 工程无 sidecar / LLM 配置缺失 / 请求失败——UI 必须静默。 */
+export type TutorStartOutcome =
+  | {
+      status: "ok";
+      conversationID: string;
+      reply: string;
+      stepIndex: number;
+      stepTotal: number;
+      stepID: string;
+    }
+  | { status: "unavailable"; reason?: string };
+
 export interface ProjectService {
   /** 工程上下文（live: GET /agent/ui_state → project）。 */
   fetchContext(): Promise<ProjectContextView>;
-  /** 发送一句对话（live: POST /agent/chat，本 surface 会话）——SHELL-6 起返回完整回执载荷。 */
-  sendMessage(text: string): Promise<ProjectChatOutcome>;
+  /** 发送一句对话（live: POST /agent/chat，本 surface 会话）——SHELL-6 起返回完整回执载荷。
+   * TUTOR-SIM-2：传 conversationID 时用它寻址（导师会话）；省略 = 本 surface 普通会话。 */
+  sendMessage(text: string, conversationID?: string): Promise<ProjectChatOutcome>;
+  /** TUTOR-SIM-2：自动开场（live: POST /agent/tutor/start）。不可用/失败必须返回
+   * unavailable，不抛错、不发假消息；fixture 默认实现不触网。 */
+  startTutorSim(projectPath: string): Promise<TutorStartOutcome>;
   /** 停止当前回复（live: POST /agent/stop_turn）。 */
   stopReply(): Promise<void>;
   /** 应用宏（fixture：接缝回执；live 无快照协议 → 必须由 fixture/后续卡接入，不伪造）。 */
