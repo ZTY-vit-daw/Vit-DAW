@@ -43,3 +43,12 @@
 - 文件域：`agent/internal/chat/edu_jam_chat.go`、`agent/internal/edu/jam_state.go`、`agent/internal/chat/edu_jam_chat_test.go`（如需新测试文件限 `agent/internal/edu/*_test.go`）。
 - 执行侧只推 `codex/*` 分支，不合入 main；回执≤15行。
 
+## A1a 验收（2026-11-19）
+
+- commit `66ad1d66`（分支 `codex/w02-a1a-clip-432`）→ main `c73f53b2`；4 文件。
+- 主管亲跑：`go test ./internal/edu ./internal/chat -count=1` exit 0（edu 0.586s / chat 119.996s）；`go build ./...` exit 0。
+- 证据：[RECEIPT](../../runs/W02-A1a/RECEIPT.md)、[裁定](../../rulings/2026-11-19-W02-A1a-selected-clip-pass.md)。
+- 边界：跨槽选中=披露+回落首 clip（卡面口径）；用户可见文案未加 disclosure；真实栈 A1c 未做。
+- 432 保持 doing；下一步 A1b（有界课程上下文注入，先定 prompt 路径）或 A1c。
+
+

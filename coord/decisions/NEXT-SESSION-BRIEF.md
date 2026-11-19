@@ -1,8 +1,8 @@
 # NEXT-SESSION-BRIEF（下次会话入口；gate 时更新）
 
-- 更新：2026-11-19 18:30（Asia/Shanghai）；上次 gate：`coord/reports/2026-11-18-gate-2215.md`。
-- main：`745b6265`（本文件提交后以实际 HEAD 为准）；webui dist 不变 `FA293DB3…304E`。
-- 栈：空闲（teardown 后 Vit 系进程 0；TCP 7878/7879/8787/5555/5556/9333=0；UDP 4445=0）；无运行中子代理/后台 job。
+- 更新：2026-11-19 18:58（Asia/Shanghai）；上次 gate：`coord/reports/2026-11-18-gate-2215.md`。
+- main：`c73f53b2`（本文件提交后以实际 HEAD 为准）；webui dist 不变 `FA293DB3…304E`。
+- 栈：空闲（teardown 后 Vit 系进程 0；TCP 7878/7879/8787/5555/5556/9333=0；UDP 4445=0）；w02clip 已完成，combo422 在飞。
 
 ## 用户已定事项
 
@@ -13,11 +13,11 @@
 
 ## 未结/下一首排
 
-1. **422 CONV-CROSS-COMBO-1**（todo）：B2b 跨工作树真栈组合验证；先写 runbook+脚本（零栈），再候栈窗口；421/419 已合入。
-2. **W02 最小切片**：设计卡已落 [432 W02-A1](../cards/todo/2026-11-19-W02-A1-LESSON-CTX-CLIP-1.md)——审计发现选中 clip 未消费、pullback 注入不达模型；建议先派 A1a（选中 clip 绑定，零栈可测），A1b 另定 prompt 路径；W18 不在 A1 依赖内。
+1. **422 CONV-CROSS-COMBO-1**（doing）：B2b 跨工作树真栈组合验证；runbook+脚本 worker（combo422）在飞，脚本就绪后 lead 登记栈位跑真栈；421/419 已合入。
+2. **W02 最小切片**：432 W02-A1 在 [doing](../cards/doing/2026-11-19-W02-A1-LESSON-CTX-CLIP-1.md)；**A1a 选中 clip 绑定已 PASS（main c73f53b2，[裁定]** `coord/rulings/2026-11-19-W02-A1a-selected-clip-pass.md`**）**；A1b 需先定 prompt 渲染路径，A1c 真实栈候栈；W18 不在 A1 依赖内。
 3. **425 装置债**：berth 启动前复制并还原 `Settings.xml`/`default_project.xml`；425 脚本内建 A/B 创建或 setup 前置隔离；`default_project.xml` 已被内核改为空白默认（预跑为六 stems 测试残留，非用户工程；仅存哈希无法逐字节还原）——**用户 2026-11-19 已裁定接受空白默认**。详见 `coord/runs/G0-LEGAME-BIND-1/real-stack/run_20261119_1818/DEVICE-NOTES.md`。
 4. 用户节点：390 YuE instrumental 真栈生成+人耳；384 M2/点音色演示；材料听核。
-5. 旧池未动：doing 8 / blocked 6；POOL-INDEX 397–431 回填留 gate。
+5. 旧池未动：doing 9 / blocked 6；POOL-INDEX 397–431 回填留 gate。
 
 ## 读入口（按序，不读全史）
 

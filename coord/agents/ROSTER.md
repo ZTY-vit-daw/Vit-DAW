@@ -1,6 +1,6 @@
 # 子代理名册（复用优先）
 
-> 用途：主管发卡前先查此表，优先 `send_message` 复用同一产线子代理；新卡/完结后更新。最后更新：2026-11-18 22:20。
+> 用途：主管发卡前先查此表，优先 `send_message` 复用同一产线子代理；新卡/完结后更新。最后更新：2026-11-19 18:58。
 
 | owner | 产线 | worktree / 分支 | 最近任务 | 状态 |
 |---|---|---|---|---|
@@ -10,6 +10,8 @@
 | `materials420` | 教学材料线 | pc420-materials | 420 材料批2-4 PASS | inactive（可续） |
 | `railb1` | 入口壳层 B1 | pc417-rail | 417 B1 PASS | inactive（可续） |
 | `convopen419` | agent 组合工具 | pc419-open | 419 conversation_open PASS | inactive（可续） |
+| `w02clip` | W02 乐局上下文/clip | pc432-clip / codex/w02-a1a-clip-432 | 432 A1a PASS 66ad1d66 | inactive（可续） |
+| `combo422` | 422 跨工作树验证装置 | pc422-combo / codex/conv-cross-combo-422 | 422 runbook/脚本 | running |
 | `entry413` / `ringfix416` / `presmerge412` / `producer410` / `ready411` | 窗口线旧执行 | 各自 worktree | 已结案 | inactive（一般不再复用） |
 
 ## 复用规则
