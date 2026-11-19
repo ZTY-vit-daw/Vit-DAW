@@ -7,10 +7,11 @@
 - 交付：本文件 + [`scripts/run_w02_a1c_smoke.ps1`](../../../scripts/run_w02_a1c_smoke.ps1)。
 - 状态：**真栈轮未运行（候 lead 登记栈位并授权）**；零栈验收已在本 worktree 跑完（见 §8）。
 - 2026-11-19 首轮后修：S4 主取证改为 `agent_prompt_render.jsonl`（S0 路径/偏移、S4 新增行解析）；已知当前诊断只记 system 消息，`lesson_context` 实际在 user 模型快照（§6 G4）。
+- 2026-11-19 A2a 扩展：新增 `-QuestionMode status|work`（默认 `status`，A1c S0–S6 行为/断言不变）。`work` 复用 S0–S3 后走 **S4W**：对选中 clip 的实际音符做一次真实 LLM 作品反馈，并要求 notes 读取回执；S5/S6 不跑。专项 RUNBOOK 见 [`coord/runs/W02-A2a/RUNBOOK.md`](../W02-A2a/RUNBOOK.md)。
 
 ## 0. 一句话结论
 
-执行器已就绪：在没有 `-StackAuthorized` 时只打印 runbook 摘要并 `exit 3`，`-DryRun` 只打印计划并 `exit 0`；授权后对**已存在的**真实栈走 S0–S6，最多消耗**一次真实 LLM 正式用户回合**（S4），所有失败按类退出，不以首个 clip、模板回复或缺失取证冒充 PASS。
+执行器已就绪：在没有 `-StackAuthorized` 时只打印 runbook 摘要并 `exit 3`，`-DryRun` 只打印计划并 `exit 0`；授权后对**已存在的**真实栈走 S0–S6（`status`，默认）或 S0–S3+S4W（`work`），最多消耗**一次真实 LLM 正式用户回合**（S4/S4W），所有失败按类退出，不以首个 clip、模板回复、缺失取证或未读 notes 的“听感”冒充 PASS。
 
 ## 1. 前置与硬边界
 
@@ -54,17 +55,18 @@
 | `-RunRoot` | 空 | 空=`%TEMP%\vit_w02_a1c\run_<stamp>`；也可指向 `coord/runs/W02-A1c/real-stack/run_<stamp>`（工件不提交）。 |
 | `-StackAuthorized` | 关 | 授权模式；缺省只打印 runbook 摘要并 exit 3。 |
 | `-DryRun` | 关 | 只打印计划；不 HTTP、不写 RunRoot、不占端口；exit 0。`-DryRun` 优先于未授权门。 |
+| `-QuestionMode` | `status` | `status`=A1c S0–S6 原语义（行为/断言不变）；`work`=S0–S3 + S4W 作品反馈（W02-A2a），S5/S6 不跑。非法值由 `ValidateSet` 拒绝。 |
 
 ## 3. 退出码与失败分类
 
 | 退出码 | 类别 | 含义 |
 |---|---|---|
-| 0 | PASS | S0–S6 全部断言通过，teardown 还原完成；唯一一次 LLM 正式用户回合成功且取证完整。 |
+| 0 | PASS | status：S0–S6 全部断言通过，teardown 还原完成；唯一一次 LLM 正式用户回合成功且取证完整。work：S0–S3 + S4W 全部断言通过，且选中 clip 的 notes 读取回执至少命中一个证据面（`agent_events`/`prompt_render_tool_result`/`executed_kernel_reply`）。 |
 | 1 | `assert` | 确定性产品/契约断言失败（stop_reason、clip_scope、clip_ids、节点推进等）。 |
 | 2 | `preflight`/`http`/`teardown` | 栈不可达、busy/dirty、HTTP 失败、快照/还原失败、teardown 时仍有 active turn。按环境中断处理，不归因模型。 |
 | 3 | 未授权 | 默认无 `-StackAuthorized`；只打印摘要，零 HTTP、零写盘。 |
 | 4 | `llm` | S4 真实 LLM 类失败：超时、空回复、`stop_reason` 非 `done`。telemetry error 记录并披露，不单独推翻 done+reply+lesson_context 三件套。 |
-| 5 | `evidence`/`api`/`s6` | 取证/API 覆盖缺口：prompt render 新行无 lesson_context、编译卡形态不支持、S6 因 `opened_at` 已置而无法在不花第二轮 LLM 的情况下取证等。**不伪 PASS**。 |
+| 5 | `evidence`/`api`/`s6` | 取证/API 覆盖缺口：prompt render 新行无 lesson_context、编译卡形态不支持、S6 因 `opened_at` 已置而无法在不花第二轮 LLM 的情况下取证等。**不伪 PASS**。work 追加：未读 notes 却声称具体音符=假反馈（exit 5）；模型诚实说需要更多信息=`status=model_boundary`（exit 5，交 lead 裁定，不伪 PASS）。 |
 
 > 选择 `select_clip` 失败不单独致命：它是 UI-only 动作（§6 G1），脚本记录错误并继续用 `/agent/chat` context 绑定；S3 的 `clip_scope=selected`/`clip_ids` 才是选中生效的判据。
 
@@ -123,6 +125,24 @@
 - 可选证据：`agent_prompt_render.jsonl` 命中字段/行数；`agent_llm_telemetry.jsonl` 新增行的 `conversation_id/model/usage/error`（error 非空=记录并披露；无行=记录边界；二者都不单独推翻 done+reply+lesson_context 三件套）。
 - 证据：`responses/*s4_question*.json`、`evidence/s4_prompt_render.jsonl`、`evidence/s4_lesson_context.json`、可选 `evidence/s4_context_snapshot.json`、`summary.s4`。
 
+### S4W work 模式作品反馈（W02-A2a，仅 `-QuestionMode work`）
+
+- 复用 S0–S3，不改导入/开局/双 clip/选中 second；**S5/S6 不跑**（A1c status 模式覆盖）。
+- 发送**一个**非命令自然问题（S4W 探针规则与 S4 相同：首次若是 `edu_jam_recovery_broadcast` 仅再发一次同一问题作为唯一正式 LLM 回合；首次 `done` 即正式回合）：
+  `我选中了这段旋律：它的具体音高和时值走向是什么？请基于实际音符给我一个修改建议。`
+- 断言：正式轮 `stop_reason=done`、reply 非空；`agent_prompt_render.jsonl` 新增行含 `lesson_context`，且 `schema_version=vit.edu_jam.lesson_context.v1`、`card.id=card_id`、`node.id=当前节点`、`selected_clip.clip_id=second`（有 `track_id` 则=target）。work 模式不使用 legacy context-snapshot fallback；无 prompt render 行=exit 5。
+- **notes 读取回执（PASS 前提）**：以下三个证据面至少一个命中“选中 clip 的 notes 读取”（clip_id 必须是 second）：
+  1. `GET /agent/events?conversation_id=&since=<水印>&limit=500` 的 `item.completed`：`payload.tool`/`payload.command_name` ∈ notes 工具集（`get_midi_clip_notes`/`midi.read_notes`/`midi.read_clip_notes`/`get_midi_clip_data`/`midi.read_clip_data`），status=completed、无 error；
+  2. `agent_prompt_render.jsonl` 新增行的**同一字段**内同时含 `<tool_result>`（或 Go 转义形态 `\u003ctool_result\u003e`）、notes 工具名、second clip_id（模型输入确实收到 notes）；
+  3. `response.executed_kernel_reply` 含 notes 工具名 + second clip_id。
+  kernel log 新增片段（S4W 前偏移）中 `"cmd":"get_midi_clip_notes"`+`"clip_id":"<second>"` **只作支持证据**（确定性 observer 也可能读 notes），单独命中不算 PASS。
+- **假反馈判定（fail-honest）**：无 notes 回执、无诚实边界标记，且 reply 含第一人称感知/音符断言（`我看到/我听到/听过/看过/我看了/音高是/音高为/时值是/这段旋律是/音符是` 等）或具体音符特征（`67/71/74/G4/B4/D5/二分/八分/2拍/半拍/1.5拍`）→ `feedback_honesty=claimed_without_notes_read`，exit 5，不伪 PASS。
+- **诚实边界**：无 notes 回执、也没有上述假反馈标记 → `status=model_boundary`、`failure_class=evidence`、exit 5；summary 明确 `outcome=model_boundary`，由 lead 裁定是否算 PASS，脚本不代判。
+- 回复内容只做**宽容关键词记录**（音高/时值/走向/旋律/节奏/音符/修改建议/建议/上行/下行/级进/跳进/长音/短音；具体音符特征另记），不是 PASS 门槛。
+- 记录：`probe/stop_reason/goal_status/completed_steps/turn_id/run_id/reply`、`executed_kernel_reply_count/names`、`tool_call_count/tool_calls`（全部工具事件）、`notes_read_sources`、`kernel_notes_read`、`feedback_honesty`、`lesson_context`。
+- 证据：`responses/*s4w*.json`、`evidence/s4w_prompt_render.jsonl`、`evidence/s4w_prompt_render_appended.jsonl`、`evidence/s4w_lesson_context.json`、`evidence/s4w_agent_events.json`、`evidence/s4w_kernel_log_work.txt`、`evidence/s4w_prompt_tool_results.json`、`evidence/s4w_work_feedback.json`、`summary.s4w`。
+- 专项执行说明见 [`coord/runs/W02-A2a/RUNBOOK.md`](../W02-A2a/RUNBOOK.md)。
+
 ### S5 失败语义（不假通过）
 
 - **S5a 无选中控制**：当前 clip 节点发 `写好了`，context 为空；断言 `edu_jam_node_done`、`clip_scope=first`、`clip_ids[target]=first`、`selected_clip_id` 缺席；记录 `selected_used=false`、`pass_basis=first_clip_of_target_slot`。这是控制组，**不是**选中 clip 的 PASS。
@@ -152,6 +172,7 @@
 
 - **轮数**：S4 恰好一次 LLM 正式**用户回合**（内部 semantic entry/agent loop 的多次模型调用不另起用户回合）。S4 的第一次 HTTP 调用若是 `edu_jam_recovery_broadcast`（确定性、零 LLM），才允许再发一次同一问题；第一次是 `done` 时它就是唯一正式回合，不重发。其他 stop_reason 立即 exit 4。
 - **成功条件**：`stop_reason=done` + 非空 reply + 新增 `lesson_context` 快照（schema/card/node/selected clip）。三者缺一不算 PASS。
+- **work 模式**：轮数规则相同；S4W 的 notes 工具调用是**同一正式用户回合内部**的模型步骤，不另起用户回合、不追加提问。未读 notes 时按 §4.7 判假反馈（exit 5）或 `model_boundary`（exit 5），不重试第二轮。
 - **失败分类**：LLM 超时（4）、空回复（4）、stop_reason 非 done（4）；context 快照缺失（5）；HTTP/栈/还原（2）；确定性断言（1）；telemetry error 记录并披露，不单独改写 done 结论。
 - **不重试**：失败即停、保留原工件；不原样重跑。同一代码版本在同一确定性断点连续失败两次后，按 `AGENTS.md` §8 先补代码锚点/缩小假设/拆取证卡，不得继续消耗轮次。
 - **不硬套文案**：reply 只记录宽容关键词；不以“回复里出现某个词”替代 `lesson_context` 取证。
@@ -168,6 +189,8 @@
 | G5 | 本设计编译卡的 clip 节点只有 `clip_exists`/`track_non_empty`，没有 judge 叶；first/second 的音符差异不改变 pass/fail | 编译卡（`n2-rhythm`/`n3-contours`/`n4-develop` 均为 `structure: clip_exists, clip: melody-track`）；`agent/internal/legamedesign/compile_card.go:640-682` | S3 用 `clip_ids[target]=second`+`clip_scope=selected`+"两 clip 音符签名不同"取证；明确记录“无 notes judge 差分”，不伪造 |
 | G6 | `project.new`/`save_as` 后活动工程留在 A，没有 HTTP “关闭工程/恢复上一工程”命令 | `agent/internal/tools/catalog.go:1067-1072`；`VitApp/Source/Service/VitHeadlessService.cpp:1119-1199` | 不擅自重开用户工程（避免写 RunRoot 外）；在 summary 记录“active project=A”；由 owner 停栈/重开 |
 | G7 | 脚本不拥有栈进程，无法自行证明 process/TCP/UDP 全零 | — | teardown 只断言“无 active turn + 会话关闭 + 文件/authority 还原”；进程/端口零由 owner 停栈后核 |
+| G8 | `/agent/chat` 响应没有逐回合工具调用清单；工具回执只在 `/agent/events`（进程内每会话 500 条环形缓冲，进程重启即丢）、`agent_prompt_render.jsonl` 的 `<tool_result>`（仅模型再调用时出现）和 kernel log 中 | `agent/internal/chat/events.go:16`（`agentEventBufferLimit=500`）、`events.go:225-319`（`item.started/completed`）、`agentloop/message_loop.go:6446-6464`（`<tool_result>` 模型消息）；`ChatResponse.ExecutedKernelReply` `agent/internal/chat/server.go:328` | work 模式把 `agent_events`/`prompt_render_tool_result`/`executed_kernel_reply` 作为三个 PASS 证据面，kernel log 只作支持证据；事件读取失败不伪 PASS（记 `agent_events_error`，其余证据面继续）。**当前 `/agent/chat` 无“本轮所有 tool_calls”一等字段=API 缺口**。 |
+| G9 | `lesson_context` 明确不含 notes（`selected_clip` 只有 clip_id/track_id，`truncated=true`）；模型必须自行调用 notes 工具才能对“实际音符”作答 | A1c 实跑 `evidence/s4_lesson_context.json`；`chat/edu_jam_chat.go:171-175`（注入有界 lesson_context） | work 模式以 notes 读取回执为 PASS 前提；若模型/工具面在 free-state 问题轮不提供 notes 读取能力，会表现为 `model_boundary`（exit 5），不得补假证据。需要产品注入 notes 则另开产品卡。 |
 
 ## 7. 工件与证据链
 
@@ -185,13 +208,20 @@ run_<stamp>/
     s4_context_snapshot.json         # 命中 lesson_context 的那一行快照
     s4_context_snapshots_appended.jsonl
     s4_prompt_render_appended.txt    # 可选
+    s4w_prompt_render.jsonl          # work：命中 lesson_context 的模型输入行
+    s4w_prompt_render_appended.jsonl # work：本轮新增 prompt render 原文
+    s4w_lesson_context.json          # work：lesson_context 实体
+    s4w_agent_events.json            # work：/agent/events 新增工具事件
+    s4w_prompt_tool_results.json     # work：模型输入里的 <tool_result> 命中
+    s4w_kernel_log_work.txt          # work：S4W 窗口 kernel log
+    s4w_work_feedback.json           # work：notes_read/诚实性/回复/工具调用汇总
     kernel_log_appended.txt          # 可选
   W02-A1c-A-<stamp>.vit              # 隔离工程 A
   W02-A1c-A-<stamp>.vit_project/     # 项目包（编译卡/binding 在这里）
   summary.json                       # 唯一结论面
 ```
 
-`summary.json` 关键字段：`status`、`failure_class`、`error`、`card_id`、`compiled_card`、`binding_path`、`preflight`、`s1…s6`、`teardown`。所有结论都能回指 `requests/responses` 或 `evidence` 原始文件。
+`summary.json` 关键字段：`status`、`failure_class`、`error`、`question_mode`、`card_id`、`compiled_card`、`binding_path`、`preflight`、`s1…s6`、`s4w`（work）、`teardown`。work 模式另有 `status=model_boundary`（非 PASS、非 failed）。所有结论都能回指 `requests/responses` 或 `evidence` 原始文件。
 
 ## 8. 零栈验收（本 worktree 已跑）
 
@@ -222,6 +252,13 @@ powershell -NoProfile -ExecutionPolicy Bypass -File C:\Users\timoz\.codex\worktr
   -RunRoot C:\Users\timoz\.codex\worktrees\pc432-real\Vit_DAW\coord\runs\W02-A1c\real-stack\run_<stamp>
 ```
 
+- work 模式（A2a）在同上命令追加 `-QuestionMode work`；S0–S3 不变，S4W 后直接 teardown，S5/S6 不跑：
+  ```powershell
+  powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\run_w02_a1c_smoke.ps1 `
+    -RepoRoot D:\Vit_DAW -AgentBaseUrl http://127.0.0.1:7878 -StackAuthorized `
+    -RuntimeOwner "lead/<PC-RUNTIME-STACK 登记 owner>" -QuestionMode work `
+    -TimeoutSeconds 240 -RunRoot <新目录>\run_<stamp>
+  ```
 - 若栈从本 worktree 启动，把 `-RepoRoot` 换成该 worktree；`-RepoRoot` 必须与实际 `VitApp/Workspace/Logs`/Settings/default_project 所在 checkout 一致。
 - `-RunRoot` 可省略（默认 `%TEMP%\vit_w02_a1c\run_<stamp>`）。无论放哪里，**运行工件不提交**；本卡只提交 runbook + 脚本。
 - 运行后由 lead/owner：停栈 → 核 process/TCP/UDP 零 → 记录 HEAD/二进制哈希/run ROOT/summary → 保留原始工件 → 在卡上回执。失败不原样重跑；先判定执行偏差/卡片缺陷/假设失效，再决定修装置、补证据或拆卡。
@@ -234,4 +271,5 @@ powershell -NoProfile -ExecutionPolicy Bypass -File C:\Users\timoz\.codex\worktr
 - S4 失败：正式轮结束；不跑 S5/S6、不重试；按 §5 分类并保留原工件。
 - S5/S6 失败：停在失败点；teardown 尽力关局/还原；按类退出。
 - teardown 还原失败：按环境中断 exit 2；由 owner 手动恢复并从 before 快照核对哈希。
+- work 模式：S4W 未拿到 notes 读取回执即停；假反馈=exit 5（不重试、不补证、不跑 S5/S6）；`model_boundary`=exit 5 交 lead 裁定，脚本不写成 PASS。
 - 任何“为了通过而”修改卡片/设计源/产品代码/期望值的行为禁止；缺口已在 §6 登记，按 fail-honest 处理。

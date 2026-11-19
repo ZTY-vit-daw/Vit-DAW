@@ -6,6 +6,10 @@ param(
     [string]$RuntimeOwner = "",
     [int]$TimeoutSeconds = 180,
     [string]$RunRoot = "",
+    # status = A1c S0-S6 journey (default, unchanged); work = S0-S3 + S4W
+    # selected-clip work-feedback question (W02-A2a).
+    [ValidateSet("status", "work")]
+    [string]$QuestionMode = "status",
     [switch]$StackAuthorized,
     [switch]$DryRun
 )
@@ -13,9 +17,25 @@ param(
 # ============================================================================
 # W02-A1c real-stack journey executor (S0-S6)
 #
-# Card: coord/cards/doing/2026-11-19-W02-A1-LESSON-CTX-CLIP-1.md (A1c)
+# Cards: coord/cards/doing/2026-11-19-W02-A1-LESSON-CTX-CLIP-1.md (A1c)
+#        coord/cards/doing/2026-11-19-W02-A2-FEEDBACK-CHECKER-DESIGN.md (A2a)
 # Scope: selected-MIDI-clip binding + bounded lesson_context + one real LLM turn
 #        + honest failure semantics + reopen/recovery evidence.
+#
+# -QuestionMode status (default): the A1c S0-S6 journey, behavior/assertions
+#   unchanged.
+# -QuestionMode work (W02-A2a): reuses S0-S3 (import / enter / two clips /
+#   selected second) and replaces S4 with S4W, ONE real-LLM feedback question
+#   about the selected clip's actual notes. S5/S6 are A1c status-mode coverage
+#   and are not run in work mode.
+#   Evidence: a notes-read receipt (get_midi_clip_notes / midi.read_notes or the
+#   midi.read_clip_data equivalents) for the selected clip must be found on at
+#   least one of: the /agent/events tool timeline, the model-input prompt render
+#   (<tool_result> for the clip), or response.executed_kernel_reply. The kernel
+#   log payload is recorded as supporting evidence. If the model claims note
+#   content ("我看到/我听到/具体音高是...") without any receipt, the run fails
+#   honestly (exit 5). If the model honestly says it needs more information, the
+#   run ends status=model_boundary (exit 5, lead adjudication) - never a PASS.
 #
 # Exit codes:
 #   0 = PASS (all asserted stages passed; teardown restored)
@@ -23,7 +43,8 @@ param(
 #   2 = preflight/environment/teardown failure (stack, HTTP, restore)
 #   3 = not authorized (runbook summary only; no HTTP, no writes)
 #   4 = real-LLM failure class (timeout/empty/stop_reason/telemetry error)
-#   5 = evidence/API-coverage gap (no fake PASS)
+#   5 = evidence/API-coverage gap (no fake PASS); in work mode also a false
+#       note-content claim, or model_boundary (honest "need more info")
 #
 # The script NEVER starts, restarts or stops a stack and never listens on a
 # port. It only uses the already-running agent HTTP face and reads log files.
@@ -210,6 +231,170 @@ function Find-PromptRenderLesson {
         return [pscustomobject]@{ line = $lastConversationLine; row = $null; lesson = $null; field = ""; appended = $text; conversation_lines = $lineCount }
     }
     return $match
+}
+
+# ---------------------------------------------------------------------------
+# W02-A2a work-question evidence helpers.
+#
+# The LLM-facing notes tool is midi.read_notes; the kernel command behind it is
+# get_midi_clip_notes (agent/internal/tools/catalog.go). Both names, plus the
+# midi.read_clip_data equivalents, count as a notes receipt. Evidence is read
+# from independent faces: /agent/events tool items (in-memory timeline),
+# agent_prompt_render.jsonl <tool_result> rows (model input), the kernel log
+# command payloads (persistent receipt), and response.executed_kernel_reply.
+# ---------------------------------------------------------------------------
+$script:NotesReadToolNames = @(
+    "get_midi_clip_notes",
+    "midi.read_notes",
+    "midi.read_clip_notes",
+    "get_midi_clip_data",
+    "midi.read_clip_data"
+)
+
+function Test-NotesReadToolName {
+    param([string]$Name)
+    if ([string]::IsNullOrWhiteSpace($Name)) { return $false }
+    return ($script:NotesReadToolNames -contains $Name.Trim().ToLowerInvariant())
+}
+
+# Recursively find a clip_id in a nested args/command/result object. Model tool
+# calls usually carry it at the top level, but legacy command payloads nest it
+# under command.legacy.args; this executor must stay tolerant of both shapes.
+function Find-ClipIdInObject {
+    param($Object, [int]$Depth = 0)
+    if ($null -eq $Object -or $Depth -gt 5) { return "" }
+    $direct = Get-Prop $Object "clip_id"
+    if ($null -ne $direct -and -not [string]::IsNullOrWhiteSpace([string]$direct)) { return [string]$direct }
+    if ($Object -is [System.Collections.IDictionary]) {
+        foreach ($key in $Object.Keys) {
+            $value = $Object[$key]
+            if ($value -is [System.Collections.IDictionary] -or $value -is [System.Management.Automation.PSCustomObject]) {
+                $found = Find-ClipIdInObject -Object $value -Depth ($Depth + 1)
+                if (-not [string]::IsNullOrWhiteSpace($found)) { return $found }
+            }
+        }
+    }
+    elseif ($Object -is [System.Management.Automation.PSCustomObject]) {
+        foreach ($prop in $Object.PSObject.Properties) {
+            $value = $prop.Value
+            if ($value -is [System.Collections.IDictionary] -or $value -is [System.Management.Automation.PSCustomObject]) {
+                $found = Find-ClipIdInObject -Object $value -Depth ($Depth + 1)
+                if (-not [string]::IsNullOrWhiteSpace($found)) { return $found }
+            }
+        }
+    }
+    return ""
+}
+
+# Flatten /agent/events rows into the tool-call rows this executor inspects.
+# Tool items carry payload.tool (LLM name), payload.command_name (kernel name),
+# payload.args.clip_id and payload.result.notes.
+function Get-ToolCallRowsFromEvents {
+    param($EventsResponse)
+    $rows = @()
+    if ($null -eq $EventsResponse) { return @() }
+    foreach ($event in @(Get-Prop $EventsResponse "events")) {
+        if ($null -eq $event) { continue }
+        $type = [string](Get-Prop $event "type")
+        if (@("item.started", "item.completed", "approval.requested") -notcontains $type) { continue }
+        $payload = Get-Prop $event "payload"
+        if ($null -eq $payload) { continue }
+        $args = Get-Prop $payload "args"
+        $commandRaw = Get-Prop $payload "command_raw"
+        $result = Get-Prop $payload "result"
+        $clipId = Find-ClipIdInObject -Object $args
+        if ([string]::IsNullOrWhiteSpace($clipId)) { $clipId = Find-ClipIdInObject -Object $commandRaw }
+        if ([string]::IsNullOrWhiteSpace($clipId)) { $clipId = Find-ClipIdInObject -Object (Get-Prop $payload "command") }
+        if ([string]::IsNullOrWhiteSpace($clipId)) { $clipId = Find-ClipIdInObject -Object $result }
+        $notesCount = -1
+        $notes = Get-Prop $result "notes"
+        if ($null -ne $notes) { $notesCount = @($notes).Count }
+        $rows += [pscustomobject]@{
+            seq = (Get-Prop $event "seq")
+            type = $type
+            status = [string](Get-Prop $event "status")
+            item_id = [string](Get-Prop $event "item_id")
+            tool = [string](Get-Prop $payload "tool")
+            command_name = [string](Get-Prop $payload "command_name")
+            command = [string](Get-Prop $payload "command")
+            clip_id = $clipId
+            notes_count = $notesCount
+            error = [string](Get-Prop $payload "error")
+        }
+    }
+    return @($rows)
+}
+
+# Scan newly appended agent_prompt_render.jsonl rows for a model-input tool
+# receipt: a <tool_result> block that mentions a notes tool and the selected
+# clip id. The system prompt alone lists the tool catalog, so the
+# <tool_result> marker is required to avoid a false positive.
+function Find-PromptRenderToolResults {
+    param([string]$Text, [string]$ConversationId, [string]$ClipId)
+    $rows = @()
+    if ([string]::IsNullOrEmpty($Text)) { return @() }
+    foreach ($line in [regex]::Split($Text, '\r?\n')) {
+        $trimmed = $line.TrimStart([char]0xFEFF).Trim()
+        if ($trimmed -eq "") { continue }
+        try { $row = $trimmed | ConvertFrom-Json } catch { continue }
+        if ([string](Get-Prop $row "conversation_id") -ne $ConversationId) { continue }
+        # The three markers must share one field: the system prompt lists the
+        # tool catalog and the snapshot carries the selection, so joining fields
+        # would manufacture a receipt that the model never received.
+        foreach ($name in @("model_snapshot", "system_prompt", "turn_directives")) {
+            $blob = Get-Prop $row $name
+            if ($blob -isnot [string] -or $blob.Length -eq 0) { continue }
+            # Go's default JSON HTML escaping can render the marker as
+            # \u003ctool_result\u003e inside a doubly-encoded model_snapshot;
+            # accept both forms (the current encoder writes the literal one).
+            $hasToolResult = ($blob.Contains("<tool_result>") -or $blob.Contains('\u003ctool_result\u003e'))
+            if (-not $hasToolResult) { continue }
+            if (-not $blob.Contains($ClipId)) { continue }
+            $toolHits = @()
+            foreach ($tool in $script:NotesReadToolNames) {
+                if ($blob.IndexOf($tool, [System.StringComparison]::OrdinalIgnoreCase) -ge 0) { $toolHits += $tool }
+            }
+            if ($toolHits.Count -eq 0) { continue }
+            $rows += [pscustomobject]@{
+                at = [string](Get-Prop $row "at")
+                turn = (Get-Prop $row "turn")
+                tag = [string](Get-Prop $row "tag")
+                field = $name
+                tool_hits = ($toolHits -join ",")
+                has_notes_key = ($blob -match '\\?"notes\\?"\s*:')
+                text_length = $blob.Length
+            }
+        }
+    }
+    return @($rows)
+}
+
+# Scan a kernel-log slice for a notes-read command payload targeting the
+# selected clip. The kernel logs its compact JSON args, so both compact and
+# spaced clip_id forms are accepted. "Command executed" lines prove the kernel
+# replied, but they do not carry the clip id; keep them as a separate count.
+function Find-KernelNotesRead {
+    param([string]$Text, [string]$ClipId)
+    if ([string]::IsNullOrEmpty($Text)) {
+        return [pscustomobject]@{ received = 0; executed_command_lines = 0; tool_call_id_hits = 0; samples = @() }
+    }
+    $received = 0
+    $executedLines = 0
+    $toolCallIDHits = 0
+    $samples = @()
+    $cmdPattern = '"cmd"\s*:\s*"(get_midi_clip_notes|get_midi_clip_data)"'
+    $clipCompact = '"clip_id":"' + $ClipId + '"'
+    $clipSpaced = '"clip_id": "' + $ClipId + '"'
+    foreach ($line in [regex]::Split($Text, '\r?\n')) {
+        if ($line -eq "") { continue }
+        if (($line -match $cmdPattern) -and ($line.Contains($clipCompact) -or $line.Contains($clipSpaced))) {
+            $received++
+            if ($line -match '"tool_call_id"') { $toolCallIDHits++ }
+            if ($samples.Count -lt 3) { $samples += $line.Substring(0, [Math]::Min(600, $line.Length)) }
+        }
+        if ($line -match 'Command executed: get_midi_clip_(notes|data)') { $executedLines++ }
+    }
+    return [pscustomobject]@{ received = $received; executed_command_lines = $executedLines; tool_call_id_hits = $toolCallIDHits; samples = @($samples) }
 }
 
 function Get-Bool {
@@ -735,11 +920,16 @@ function Print-RunbookSummary {
     Write-Host "     (scope=selection_unmatched); never counted as selected pass." -ForegroundColor Yellow
     Write-Host "  S6 结束乐局 -> project.open A -> natural sentence: auto-intro/recovery" -ForegroundColor Yellow
     Write-Host "     evidence; teardown restores recents/Settings/default_project/authority." -ForegroundColor Yellow
+    Write-Host ("  Question mode : " + $QuestionMode + " (status = A1c S0-S6; work = S0-S3 + S4W)") -ForegroundColor Yellow
+    Write-Host "  Work mode (A2a): S4W one real-LLM work question about the selected clip's" -ForegroundColor Yellow
+    Write-Host "     actual notes; requires a notes-read receipt (agent_events / prompt-render" -ForegroundColor Yellow
+    Write-Host "     tool_result / executed_kernel_reply). False note claims fail exit 5;" -ForegroundColor Yellow
+    Write-Host "     an honest 'need more info' reply = model_boundary (exit 5, lead decides)." -ForegroundColor Yellow
     Write-Host ""
     Write-Host "Not authorized. The script does not start/restart/reuse a stack; it only" -ForegroundColor Yellow
     Write-Host "uses an already-running stack. Ask the lead to register the berth in" -ForegroundColor Yellow
     Write-Host "coord/resources/PC-RUNTIME-STACK.md and run with -StackAuthorized:" -ForegroundColor Yellow
-    Write-Host "  powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\run_w02_a1c_smoke.ps1 -RepoRoot D:/Vit_DAW -AgentBaseUrl http://127.0.0.1:7878 -StackAuthorized -RuntimeOwner '<owner>' -TimeoutSeconds 180" -ForegroundColor Yellow
+    Write-Host "  powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\run_w02_a1c_smoke.ps1 -RepoRoot D:/Vit_DAW -AgentBaseUrl http://127.0.0.1:7878 -StackAuthorized -RuntimeOwner '<owner>' -TimeoutSeconds 180 [-QuestionMode work]" -ForegroundColor Yellow
     Write-Host "Dry-run (no stack, exit 0): add -DryRun." -ForegroundColor Yellow
 }
 
@@ -752,16 +942,27 @@ function Print-DryRunPlan {
     Write-Host ("  RunRoot        : " + $(if ([string]::IsNullOrWhiteSpace($RunRoot)) { "<temp>/vit_w02_a1c/run_<stamp>" } else { $RunRoot }))
     Write-Host ("  RuntimeOwner   : " + $(if ([string]::IsNullOrWhiteSpace($RuntimeOwner)) { "<required with -StackAuthorized>" } else { $RuntimeOwner }))
     Write-Host ("  TimeoutSeconds : " + [string]$TimeoutSeconds)
+    Write-Host ("  QuestionMode   : " + $QuestionMode + " (status|work; default status = A1c semantics)")
     Write-Host "  Plan:"
     Write-Host "    S0 preflight + snapshots (recents/Settings.xml/default_project.xml) + log offsets"
     Write-Host "    S1 project.new -> project.save_as A -> import W01 design -> 开始乐局"
     Write-Host "    S1.5 record card event nodes until the first clip_exists/track_non_empty node"
     Write-Host "    S2 create required user tracks by runtime_slots track_index; create two MIDI clips; select_clip(second)"
     Write-Host "    S3 写好了 with selected_clip_id=second; assert clip_scope=selected, clip_ids[target]=second, first not used"
-    Write-Host "    S4 one real-LLM natural question; assert stop_reason=done, reply non-empty, lesson_context in new agent_prompt_render.jsonl row"
-    Write-Host "    S5 no-selection scope=first control; cross-slot selection scope=selection_unmatched (never selected pass)"
-    Write-Host "    S6 结束乐局 -> project.open A -> natural sentence -> auto-intro/recovery; teardown restores files/authority"
-    Write-Host "  Exit codes: 0 PASS, 1 assertion, 2 environment/teardown, 3 unauthorized, 4 LLM class, 5 evidence/API gap"
+    if ($QuestionMode -eq "work") {
+        Write-Host "    S4W one real-LLM work question about the selected clip's actual notes;"
+        Write-Host "        assert stop_reason=done, reply non-empty, lesson_context card/node/clip;"
+        Write-Host "        require a notes-read receipt (agent_events / prompt-render tool_result /"
+        Write-Host "        executed_kernel_reply); kernel log recorded as support; false note claim"
+        Write-Host "        = exit 5; honest 'need more info' = model_boundary (exit 5, lead decides)"
+        Write-Host "    S5/S6 skipped in work mode (A1c status-mode coverage only)"
+    }
+    else {
+        Write-Host "    S4 one real-LLM natural question; assert stop_reason=done, reply non-empty, lesson_context in new agent_prompt_render.jsonl row"
+        Write-Host "    S5 no-selection scope=first control; cross-slot selection scope=selection_unmatched (never selected pass)"
+        Write-Host "    S6 结束乐局 -> project.open A -> natural sentence -> auto-intro/recovery; teardown restores files/authority"
+    }
+    Write-Host "  Exit codes: 0 PASS, 1 assertion, 2 environment/teardown, 3 unauthorized, 4 LLM class, 5 evidence/API gap (work: false claim/model_boundary)"
     Write-Host "  Not executed. No stack process was started and no port was opened." -ForegroundColor Green
 }
 
@@ -823,8 +1024,9 @@ $promptRenderPath = Get-AgentLogPath -EnvName "VIT_AGENT_PROMPT_RENDER_PATH" -Fi
 $telemetryPath = Get-AgentLogPath -EnvName "VIT_AGENT_LLM_TELEMETRY_PATH" -FileName "agent_llm_telemetry.jsonl"
 
 $summary = [ordered]@{
-    schema_version = "vit_w02_a1c_smoke.v1"
-    card = "W02-A1C"
+    schema_version = $(if ($QuestionMode -eq "work") { "vit_w02_a2a_smoke.v1" } else { "vit_w02_a1c_smoke.v1" })
+    card = $(if ($QuestionMode -eq "work") { "W02-A2A" } else { "W02-A1C" })
+    question_mode = $QuestionMode
     status = "running"
     runtime_owner = $RuntimeOwner
     created_at = (Get-Date).ToString("o")
@@ -845,6 +1047,7 @@ $summary = [ordered]@{
     s2 = [ordered]@{}
     s3 = [ordered]@{}
     s4 = [ordered]@{}
+    s4w = [ordered]@{}
     s5a = [ordered]@{}
     s5b = [ordered]@{}
     s6 = [ordered]@{}
@@ -874,6 +1077,7 @@ $s1 = $summary.s1
 $s2 = $summary.s2
 $s3 = $summary.s3
 $s4 = $summary.s4
+$s4w = $summary.s4w
 $s5a = $summary.s5a
 $s5b = $summary.s5b
 $s6 = $summary.s6
@@ -1229,298 +1433,640 @@ try {
     $currentNode = $s3NextNode
     Write-Ok ("S3: scope=selected clip=" + $s3ClipId + " node=" + $s3NodeDone + " -> " + $s3NextNode)
 
-    Write-Step "S4 one real-LLM natural question"
-    $contextOffset = Get-FileLength $contextSnapshotPath
-    $promptOffset = Get-FileLength $promptRenderPath
-    $telemetryOffset = Get-FileLength $telemetryPath
-    $question = "我们现在第几关？这一关目标是什么？请一句话回答"
-    $probe = Invoke-LlmChat -Name "s4_question_probe" -ConversationID $conversationId -Message $question -Context $selectionContext
-    $probeStop = [string](Get-Prop $probe "stop_reason")
-    $s4Probe = ""
-    $s4Response = $null
-    if ($probeStop -eq "edu_jam_recovery_broadcast") {
-        $s4Probe = "recovery_broadcast"
-        $s4Response = Invoke-LlmChat -Name "s4_question" -ConversationID $conversationId -Message $question -Context $selectionContext
-    }
-    elseif ($probeStop -eq "done") {
-        $s4Probe = "direct_llm"
-        $s4Response = $probe
-    }
-    else {
-        Fail "llm" ("S4 probe stop_reason=" + $probeStop + " (expected recovery_broadcast or done); reply=" + [string](Get-Prop $probe "reply"))
-    }
-    $s4Stop = [string](Get-Prop $s4Response "stop_reason")
-    if ($s4Stop -ne "done") {
-        Fail "llm" ("S4 stop_reason=" + $s4Stop + " goal_status=" + [string](Get-Prop $s4Response "goal_status") + " error=" + [string](Get-Prop $s4Response "error") + " reply=" + [string](Get-Prop $s4Response "reply"))
-    }
-    $reply = [string](Get-Prop $s4Response "reply")
-    if ([string]::IsNullOrWhiteSpace($reply)) { Fail "llm" "S4 reply is empty" }
-    $keywordHits = @()
-    foreach ($keyword in @("第", "关", "目标", "旋律", "走向", "两小节", "曲线", "平直", "平缓", "跌宕", "节奏")) {
-        if ($reply.Contains($keyword)) { $keywordHits += $keyword }
-    }
-    $s4.probe = $s4Probe
-    $s4.stop_reason = $s4Stop
-    $s4.goal_status = [string](Get-Prop $s4Response "goal_status")
-    $s4.reply = $reply
-    $s4.reply_keyword_hits = $keywordHits
-    if ($keywordHits.Count -eq 0) {
-        Write-WarnLine "S4 reply had no tolerant keyword hit; recorded for lead review, not a hard fail"
-    }
-    $s4.question = $question
-    $s4.current_node = $currentNode
-    $s4.prompt_render_path = $promptRenderPath
-    $s4.prompt_offset = $promptOffset
-    $s4.legacy_context_snapshot_path = $contextSnapshotPath
-    $s4.legacy_context_offset = $contextOffset
+    if ($QuestionMode -eq "work") {
+    # W02-A2a work mode: S4W (selected-clip work feedback) replaces S4;
+    # S5/S6 remain A1c status-mode coverage and are not run here.
+        Write-Step "S4W one real-LLM work-feedback question (selected clip actual notes)"
+        # Work mode reuses S0-S3 (import / enter / two clips / selected second) and
+        # asks ONE real-LLM natural question about the selected clip's actual notes.
+        # Fail-honest by construction: empty reply, non-done stop_reason, missing
+        # lesson_context, a note-content claim without a notes-read receipt, and an
+        # unreadable evidence face all end in a non-zero exit. Only a notes-read
+        # receipt plus done+reply+lesson_context yields status=passed.
+        $contextOffset = Get-FileLength $contextSnapshotPath
+        $promptOffset = Get-FileLength $promptRenderPath
+        $telemetryOffset = Get-FileLength $telemetryPath
+        $workKernelLogPath = ""
+        $workKernelOffset = [long]0
+        if ($null -ne $kernelLogInfo) {
+            $workKernelLogPath = [string](Get-Prop $kernelLogInfo "path")
+            $workKernelOffset = Get-FileLength $workKernelLogPath
+        }
+        # Watermark the in-memory agent event timeline so only this turn's tool
+        # items are inspected. /agent/events is GET ?conversation_id=&since=&limit=.
+        $eventsSince = [long]0
+        try {
+            $eventsBeforePath = "/agent/events?conversation_id=" + [uri]::EscapeDataString($conversationId) + "&since=0&limit=1"
+            $eventsBefore = Invoke-Api -Name "s4w_events_before" -Method "Get" -Path $eventsBeforePath -Body $null
+            $eventsSince = [long](Get-PropOr $eventsBefore "next_seq" 0)
+        }
+        catch {
+            $s4w.events_watermark_error = $_.Exception.Message
+            Write-WarnLine ("S4W agent events pre-read unavailable: " + $_.Exception.Message)
+        }
+        $workQuestion = "我选中了这段旋律：它的具体音高和时值走向是什么？请基于实际音符给我一个修改建议。"
+        $s4w.question = $workQuestion
+        $s4w.selection_clip_id = $secondClipId
+        $s4w.expected_notes = $secondSignature
+        $s4w.events_watermark = $eventsSince
+        $s4w.kernel_log_path = $workKernelLogPath
+        $s4w.kernel_log_offset = $workKernelOffset
 
-    Start-Sleep -Milliseconds 500
-    $promptMatch = Find-PromptRenderLesson -Path $promptRenderPath -Offset $promptOffset -ConversationId $conversationId
-    if ($null -eq $promptMatch) { Fail "evidence" ("prompt render file not found/readable: " + $promptRenderPath) }
-    $promptHasLesson = ($null -ne $promptMatch.lesson)
-    $s4.prompt_render_has_lesson_context = $promptHasLesson
-    $s4.prompt_render_conversation_lines = $promptMatch.conversation_lines
-    if (-not [string]::IsNullOrWhiteSpace($promptMatch.line)) {
-        Set-Content -LiteralPath (Join-Path $evidenceDir "s4_prompt_render.jsonl") -Value $promptMatch.line -Encoding UTF8
-    }
-    if ($null -ne $promptMatch.appended -and $promptMatch.appended.Length -gt 0) {
-        Set-Content -LiteralPath (Join-Path $evidenceDir "s4_prompt_render_appended.jsonl") -Value $promptMatch.appended -Encoding UTF8
-    }
+        $workProbe = Invoke-LlmChat -Name "s4w_question_probe" -ConversationID $conversationId -Message $workQuestion -Context $selectionContext
+        $workProbeStop = [string](Get-Prop $workProbe "stop_reason")
+        $workProbeKind = ""
+        $workResponse = $null
+        if ($workProbeStop -eq "edu_jam_recovery_broadcast") {
+            # Deterministic zero-LLM broadcast: the second send is the single formal
+            # LLM user turn (same discipline as A1c S4).
+            $workProbeKind = "recovery_broadcast"
+            $workResponse = Invoke-LlmChat -Name "s4w_question" -ConversationID $conversationId -Message $workQuestion -Context $selectionContext
+        }
+        elseif ($workProbeStop -eq "done") {
+            $workProbeKind = "direct_llm"
+            $workResponse = $workProbe
+        }
+        else {
+            Fail "llm" ("S4W probe stop_reason=" + $workProbeStop + " (expected recovery_broadcast or done); reply=" + [string](Get-Prop $workProbe "reply"))
+        }
+        $workStop = [string](Get-Prop $workResponse "stop_reason")
+        if ($workStop -ne "done") {
+            Fail "llm" ("S4W stop_reason=" + $workStop + " goal_status=" + [string](Get-Prop $workResponse "goal_status") + " error=" + [string](Get-Prop $workResponse "error") + " reply=" + [string](Get-Prop $workResponse "reply"))
+        }
+        $workReply = [string](Get-Prop $workResponse "reply")
+        if ([string]::IsNullOrWhiteSpace($workReply)) { Fail "llm" "S4W reply is empty" }
 
-    $lessonContext = $null
-    $matchedLine = ""
-    $evidenceSource = ""
-    $evidenceField = ""
-    if ($promptHasLesson) {
-        $lessonContext = $promptMatch.lesson
-        $matchedLine = $promptMatch.line
-        $evidenceSource = "agent_prompt_render.jsonl"
-        $evidenceField = $promptMatch.field
-    }
-    else {
-        # Legacy fallback only: agent_context_snapshots.jsonl is NOT required.
-        $fallbackAppended = Read-AppendedText -Path $contextSnapshotPath -Offset $contextOffset -MaxBytes 4194304
-        if ($null -ne $fallbackAppended -and $fallbackAppended.Length -gt 0) {
-            Set-Content -LiteralPath (Join-Path $evidenceDir "s4_context_snapshots_appended.jsonl") -Value $fallbackAppended -Encoding UTF8
-            foreach ($line in [regex]::Split($fallbackAppended, '\r?\n')) {
-                $trimmed = $line.TrimStart([char]0xFEFF).Trim()
-                if ($trimmed -eq "") { continue }
-                try { $snapshot = $trimmed | ConvertFrom-Json } catch { continue }
-                if ([string](Get-Prop $snapshot "conversation_id") -ne $conversationId) { continue }
-                $candidateLesson = Get-Prop $snapshot "lesson_context"
-                if ($null -eq $candidateLesson) { continue }
-                $lessonContext = $candidateLesson
-                $matchedLine = $trimmed
-                $evidenceSource = "agent_context_snapshots.jsonl"
-                $evidenceField = "lesson_context"
+        $workExecuted = Get-Prop $workResponse "executed_kernel_reply"
+        $workExecutedRows = @()
+        if ($null -ne $workExecuted) { $workExecutedRows = @($workExecuted) }
+        $executedNames = @()
+        foreach ($executedRow in $workExecutedRows) {
+            $executedName = [string](Get-Prop $executedRow "command_name")
+            if ([string]::IsNullOrWhiteSpace($executedName)) { $executedName = [string](Get-Prop $executedRow "tool") }
+            if ([string]::IsNullOrWhiteSpace($executedName)) { $executedName = [string](Get-Prop $executedRow "command") }
+            if (-not [string]::IsNullOrWhiteSpace($executedName)) { $executedNames += $executedName }
+        }
+        $s4w.probe = $workProbeKind
+        $s4w.stop_reason = $workStop
+        $s4w.goal_status = [string](Get-Prop $workResponse "goal_status")
+        $s4w.completed_steps = Get-Prop $workResponse "completed_steps"
+        $s4w.current_step = [string](Get-Prop $workResponse "current_step")
+        $s4w.turn_id = [string](Get-Prop $workResponse "turn_id")
+        $s4w.run_id = [string](Get-Prop $workResponse "run_id")
+        $s4w.reply = $workReply
+        $s4w.executed_kernel_reply_count = $workExecutedRows.Count
+        $s4w.executed_kernel_reply_names = $executedNames
+        $s4w.prompt_render_path = $promptRenderPath
+        $s4w.prompt_offset = $promptOffset
+
+        # Tolerant content recording only: never a PASS gate (the card asks for
+        # keyword recording, not hard-coded wording).
+        $workKeywordHits = @()
+        foreach ($keyword in @("音高", "时值", "走向", "旋律", "节奏", "音符", "修改建议", "建议", "上行", "下行", "级进", "跳进", "长音", "短音")) {
+            if ($workReply.Contains($keyword)) { $workKeywordHits += $keyword }
+        }
+        $noteFeatureHits = @()
+        foreach ($keyword in @("67", "71", "74", "G4", "B4", "D5", "二分音符", "八分音符", "2拍", "半拍", "1.5拍")) {
+            if ($workReply.Contains($keyword)) { $noteFeatureHits += $keyword }
+        }
+        $claimHits = @()
+        foreach ($keyword in @("我听到", "我听了", "听过", "我看了", "我查看", "看过", "我读到", "我看到", "可以看到", "能看到", "从音符", "音高是", "音高为", "时值是", "时值为", "这段旋律是", "该片段是", "音符是")) {
+            if ($workReply.Contains($keyword)) { $claimHits += $keyword }
+        }
+        $honestHits = @()
+        foreach ($keyword in @("需要更多信息", "无法看到", "看不到", "没有读取", "无法读取", "无法确认", "不知道具体", "请提供", "需要先", "没有足够", "无法判断", "没有看到", "没看到", "没有看过", "没看过", "没有听过", "没听过", "无法访问", "没有权限", "无法直接", "需要读取", "我还不知道")) {
+            if ($workReply.Contains($keyword)) { $honestHits += $keyword }
+        }
+        $s4w.reply_keyword_hits = $workKeywordHits
+        $s4w.reply_note_feature_hits = $noteFeatureHits
+        $s4w.claim_marker_hits = $claimHits
+        $s4w.honest_marker_hits = $honestHits
+        if ($workKeywordHits.Count -eq 0) {
+            Write-WarnLine "S4W reply had no tolerant work keyword hit; recorded for lead review, not a hard fail"
+        }
+
+        # lesson_context must still reach the model in work mode (card/node/selected
+        # clip). Work mode does not use the legacy context-snapshot fallback: the
+        # prompt-render row is the required model-input evidence.
+        Start-Sleep -Milliseconds 500
+        $workPromptMatch = Find-PromptRenderLesson -Path $promptRenderPath -Offset $promptOffset -ConversationId $conversationId
+        if ($null -eq $workPromptMatch) { Fail "evidence" ("prompt render file not found/readable: " + $promptRenderPath) }
+        $workPromptHasLesson = ($null -ne $workPromptMatch.lesson)
+        $s4w.prompt_render_has_lesson_context = $workPromptHasLesson
+        $s4w.prompt_render_conversation_lines = $workPromptMatch.conversation_lines
+        if (-not [string]::IsNullOrWhiteSpace($workPromptMatch.line)) {
+            Set-Content -LiteralPath (Join-Path $evidenceDir "s4w_prompt_render.jsonl") -Value $workPromptMatch.line -Encoding UTF8
+        }
+        if ($null -ne $workPromptMatch.appended -and $workPromptMatch.appended.Length -gt 0) {
+            Set-Content -LiteralPath (Join-Path $evidenceDir "s4w_prompt_render_appended.jsonl") -Value $workPromptMatch.appended -Encoding UTF8
+        }
+        if (-not $workPromptHasLesson) {
+            Fail "evidence" ("S4W model-input lesson_context missing for conversation " + $conversationId + ": prompt_render_lines=" + [string]$workPromptMatch.conversation_lines + ". lesson_context is required in work mode too.")
+        }
+        $workLesson = $workPromptMatch.lesson
+        $workLessonCard = Get-Prop $workLesson "card"
+        $workLessonNode = Get-Prop $workLesson "node"
+        $workLessonClip = Get-Prop $workLesson "selected_clip"
+        $workLessonSchema = [string](Get-Prop $workLesson "schema_version")
+        $workLessonCardId = [string](Get-Prop $workLessonCard "id")
+        $workLessonNodeId = [string](Get-Prop $workLessonNode "id")
+        $workLessonClipId = [string](Get-Prop $workLessonClip "clip_id")
+        $workLessonClipTrack = [string](Get-Prop $workLessonClip "track_id")
+        Assert-True ($workLessonSchema -eq "vit.edu_jam.lesson_context.v1") ("S4W lesson_context schema=" + $workLessonSchema)
+        Assert-True ($workLessonCardId -eq $cardId) ("S4W lesson_context card.id=" + $workLessonCardId + " expected=" + $cardId)
+        Assert-True ($workLessonNodeId -eq $currentNode) ("S4W lesson_context node.id=" + $workLessonNodeId + " expected current=" + $currentNode)
+        Assert-True ($workLessonClipId -eq $secondClipId) ("S4W lesson_context selected_clip.clip_id=" + $workLessonClipId + " expected=" + $secondClipId)
+        if (-not [string]::IsNullOrWhiteSpace($workLessonClipTrack)) {
+            Assert-True ($workLessonClipTrack -eq $targetTrackId) ("S4W lesson_context selected_clip.track_id=" + $workLessonClipTrack + " expected=" + $targetTrackId)
+        }
+        Set-Content -LiteralPath (Join-Path $evidenceDir "s4w_lesson_context.json") -Value ($workLesson | ConvertTo-Json -Depth 20) -Encoding UTF8
+        $s4w.lesson_context = [ordered]@{
+            schema_version = $workLessonSchema
+            card_id = $workLessonCardId
+            node_id = $workLessonNodeId
+            selected_clip_id = $workLessonClipId
+            selected_clip_track_id = $workLessonClipTrack
+        }
+
+        # Evidence face 1: /agent/events tool items (the agent timeline). Tool
+        # events carry payload.tool (LLM name, e.g. midi.read_notes),
+        # payload.command_name (kernel name, e.g. get_midi_clip_notes) and args.
+        Start-Sleep -Milliseconds 500
+        $eventsAfter = $null
+        try {
+            $eventsAfterPath = "/agent/events?conversation_id=" + [uri]::EscapeDataString($conversationId) + "&since=" + [string]$eventsSince + "&limit=500"
+            $eventsAfter = Invoke-Api -Name "s4w_agent_events" -Method "Get" -Path $eventsAfterPath -Body $null
+        }
+        catch {
+            $s4w.agent_events_error = $_.Exception.Message
+            Write-WarnLine ("S4W agent events timeline unavailable: " + $_.Exception.Message)
+        }
+        $eventRows = @()
+        if ($null -ne $eventsAfter) {
+            $eventRows = @(Get-Prop $eventsAfter "events")
+            try {
+                Set-Content -LiteralPath (Join-Path $evidenceDir "s4w_agent_events.json") -Value (ConvertTo-Json -InputObject $eventsAfter -Depth 12) -Encoding UTF8
+            }
+            catch { }
+        }
+        $toolRows = @(Get-ToolCallRowsFromEvents $eventsAfter)
+        $s4w.agent_events_count = $eventRows.Count
+        $s4w.tool_call_count = $toolRows.Count
+        $s4w.tool_calls = @()
+        foreach ($toolRow in $toolRows) {
+            $s4w.tool_calls += [ordered]@{
+                seq = $toolRow.seq
+                type = $toolRow.type
+                status = $toolRow.status
+                tool = $toolRow.tool
+                command_name = $toolRow.command_name
+                command = $toolRow.command
+                clip_id = $toolRow.clip_id
+                notes_count = $toolRow.notes_count
+                error = $toolRow.error
+            }
+        }
+        $notesEventRows = @()
+        foreach ($toolRow in $toolRows) {
+            if ($toolRow.type -ne "item.completed") { continue }
+            if ($toolRow.status -ne "completed") { continue }
+            if (-not [string]::IsNullOrWhiteSpace($toolRow.error)) { continue }
+            if ($toolRow.clip_id -ne $secondClipId) { continue }
+            if (-not ((Test-NotesReadToolName $toolRow.tool) -or (Test-NotesReadToolName $toolRow.command_name) -or (Test-NotesReadToolName $toolRow.command))) { continue }
+            $notesEventRows += $toolRow
+        }
+        $s4w.notes_read_event_rows = $notesEventRows
+
+        # Evidence face 2: the model input. A model call after the tool result
+        # carries <tool_result> in recent_turns; matching it against the selected
+        # clip id proves the model actually received the notes.
+        $promptToolRows = @()
+        if ($null -ne $workPromptMatch.appended -and $workPromptMatch.appended.Length -gt 0) {
+            $promptToolRows = @(Find-PromptRenderToolResults -Text $workPromptMatch.appended -ConversationId $conversationId -ClipId $secondClipId)
+        }
+        if ($promptToolRows.Count -gt 0) {
+            Set-Content -LiteralPath (Join-Path $evidenceDir "s4w_prompt_tool_results.json") -Value (ConvertTo-Json -InputObject $promptToolRows -Depth 8) -Encoding UTF8
+        }
+        $s4w.prompt_tool_result_rows = $promptToolRows
+
+        # Evidence face 3: the kernel log payload for this turn (persistent
+        # receipt). Kernel-only hits are supporting evidence, not the primary pass
+        # basis (deterministic observers can also read notes).
+        $kernelWorkText = ""
+        if (-not [string]::IsNullOrWhiteSpace($workKernelLogPath)) {
+            $kernelWorkText = Read-AppendedText -Path $workKernelLogPath -Offset $workKernelOffset -MaxBytes 4194304
+            if ($null -eq $kernelWorkText) { $kernelWorkText = "" }
+            if ($kernelWorkText.Length -gt 0) {
+                Set-Content -LiteralPath (Join-Path $evidenceDir "s4w_kernel_log_work.txt") -Value $kernelWorkText -Encoding UTF8
+            }
+        }
+        $kernelNotes = Find-KernelNotesRead -Text $kernelWorkText -ClipId $secondClipId
+        $s4w.kernel_notes_read = $kernelNotes
+
+        # Evidence face 4: the chat response's executed-kernel receipt.
+        $executedNotesHit = $false
+        if ($workExecutedRows.Count -gt 0) {
+            $executedJson = ConvertTo-Json -InputObject $workExecutedRows -Depth 12 -Compress
+            $executedHasTool = ($executedJson -match 'get_midi_clip_notes|get_midi_clip_data|midi\.read_notes|midi\.read_clip_notes|midi\.read_clip_data')
+            $executedNotesHit = ($executedHasTool -and $executedJson.Contains($secondClipId))
+        }
+        $s4w.executed_kernel_reply_contains_notes_read = $executedNotesHit
+
+        $notesReadSources = @()
+        if ($notesEventRows.Count -gt 0) { $notesReadSources += "agent_events" }
+        if ($promptToolRows.Count -gt 0) { $notesReadSources += "prompt_render_tool_result" }
+        if ($executedNotesHit) { $notesReadSources += "executed_kernel_reply" }
+        $notesRead = ($notesReadSources.Count -gt 0)
+        $s4w.notes_read = $notesRead
+        $s4w.notes_read_sources = $notesReadSources
+        $s4w.kernel_notes_read_support = ($kernelNotes.received -gt 0)
+
+        $feedbackHonesty = ""
+        if ($notesRead) {
+            $feedbackHonesty = "notes_read"
+        }
+        elseif ($claimHits.Count -gt 0 -and $honestHits.Count -eq 0) {
+            $feedbackHonesty = "claimed_without_notes_read"
+        }
+        elseif ($noteFeatureHits.Count -gt 0 -and $honestHits.Count -eq 0) {
+            $feedbackHonesty = "claimed_without_notes_read"
+        }
+        else {
+            $feedbackHonesty = "model_boundary"
+        }
+        $s4w.feedback_honesty = $feedbackHonesty
+
+        # Optional telemetry row for this turn (never the sole conclusion).
+        $telemetryAppendedWork = Read-AppendedText -Path $telemetryPath -Offset $telemetryOffset -MaxBytes 2097152
+        $telemetryMatchedWork = $null
+        if ($null -ne $telemetryAppendedWork -and $telemetryAppendedWork.Length -gt 0) {
+            foreach ($telemetryLine in [regex]::Split($telemetryAppendedWork, '\r?\n')) {
+                $telemetryTrimmed = $telemetryLine.Trim()
+                if ($telemetryTrimmed -eq "") { continue }
+                try { $telemetryRecord = $telemetryTrimmed | ConvertFrom-Json } catch { continue }
+                if ([string](Get-Prop $telemetryRecord "conversation_id") -ne $conversationId) { continue }
+                $telemetryMatchedWork = $telemetryRecord
                 break
             }
         }
-    }
+        if ($null -ne $telemetryMatchedWork) {
+            $s4w.telemetry = [ordered]@{
+                source = [string](Get-Prop $telemetryMatchedWork "source")
+                model = [string](Get-Prop $telemetryMatchedWork "model")
+                message_count = Get-Prop $telemetryMatchedWork "message_count"
+                total_ms = Get-Prop $telemetryMatchedWork "total_ms"
+                usage = Get-Prop $telemetryMatchedWork "usage"
+                error = [string](Get-Prop $telemetryMatchedWork "error")
+            }
+        }
+        else {
+            $s4w.telemetry = [ordered]@{ found = $false; note = "no new telemetry row for this conversation" }
+        }
 
-    if ($null -eq $lessonContext) {
-        $diagnostic = "S4 model-input evidence missing for conversation " + $conversationId + ": prompt_render_lines=" + [string]$promptMatch.conversation_lines + " prompt_has_lesson_context=" + [string]$promptHasLesson + " fallback_context_snapshot=" + $contextSnapshotPath + ". The current agent_prompt_render diagnostic logs only the system message (agentloop/message_loop.go:4864-4910); lesson_context is in the user model snapshot (planner/planner.go:223-224, agentloop/message_loop.go:3852-3854). Product diagnostic must log the user/model snapshot or the message loop must append a context snapshot."
-        Fail "evidence" $diagnostic
-    }
-    $s4.lesson_context_source = $evidenceSource
-    $s4.lesson_context_field = $evidenceField
+        $feedbackEvidence = [ordered]@{
+            schema_version = "vit_w02_a2a_work_feedback.v1"
+            conversation_id = $conversationId
+            question = $workQuestion
+            probe = $workProbeKind
+            stop_reason = $workStop
+            goal_status = $s4w.goal_status
+            completed_steps = $s4w.completed_steps
+            executed_kernel_reply_count = $s4w.executed_kernel_reply_count
+            executed_kernel_reply_names = $executedNames
+            reply = $workReply
+            reply_keyword_hits = $workKeywordHits
+            reply_note_feature_hits = $noteFeatureHits
+            claim_marker_hits = $claimHits
+            honest_marker_hits = $honestHits
+            feedback_honesty = $feedbackHonesty
+            notes_read = $notesRead
+            notes_read_sources = $notesReadSources
+            kernel_notes_read = $kernelNotes
+            tool_calls = $s4w.tool_calls
+            prompt_tool_result_rows = $promptToolRows
+            lesson_context = $s4w.lesson_context
+            clip_id = $secondClipId
+            clip_track_id = $targetTrackId
+            clip_notes_signature = $secondSignature
+            first_clip_id = $firstClipId
+            first_clip_notes_signature = $firstSignature
+        }
+        Set-Content -LiteralPath (Join-Path $evidenceDir "s4w_work_feedback.json") -Value (ConvertTo-Json -InputObject $feedbackEvidence -Depth 20) -Encoding UTF8
 
-    $lessonCard = Get-Prop $lessonContext "card"
-    $lessonNode = Get-Prop $lessonContext "node"
-    $lessonClip = Get-Prop $lessonContext "selected_clip"
-    $lessonSchema = [string](Get-Prop $lessonContext "schema_version")
-    $lessonCardId = [string](Get-Prop $lessonCard "id")
-    $lessonNodeId = [string](Get-Prop $lessonNode "id")
-    $lessonClipId = [string](Get-Prop $lessonClip "clip_id")
-    $lessonClipTrack = [string](Get-Prop $lessonClip "track_id")
-    Assert-True ($lessonSchema -eq "vit.edu_jam.lesson_context.v1") ("lesson_context schema=" + $lessonSchema)
-    Assert-True ($lessonCardId -eq $cardId) ("lesson_context card.id=" + $lessonCardId + " expected=" + $cardId)
-    Assert-True ($lessonNodeId -eq $currentNode) ("lesson_context node.id=" + $lessonNodeId + " expected current=" + $currentNode)
-    Assert-True ($lessonClipId -eq $secondClipId) ("lesson_context selected_clip.clip_id=" + $lessonClipId + " expected=" + $secondClipId)
-    if (-not [string]::IsNullOrWhiteSpace($lessonClipTrack)) {
-        Assert-True ($lessonClipTrack -eq $targetTrackId) ("lesson_context selected_clip.track_id=" + $lessonClipTrack + " expected=" + $targetTrackId)
-    }
-    $lessonJson = $lessonContext | ConvertTo-Json -Depth 20
-    if ($evidenceSource -eq "agent_prompt_render.jsonl") {
-        Set-Content -LiteralPath (Join-Path $evidenceDir "s4_lesson_context.json") -Value $lessonJson -Encoding UTF8
+        if ($feedbackHonesty -eq "claimed_without_notes_read") {
+            Fail "evidence" ("S4W model claimed note content without a notes-read receipt for selected clip " + $secondClipId + "; claim_hits=[" + ($claimHits -join ",") + "] note_feature_hits=[" + ($noteFeatureHits -join ",") + "] notes_read_sources=[] reply=" + $workReply)
+        }
+        if (-not $notesRead) {
+            $s4w.outcome = "model_boundary"
+            $s4w.outcome_note = "the model did not read the selected clip notes and did not fabricate note content; whether this counts as PASS is for the lead"
+            $summary.status = "model_boundary"
+            $script:failureClass = "evidence"
+            $script:failureMessage = ("S4W model_boundary: no notes-read receipt for selected clip " + $secondClipId + " (honest_hits=[" + ($honestHits -join ",") + "]); lead adjudication required, not a PASS")
+            $summary.failure_class = $script:failureClass
+            $summary.error = $script:failureMessage
+            Write-WarnLine ("S4W model_boundary: no notes-read receipt for clip " + $secondClipId + "; lead adjudication required (NOT a PASS)")
+        }
+        else {
+            $s4w.outcome = "notes_read"
+            $s4w.outcome_note = "notes-read receipt(s) exist for the selected clip; done+reply+lesson_context asserted"
+            $summary.status = "passed"
+        }
+        Write-Ok ("S4W: stop=done reply_len=" + [string]$workReply.Length + " clip=" + $secondClipId + " notes_read=" + [string]$notesRead + " sources=" + ($notesReadSources -join ",") + " honesty=" + $feedbackHonesty)
     }
     else {
-        Set-Content -LiteralPath (Join-Path $evidenceDir "s4_context_snapshot.json") -Value $matchedLine -Encoding UTF8
-        Set-Content -LiteralPath (Join-Path $evidenceDir "s4_lesson_context.json") -Value $lessonJson -Encoding UTF8
-    }
-    $s4.lesson_context = [ordered]@{
-        schema_version = $lessonSchema
-        card_id = $lessonCardId
-        node_id = $lessonNodeId
-        selected_clip_id = $lessonClipId
-        selected_clip_track_id = $lessonClipTrack
-    }
-
-    $telemetryAppended = Read-AppendedText -Path $telemetryPath -Offset $telemetryOffset -MaxBytes 2097152
-    $telemetryMatched = $null
-    if ($null -ne $telemetryAppended -and $telemetryAppended.Length -gt 0) {
-        foreach ($line in [regex]::Split($telemetryAppended, '\r?\n')) {
-            $trimmed = $line.Trim()
-            if ($trimmed -eq "") { continue }
-            try { $record = $trimmed | ConvertFrom-Json } catch { continue }
-            if ([string](Get-Prop $record "conversation_id") -ne $conversationId) { continue }
-            $telemetryMatched = $record
-            break
+        Write-Step "S4 one real-LLM natural question"
+        $contextOffset = Get-FileLength $contextSnapshotPath
+        $promptOffset = Get-FileLength $promptRenderPath
+        $telemetryOffset = Get-FileLength $telemetryPath
+        $question = "我们现在第几关？这一关目标是什么？请一句话回答"
+        $probe = Invoke-LlmChat -Name "s4_question_probe" -ConversationID $conversationId -Message $question -Context $selectionContext
+        $probeStop = [string](Get-Prop $probe "stop_reason")
+        $s4Probe = ""
+        $s4Response = $null
+        if ($probeStop -eq "edu_jam_recovery_broadcast") {
+            $s4Probe = "recovery_broadcast"
+            $s4Response = Invoke-LlmChat -Name "s4_question" -ConversationID $conversationId -Message $question -Context $selectionContext
         }
-    }
-    if ($null -ne $telemetryMatched) {
-        $telemetryError = [string](Get-Prop $telemetryMatched "error")
-        $s4.telemetry = [ordered]@{
-            source = [string](Get-Prop $telemetryMatched "source")
-            model = [string](Get-Prop $telemetryMatched "model")
-            message_count = Get-Prop $telemetryMatched "message_count"
-            total_ms = Get-Prop $telemetryMatched "total_ms"
-            usage = Get-Prop $telemetryMatched "usage"
-            error = $telemetryError
+        elseif ($probeStop -eq "done") {
+            $s4Probe = "direct_llm"
+            $s4Response = $probe
         }
-    }
-    else {
-        $s4.telemetry = [ordered]@{ found = $false; note = "no new telemetry row for this conversation; prompt render + done is the primary evidence" }
-    }
-    Write-Ok ("S4: stop=done reply_len=" + [string]$reply.Length + " lesson_source=" + $evidenceSource + " card=" + $lessonCardId + " node=" + $lessonNodeId + " clip=" + $lessonClipId)
-    Write-Ok ("S4: reply keywords=" + ($keywordHits -join ","))
-    Write-Step "S5a no-selection control (scope=first, not a selected pass)"
-    $s5aResponse = Invoke-AgentChat -Name "s5a_no_selection" -ConversationID $conversationId -Message "写好了" -Context @{}
-    $s5aStop = [string](Get-Prop $s5aResponse "stop_reason")
-    Assert-True ($s5aStop -eq "edu_jam_node_done") ("S5a stop_reason=" + $s5aStop + " reply=" + [string](Get-Prop $s5aResponse "reply"))
-    $s5aWorkflow = Get-WorkflowData $s5aResponse
-    $s5aScope = [string](Get-Prop $s5aWorkflow "clip_scope")
-    Assert-True ($s5aScope -eq "first") ("S5a clip_scope=" + $s5aScope + " expected=first")
-    $s5aClipId = Get-ClipIdForSlot -WorkflowData $s5aWorkflow -Slot $targetSlot
-    Assert-True ($s5aClipId -eq $firstClipId) ("S5a clip_ids[" + $targetSlot + "]=" + $s5aClipId + " expected first=" + $firstClipId)
-    $s5aSelected = [string](Get-Prop $s5aWorkflow "selected_clip_id")
-    Assert-True ([string]::IsNullOrWhiteSpace($s5aSelected)) ("S5a selected_clip_id should be absent, got " + $s5aSelected)
-    $s5aNodeDone = [string](Get-Prop $s5aWorkflow "node_done")
-    Assert-True ($s5aNodeDone -eq $currentNode) ("S5a node_done=" + $s5aNodeDone + " expected=" + $currentNode)
-    $s5aNext = [string](Get-Prop $s5aWorkflow "current_node")
-    $s5a.node_done = [string](Get-Prop $s5aWorkflow "node_done")
-    $s5a.stop_reason = $s5aStop
-    $s5a.clip_scope = $s5aScope
-    $s5a.clip_id = $s5aClipId
-    $s5a.selected_clip_id = ""
-    $s5a.selected_used = $false
-    $s5a.pass_basis = "first_clip_of_target_slot"
-    $currentNode = $s5aNext
-    Write-Ok ("S5a: scope=first clip=" + $s5aClipId + " (selected_used=false)")
-
-    Write-Step "S5b cross-slot selection (scope=selection_unmatched, not a selected pass)"
-    $crossClipId = New-MidiClip -Name "s5b_create_cross" -TrackId $firstTrackId -StartBeats 16 -LengthBeats 4
-    $crossNotes = @(
-        @{ pitch = 48; start = 0; length = 0.5; velocity = 50 },
-        @{ pitch = 50; start = 0.5; length = 2; velocity = 55 }
-    )
-    $null = Add-MidiNotes -Name "s5b_notes_cross" -ClipId $crossClipId -Notes $crossNotes
-    $crossRead = @(Read-ClipNotes -Name "s5b_read_cross" -ClipId $crossClipId)
-    $crossSignature = Get-NoteSignature $crossRead
-    Assert-True ($crossRead.Count -eq 2) ("S5b cross clip notes=" + [string]$crossRead.Count)
-    $selectCrossResult = [ordered]@{}
-    $selectCrossError = ""
-    try {
-        $selectCross = Invoke-Tool -Name "s5b_select_cross" -Tool "select_clip" -ToolArgs @{ clip_id = $crossClipId; track_id = $firstTrackId } -Confirmed $false
-        $selectCrossResult = Get-Result $selectCross
-        if (([string](Get-Prop $selectCrossResult "clip_id")) -ne $crossClipId) {
-            $selectCrossError = "select_clip returned clip_id=" + [string](Get-Prop $selectCrossResult "clip_id") + " expected=" + $crossClipId
+        else {
+            Fail "llm" ("S4 probe stop_reason=" + $probeStop + " (expected recovery_broadcast or done); reply=" + [string](Get-Prop $probe "reply"))
         }
-    }
-    catch {
-        $selectCrossError = $_.Exception.Message
-    }
-    if (-not [string]::IsNullOrWhiteSpace($selectCrossError)) {
-        Write-WarnLine ("select_clip(cross-slot) is UI-only/unavailable; continuing with the chat-context binding: " + $selectCrossError)
-    }
-    $crossContext = New-SelectionContext -ClipId $crossClipId -TrackId $firstTrackId
-    $s5bResponse = Invoke-AgentChat -Name "s5b_check_cross_slot" -ConversationID $conversationId -Message "写好了" -Context $crossContext
-    $s5bStop = [string](Get-Prop $s5bResponse "stop_reason")
-    Assert-True ($s5bStop -eq "edu_jam_node_done") ("S5b stop_reason=" + $s5bStop + " reply=" + [string](Get-Prop $s5bResponse "reply"))
-    $s5bWorkflow = Get-WorkflowData $s5bResponse
-    $s5bScope = [string](Get-Prop $s5bWorkflow "clip_scope")
-    Assert-True ($s5bScope -eq "selection_unmatched") ("S5b clip_scope=" + $s5bScope + " expected=selection_unmatched")
-    $s5bSelected = [string](Get-Prop $s5bWorkflow "selected_clip_id")
-    Assert-True ($s5bSelected -eq $crossClipId) ("S5b selected_clip_id=" + $s5bSelected + " expected=" + $crossClipId)
-    $s5bClipId = Get-ClipIdForSlot -WorkflowData $s5bWorkflow -Slot $targetSlot
-    Assert-True ($s5bClipId -ne $crossClipId) ("S5b cross-slot clip impersonated the judgement clip: " + $crossClipId)
-    Assert-True (($s5bClipId -eq $firstClipId) -or ($s5bClipId -eq $secondClipId)) ("S5b target slot clip=" + $s5bClipId + " expected first or second")
-    $s5bNodeDone = [string](Get-Prop $s5bWorkflow "node_done")
-    Assert-True ($s5bNodeDone -eq $currentNode) ("S5b node_done=" + $s5bNodeDone + " expected=" + $currentNode)
-    $s5bNext = [string](Get-Prop $s5bWorkflow "current_node")
-    $s5b.node_done = [string](Get-Prop $s5bWorkflow "node_done")
-    $s5b.stop_reason = $s5bStop
-    $s5b.clip_scope = $s5bScope
-    $s5b.selected_clip_id = $s5bSelected
-    $s5b.clip_id = $s5bClipId
-    $s5b.cross_clip_id = $crossClipId
-    $s5b.cross_notes = $crossSignature
-    $s5b.select_clip_ui_action = [string](Get-Prop $selectCrossResult "ui_action")
-    $s5b.select_clip_error = $selectCrossError
-    $s5b.selected_used = $false
-    $s5b.pass_basis = "first_clip_of_target_slot"
-    $s5b.differential_note = "node passed by the target slot's first clip; it is NOT a selected-clip pass. selection_unmatched is disclosed."
-    $currentNode = $s5bNext
-    Write-Ok ("S5b: scope=selection_unmatched selected=" + $crossClipId + " used_clip=" + $s5bClipId + " (selected_used=false)")
+        $s4Stop = [string](Get-Prop $s4Response "stop_reason")
+        if ($s4Stop -ne "done") {
+            Fail "llm" ("S4 stop_reason=" + $s4Stop + " goal_status=" + [string](Get-Prop $s4Response "goal_status") + " error=" + [string](Get-Prop $s4Response "error") + " reply=" + [string](Get-Prop $s4Response "reply"))
+        }
+        $reply = [string](Get-Prop $s4Response "reply")
+        if ([string]::IsNullOrWhiteSpace($reply)) { Fail "llm" "S4 reply is empty" }
+        $keywordHits = @()
+        foreach ($keyword in @("第", "关", "目标", "旋律", "走向", "两小节", "曲线", "平直", "平缓", "跌宕", "节奏")) {
+            if ($reply.Contains($keyword)) { $keywordHits += $keyword }
+        }
+        $s4.probe = $s4Probe
+        $s4.stop_reason = $s4Stop
+        $s4.goal_status = [string](Get-Prop $s4Response "goal_status")
+        $s4.reply = $reply
+        $s4.reply_keyword_hits = $keywordHits
+        if ($keywordHits.Count -eq 0) {
+            Write-WarnLine "S4 reply had no tolerant keyword hit; recorded for lead review, not a hard fail"
+        }
+        $s4.question = $question
+        $s4.current_node = $currentNode
+        $s4.prompt_render_path = $promptRenderPath
+        $s4.prompt_offset = $promptOffset
+        $s4.legacy_context_snapshot_path = $contextSnapshotPath
+        $s4.legacy_context_offset = $contextOffset
 
-    Write-Step "S6 exit -> reopen A -> natural sentence -> auto-intro/recovery"
-    $exitResponse = Invoke-AgentChat -Name "s6_exit" -ConversationID $conversationId -Message "结束乐局" -Context @{}
-    $exitStop = [string](Get-Prop $exitResponse "stop_reason")
-    Assert-True ($exitStop -eq "edu_jam_exited") ("S6 exit stop_reason=" + $exitStop + " reply=" + [string](Get-Prop $exitResponse "reply"))
-    $s6.exit = [ordered]@{ stop_reason = $exitStop; status = [string](Get-Prop (Get-WorkflowData $exitResponse) "status") }
-    $mainSessionActive = $false
+        Start-Sleep -Milliseconds 500
+        $promptMatch = Find-PromptRenderLesson -Path $promptRenderPath -Offset $promptOffset -ConversationId $conversationId
+        if ($null -eq $promptMatch) { Fail "evidence" ("prompt render file not found/readable: " + $promptRenderPath) }
+        $promptHasLesson = ($null -ne $promptMatch.lesson)
+        $s4.prompt_render_has_lesson_context = $promptHasLesson
+        $s4.prompt_render_conversation_lines = $promptMatch.conversation_lines
+        if (-not [string]::IsNullOrWhiteSpace($promptMatch.line)) {
+            Set-Content -LiteralPath (Join-Path $evidenceDir "s4_prompt_render.jsonl") -Value $promptMatch.line -Encoding UTF8
+        }
+        if ($null -ne $promptMatch.appended -and $promptMatch.appended.Length -gt 0) {
+            Set-Content -LiteralPath (Join-Path $evidenceDir "s4_prompt_render_appended.jsonl") -Value $promptMatch.appended -Encoding UTF8
+        }
 
-    $openA = Invoke-Tool -Name "s6_project_open_a" -Tool "project.open" -ToolArgs @{ file_path = $projectA }
-    $reopenState = Wait-ActiveProject -Path $projectA -Seconds ([Math]::Max(30, [Math]::Min($TimeoutSeconds, 120)))
-    $reopenCurrent = Get-Prop $reopenState "current_project"
-    $reopenUuid = [string](Get-Prop $reopenCurrent "uuid")
-    if ([string]::IsNullOrWhiteSpace($reopenUuid)) {
-        $reopenHistory = Get-Prop $reopenState "project_history"
-        $reopenUuid = [string](Get-Prop $reopenHistory "project_uuid")
-    }
-    if ([string]::IsNullOrWhiteSpace($reopenUuid)) {
-        $reopenShadow = Get-Prop $reopenState "shadow"
-        $reopenUuid = [string](Get-Prop $reopenShadow "project_uuid")
-    }
-    Assert-True ($reopenUuid -eq $projectUuid) ("reopen project uuid=" + $reopenUuid + " expected=" + $projectUuid)
+        $lessonContext = $null
+        $matchedLine = ""
+        $evidenceSource = ""
+        $evidenceField = ""
+        if ($promptHasLesson) {
+            $lessonContext = $promptMatch.lesson
+            $matchedLine = $promptMatch.line
+            $evidenceSource = "agent_prompt_render.jsonl"
+            $evidenceField = $promptMatch.field
+        }
+        else {
+            # Legacy fallback only: agent_context_snapshots.jsonl is NOT required.
+            $fallbackAppended = Read-AppendedText -Path $contextSnapshotPath -Offset $contextOffset -MaxBytes 4194304
+            if ($null -ne $fallbackAppended -and $fallbackAppended.Length -gt 0) {
+                Set-Content -LiteralPath (Join-Path $evidenceDir "s4_context_snapshots_appended.jsonl") -Value $fallbackAppended -Encoding UTF8
+                foreach ($line in [regex]::Split($fallbackAppended, '\r?\n')) {
+                    $trimmed = $line.TrimStart([char]0xFEFF).Trim()
+                    if ($trimmed -eq "") { continue }
+                    try { $snapshot = $trimmed | ConvertFrom-Json } catch { continue }
+                    if ([string](Get-Prop $snapshot "conversation_id") -ne $conversationId) { continue }
+                    $candidateLesson = Get-Prop $snapshot "lesson_context"
+                    if ($null -eq $candidateLesson) { continue }
+                    $lessonContext = $candidateLesson
+                    $matchedLine = $trimmed
+                    $evidenceSource = "agent_context_snapshots.jsonl"
+                    $evidenceField = "lesson_context"
+                    break
+                }
+            }
+        }
 
-    if (-not (Test-Path -LiteralPath $bindingPath)) { Fail "s6" ("binding file missing after reopen: " + $bindingPath) }
-    $binding = Read-JsonFile -Path $bindingPath
-    $openedBefore = [string](Get-Prop $binding "opened_at")
-    $s6.opened_at_before = $openedBefore
-    if (-not [string]::IsNullOrWhiteSpace($openedBefore)) {
-        Fail "s6" ("binding.opened_at is already set (" + $openedBefore + "); a natural sentence would be silent auto-intro and fall into a second LLM turn. S6 not exercised.")
-    }
-    $s6ConversationId = $conversationId + "-reopen"
-    $reopenResponse = Invoke-AgentChat -Name "s6_reopen_natural" -ConversationID $s6ConversationId -Message "我回来了" -Context @{}
-    $reopenStop = [string](Get-Prop $reopenResponse "stop_reason")
-    if (($reopenStop -ne "edu_jam_entered") -and ($reopenStop -ne "edu_jam_recovery_broadcast")) {
-        Fail "s6" ("S6 reopen natural stop_reason=" + $reopenStop + " (expected auto-intro entered/recovery_broadcast); reply=" + [string](Get-Prop $reopenResponse "reply"))
-    }
-    $reopenWorkflow = Get-WorkflowData $reopenResponse
-    $reopenLevel = [string](Get-Prop $reopenWorkflow "level_id")
-    Assert-True ($reopenLevel -eq $cardId) ("S6 reopen level_id=" + $reopenLevel + " expected=" + $cardId)
-    $reopenNode = [string](Get-Prop $reopenWorkflow "current_node")
-    Assert-True (-not [string]::IsNullOrWhiteSpace($reopenNode)) "S6 reopen current_node is empty"
-    $bindingAfter = Read-JsonFile -Path $bindingPath
-    $openedAfter = [string](Get-Prop $bindingAfter "opened_at")
-    $s6CloseConversationId = $s6ConversationId
-    if ($reopenStop -eq "edu_jam_recovery_broadcast") {
-        $ownerConversation = [string](Get-Prop $reopenWorkflow "owner_conversation_id")
-        if (-not [string]::IsNullOrWhiteSpace($ownerConversation)) { $s6CloseConversationId = $ownerConversation }
-    }
-    $s6.stop_reason = $reopenStop
-    $s6.conversation_id = $s6ConversationId
-    $s6.close_conversation_id = $s6CloseConversationId
-    $s6.level_id = $reopenLevel
-    $s6.current_node = $reopenNode
-    $s6.reply = [string](Get-Prop $reopenResponse "reply")
-    $s6.opened_at_after = $openedAfter
-    $s6.writeback_observed = (-not [string]::IsNullOrWhiteSpace($openedAfter))
-    $s6SessionActive = $true
-    Write-Ok ("S6: " + $reopenStop + " level=" + $reopenLevel + " node=" + $reopenNode + " opened_at_after=" + $openedAfter)
+        if ($null -eq $lessonContext) {
+            $diagnostic = "S4 model-input evidence missing for conversation " + $conversationId + ": prompt_render_lines=" + [string]$promptMatch.conversation_lines + " prompt_has_lesson_context=" + [string]$promptHasLesson + " fallback_context_snapshot=" + $contextSnapshotPath + ". The current agent_prompt_render diagnostic logs only the system message (agentloop/message_loop.go:4864-4910); lesson_context is in the user model snapshot (planner/planner.go:223-224, agentloop/message_loop.go:3852-3854). Product diagnostic must log the user/model snapshot or the message loop must append a context snapshot."
+            Fail "evidence" $diagnostic
+        }
+        $s4.lesson_context_source = $evidenceSource
+        $s4.lesson_context_field = $evidenceField
 
-    $summary.status = "passed"
+        $lessonCard = Get-Prop $lessonContext "card"
+        $lessonNode = Get-Prop $lessonContext "node"
+        $lessonClip = Get-Prop $lessonContext "selected_clip"
+        $lessonSchema = [string](Get-Prop $lessonContext "schema_version")
+        $lessonCardId = [string](Get-Prop $lessonCard "id")
+        $lessonNodeId = [string](Get-Prop $lessonNode "id")
+        $lessonClipId = [string](Get-Prop $lessonClip "clip_id")
+        $lessonClipTrack = [string](Get-Prop $lessonClip "track_id")
+        Assert-True ($lessonSchema -eq "vit.edu_jam.lesson_context.v1") ("lesson_context schema=" + $lessonSchema)
+        Assert-True ($lessonCardId -eq $cardId) ("lesson_context card.id=" + $lessonCardId + " expected=" + $cardId)
+        Assert-True ($lessonNodeId -eq $currentNode) ("lesson_context node.id=" + $lessonNodeId + " expected current=" + $currentNode)
+        Assert-True ($lessonClipId -eq $secondClipId) ("lesson_context selected_clip.clip_id=" + $lessonClipId + " expected=" + $secondClipId)
+        if (-not [string]::IsNullOrWhiteSpace($lessonClipTrack)) {
+            Assert-True ($lessonClipTrack -eq $targetTrackId) ("lesson_context selected_clip.track_id=" + $lessonClipTrack + " expected=" + $targetTrackId)
+        }
+        $lessonJson = $lessonContext | ConvertTo-Json -Depth 20
+        if ($evidenceSource -eq "agent_prompt_render.jsonl") {
+            Set-Content -LiteralPath (Join-Path $evidenceDir "s4_lesson_context.json") -Value $lessonJson -Encoding UTF8
+        }
+        else {
+            Set-Content -LiteralPath (Join-Path $evidenceDir "s4_context_snapshot.json") -Value $matchedLine -Encoding UTF8
+            Set-Content -LiteralPath (Join-Path $evidenceDir "s4_lesson_context.json") -Value $lessonJson -Encoding UTF8
+        }
+        $s4.lesson_context = [ordered]@{
+            schema_version = $lessonSchema
+            card_id = $lessonCardId
+            node_id = $lessonNodeId
+            selected_clip_id = $lessonClipId
+            selected_clip_track_id = $lessonClipTrack
+        }
+
+        $telemetryAppended = Read-AppendedText -Path $telemetryPath -Offset $telemetryOffset -MaxBytes 2097152
+        $telemetryMatched = $null
+        if ($null -ne $telemetryAppended -and $telemetryAppended.Length -gt 0) {
+            foreach ($line in [regex]::Split($telemetryAppended, '\r?\n')) {
+                $trimmed = $line.Trim()
+                if ($trimmed -eq "") { continue }
+                try { $record = $trimmed | ConvertFrom-Json } catch { continue }
+                if ([string](Get-Prop $record "conversation_id") -ne $conversationId) { continue }
+                $telemetryMatched = $record
+                break
+            }
+        }
+        if ($null -ne $telemetryMatched) {
+            $telemetryError = [string](Get-Prop $telemetryMatched "error")
+            $s4.telemetry = [ordered]@{
+                source = [string](Get-Prop $telemetryMatched "source")
+                model = [string](Get-Prop $telemetryMatched "model")
+                message_count = Get-Prop $telemetryMatched "message_count"
+                total_ms = Get-Prop $telemetryMatched "total_ms"
+                usage = Get-Prop $telemetryMatched "usage"
+                error = $telemetryError
+            }
+        }
+        else {
+            $s4.telemetry = [ordered]@{ found = $false; note = "no new telemetry row for this conversation; prompt render + done is the primary evidence" }
+        }
+        Write-Ok ("S4: stop=done reply_len=" + [string]$reply.Length + " lesson_source=" + $evidenceSource + " card=" + $lessonCardId + " node=" + $lessonNodeId + " clip=" + $lessonClipId)
+        Write-Ok ("S4: reply keywords=" + ($keywordHits -join ","))
+        Write-Step "S5a no-selection control (scope=first, not a selected pass)"
+        $s5aResponse = Invoke-AgentChat -Name "s5a_no_selection" -ConversationID $conversationId -Message "写好了" -Context @{}
+        $s5aStop = [string](Get-Prop $s5aResponse "stop_reason")
+        Assert-True ($s5aStop -eq "edu_jam_node_done") ("S5a stop_reason=" + $s5aStop + " reply=" + [string](Get-Prop $s5aResponse "reply"))
+        $s5aWorkflow = Get-WorkflowData $s5aResponse
+        $s5aScope = [string](Get-Prop $s5aWorkflow "clip_scope")
+        Assert-True ($s5aScope -eq "first") ("S5a clip_scope=" + $s5aScope + " expected=first")
+        $s5aClipId = Get-ClipIdForSlot -WorkflowData $s5aWorkflow -Slot $targetSlot
+        Assert-True ($s5aClipId -eq $firstClipId) ("S5a clip_ids[" + $targetSlot + "]=" + $s5aClipId + " expected first=" + $firstClipId)
+        $s5aSelected = [string](Get-Prop $s5aWorkflow "selected_clip_id")
+        Assert-True ([string]::IsNullOrWhiteSpace($s5aSelected)) ("S5a selected_clip_id should be absent, got " + $s5aSelected)
+        $s5aNodeDone = [string](Get-Prop $s5aWorkflow "node_done")
+        Assert-True ($s5aNodeDone -eq $currentNode) ("S5a node_done=" + $s5aNodeDone + " expected=" + $currentNode)
+        $s5aNext = [string](Get-Prop $s5aWorkflow "current_node")
+        $s5a.node_done = [string](Get-Prop $s5aWorkflow "node_done")
+        $s5a.stop_reason = $s5aStop
+        $s5a.clip_scope = $s5aScope
+        $s5a.clip_id = $s5aClipId
+        $s5a.selected_clip_id = ""
+        $s5a.selected_used = $false
+        $s5a.pass_basis = "first_clip_of_target_slot"
+        $currentNode = $s5aNext
+        Write-Ok ("S5a: scope=first clip=" + $s5aClipId + " (selected_used=false)")
+
+        Write-Step "S5b cross-slot selection (scope=selection_unmatched, not a selected pass)"
+        $crossClipId = New-MidiClip -Name "s5b_create_cross" -TrackId $firstTrackId -StartBeats 16 -LengthBeats 4
+        $crossNotes = @(
+            @{ pitch = 48; start = 0; length = 0.5; velocity = 50 },
+            @{ pitch = 50; start = 0.5; length = 2; velocity = 55 }
+        )
+        $null = Add-MidiNotes -Name "s5b_notes_cross" -ClipId $crossClipId -Notes $crossNotes
+        $crossRead = @(Read-ClipNotes -Name "s5b_read_cross" -ClipId $crossClipId)
+        $crossSignature = Get-NoteSignature $crossRead
+        Assert-True ($crossRead.Count -eq 2) ("S5b cross clip notes=" + [string]$crossRead.Count)
+        $selectCrossResult = [ordered]@{}
+        $selectCrossError = ""
+        try {
+            $selectCross = Invoke-Tool -Name "s5b_select_cross" -Tool "select_clip" -ToolArgs @{ clip_id = $crossClipId; track_id = $firstTrackId } -Confirmed $false
+            $selectCrossResult = Get-Result $selectCross
+            if (([string](Get-Prop $selectCrossResult "clip_id")) -ne $crossClipId) {
+                $selectCrossError = "select_clip returned clip_id=" + [string](Get-Prop $selectCrossResult "clip_id") + " expected=" + $crossClipId
+            }
+        }
+        catch {
+            $selectCrossError = $_.Exception.Message
+        }
+        if (-not [string]::IsNullOrWhiteSpace($selectCrossError)) {
+            Write-WarnLine ("select_clip(cross-slot) is UI-only/unavailable; continuing with the chat-context binding: " + $selectCrossError)
+        }
+        $crossContext = New-SelectionContext -ClipId $crossClipId -TrackId $firstTrackId
+        $s5bResponse = Invoke-AgentChat -Name "s5b_check_cross_slot" -ConversationID $conversationId -Message "写好了" -Context $crossContext
+        $s5bStop = [string](Get-Prop $s5bResponse "stop_reason")
+        Assert-True ($s5bStop -eq "edu_jam_node_done") ("S5b stop_reason=" + $s5bStop + " reply=" + [string](Get-Prop $s5bResponse "reply"))
+        $s5bWorkflow = Get-WorkflowData $s5bResponse
+        $s5bScope = [string](Get-Prop $s5bWorkflow "clip_scope")
+        Assert-True ($s5bScope -eq "selection_unmatched") ("S5b clip_scope=" + $s5bScope + " expected=selection_unmatched")
+        $s5bSelected = [string](Get-Prop $s5bWorkflow "selected_clip_id")
+        Assert-True ($s5bSelected -eq $crossClipId) ("S5b selected_clip_id=" + $s5bSelected + " expected=" + $crossClipId)
+        $s5bClipId = Get-ClipIdForSlot -WorkflowData $s5bWorkflow -Slot $targetSlot
+        Assert-True ($s5bClipId -ne $crossClipId) ("S5b cross-slot clip impersonated the judgement clip: " + $crossClipId)
+        Assert-True (($s5bClipId -eq $firstClipId) -or ($s5bClipId -eq $secondClipId)) ("S5b target slot clip=" + $s5bClipId + " expected first or second")
+        $s5bNodeDone = [string](Get-Prop $s5bWorkflow "node_done")
+        Assert-True ($s5bNodeDone -eq $currentNode) ("S5b node_done=" + $s5bNodeDone + " expected=" + $currentNode)
+        $s5bNext = [string](Get-Prop $s5bWorkflow "current_node")
+        $s5b.node_done = [string](Get-Prop $s5bWorkflow "node_done")
+        $s5b.stop_reason = $s5bStop
+        $s5b.clip_scope = $s5bScope
+        $s5b.selected_clip_id = $s5bSelected
+        $s5b.clip_id = $s5bClipId
+        $s5b.cross_clip_id = $crossClipId
+        $s5b.cross_notes = $crossSignature
+        $s5b.select_clip_ui_action = [string](Get-Prop $selectCrossResult "ui_action")
+        $s5b.select_clip_error = $selectCrossError
+        $s5b.selected_used = $false
+        $s5b.pass_basis = "first_clip_of_target_slot"
+        $s5b.differential_note = "node passed by the target slot's first clip; it is NOT a selected-clip pass. selection_unmatched is disclosed."
+        $currentNode = $s5bNext
+        Write-Ok ("S5b: scope=selection_unmatched selected=" + $crossClipId + " used_clip=" + $s5bClipId + " (selected_used=false)")
+
+        Write-Step "S6 exit -> reopen A -> natural sentence -> auto-intro/recovery"
+        $exitResponse = Invoke-AgentChat -Name "s6_exit" -ConversationID $conversationId -Message "结束乐局" -Context @{}
+        $exitStop = [string](Get-Prop $exitResponse "stop_reason")
+        Assert-True ($exitStop -eq "edu_jam_exited") ("S6 exit stop_reason=" + $exitStop + " reply=" + [string](Get-Prop $exitResponse "reply"))
+        $s6.exit = [ordered]@{ stop_reason = $exitStop; status = [string](Get-Prop (Get-WorkflowData $exitResponse) "status") }
+        $mainSessionActive = $false
+
+        $openA = Invoke-Tool -Name "s6_project_open_a" -Tool "project.open" -ToolArgs @{ file_path = $projectA }
+        $reopenState = Wait-ActiveProject -Path $projectA -Seconds ([Math]::Max(30, [Math]::Min($TimeoutSeconds, 120)))
+        $reopenCurrent = Get-Prop $reopenState "current_project"
+        $reopenUuid = [string](Get-Prop $reopenCurrent "uuid")
+        if ([string]::IsNullOrWhiteSpace($reopenUuid)) {
+            $reopenHistory = Get-Prop $reopenState "project_history"
+            $reopenUuid = [string](Get-Prop $reopenHistory "project_uuid")
+        }
+        if ([string]::IsNullOrWhiteSpace($reopenUuid)) {
+            $reopenShadow = Get-Prop $reopenState "shadow"
+            $reopenUuid = [string](Get-Prop $reopenShadow "project_uuid")
+        }
+        Assert-True ($reopenUuid -eq $projectUuid) ("reopen project uuid=" + $reopenUuid + " expected=" + $projectUuid)
+
+        if (-not (Test-Path -LiteralPath $bindingPath)) { Fail "s6" ("binding file missing after reopen: " + $bindingPath) }
+        $binding = Read-JsonFile -Path $bindingPath
+        $openedBefore = [string](Get-Prop $binding "opened_at")
+        $s6.opened_at_before = $openedBefore
+        if (-not [string]::IsNullOrWhiteSpace($openedBefore)) {
+            Fail "s6" ("binding.opened_at is already set (" + $openedBefore + "); a natural sentence would be silent auto-intro and fall into a second LLM turn. S6 not exercised.")
+        }
+        $s6ConversationId = $conversationId + "-reopen"
+        $reopenResponse = Invoke-AgentChat -Name "s6_reopen_natural" -ConversationID $s6ConversationId -Message "我回来了" -Context @{}
+        $reopenStop = [string](Get-Prop $reopenResponse "stop_reason")
+        if (($reopenStop -ne "edu_jam_entered") -and ($reopenStop -ne "edu_jam_recovery_broadcast")) {
+            Fail "s6" ("S6 reopen natural stop_reason=" + $reopenStop + " (expected auto-intro entered/recovery_broadcast); reply=" + [string](Get-Prop $reopenResponse "reply"))
+        }
+        $reopenWorkflow = Get-WorkflowData $reopenResponse
+        $reopenLevel = [string](Get-Prop $reopenWorkflow "level_id")
+        Assert-True ($reopenLevel -eq $cardId) ("S6 reopen level_id=" + $reopenLevel + " expected=" + $cardId)
+        $reopenNode = [string](Get-Prop $reopenWorkflow "current_node")
+        Assert-True (-not [string]::IsNullOrWhiteSpace($reopenNode)) "S6 reopen current_node is empty"
+        $bindingAfter = Read-JsonFile -Path $bindingPath
+        $openedAfter = [string](Get-Prop $bindingAfter "opened_at")
+        $s6CloseConversationId = $s6ConversationId
+        if ($reopenStop -eq "edu_jam_recovery_broadcast") {
+            $ownerConversation = [string](Get-Prop $reopenWorkflow "owner_conversation_id")
+            if (-not [string]::IsNullOrWhiteSpace($ownerConversation)) { $s6CloseConversationId = $ownerConversation }
+        }
+        $s6.stop_reason = $reopenStop
+        $s6.conversation_id = $s6ConversationId
+        $s6.close_conversation_id = $s6CloseConversationId
+        $s6.level_id = $reopenLevel
+        $s6.current_node = $reopenNode
+        $s6.reply = [string](Get-Prop $reopenResponse "reply")
+        $s6.opened_at_after = $openedAfter
+        $s6.writeback_observed = (-not [string]::IsNullOrWhiteSpace($openedAfter))
+        $s6SessionActive = $true
+        Write-Ok ("S6: " + $reopenStop + " level=" + $reopenLevel + " node=" + $reopenNode + " opened_at_after=" + $openedAfter)
+
+        $summary.status = "passed"
+    }
 }
 catch {
     $raw = $_.Exception.Message
@@ -1651,7 +2197,7 @@ finally {
     $teardown.process_tcp_udp_note = "This script never starts/stops the stack; process/TCP/UDP zero must be confirmed by the berth owner after stopping the stack."
     $summary.completed_at = (Get-Date).ToString("o")
 
-    if ($teardownErrors.Count -gt 0 -and $summary.status -eq "passed") {
+    if ($teardownErrors.Count -gt 0 -and (($summary.status -eq "passed") -or ($summary.status -eq "model_boundary"))) {
         $summary.status = "failed"
         $summary.failure_class = "teardown"
         $summary.error = ($teardownErrors -join " | ")
@@ -1675,7 +2221,12 @@ finally {
 if ($summary.status -eq "passed") {
     $script:exitCode = 0
     Write-Host ""
-    Write-Host "ok: W02-A1c real-stack journey PASSED" -ForegroundColor Green
+    if ($QuestionMode -eq "work") {
+        Write-Host "ok: W02-A2a work-feedback real-stack journey PASSED (notes-read receipt for the selected clip)" -ForegroundColor Green
+    }
+    else {
+        Write-Host "ok: W02-A1c real-stack journey PASSED" -ForegroundColor Green
+    }
     Write-Host ("artifact: " + (Join-Path $RunRoot "summary.json"))
     Write-Host ("run_root: " + $RunRoot)
 }
@@ -1692,7 +2243,12 @@ else {
         default { 1 }
     }
     Write-Host ""
-    Write-Host ("FAILED [" + $script:failureClass + "] exit=" + [string]$script:exitCode) -ForegroundColor Red
+    if ($summary.status -eq "model_boundary") {
+        Write-Host ("MODEL_BOUNDARY [" + $script:failureClass + "] exit=" + [string]$script:exitCode + " - no notes-read receipt; lead adjudication required (NOT a PASS)") -ForegroundColor Yellow
+    }
+    else {
+        Write-Host ("FAILED [" + $script:failureClass + "] exit=" + [string]$script:exitCode) -ForegroundColor Red
+    }
     Write-Host ("artifact: " + (Join-Path $RunRoot "summary.json"))
 }
 exit $script:exitCode
