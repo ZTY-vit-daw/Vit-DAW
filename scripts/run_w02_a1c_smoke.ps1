@@ -10,6 +10,10 @@ param(
     # selected-clip work-feedback question (W02-A2a).
     [ValidateSet("status", "work")]
     [string]$QuestionMode = "status",
+    # W02-A1-HANDTEST-V0 prep mode (see header): S0-S2 + rename/save/copy/reopen
+    # verification. Requires -HandtestRoot; skips S3-S6; zero LLM.
+    [switch]$HandtestPrep,
+    [string]$HandtestRoot = "",
     [switch]$StackAuthorized,
     [switch]$DryRun
 )
@@ -28,6 +32,22 @@ param(
 #   selected second) and replaces S4 with S4W, ONE real-LLM feedback question
 #   about the selected clip's actual notes. S5/S6 are A1c status-mode coverage
 #   and are not run in work mode.
+#
+# -HandtestPrep -HandtestRoot <dir> (W02-A1-HANDTEST-V0, card pool 434): reuse
+#   S0/S1/S1.5/S2 (import / enter / advance to the first clip node / two
+#   distinguishable MIDI clips / selected second), then rename the target and
+#   reference tracks, project.save (tracks+clips persistence), copy the project
+#   directory (.vit/.vit_project/.vit_agent/.vit_history) to <dir>/live and
+#   <dir>/pristine, reopen the live copy and assert that project.state still has
+#   the two renamed user tracks and the two clips with their exact notes, and
+#   that the prep conversation is still at the clip node ("乐局状态" ->
+#   edu_jam_status with current_node == the clip node). S3/S4/S5/S6 are NOT run
+#   and NO LLM turn is consumed: the user's hand test performs the "写好了"
+#   advance itself. The prep conversation is left ACTIVE (teardown does not send
+#   结束乐局) so the fixture stays at n2; recents / Settings.xml /
+#   default_project.xml / authority are still restored and hashed.
+#   A lost clip/track/node after reopen is exit 1; a missing persistence face,
+#   a zero-LLM violation or an unreadable fixture face is exit 5.
 #   Evidence: a notes-read receipt (get_midi_clip_notes / midi.read_notes or the
 #   midi.read_clip_data equivalents) for the selected clip must be found on at
 #   least one of: the /agent/events tool timeline, the model-input prompt render
@@ -904,6 +924,553 @@ function New-SelectionContext {
     }
 }
 
+# ---------------------------------------------------------------------------
+# W02-A1-HANDTEST-V0 handtest prep helpers (prep mode only; zero LLM).
+# The prep leg stops at the clip node: the user's hand test does the advance.
+# ---------------------------------------------------------------------------
+
+function Get-TreeDigest {
+    # Deterministic tree digest ("<relative path>:<sha256>" lines, sorted) so a
+    # live/pristine copy pair can be compared without external tools.
+    param([string]$Path)
+    $out = [ordered]@{ path = $Path; files = 0; bytes = [long]0; sha256 = "" }
+    if ([string]::IsNullOrWhiteSpace($Path) -or -not (Test-Path -LiteralPath $Path)) { return $out }
+    $root = [System.IO.Path]::GetFullPath($Path)
+    $lines = @()
+    foreach ($file in @(Get-ChildItem -LiteralPath $root -Recurse -File -Force | Sort-Object FullName)) {
+        $rel = $file.FullName.Substring($root.Length)
+        $rel = $rel.TrimStart([char[]]@([char]92, [char]47))
+        $lines += ($rel + ":" + (Get-FileSha256 $file.FullName))
+        $out.files++
+        $out.bytes += [long]$file.Length
+    }
+    $sha = [System.Security.Cryptography.SHA256]::Create()
+    try {
+        $hash = $sha.ComputeHash([System.Text.Encoding]::UTF8.GetBytes(($lines -join ([string][char]10))))
+        $out.sha256 = [System.BitConverter]::ToString($hash).Replace("-", "")
+    }
+    finally { $sha.Dispose() }
+    return $out
+}
+
+function Get-TrackClips {
+    # project.state rows expose clips[] (clip_summaries is the fallback key).
+    param($Track)
+    $clips = Get-Prop $Track "clips"
+    if ($null -eq $clips) { $clips = Get-Prop $Track "clip_summaries" }
+    if ($null -eq $clips) { return @() }
+    return @($clips)
+}
+
+function Find-EduJamStateProbe {
+    # Supporting cold-start probe: the saved agent runtime state under the
+    # fixture should carry the prep conversation with the clip node active.
+    # This is file-level evidence for the NEXT cold start; the primary check is
+    # the product chat face (乐局状态). An in-process reopen alone cannot prove
+    # a cold restore, so this probe is recorded and disclosed, never inflated.
+    param([string]$ProjectDir, [string]$ConversationId, [string]$NodeId)
+    $out = [ordered]@{
+        result = "not_found"
+        file = ""
+        checked_files = 0
+        conversation_found = $false
+        node_state = ""
+        note = ""
+    }
+    if ([string]::IsNullOrWhiteSpace($ProjectDir) -or -not (Test-Path -LiteralPath $ProjectDir)) {
+        $out.note = "fixture dir missing"
+        return $out
+    }
+    $files = @(Get-ChildItem -LiteralPath $ProjectDir -Recurse -File -Force -Filter "agent_runtime_state.json" -ErrorAction SilentlyContinue | Sort-Object LastWriteTimeUtc -Descending)
+    $nodeNeedle = ('"node_id"\s*:\s*"' + [regex]::Escape($NodeId) + '"')
+    foreach ($stateFile in $files) {
+        $out.checked_files++
+        $text = ""
+        try { $text = [System.IO.File]::ReadAllText($stateFile.FullName) } catch { continue }
+        if (-not $text.Contains($ConversationId)) { continue }
+        $out.file = $stateFile.FullName
+        $out.conversation_found = $true
+        $match = [regex]::Match($text, ($nodeNeedle + '\s*,\s*"state"\s*:\s*"([A-Za-z_]+)"'))
+        if (-not $match.Success) {
+            $match = [regex]::Match($text, ($nodeNeedle + '[\s\S]{0,200}?"state"\s*:\s*"([A-Za-z_]+)"'))
+        }
+        if ($match.Success) {
+            $out.node_state = $match.Groups[1].Value
+            if ($out.node_state -eq "active") { $out.result = "node_active" }
+            else { $out.result = "conversation_without_active_node" }
+        }
+        else {
+            $out.result = "conversation_without_node_state"
+        }
+        return $out
+    }
+    $out.note = "no agent_runtime_state.json carrying the prep conversation under the fixture"
+    return $out
+}
+
+function New-HandtestPrepNotes {
+    # Prep explanation generated from the summary (no hand-written claims).
+    param($Summary)
+    $prep = Get-Prop $Summary "handtest_prep"
+    $rename = Get-Prop $prep "rename"
+    $save = Get-Prop $prep "save"
+    $copies = Get-Prop $prep "copies"
+    $reopen = Get-Prop $prep "reopen"
+    $conversation = Get-Prop $prep "conversation"
+    $probe = Get-Prop $prep "restore_probe"
+    $zero = Get-Prop $prep "zero_llm"
+    $lines = @()
+    $lines += "# W02-A1-HANDTEST-V0 prep 记录（脚本生成）"
+    $lines += ""
+    $lines += "- 生成时间：" + [string](Get-Prop $Summary "completed_at")
+    $lines += "- 结论：" + [string](Get-Prop $Summary "status") + " / failure_class=" + [string](Get-Prop $Summary "failure_class")
+    $lines += "- 模式：-HandtestPrep（S0/S1/S1.5/S2 + rename/save/copy/reopen；不跑 S3-S6、零 LLM、不启停栈）"
+    $lines += "- 栈：" + [string](Get-Prop $Summary "agent_base_url") + "（owner=" + [string](Get-Prop $Summary "runtime_owner") + "）"
+    $lines += "- RunRoot（临时工件）：" + [string](Get-Prop $Summary "run_root")
+    $lines += "- git head：" + [string](Get-Prop $Summary "git_head")
+    $lines += ""
+    $lines += "## 预置工程"
+    $lines += ""
+    $lines += "- 原工程：" + [string](Get-Prop $Summary "project_a")
+    $lines += "- live：" + [string](Get-Prop $prep "live_project")
+    $lines += "- pristine：" + [string](Get-Prop $prep "pristine_project")
+    $lines += '- prep 会话 conversation_id："' + [string](Get-Prop $prep "prep_conversation_id") + '"'
+    $lines += '- 预期节点："' + [string](Get-Prop $prep "expected_node") + '"（第 3 关 / clip 节点，乐局已导入、已开局）'
+    $lines += '- card_id："' + [string](Get-Prop $Summary "card_id") + '"；level 绑定：' + [string](Get-Prop $Summary "binding_path")
+    $lines += ""
+    $lines += "## 轨道与 clip"
+    $lines += ""
+    $lines += "- 目标轨：" + [string](Get-Prop (Get-Prop $rename "target") "name") + "（track_id=" + [string](Get-Prop (Get-Prop $rename "target") "track_id") + "）"
+    $lines += "- 参考轨：" + [string](Get-Prop (Get-Prop $rename "reference") "name") + "（track_id=" + [string](Get-Prop (Get-Prop $rename "reference") "track_id") + "）"
+    foreach ($row in @(Get-Prop $reopen "clips")) {
+        $lines += "- clip_id=" + [string](Get-Prop $row "clip_id") + " start=" + [string](Get-Prop $row "start") + " notes=" + [string](Get-Prop $row "notes")
+    }
+    $lines += "- 第一个 clip（控制组）：" + [string](Get-Prop $reopen "first_clip_id")
+    $lines += "- 第二个 clip（手测要选的那个）：" + [string](Get-Prop $reopen "second_clip_id")
+    $lines += ""
+    $lines += "## 保存与重开取证"
+    $lines += ""
+    $lines += '- 保存命令："' + [string](Get-Prop $save "command") + '"，kernel status="' + [string](Get-Prop $save "status") + '"，lifecycle="' + [string](Get-Prop $save "project_lifecycle") + '"'
+    $lines += "- .vit 大小 " + [string](Get-Prop $save "size_before") + " -> " + [string](Get-Prop $save "size_after") + " 字节；sha256 " + [string](Get-Prop $save "sha256_before") + " -> " + [string](Get-Prop $save "sha256_after")
+    $lines += "- 保存后 unsaved 标记：" + [string](Get-Prop $save "unsaved_after_save") + "（不单独判据；以重开取证为准）"
+    $lines += "- live/pristine 文件数：" + [string](Get-Prop (Get-Prop $copies "live") "files") + " / " + [string](Get-Prop (Get-Prop $copies "pristine") "files") + "，tree sha256 相等=" + [string](Get-Prop (Get-Prop $copies "same_digest") "value")
+    $lines += "- 重开 live：用户轨 " + [string](Get-Prop $reopen "user_track_count") + "（track_count=" + [string](Get-Prop $reopen "track_count") + "），目标轨 clip 数=" + [string](Get-Prop $reopen "target_clip_count") + "，参考轨 clip 数=" + [string](Get-Prop $reopen "reference_clip_count")
+    $lines += '- 重开后 prep 会话：stop_reason="' + [string](Get-Prop $conversation "stop_reason") + '"，current_node="' + [string](Get-Prop $conversation "current_node") + '"，期望 "' + [string](Get-Prop $conversation "expected_node") + '"'
+    $lines += "- 持久化状态探针（支撑证据）：" + [string](Get-Prop $probe "result") + "（file=" + [string](Get-Prop $probe "file") + "，node_state=" + [string](Get-Prop $probe "node_state") + "）"
+    $lines += "- 零 LLM：telemetry 新增行=" + [string](Get-Prop $zero "llm_rows") + "（本会话），可用=" + [string](Get-Prop $zero "telemetry_available")
+    $lines += ""
+    $lines += "## 已知边界"
+    $lines += ""
+    $lines += "- 本脚本只操作**已存在的栈**，不启停进程、不占端口；prep 结束后栈仍由 lead 拥有，由 lead 停栈后核 process/TCP/UDP 零。"
+    $lines += "- 重开发生在同一 agent 进程内：它证明 .vit 里有 tracks/clips，也证明 prep 会话在重开后仍报 n2；**冷启动恢复**（新进程/新栈）以手测为准，见 coord/runs/W02-A1-handtest/RUNBOOK.md。"
+    $lines += "- teardown **不关闭** prep 会话（否则 fixture 不再是 n2）；recents / Settings.xml / default_project.xml / authority 仍按字节还原。"
+    $lines += "- 运行工件（requests/responses/snapshots/evidence）在 RunRoot；本文件与 summary.json 是本轮的 prep 记录。"
+    return ($lines -join ([Environment]::NewLine))
+}
+
+function Invoke-HandtestPrep {
+    # Prep leg for W02-A1-HANDTEST-V0. Runs after S2 and returns the
+    # handtest_prep evidence block. Zero LLM: only deterministic commands
+    # (rename_track / project.save / project.open / project.state / 乐局状态).
+    param(
+        [object]$Summary,
+        [string]$ConversationId,
+        [string]$ProjectPath,
+        [string]$CardId,
+        [string]$TargetTrackId,
+        [string]$ReferenceTrackId,
+        [string]$ClipNode,
+        [string]$TargetSlot,
+        [string]$FirstClipId,
+        [string]$SecondClipId,
+        [string]$FirstSignature,
+        [string]$SecondSignature,
+        [string]$HandtestRoot,
+        [string]$EvidenceDir
+    )
+
+    if ([string]::IsNullOrWhiteSpace($HandtestRoot)) {
+        Fail "preflight" "-HandtestRoot is required with -HandtestPrep (live/pristine fixture root)."
+    }
+    $rootFull = [System.IO.Path]::GetFullPath($HandtestRoot)
+    $liveDir = Join-Path $rootFull "live"
+    $pristineDir = Join-Path $rootFull "pristine"
+    if ((Test-Path -LiteralPath $liveDir) -or (Test-Path -LiteralPath $pristineDir)) {
+        Fail "preflight" ("HandtestRoot already contains live/pristine (" + $rootFull + "); choose a new root or reset it with reset_handtest_live.ps1")
+    }
+
+    $prep = [ordered]@{
+        schema_version = "vit_w02_a1_handtest_prep.v1"
+        card = "W02-A1-HANDTEST-V0"
+        handtest_root = $rootFull
+        live_dir = $liveDir
+        pristine_dir = $pristineDir
+        live_project = ""
+        pristine_project = ""
+        prep_conversation_id = $ConversationId
+        expected_node = $ClipNode
+        target_slot = $TargetSlot
+        track_names = [ordered]@{}
+        rename = [ordered]@{}
+        save = [ordered]@{}
+        copies = [ordered]@{}
+        reopen = [ordered]@{}
+        conversation = [ordered]@{}
+        restore_probe = [ordered]@{}
+        zero_llm = [ordered]@{}
+        verified = $false
+    }
+    # Published before the first assertion so a failing prep round still leaves
+    # the partial evidence (save/copy/reopen) in PREP-<stamp>/summary.json.
+    if ($null -ne $Summary) { $Summary.handtest_prep = $prep }
+
+    # P1: the two user tracks get human-readable names so the hand test can pick
+    # the right clip slot by reading the DAW.
+    Write-Step "PREP rename target/reference tracks"
+    $targetName = "我的旋律（选第二个 clip）"
+    $referenceName = "参考（空白）"
+    $renameTarget = Invoke-Tool -Name "prep_rename_target" -Tool "rename_track" -ToolArgs @{ track_id = $TargetTrackId; name = $targetName }
+    $renameTargetResult = Get-Result $renameTarget
+    $targetNameAfter = [string](Get-Prop $renameTargetResult "track_name")
+    Assert-True ($targetNameAfter -eq $targetName) ("rename_track(target) track_name=" + $targetNameAfter + " expected=" + $targetName + " result=" + (Format-Result $renameTargetResult))
+    $renameReference = Invoke-Tool -Name "prep_rename_reference" -Tool "rename_track" -ToolArgs @{ track_id = $ReferenceTrackId; name = $referenceName }
+    $renameReferenceResult = Get-Result $renameReference
+    $referenceNameAfter = [string](Get-Prop $renameReferenceResult "track_name")
+    Assert-True ($referenceNameAfter -eq $referenceName) ("rename_track(reference) track_name=" + $referenceNameAfter + " expected=" + $referenceName + " result=" + (Format-Result $renameReferenceResult))
+    $prep.rename = [ordered]@{
+        target = [ordered]@{ track_id = $TargetTrackId; name = $targetName; old_name = [string](Get-Prop $renameTargetResult "old_name"); status = [string](Get-Prop $renameTargetResult "status") }
+        reference = [ordered]@{ track_id = $ReferenceTrackId; name = $referenceName; old_name = [string](Get-Prop $renameReferenceResult "old_name"); status = [string](Get-Prop $renameReferenceResult "status") }
+    }
+    $prep.track_names = [ordered]@{ target = $targetName; reference = $referenceName }
+    Write-Ok ("PREP rename: " + $TargetTrackId + " -> " + $targetName + " / " + $ReferenceTrackId + " -> " + $referenceName)
+
+    # P2: persist the kernel edit state (tracks/clips/notes) into the .vit.
+    # project.save writes the app-bound .vit in place (catalog save_project ->
+    # project.save -> ipcSaveEncryptedProjectToPath with createNewProjectIdentity
+    # false); no save_as-same-path workaround was needed.
+    Write-Step "PREP save project (persist tracks/clips before copy)"
+    $saveBefore = Get-FileSha256 $ProjectPath
+    $saveBeforeSize = Get-FileLength $ProjectPath
+    $saveResponse = Invoke-Tool -Name "prep_project_save" -Tool "project.save" -ToolArgs @{}
+    $saveResult = Get-Result $saveResponse
+    $saveKernelStatus = [string](Get-Prop $saveResult "status")
+    if (-not [string]::IsNullOrWhiteSpace($saveKernelStatus) -and $saveKernelStatus -ne "ok") {
+        Fail "assert" ("project.save kernel status=" + $saveKernelStatus + " result=" + (Format-Result $saveResult))
+    }
+    Start-Sleep -Milliseconds 1200
+    Assert-True (Test-Path -LiteralPath $ProjectPath) ("project file missing after save: " + $ProjectPath)
+    $saveAfter = Get-FileSha256 $ProjectPath
+    $saveAfterSize = Get-FileLength $ProjectPath
+    Assert-True (-not [string]::IsNullOrWhiteSpace($saveAfter)) ("could not hash the saved project file: " + $ProjectPath)
+    Assert-True ($saveAfter -ne $saveBefore) ("project.save did not rewrite the .vit (sha256 unchanged " + $saveAfter + "); tracks/clips would not persist")
+    $saveState = Invoke-Api -Name "prep_state_after_save" -Method "Get" -Path "/agent/state" -Body $null
+    $saveHistory = Get-Prop $saveState "project_history"
+    $saveUnsaved = (Get-Bool (Get-Prop $saveHistory "unsaved")) -or (Get-Bool (Get-Prop (Get-Prop $saveState "shadow") "unsaved"))
+    $prep.save = [ordered]@{
+        command = "project.save"
+        status = $saveKernelStatus
+        kernel_message = [string](Get-Prop $saveResult "message")
+        project_path = [string](Get-Prop $saveResult "project_path")
+        project_lifecycle = [string](Get-Prop $saveResult "project_lifecycle")
+        size_before = $saveBeforeSize
+        size_after = $saveAfterSize
+        sha256_before = $saveBefore
+        sha256_after = $saveAfter
+        rewritten = ($saveAfter -ne $saveBefore)
+        unsaved_after_save = $saveUnsaved
+        save_as_same_path_fallback = $false
+    }
+    if ($saveUnsaved) {
+        Write-WarnLine "prep save: /agent/state still reports unsaved=true after project.save; recorded, reopen evidence stays authoritative"
+    }
+    Write-Ok ("PREP save: " + [string]$saveAfterSize + " bytes sha256=" + $saveAfter.Substring(0, 12) + ".. unsaved=" + [string]$saveUnsaved)
+
+    # P3: copy the project directory (card list: .vit/.vit_project/.vit_agent/
+    # .vit_history) to HandtestRoot/live, then live -> pristine BEFORE any
+    # reopen, so pristine is the clean save-point baseline.
+    Write-Step "PREP copy project directory to HandtestRoot live + pristine"
+    New-Item -ItemType Directory -Path $rootFull -Force | Out-Null
+    New-Item -ItemType Directory -Path $liveDir -Force | Out-Null
+    $script:handtestCopyDirs = @($liveDir, $pristineDir)
+    $projectFileName = Split-Path -Leaf $ProjectPath
+    $projectDir = Split-Path -Parent $ProjectPath
+    $projectBase = [System.IO.Path]::GetFileNameWithoutExtension($ProjectPath)
+    $packageDir = Find-ProjectPackage -ProjectPath $ProjectPath
+    Assert-True (-not [string]::IsNullOrWhiteSpace($packageDir)) ("project package not found next to the prep project: " + $ProjectPath)
+    $agentDir = Join-Path $projectDir ".vit_agent"
+    $historyDir = Join-Path $projectDir ".vit_history"
+    Assert-True (Test-Path -LiteralPath $agentDir) ("project agent dir missing: " + $agentDir)
+    Assert-True (Test-Path -LiteralPath $historyDir) ("project history dir missing: " + $historyDir + " (the prep conversation lives there)")
+    $copyItems = @()
+    $copyItems += [ordered]@{ source = $ProjectPath; name = $projectFileName; kind = "file" }
+    $copyItems += [ordered]@{ source = $packageDir; name = (Split-Path -Leaf $packageDir); kind = "dir" }
+    $copyItems += [ordered]@{ source = $agentDir; name = ".vit_agent"; kind = "dir" }
+    $copyItems += [ordered]@{ source = $historyDir; name = ".vit_history"; kind = "dir" }
+    $mediaSource = Join-Path $projectDir ($projectBase + "_Media")
+    $mediaCopied = $false
+    if (Test-Path -LiteralPath $mediaSource) {
+        $copyItems += [ordered]@{ source = $mediaSource; name = ($projectBase + "_Media"); kind = "dir" }
+        $mediaCopied = $true
+    }
+    foreach ($item in $copyItems) {
+        $dest = Join-Path $liveDir $item.name
+        if ($item.kind -eq "dir") { Copy-Item -LiteralPath $item.source -Destination $dest -Recurse -Force }
+        else { Copy-Item -LiteralPath $item.source -Destination $dest -Force }
+    }
+    $liveProject = Join-Path $liveDir $projectFileName
+    Assert-True (Test-Path -LiteralPath $liveProject) ("live project copy missing: " + $liveProject)
+    $liveSha = Get-FileSha256 $liveProject
+    Assert-True ($liveSha -eq $saveAfter) ("live .vit sha256 mismatch: " + $liveSha + " expected=" + $saveAfter)
+
+    # The agent can still flush workspace/history files right after a save, so
+    # the live->pristine copy is compared and re-taken once instead of failing on
+    # a transient background write.
+    $liveDigest = Get-TreeDigest -Path $liveDir
+    $pristineDigest = $null
+    $pristineSha = ""
+    $copyAttempts = 0
+    while ($copyAttempts -lt 2) {
+        $copyAttempts++
+        if (Test-Path -LiteralPath $pristineDir) { Remove-Item -LiteralPath $pristineDir -Recurse -Force }
+        New-Item -ItemType Directory -Path $pristineDir -Force | Out-Null
+        foreach ($entry in @(Get-ChildItem -LiteralPath $liveDir -Force)) {
+            Copy-Item -LiteralPath $entry.FullName -Destination (Join-Path $pristineDir $entry.Name) -Recurse -Force
+        }
+        $liveDigest = Get-TreeDigest -Path $liveDir
+        $pristineDigest = Get-TreeDigest -Path $pristineDir
+        if (($liveDigest.files -eq $pristineDigest.files) -and ($liveDigest.sha256 -eq $pristineDigest.sha256)) { break }
+        Start-Sleep -Milliseconds 500
+    }
+    $pristineProject = Join-Path $pristineDir $projectFileName
+    Assert-True (Test-Path -LiteralPath $pristineProject) ("pristine project copy missing: " + $pristineProject)
+    $pristineSha = Get-FileSha256 $pristineProject
+    Assert-True ($pristineSha -eq $liveSha) ("pristine .vit sha256 mismatch: " + $pristineSha + " expected=" + $liveSha)
+    Assert-True ($liveDigest.files -eq $pristineDigest.files) ("live/pristine file count mismatch: " + [string]$liveDigest.files + " / " + [string]$pristineDigest.files)
+    Assert-True ($liveDigest.sha256 -eq $pristineDigest.sha256) ("live/pristine tree digest mismatch: " + $liveDigest.sha256 + " / " + $pristineDigest.sha256)
+    $prep.live_project = $liveProject
+    $prep.pristine_project = $pristineProject
+    $prep.copies = [ordered]@{
+        items = @($copyItems | ForEach-Object { [ordered]@{ source = $_.source; name = $_.name; kind = $_.kind } })
+        media_dir_copied = $mediaCopied
+        live = [ordered]@{ files = $liveDigest.files; bytes = $liveDigest.bytes; sha256 = $liveDigest.sha256; project_sha256 = $liveSha }
+        pristine = [ordered]@{ files = $pristineDigest.files; bytes = $pristineDigest.bytes; sha256 = $pristineDigest.sha256; project_sha256 = $pristineSha }
+        same_digest = [ordered]@{ value = ($liveDigest.sha256 -eq $pristineDigest.sha256); live = $liveDigest.sha256; pristine = $pristineDigest.sha256 }
+    }
+    Write-Ok ("PREP copy: live=" + $liveDir + " pristine=" + $pristineDir + " files=" + [string]$liveDigest.files + " digest=" + $liveDigest.sha256.Substring(0, 12) + "..")
+
+    # P4: reopen the live copy (same .vit content, delivered path) and assert the
+    # kernel still reports both renamed tracks and both clips with their notes.
+    Write-Step "PREP reopen live copy and verify persisted tracks/clips/notes"
+    $openLive = Invoke-Tool -Name "prep_open_live" -Tool "project.open" -ToolArgs @{ file_path = $liveProject }
+    $openLiveResult = Get-Result $openLive
+    $liveState = Wait-ActiveProject -Path $liveProject -Seconds ([Math]::Max(30, [Math]::Min($TimeoutSeconds, 120)))
+    $liveCurrent = Get-Prop $liveState "current_project"
+    $liveUuid = [string](Get-Prop $liveCurrent "uuid")
+    if ([string]::IsNullOrWhiteSpace($liveUuid)) { $liveUuid = [string](Get-Prop (Get-Prop $liveState "project_history") "project_uuid") }
+    if ([string]::IsNullOrWhiteSpace($liveUuid)) { $liveUuid = [string](Get-Prop (Get-Prop $liveState "shadow") "project_uuid") }
+    Assert-True (-not [string]::IsNullOrWhiteSpace($liveUuid)) ("live reopen project uuid is empty: " + $liveProject)
+
+    # The kernel can report the reopened project as active before the full track
+    # graph settles, so poll project.state until the target row shows its two
+    # clips (bounded; the last observation is the assertion basis).
+    $liveProjectState = $null
+    $stateAttempts = 0
+    while ($stateAttempts -lt 12) {
+        $stateAttempts++
+        $liveProjectState = Invoke-Tool -Name ("prep_live_project_state_" + $stateAttempts) -Tool "project.state" -ToolArgs @{} -Confirmed $false
+        $pollTracks = @(Get-UserTracks $liveProjectState)
+        $pollTarget = $null
+        foreach ($pollRow in $pollTracks) {
+            if ([string](Get-Prop $pollRow "track_name") -eq $targetName) { $pollTarget = $pollRow }
+        }
+        $pollClips = @()
+        if ($null -ne $pollTarget) { $pollClips = @(Get-TrackClips $pollTarget) }
+        if (($pollTracks.Count -ge 2) -and ($pollClips.Count -eq 2)) { break }
+        Start-Sleep -Milliseconds 800
+    }
+    try {
+        Set-Content -LiteralPath (Join-Path $EvidenceDir "prep_live_project_state.json") -Value (($liveProjectState | ConvertTo-Json -Depth 40)) -Encoding UTF8
+    }
+    catch { }
+
+    $liveTracks = @(Get-UserTracks $liveProjectState)
+    $liveTrackNames = @()
+    foreach ($track in $liveTracks) { $liveTrackNames += [string](Get-Prop $track "track_name") }
+    Assert-True ($liveTracks.Count -ge 2) ("live reopen user tracks=" + [string]$liveTracks.Count + " names=[" + ($liveTrackNames -join ",") + "]; expected the renamed target + reference tracks")
+    $targetRow = $null
+    $referenceRow = $null
+    foreach ($track in $liveTracks) {
+        $rowName = [string](Get-Prop $track "track_name")
+        if ($rowName -eq $targetName) { $targetRow = $track }
+        elseif ($rowName -eq $referenceName) { $referenceRow = $track }
+    }
+    Assert-True ($null -ne $targetRow) ("target track name not persisted after reopen; names=[" + ($liveTrackNames -join ",") + "]")
+    Assert-True ($null -ne $referenceRow) ("reference track name not persisted after reopen; names=[" + ($liveTrackNames -join ",") + "]")
+    $targetClips = @(Get-TrackClips $targetRow)
+    Assert-True ($targetClips.Count -eq 2) ("target track clips after reopen=" + [string]$targetClips.Count + " expected=2 (the .vit saved tracks but lost clips?)")
+    $referenceClips = @(Get-TrackClips $referenceRow)
+    Assert-True ($referenceClips.Count -eq 0) ("reference track should stay empty; clips after reopen=" + [string]$referenceClips.Count)
+    $targetTrackIdAfter = Get-TrackId $targetRow
+    $referenceTrackIdAfter = Get-TrackId $referenceRow
+
+    $reopenClips = @()
+    $firstAfter = ""
+    $secondAfter = ""
+    foreach ($clip in $targetClips) {
+        $clipId = Get-ClipId $clip
+        Assert-True (-not [string]::IsNullOrWhiteSpace($clipId)) ("target clip row has no clip id: " + (Format-Result $clip))
+        $clipNotes = @(Read-ClipNotes -Name ("prep_read_clip_" + $clipId) -ClipId $clipId)
+        $clipSignature = Get-NoteSignature $clipNotes
+        $origin = ""
+        if ($clipId -eq $FirstClipId) { $origin = "first" }
+        elseif ($clipId -eq $SecondClipId) { $origin = "second" }
+        $reopenClips += [ordered]@{
+            clip_id = $clipId
+            start = Get-Prop $clip "start"
+            length = Get-Prop $clip "length"
+            notes = $clipSignature
+            notes_count = $clipNotes.Count
+            original_clip_id = $origin
+        }
+        if ($clipSignature -eq $FirstSignature -and [string]::IsNullOrWhiteSpace($firstAfter)) { $firstAfter = $clipId }
+        elseif ($clipSignature -eq $SecondSignature -and [string]::IsNullOrWhiteSpace($secondAfter)) { $secondAfter = $clipId }
+    }
+    $reopenSignatures = @()
+    foreach ($row in $reopenClips) { $reopenSignatures += [string](Get-Prop $row "notes") }
+    Assert-True (-not [string]::IsNullOrWhiteSpace($firstAfter)) ("first clip notes not found after reopen; expected=" + $FirstSignature + " actual=[" + ($reopenSignatures -join " | ") + "]")
+    Assert-True (-not [string]::IsNullOrWhiteSpace($secondAfter)) ("second clip notes not found after reopen; expected=" + $SecondSignature + " actual=[" + ($reopenSignatures -join " | ") + "]")
+    Assert-True ($firstAfter -ne $secondAfter) "reopened control/target clips resolved to the same clip id"
+    $prep.reopen = [ordered]@{
+        command = "project.open"
+        project_path = $liveProject
+        project_uuid = $liveUuid
+        project_uuid_reply = [string](Get-Prop $openLiveResult "project_uuid")
+        track_count = Get-Prop (Get-Result $liveProjectState) "track_count"
+        user_track_count = $liveTracks.Count
+        track_names = $liveTrackNames
+        target_track_id = $targetTrackIdAfter
+        reference_track_id = $referenceTrackIdAfter
+        target_track_id_stable = ($targetTrackIdAfter -eq $TargetTrackId)
+        reference_track_id_stable = ($referenceTrackIdAfter -eq $ReferenceTrackId)
+        target_clip_count = $targetClips.Count
+        reference_clip_count = $referenceClips.Count
+        state_poll_attempts = $stateAttempts
+        pristine_copy_attempts = $copyAttempts
+        clips = $reopenClips
+        first_clip_id = $firstAfter
+        second_clip_id = $secondAfter
+        first_signature = $FirstSignature
+        second_signature = $SecondSignature
+        first_clip_id_stable = ($firstAfter -eq $FirstClipId)
+        second_clip_id_stable = ($secondAfter -eq $SecondClipId)
+    }
+    Write-Ok ("PREP reopen: tracks=" + [string]$liveTracks.Count + " target clips=" + [string]$targetClips.Count + " second=" + $secondAfter)
+
+    # P5: the prep conversation must still be at the clip node. 乐局状态 is a
+    # deterministic command: with no session it returns edu_jam_no_session (no
+    # LLM fallback), with a session it returns edu_jam_status + current_node.
+    Write-Step "PREP verify prep conversation node after reopen"
+    $statusResponse = Invoke-AgentChat -Name "prep_status_after_open" -ConversationID $ConversationId -Message "乐局状态" -Context @{}
+    $statusStop = [string](Get-Prop $statusResponse "stop_reason")
+    if ($statusStop -eq "edu_jam_no_session") {
+        $prep.conversation = [ordered]@{
+            conversation_id = $ConversationId
+            command = "乐局状态"
+            stop_reason = $statusStop
+            expected_node = $ClipNode
+            restore_blocked_by = "PROJ-OPEN-RESUME-1"
+            evidence = "agent/internal/history/working_session.go:216-245 (archiveReopenedAgentState at the project-open boundary) + working_session.go:441 (writeBlankAgentRuntimeState drops conversations/edu_jam_sessions) + chat/project_workspace_persistence_test.go:147 TestSameProjectReopenStartsBlankAndArchivesSavedConversation (go test PASS 2026-11-19)"
+            reply = [string](Get-Prop $statusResponse "reply")
+        }
+        Fail "assert" ("prep conversation " + $ConversationId + " has NO lesson session after the reopen (stop_reason=edu_jam_no_session). The tracks/clips persistence part passed, but project.open intentionally archives and blanks the agent conversation/runtime state (PROJ-OPEN-RESUME-1, user ruling 2026-09-13): opening a saved project never restores its lesson session, so the hand-test premise 'prep conversation at n2 after opening the live project' is blocked by that product behavior. Reply=" + [string](Get-Prop $statusResponse "reply"))
+    }
+    Assert-True ($statusStop -eq "edu_jam_status") ("prep status stop_reason=" + $statusStop + " reply=" + [string](Get-Prop $statusResponse "reply"))
+    $statusWorkflow = Get-WorkflowData $statusResponse
+    $nodeAfter = [string](Get-Prop $statusWorkflow "current_node")
+    $levelAfter = [string](Get-Prop $statusWorkflow "level_id")
+    Assert-True ($levelAfter -eq $CardId) ("prep conversation level after reopen=" + $levelAfter + " expected=" + $CardId)
+    Assert-True ($nodeAfter -eq $ClipNode) ("prep conversation node after reopen=" + $nodeAfter + " expected=" + $ClipNode + " (reply=" + [string](Get-Prop $statusResponse "reply") + ")")
+    $prep.conversation = [ordered]@{
+        conversation_id = $ConversationId
+        command = "乐局状态"
+        stop_reason = $statusStop
+        level_id = $levelAfter
+        current_node = $nodeAfter
+        expected_node = $ClipNode
+        reply = [string](Get-Prop $statusResponse "reply")
+    }
+    Write-Ok ("PREP conversation: " + $statusStop + " level=" + $levelAfter + " node=" + $nodeAfter)
+
+    # P6: supporting cold-start probe over the copied agent state.
+    $stateProbe = Find-EduJamStateProbe -ProjectDir $liveDir -ConversationId $ConversationId -NodeId $ClipNode
+    $prep.restore_probe = $stateProbe
+    if ([string](Get-Prop $stateProbe "result") -eq "conversation_without_active_node") {
+        Fail "assert" ("persisted agent state for the live copy carries the prep conversation but node " + $ClipNode + " is not active (" + [string](Get-Prop $stateProbe "file") + "); the fixture would restore at the wrong node")
+    }
+    if ([string](Get-Prop $stateProbe "result") -ne "node_active") {
+        Write-WarnLine ("prep restore probe inconclusive: " + (Format-Result $stateProbe) + " (cold start is proven by the hand test; in-process reopen is weaker evidence)")
+    }
+
+    # P7: zero-LLM assertion on the per-call telemetry rows for this conversation.
+    $llmRows = 0
+    $otherLlmRows = 0
+    $telemetryText = Read-AppendedText -Path $telemetryPath -Offset $telemetryOffset -MaxBytes 2097152
+    $prep.zero_llm = [ordered]@{ telemetry_available = ($null -ne $telemetryText); telemetry_path = $telemetryPath; llm_rows = 0; other_conversation_rows = 0; note = "" }
+    if ($null -eq $telemetryText) {
+        $prep.zero_llm.note = "telemetry file missing; the zero-LLM claim rests on the deterministic stop_reasons recorded in responses/"
+        Write-WarnLine "prep zero-LLM check: telemetry file unavailable; recorded as evidence gap"
+    }
+    else {
+        foreach ($telemetryLine in [regex]::Split($telemetryText, '\r?\n')) {
+            $trimmedLine = $telemetryLine.Trim()
+            if ($trimmedLine -eq "") { continue }
+            try { $telemetryRecord = $trimmedLine | ConvertFrom-Json } catch { continue }
+            if ([string](Get-Prop $telemetryRecord "conversation_id") -eq $ConversationId) { $llmRows++ }
+            else { $otherLlmRows++ }
+        }
+        $prep.zero_llm.llm_rows = $llmRows
+        $prep.zero_llm.other_conversation_rows = $otherLlmRows
+        if ($otherLlmRows -gt 0) {
+            Write-WarnLine ("prep zero-LLM check: " + [string]$otherLlmRows + " LLM telemetry row(s) for other conversations appeared during this run (concurrent stack use?); recorded")
+        }
+        Assert-True ($llmRows -eq 0) ("handtest prep consumed " + [string]$llmRows + " LLM call(s) for conversation " + $ConversationId + "; prep must be zero-LLM")
+    }
+    Write-Ok ("PREP zero-LLM: " + [string]$llmRows + " LLM rows for the prep conversation")
+
+    # P8: fixture manifest next to live/pristine (reset + hand test read this).
+    try {
+        $fixtureManifest = [ordered]@{
+            schema_version = "vit_w02_a1_handtest_fixture.v1"
+            card = "W02-A1-HANDTEST-V0"
+            created_at = (Get-Date).ToString("o")
+            handtest_root = $rootFull
+            live_dir = $liveDir
+            pristine_dir = $pristineDir
+            project_file = $projectFileName
+            live_project = $liveProject
+            prep_conversation_id = $ConversationId
+            expected_node = $ClipNode
+            target_track_id = $targetTrackIdAfter
+            reference_track_id = $referenceTrackIdAfter
+            target_track_name = $targetName
+            reference_track_name = $referenceName
+            first_clip_id = $firstAfter
+            second_clip_id = $secondAfter
+            project_sha256 = $liveSha
+            zero_llm = ($llmRows -eq 0)
+        }
+        $fixtureManifest | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath (Join-Path $rootFull "handtest.json") -Encoding UTF8
+        $prep.fixture_manifest = (Join-Path $rootFull "handtest.json")
+    }
+    catch {
+        $prep.fixture_manifest_error = $_.Exception.Message
+        Write-WarnLine ("prep fixture manifest could not be written: " + $_.Exception.Message)
+    }
+
+    $prep.verified = $true
+    return $prep
+}
+
 function Print-RunbookSummary {
     Write-Host "W02-A1c real-stack journey executor - RUNBOOK summary" -ForegroundColor Yellow
     Write-Host "  S0 preflight: /health, /agent/runtime/status, /agent/state, authority," -ForegroundColor Yellow
@@ -921,6 +1488,11 @@ function Print-RunbookSummary {
     Write-Host "  S6 结束乐局 -> project.open A -> natural sentence: auto-intro/recovery" -ForegroundColor Yellow
     Write-Host "     evidence; teardown restores recents/Settings/default_project/authority." -ForegroundColor Yellow
     Write-Host ("  Question mode : " + $QuestionMode + " (status = A1c S0-S6; work = S0-S3 + S4W)") -ForegroundColor Yellow
+    Write-Host "  Handtest prep (-HandtestPrep -HandtestRoot <dir>, W02-A1-HANDTEST-V0):" -ForegroundColor Yellow
+    Write-Host "     S0-S2 (import / enter / two clips / selected second) + rename_track, project.save," -ForegroundColor Yellow
+    Write-Host "     copy .vit/.vit_project/.vit_agent/.vit_history to <dir>/live + <dir>/pristine, reopen" -ForegroundColor Yellow
+    Write-Host "     the live copy and assert two tracks / 2 clips / notes / prep conversation at n2." -ForegroundColor Yellow
+    Write-Host "     S3-S6 are NOT run and NO LLM is consumed; the prep conversation stays active." -ForegroundColor Yellow
     Write-Host "  Work mode (A2a): S4W one real-LLM work question about the selected clip's" -ForegroundColor Yellow
     Write-Host "     actual notes; requires a notes-read receipt (agent_events / prompt-render" -ForegroundColor Yellow
     Write-Host "     tool_result / executed_kernel_reply). False note claims fail exit 5;" -ForegroundColor Yellow
@@ -943,7 +1515,27 @@ function Print-DryRunPlan {
     Write-Host ("  RuntimeOwner   : " + $(if ([string]::IsNullOrWhiteSpace($RuntimeOwner)) { "<required with -StackAuthorized>" } else { $RuntimeOwner }))
     Write-Host ("  TimeoutSeconds : " + [string]$TimeoutSeconds)
     Write-Host ("  QuestionMode   : " + $QuestionMode + " (status|work; default status = A1c semantics)")
+    Write-Host ("  HandtestPrep   : " + [string]$HandtestPrep)
+    if ($HandtestPrep) {
+        Write-Host ("  HandtestRoot   : " + $(if ([string]::IsNullOrWhiteSpace($HandtestRoot)) { "<required with -HandtestPrep>" } else { $HandtestRoot }))
+    }
     Write-Host "  Plan:"
+    if ($HandtestPrep) {
+        Write-Host "    S0 preflight + snapshots (recents/Settings.xml/default_project.xml) + log offsets"
+        Write-Host "    S1 project.new -> project.save_as A -> import W01 design -> 开始乐局"
+        Write-Host "    S1.5 record card event nodes until the first clip_exists/track_non_empty node"
+        Write-Host "    S2 create required user tracks by runtime_slots track_index; create two MIDI clips; select_clip(second)"
+        Write-Host "    PREP rename_track target (我的旋律（选第二个 clip）) + reference (参考（空白）)"
+        Write-Host "    PREP project.save (persist tracks/clips into the .vit; fail if the file is not rewritten)"
+        Write-Host "    PREP copy .vit/.vit_project/.vit_agent/.vit_history -> <HandtestRoot>/live; live -> pristine (digest check)"
+        Write-Host "    PREP project.open <live>/<name>.vit: project.state two renamed tracks, target 2 clips, notes readback"
+        Write-Host "    PREP 乐局状态 in the prep conversation: edu_jam_status + current_node == the clip node (n2-rhythm)"
+        Write-Host "    PREP record coord/runs/W02-A1-handtest/PREP-<stamp>/summary.json + PREP-NOTES.md"
+        Write-Host "    S3/S4/S5/S6 are skipped; zero LLM; the prep conversation stays active for the hand test"
+        Write-Host "  Exit codes: 0 PASS, 1 assertion (lost clip/track/node), 2 environment/teardown, 3 unauthorized, 5 evidence/API gap"
+        Write-Host "  Not executed. No stack process was started and no port was opened." -ForegroundColor Green
+        return
+    }
     Write-Host "    S0 preflight + snapshots (recents/Settings.xml/default_project.xml) + log offsets"
     Write-Host "    S1 project.new -> project.save_as A -> import W01 design -> 开始乐局"
     Write-Host "    S1.5 record card event nodes until the first clip_exists/track_non_empty node"
@@ -964,6 +1556,14 @@ function Print-DryRunPlan {
     }
     Write-Host "  Exit codes: 0 PASS, 1 assertion, 2 environment/teardown, 3 unauthorized, 4 LLM class, 5 evidence/API gap (work: false claim/model_boundary)"
     Write-Host "  Not executed. No stack process was started and no port was opened." -ForegroundColor Green
+}
+
+# ---------------------------------------------------------------------------
+# Mode validation (applies to the dry-run and the authorized path).
+# ---------------------------------------------------------------------------
+if ($HandtestPrep -and $QuestionMode -eq "work") {
+    Write-Host "error: -HandtestPrep and -QuestionMode work are mutually exclusive (prep never consumes an LLM turn)." -ForegroundColor Red
+    exit 2
 }
 
 # ---------------------------------------------------------------------------
@@ -999,6 +1599,17 @@ if (-not (Test-Path -LiteralPath (Join-Path $designSource "design.v1.yaml"))) {
     Write-Host ("error: W01 design source missing: " + $designSource) -ForegroundColor Red
     exit 2
 }
+if ($HandtestPrep) {
+    if ([string]::IsNullOrWhiteSpace($HandtestRoot)) {
+        Write-Host "error: -HandtestRoot is required with -HandtestPrep (the live/pristine fixture root)." -ForegroundColor Red
+        exit 2
+    }
+    $HandtestRoot = [System.IO.Path]::GetFullPath($HandtestRoot)
+    if ((Test-Path -LiteralPath (Join-Path $HandtestRoot "live")) -or (Test-Path -LiteralPath (Join-Path $HandtestRoot "pristine"))) {
+        Write-Host ("error: HandtestRoot already contains live/pristine (" + $HandtestRoot + "); choose a new root (or reset an existing fixture with reset_handtest_live.ps1).") -ForegroundColor Red
+        exit 2
+    }
+}
 
 $stamp = Get-Date -Format "yyyyMMdd_HHmmss"
 if ([string]::IsNullOrWhiteSpace($RunRoot)) {
@@ -1016,6 +1627,10 @@ New-Item -ItemType Directory -Path $evidenceDir -Force | Out-Null
 
 $conversationId = "w02-a1c-" + $stamp
 $projectA = Join-Path $RunRoot ("W02-A1c-A-" + $stamp + ".vit")
+if ($HandtestPrep) {
+    $conversationId = "w02-a1ht-" + $stamp
+    $projectA = Join-Path $RunRoot ("W02-A1-handtest-" + $stamp + ".vit")
+}
 $recentsPath = Get-RecentsPath
 $settingsPath = Join-Path $RepoRoot "VitApp/Workspace/Settings/Settings.xml"
 $defaultProjectPath = Join-Path $RepoRoot "VitApp/Workspace/default_project.xml"
@@ -1024,9 +1639,10 @@ $promptRenderPath = Get-AgentLogPath -EnvName "VIT_AGENT_PROMPT_RENDER_PATH" -Fi
 $telemetryPath = Get-AgentLogPath -EnvName "VIT_AGENT_LLM_TELEMETRY_PATH" -FileName "agent_llm_telemetry.jsonl"
 
 $summary = [ordered]@{
-    schema_version = $(if ($QuestionMode -eq "work") { "vit_w02_a2a_smoke.v1" } else { "vit_w02_a1c_smoke.v1" })
-    card = $(if ($QuestionMode -eq "work") { "W02-A2A" } else { "W02-A1C" })
+    schema_version = $(if ($HandtestPrep) { "vit_w02_a1_handtest_prep.v1" } elseif ($QuestionMode -eq "work") { "vit_w02_a2a_smoke.v1" } else { "vit_w02_a1c_smoke.v1" })
+    card = $(if ($HandtestPrep) { "W02-A1-HANDTEST-V0" } elseif ($QuestionMode -eq "work") { "W02-A2A" } else { "W02-A1C" })
     question_mode = $QuestionMode
+    handtest_prep = [ordered]@{}
     status = "running"
     runtime_owner = $RuntimeOwner
     created_at = (Get-Date).ToString("o")
@@ -1052,6 +1668,7 @@ $summary = [ordered]@{
     s5b = [ordered]@{}
     s6 = [ordered]@{}
     teardown = [ordered]@{}
+    prep_record_dir = ""
     failure_class = ""
     error = ""
 }
@@ -1072,6 +1689,18 @@ $firstClipId = ""
 $secondClipId = ""
 $crossClipId = ""
 $currentNode = ""
+$handtestRootFull = ""
+$prepRecordDir = ""
+if ($HandtestPrep) {
+    $handtestRootFull = $HandtestRoot
+    $script:handtestCopyDirs = @()
+    $scriptRoot = Split-Path -Parent $PSCommandPath
+    $checkoutRoot = Split-Path -Parent $scriptRoot
+    if (-not [string]::IsNullOrWhiteSpace($checkoutRoot)) {
+        $prepRecordDir = Join-Path $checkoutRoot ("coord/runs/W02-A1-handtest/PREP-" + $stamp)
+    }
+    $summary.prep_record_dir = $prepRecordDir
+}
 $preflight = $summary.preflight
 $s1 = $summary.s1
 $s2 = $summary.s2
@@ -1403,6 +2032,14 @@ try {
         select_clip_error = $selectSecondError
     }
     Write-Ok ("clips: first=" + $firstClipId + " second=" + $secondClipId + " (select_clip is UI-only; context is the binding)")
+
+    Write-Step "PREP handtest fixture (W02-A1-HANDTEST-V0; zero LLM; stops at the clip node)"
+    if ($HandtestPrep) {
+        $null = Invoke-HandtestPrep -Summary $summary -ConversationId $conversationId -ProjectPath $projectA -CardId $cardId -TargetTrackId $targetTrackId -ReferenceTrackId $firstTrackId -ClipNode $currentNode -TargetSlot $targetSlot -FirstClipId $firstClipId -SecondClipId $secondClipId -FirstSignature $firstSignature -SecondSignature $secondSignature -HandtestRoot $HandtestRoot -EvidenceDir $evidenceDir
+        $summary.status = "passed"
+        Write-Ok ("handtest prep PASSED: live=" + [string]$summary.handtest_prep.live_project + " node=" + $currentNode + " conversation=" + $conversationId)
+    }
+    else {
 
     Write-Step "S3 selected-clip advance (写好了 with selected_clip_id=second)"
     $selectionContext = New-SelectionContext -ClipId $secondClipId -TrackId $targetTrackId
@@ -2067,6 +2704,7 @@ try {
 
         $summary.status = "passed"
     }
+    }
 }
 catch {
     $raw = $_.Exception.Message
@@ -2111,7 +2749,15 @@ finally {
         }
     }
 
-    if ($mainSessionActive) {
+    if ($mainSessionActive -and $HandtestPrep) {
+        # Prep fixture rule: the prep conversation must stay ACTIVE at the clip
+        # node, otherwise the live copy would no longer be an n2 fixture. The
+        # in-memory lesson session is discarded when the lead stops the stack;
+        # the on-disk fixture was copied before this teardown.
+        $teardown.main_session_close = [ordered]@{ skipped = "handtest_prep"; conversation_id = $conversationId; reason = "fixture must stay at the clip node (n2)" }
+        $mainSessionActive = $false
+    }
+    elseif ($mainSessionActive) {
         try {
             $mainClose = Invoke-AgentChat -Name "teardown_close_main_session" -ConversationID $conversationId -Message "结束乐局" -Context @{}
             $mainCloseStop = [string](Get-Prop $mainClose "stop_reason")
@@ -2191,6 +2837,43 @@ finally {
         $teardown.kernel_log_error = $_.Exception.Message
     }
 
+    if ($HandtestPrep -and $summary.status -ne "passed" -and $script:handtestCopyDirs.Count -gt 0) {
+        # Fail-honest: never leave a fixture behind that failed its own reopen
+        # verification. The paths are recorded so the evidence chain is intact.
+        $removed = @()
+        foreach ($copyDir in @($script:handtestCopyDirs)) {
+            if ([string]::IsNullOrWhiteSpace($copyDir)) { continue }
+            if (-not (Test-Path -LiteralPath $copyDir)) { continue }
+            try {
+                Remove-Item -LiteralPath $copyDir -Recurse -Force
+                $removed += $copyDir
+            }
+            catch {
+                $teardownErrors += ("failed fixture cleanup could not remove " + $copyDir + ": " + $_.Exception.Message)
+            }
+        }
+        $teardown.handtest_failed_fixture_removed = $removed
+    }
+
+    if ($HandtestPrep) {
+        # Prep record: coord/runs/W02-A1-handtest/PREP-<stamp>/summary.json +
+        # PREP-NOTES.md (the checkout is the script's own, so the file domain is
+        # respected even when -RepoRoot points at another stack checkout).
+        try {
+            if ([string]::IsNullOrWhiteSpace($prepRecordDir)) { $prepRecordDir = Join-Path $RunRoot "prep_record" }
+            New-Item -ItemType Directory -Path $prepRecordDir -Force | Out-Null
+            $summary.prep_record_dir = $prepRecordDir
+            $summary | ConvertTo-Json -Depth 40 | Set-Content -LiteralPath (Join-Path $prepRecordDir "summary.json") -Encoding UTF8
+            Set-Content -LiteralPath (Join-Path $prepRecordDir "PREP-NOTES.md") -Value (New-HandtestPrepNotes -Summary $summary) -Encoding UTF8
+            $teardown.prep_record = [ordered]@{ dir = $prepRecordDir; summary = (Join-Path $prepRecordDir "summary.json"); notes = (Join-Path $prepRecordDir "PREP-NOTES.md") }
+            Write-Ok ("prep record: " + $prepRecordDir)
+        }
+        catch {
+            $teardown.prep_record = [ordered]@{ error = $_.Exception.Message; dir = $prepRecordDir }
+            $teardownErrors += ("prep record write failed: " + $_.Exception.Message)
+        }
+    }
+
     $teardown.status = if ($teardownErrors.Count -eq 0) { "ok" } else { "failed" }
     $teardown.errors = $teardownErrors
     $teardown.completed_at = (Get-Date).ToString("o")
@@ -2221,7 +2904,12 @@ finally {
 if ($summary.status -eq "passed") {
     $script:exitCode = 0
     Write-Host ""
-    if ($QuestionMode -eq "work") {
+    if ($HandtestPrep) {
+        Write-Host "ok: W02-A1-HANDTEST-V0 prep PASSED (n2 fixture + live/pristine copies verified by reopen; zero LLM)" -ForegroundColor Green
+        Write-Host ("handtest_live: " + [string](Get-Prop $summary.handtest_prep "live_project"))
+        Write-Host ("prep_record: " + $summary.prep_record_dir)
+    }
+    elseif ($QuestionMode -eq "work") {
         Write-Host "ok: W02-A2a work-feedback real-stack journey PASSED (notes-read receipt for the selected clip)" -ForegroundColor Green
     }
     else {
