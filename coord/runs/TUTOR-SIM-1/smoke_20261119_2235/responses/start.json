@@ -1,0 +1,12 @@
+﻿{
+    "status":  "ok",
+    "conversation_id":  "tutor-smoke-4cd2565d83",
+    "experiment_id":  "tutor-sim-3step",
+    "schema_version":  "vit.tutor_sim.v0",
+    "project_path":  "D:\\Vit_DAW_handtest\\TUTOR-SIM-1\\live.vit",
+    "sidecar_path":  "D:\\Vit_DAW_handtest\\TUTOR-SIM-1\\.vit_agent\\tutor_sim.yaml",
+    "step_index":  1,
+    "step_total":  3,
+    "step_id":  "step-1",
+    "reply":  "欢迎来到实验，现在是第 1/3 步。请计算 3 + 4，并只输入数字，完成后告诉我吧。"
+}

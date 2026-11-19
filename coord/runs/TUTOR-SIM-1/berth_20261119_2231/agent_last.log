@@ -1,0 +1,48 @@
+2026-11-19T22:28:51 [WARN] [pca-native-seed] family=generation_shell bundle=C:\Users\timoz\Library\Audio\Plug-Ins\VST3\GenShell.vst3 seed failed: processor attestation: inspect plug-in path: GetFileAttributesEx C:\Users\timoz\Library\Audio\Plug-Ins\VST3\GenShell.vst3: The system cannot find the path specified.
+2026-11-19T22:28:51 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=<none>
+2026-11-19T22:28:51 [INFO] HTTP agent API listening on http://127.0.0.1:7878
+2026-11-19T22:28:51 [INFO] VitAgent started req=tcp://127.0.0.1:5555 sub=tcp://127.0.0.1:5556 udp_to=4444 udp_from=4445
+2026-11-19T22:28:51 [INFO] VSP realtime publisher enabled client=vit.agent.transport_publisher hub=http://127.0.0.1:8787/vsp
+2026-11-19T22:28:51 [INFO] VSP realtime publisher enabled client=vit.agent.realtime_publisher hub=http://127.0.0.1:8787/vsp
+2026-11-19T22:28:51 [INFO] runtimehost: enabled dev_root=D:\Vit_DAW kernel=tcp://127.0.0.1:5555 hub_health=http://127.0.0.1:8787/health
+2026-11-19T22:28:51 [INFO] control loop started: UDP:4445 -> tcp://127.0.0.1:5555
+2026-11-19T22:28:51 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=1 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-19T22:28:51 [INFO] runtimehost: VspHub not reachable (Get "http://127.0.0.1:8787/health": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.) -> spawn path
+2026-11-19T22:28:51 [INFO] runtimehost: spawned hub pid=17092 (D:/Vit_DAW/agent/bin/VspHub.exe)
+2026-11-19T22:28:51 [INFO] runtimehost: VspHub ready (D:/Vit_DAW/agent/bin/VspHub.exe)
+2026-11-19T22:28:52 [INFO] runtimehost: kernel not reachable (kernel dial tcp://127.0.0.1:5555: zmq4: could not dial to "tcp://127.0.0.1:5555" (retry=250ms): dial tcp 127.0.0.1:5555: connectex: No connection could be made because the target machine actively refused it.) -> spawn path
+2026-11-19T22:28:52 [INFO] runtimehost: spawned kernel pid=12932 (D:/Vit_DAW/VitApp/build/VitApp_artefacts/Release/VitApp.exe)
+2026-11-19T22:28:52 [INFO] telemetry thread started: tcp://127.0.0.1:5556 -> UDP:4444
+2026-11-19T22:28:52 [INFO] runtimehost: kernel ready (D:/Vit_DAW/VitApp/build/VitApp_artefacts/Release/VitApp.exe)
+2026-11-19T22:28:53 [INFO] VitAgent registered with VSP Hub url=http://127.0.0.1:8787/vsp session_id=sess_kernel_1795098533639_722642876 type=session.hello_ack
+2026-11-19T22:28:53 [INFO] [shadow] initialized tracks=5 project_path="" replayed_deltas=0
+2026-11-19T22:28:53 [INFO] [workspace] activation pending uuid=vitproj_3d7f7a1306a94db1969692fd81a6baa2 reason=startup_recovery_disabled_new_session
+2026-11-19T22:29:03 [INFO] [shadow] initialized tracks=0 project_path="" replayed_deltas=0
+2026-11-19T22:29:03 [INFO] [timing] kernel.vsp_state_snapshot ms=2 reason=new_project err=false
+2026-11-19T22:29:03 [INFO] [shadow] initialized tracks=0 project_path="" replayed_deltas=0
+2026-11-19T22:29:03 [INFO] [timing] harness.refresh_shadow ms=3 reason=new_project status=ok err=false
+2026-11-19T22:29:03 [INFO] [shadow] initialized tracks=0 project_path="" replayed_deltas=0
+2026-11-19T22:29:03 [INFO] [timing] kernel.send_command ms=32 command=new_project tool=project.new confirmed=true err=false
+2026-11-19T22:29:03 [INFO] [timing] harness.invoke total_ms=86 tool=project.new command=new_project status=ok confirmed=true err=false
+2026-11-19T22:29:03 [INFO] [workspace] launcher scope kept (boot draft not activated) project="C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261119T142903_c684ecdf\\Unsaved.vit" uuid=vitproj_09aa55f48a44482d8425af196e568854
+2026-11-19T22:29:03 [INFO] [shadow] initialized tracks=0 project_path="" replayed_deltas=0
+2026-11-19T22:29:03 [DEBUG] [shadow] live delta uid="0/3b30706" action="property_changed:vit_agent_history_generation"
+2026-11-19T22:29:03 [DEBUG] [shadow] live delta uid="0/3b30706" action="property_changed:vit_project_uuid"
+2026-11-19T22:29:03 [DEBUG] [shadow] live delta uid="0/3b30706" action="property_changed:vit_project_parent_uuid"
+2026-11-19T22:29:03 [INFO] [shadow] initialized tracks=0 project_path="D:\\Vit_DAW_handtest\\TUTOR-SIM-1\\live.vit" replayed_deltas=0
+2026-11-19T22:29:03 [INFO] [timing] kernel.send_command ms=23 command=save_as_project tool=project.save_as confirmed=true err=false
+2026-11-19T22:29:03 [INFO] [timing] harness.invoke total_ms=85 tool=project.save_as command=save_as_project status=ok confirmed=true err=false
+2026-11-19T22:29:03 [INFO] [workspace] parent history recovery skipped parent=vitproj_09aa55f48a44482d8425af196e568854 target=vitproj_04dbdca8c15645d686137958c78889b1 reason=parent project path not found for UUID vitproj_09aa55f48a44482d8425af196e568854
+2026-11-19T22:29:03 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-11-19T22:29:03 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_04dbdca8c15645d686137958c78889b1
+2026-11-19T22:29:03 [INFO] [workspace] activated project="D:\\Vit_DAW_handtest\\TUTOR-SIM-1\\live.vit" uuid=vitproj_04dbdca8c15645d686137958c78889b1 recovered=false conversations=0 retired_legacy_b2=0 retired_legacy_b3=0
+2026-11-19T22:29:10 [INFO] [tutor_sim] start conversation=tutor-smoke-4cd2565d83 experiment=tutor-sim-3step project=D:\Vit_DAW_handtest\TUTOR-SIM-1\live.vit step=1/3
+2026-11-19T22:29:11 [INFO] [tutor_sim] turn conversation=tutor-smoke-4cd2565d83 step=1/3 passed=false completed=false stop=tutor_sim_retry
+2026-11-19T22:29:11 [INFO] [timing] http.chat total_ms=581 conversation=tutor-smoke-4cd2565d83 message_len=1
+2026-11-19T22:29:11 [INFO] [tutor_sim] turn conversation=tutor-smoke-4cd2565d83 step=2/3 passed=true completed=false stop=tutor_sim_step_advanced
+2026-11-19T22:29:11 [INFO] [timing] http.chat total_ms=597 conversation=tutor-smoke-4cd2565d83 message_len=1
+2026-11-19T22:29:12 [INFO] [tutor_sim] turn conversation=tutor-smoke-4cd2565d83 step=3/3 passed=true completed=false stop=tutor_sim_step_advanced
+2026-11-19T22:29:12 [INFO] [timing] http.chat total_ms=489 conversation=tutor-smoke-4cd2565d83 message_len=2
+2026-11-19T22:29:13 [INFO] [tutor_sim] turn conversation=tutor-smoke-4cd2565d83 step=3/3 passed=true completed=true stop=tutor_sim_completed
+2026-11-19T22:29:13 [INFO] [timing] http.chat total_ms=746 conversation=tutor-smoke-4cd2565d83 message_len=3
+2026-11-19T22:29:13 [INFO] [timing] http.chat total_ms=0 conversation=tutor-smoke-4cd2565d83 message_len=1

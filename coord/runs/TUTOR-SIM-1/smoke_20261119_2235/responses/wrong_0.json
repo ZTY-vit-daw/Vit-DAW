@@ -1,0 +1,18 @@
+﻿{
+    "conversation_id":  "tutor-smoke-4cd2565d83",
+    "reply":  "这个答案还不对。请重新计算 3 + 4，只输入一个数字。",
+    "needs_confirmation":  false,
+    "workflow":  "tutor_sim",
+    "workflow_data":  {
+                          "attempts":  1,
+                          "completed":  false,
+                          "experiment_id":  "tutor-sim-3step",
+                          "failures":  1,
+                          "passed":  false,
+                          "schema_version":  "vit.tutor_sim.v0",
+                          "step_id":  "step-1",
+                          "step_index":  1,
+                          "step_total":  3
+                      },
+    "stop_reason":  "tutor_sim_retry"
+}

@@ -1,0 +1,18 @@
+﻿{
+    "conversation_id":  "tutor-smoke-4cd2565d83",
+    "reply":  "第 2 步通过了，做得很好。下一步：请计算 100 + 23，并只输入数字。",
+    "needs_confirmation":  false,
+    "workflow":  "tutor_sim",
+    "workflow_data":  {
+                          "attempts":  3,
+                          "completed":  false,
+                          "experiment_id":  "tutor-sim-3step",
+                          "failures":  1,
+                          "passed":  true,
+                          "schema_version":  "vit.tutor_sim.v0",
+                          "step_id":  "step-3",
+                          "step_index":  3,
+                          "step_total":  3
+                      },
+    "stop_reason":  "tutor_sim_step_advanced"
+}

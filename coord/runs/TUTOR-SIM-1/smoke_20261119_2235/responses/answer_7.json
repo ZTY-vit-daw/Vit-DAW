@@ -1,0 +1,18 @@
+﻿{
+    "conversation_id":  "tutor-smoke-4cd2565d83",
+    "reply":  "第 1 步通过。接下来请计算 6 × 7，并只输入数字。",
+    "needs_confirmation":  false,
+    "workflow":  "tutor_sim",
+    "workflow_data":  {
+                          "attempts":  2,
+                          "completed":  false,
+                          "experiment_id":  "tutor-sim-3step",
+                          "failures":  1,
+                          "passed":  true,
+                          "schema_version":  "vit.tutor_sim.v0",
+                          "step_id":  "step-2",
+                          "step_index":  2,
+                          "step_total":  3
+                      },
+    "stop_reason":  "tutor_sim_step_advanced"
+}

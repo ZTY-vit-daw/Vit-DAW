@@ -1,0 +1,19 @@
+﻿{
+    "conversation_id":  "tutor-smoke-4cd2565d83",
+    "reply":  "第 3 步通过，实验完成！恭喜你顺利完成全部三步，辛苦了。",
+    "needs_confirmation":  false,
+    "workflow":  "tutor_sim",
+    "workflow_data":  {
+                          "attempts":  4,
+                          "completed":  true,
+                          "experiment_id":  "tutor-sim-3step",
+                          "failures":  1,
+                          "passed":  true,
+                          "schema_version":  "vit.tutor_sim.v0",
+                          "step_id":  "step-3",
+                          "step_index":  3,
+                          "step_total":  3
+                      },
+    "goal_status":  "completed",
+    "stop_reason":  "tutor_sim_completed"
+}

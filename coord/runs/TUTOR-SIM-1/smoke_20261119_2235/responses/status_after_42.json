@@ -1,0 +1,13 @@
+﻿{
+    "status":  "ok",
+    "conversation_id":  "tutor-smoke-4cd2565d83",
+    "experiment_id":  "tutor-sim-3step",
+    "project_path":  "D:\\Vit_DAW_handtest\\TUTOR-SIM-1\\live.vit",
+    "step_index":  3,
+    "step_total":  3,
+    "step_id":  "step-3",
+    "session_status":  "active",
+    "completed":  false,
+    "attempts":  3,
+    "failures":  1
+}

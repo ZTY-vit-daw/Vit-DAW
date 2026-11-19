@@ -1,0 +1,19 @@
+﻿{
+    "conversation_id":  "tutor-smoke-4cd2565d83",
+    "reply":  "本实验已完成，不再有新的步骤。如需重做，请重新开始实验。",
+    "needs_confirmation":  false,
+    "workflow":  "tutor_sim",
+    "workflow_data":  {
+                          "attempts":  4,
+                          "completed":  true,
+                          "experiment_id":  "tutor-sim-3step",
+                          "failures":  1,
+                          "passed":  false,
+                          "schema_version":  "vit.tutor_sim.v0",
+                          "step_id":  "step-3",
+                          "step_index":  3,
+                          "step_total":  3
+                      },
+    "goal_status":  "completed",
+    "stop_reason":  "tutor_sim_already_completed"
+}
