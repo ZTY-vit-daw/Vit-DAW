@@ -247,3 +247,94 @@ func agentLoopCCBObservationResult() planner.ToolResult {
 		},
 	}
 }
+
+// TestFreeStateNeutralModelSnapshotKeepsBoundedLessonContext 覆盖 W02-A1c
+// run_20261119_2020 的 S4 生产路径：free-state active 走 neutral 投影时，
+// A1b 的有界课程上下文（card/node/assets/selected clip）必须仍在模型可见
+// JSON 里，同时 neutral 投影继续剥离 plugin 身份。非 free-state 轮不受影响。
+func TestFreeStateNeutralModelSnapshotKeepsBoundedLessonContext(t *testing.T) {
+	lesson := map[string]any{
+		"schema_version": contextruntime.LessonContextSchemaVersion,
+		"card":           map[string]any{"id": "first-run-twinkle", "title": "一个旋律的变奏"},
+		"node":           map[string]any{"id": "n1_read_and_fix", "title": "读谱纠错", "goal": "把识别错的音改对"},
+		"assets":         []map[string]any{{"id": "theme", "kind": "midi_reference"}},
+		"selected_clip":  map[string]any{"clip_id": "c_take_second", "track_id": "t1"},
+		"allowed":        []string{"mutate_midi_notes"},
+		"truncated":      false,
+	}
+	state := &runState{
+		goal: agentruntime.Goal{GoalID: "goal-lesson", RunID: "run-lesson"},
+		input: Input{
+			UserText: "这一关为什么要把这个音改对？",
+			Summary:  "这一关为什么要把这个音改对？",
+			Context: map[string]any{
+				contextruntime.LessonContextKey: lesson,
+				"selected_plugin_id":            "plugin-secret",
+				"selected_plugin_name":          "Secret Vendor Comp",
+				"free_state_reasoning_loop": map[string]any{
+					"schema_version": "free_state_reasoning_loop.v1",
+					"status":         "reasoning",
+					"decision_phase": "processor_selection",
+				},
+			},
+			State: map[string]any{
+				"initialized": true,
+				"tracks": []any{map[string]any{
+					"track_id": "t1", "track_name": "Lead",
+					"plugins": []any{map[string]any{"plugin_id": "plugin-secret", "plugin_name": "Secret Vendor Comp"}},
+				}},
+			},
+		},
+	}
+	runner := &Runner{}
+	full := runner.buildContextSnapshot(state)
+	if full.LessonContext == nil {
+		t.Fatalf("precondition: full snapshot lost lesson_context")
+	}
+	modelJSON := runner.buildModelContextSnapshot(state, full)
+	var decoded map[string]any
+	if err := json.Unmarshal([]byte(modelJSON), &decoded); err != nil {
+		t.Fatalf("model snapshot is not JSON: %v", err)
+	}
+	projected, ok := decoded["lesson_context"].(map[string]any)
+	if !ok {
+		t.Fatalf("free-state neutral model snapshot dropped lesson_context: %s", modelJSON)
+	}
+	if projected["schema_version"] != contextruntime.LessonContextSchemaVersion {
+		t.Fatalf("lesson schema = %v", projected["schema_version"])
+	}
+	card, _ := projected["card"].(map[string]any)
+	node, _ := projected["node"].(map[string]any)
+	clip, _ := projected["selected_clip"].(map[string]any)
+	if card["id"] != "first-run-twinkle" || node["id"] != "n1_read_and_fix" || clip["clip_id"] != "c_take_second" || clip["track_id"] != "t1" {
+		t.Fatalf("lesson projection lost card/node/selected clip: %v", projected)
+	}
+	if assets, _ := projected["assets"].([]any); len(assets) != 1 {
+		t.Fatalf("lesson assets = %v", projected["assets"])
+	}
+	for _, forbidden := range []string{"plugin-secret", "Secret Vendor Comp", "selected_plugin"} {
+		if strings.Contains(modelJSON, forbidden) {
+			t.Fatalf("neutral model snapshot leaked plugin identity %q: %s", forbidden, modelJSON)
+		}
+	}
+	if degradation, _ := decoded["context_degradation"].(map[string]any); degradation != nil {
+		if omitted, _ := degradation["omitted_sections"].([]any); len(omitted) > 0 {
+			for _, section := range omitted {
+				if section == "lesson_context" {
+					t.Fatalf("degradation still claims lesson_context was omitted: %v", omitted)
+				}
+			}
+		}
+	}
+
+	// Non-free-state turns keep using the full profile: no regression.
+	state.input.Context = map[string]any{
+		contextruntime.LessonContextKey: lesson,
+		"selected_clip_id":              "c_take_second",
+	}
+	full = runner.buildContextSnapshot(state)
+	modelJSON = runner.buildModelContextSnapshot(state, full)
+	if !strings.Contains(modelJSON, "\"lesson_context\"") {
+		t.Fatalf("non-free-state model snapshot dropped lesson_context: %s", modelJSON)
+	}
+}
