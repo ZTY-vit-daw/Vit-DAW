@@ -6,9 +6,9 @@
 
 ## 2026-11-19 入口快照（397–431 全量回填留 gate）
 
-- done：**425 G0-LEGAME-BIND-1（W01-C 真栈 PASS）**、**422 CONV-CROSS-COMBO-1（B2b 真栈 PASS，166 断言）**、**432 W02-A1（A1a/A1b/A1c 全 PASS）**、**435 TUTOR-SIM-1（真实 flash 三步导师循环 PASS）**；397/409–421/423–428/430–431 见 gate 与 brief。
+- done：**425 G0-LEGAME-BIND-1（W01-C 真栈 PASS）**、**422 CONV-CROSS-COMBO-1（B2b 真栈 PASS，166 断言）**、**432 W02-A1（A1a/A1b/A1c 全 PASS）**、**435 TUTOR-SIM-1（真实 flash 三步导师循环 PASS）**、**436 TUTOR-SIM-2（VitShell 自动开场手测 PASS）**；397/409–421/423–428/430–431 见 gate 与 brief。
 - doing：ARRLOOP-AUTHBRIDGE-1、WAVESHELL-LOADING-FORENSICS-1、LAUNCHER-ZEROFRICTION-1、SRC-PRESET-AGENT-1、YUE-INSTRUMENTAL-PATH-1、GODOT-RETRY-LAUNCHER-1、WINDOW-TRANSITION-OBSERVER-1、433 W02-A2（A2a 装置已合；真回合未跑）、434 W02-A1-HANDTEST-V0（产品 v0 未过，superseded）。
-- todo 首排：TUTOR-SIM-2（UI 自动开场）；随后状态/问题控件与生产 YAML 节点 brief。
+- todo 首排：TUTOR-SIM-3（状态/进度卡 + 问题/输入卡）；随后生产 YAML 节点 brief 与音乐控件。
 - 真栈：空闲；425 的 default_project 权威偏差见 `coord/runs/G0-LEGAME-BIND-1/real-stack/run_20261119_1818/DEVICE-NOTES.md`。
 
 ## 一、主线（混音/自由态/A-F/仪器）——GLM 主管决策流管辖

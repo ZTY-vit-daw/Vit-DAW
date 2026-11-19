@@ -1,0 +1,16 @@
+﻿{
+    "card":  "TUTOR-SIM-2",
+    "run":  "D:\\Vit_DAW\\coord\\runs\\TUTOR-SIM-2\\berth_20261119_2240",
+    "started_at":  "2026-11-19T22:38:05.0111181+08:00",
+    "owner":  "user",
+    "project":  "D:\\Vit_DAW_handtest\\TUTOR-SIM-1\\live.vit",
+    "sidecar":  "D:\\Vit_DAW_handtest\\TUTOR-SIM-1\\.vit_agent\\tutor_sim.yaml",
+    "agent_sha256":  "1739E82C2E8C5F3A32066030C76A1A907E3F12F317B75FCDED7CFC2FF23302B5",
+    "dist_index_sha256":  "419BFC44CEF83201950ED1887B8E717B230B21C0AEFE9C6E70A2F8B7BC9E6C82",
+    "dist_index_mtime":  "2026-11-19T22:37:50.3057307+08:00",
+    "recents_before_sha256":  "24CE028164273C90798C3B13EF276EC14C54C6FBE31B3B807ABF621664DE4503",
+    "authority_before":  {
+                             "D:\\Vit_DAW\\VitApp\\Workspace\\Settings\\Settings.xml":  "72F0F5112EF926ED77F59F015E6CE492142F8FDF1828E5082E970AA949EDFBB8",
+                             "D:\\Vit_DAW\\VitApp\\Workspace\\default_project.xml":  "2CF36A509602D45480EAB59190E4F163157431F0CA6DC13889D28BA8C2A11B1F"
+                         }
+}
