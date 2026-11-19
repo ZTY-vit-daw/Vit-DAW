@@ -1,6 +1,6 @@
 # W02-A1：每轮课程上下文与选中 clip 绑定（最小切片设计）
 
-- 池序 432；P1；PC；发卡=lead（2026-11-19）；派发确认=**待用户/主管确认**；验收负责人=lead。
+- 池序 432；P1；PC；发卡=lead（2026-11-19）；派发确认=**已确认（用户 2026-11-19「可以开始」；lead 发卡）**；验收负责人=lead。
 - 依赖：W01（425 真栈 PASS，已收口）；374/375 已合入；W08 的拍号面由 375 覆盖；W18 未建（本切片不依赖）。
 - 目标：让真实 LLM 轮看到当前课程节点/材料/选中 clip 的**有界**上下文；推进检查读取学生**选中 clip**而非轨道首个 clip；不改冻结契约 R1–R6。
 - 文件域（A1a）：`agent/internal/chat/edu_jam_chat.go`、`agent/internal/edu/jam_state.go`、`agent/internal/chat/edu_jam_chat_test.go`。
@@ -35,3 +35,11 @@
 ## 建议
 
 先派 **A1a**（零栈、独立价值、可单测）；A1b 单独设计 prompt 路径后再实现。A1a 通过后再决定是否直接进 A1c 真实栈。
+
+## 领取（2026-11-19 18:42）
+
+- owner=`w02clip`（DeepSeek-V4.1-Flash，PC，独立 worktree）；分支 `codex/w02-a1a-clip-432`；worktree `C:/Users/timoz/.codex/worktrees/pc432-clip/Vit_DAW`；基线 main `b9c9d943`。
+- **本轮范围=A1a**（选中 clip 绑定 + 单测）；A1b/A1c 留后续。
+- 文件域：`agent/internal/chat/edu_jam_chat.go`、`agent/internal/edu/jam_state.go`、`agent/internal/chat/edu_jam_chat_test.go`（如需新测试文件限 `agent/internal/edu/*_test.go`）。
+- 执行侧只推 `codex/*` 分支，不合入 main；回执≤15行。
+
