@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
     # 真栈腿入口（W01-C）：未授权不运行。默认仅打印 runbook 并 exit 3。
     [string]$RepoRoot = "D:/Vit_DAW",
@@ -165,6 +165,22 @@ function Get-ProjectState {
     return (Invoke-AgentJson -Name ("state_" + $suffix) -Method "Get" -Path "/agent/state" -Body $null)
 }
 
+function Get-ActiveProjectPath([object]$State) {
+    if ($null -eq $State) { return "" }
+    if ($State.current_project -and -not [string]::IsNullOrWhiteSpace([string]$State.current_project.path)) { return [string]$State.current_project.path }
+    if ($State.project_history -and -not [string]::IsNullOrWhiteSpace([string]$State.project_history.project_path)) { return [string]$State.project_history.project_path }
+    if ($State.shadow -and -not [string]::IsNullOrWhiteSpace([string]$State.shadow.project_path)) { return [string]$State.shadow.project_path }
+    return ""
+}
+
+function Get-ActiveProjectUUID([object]$State) {
+    if ($null -eq $State) { return "" }
+    if ($State.current_project -and -not [string]::IsNullOrWhiteSpace([string]$State.current_project.uuid)) { return [string]$State.current_project.uuid }
+    if ($State.project_history -and -not [string]::IsNullOrWhiteSpace([string]$State.project_history.project_uuid)) { return [string]$State.project_history.project_uuid }
+    if ($State.shadow -and -not [string]::IsNullOrWhiteSpace([string]$State.shadow.project_uuid)) { return [string]$State.shadow.project_uuid }
+    return ""
+}
+
 function Get-ProjectPackage([string]$ProjectPath) {
     $dir = Split-Path -Parent $ProjectPath
     $base = [System.IO.Path]::GetFileNameWithoutExtension($ProjectPath)
@@ -230,13 +246,16 @@ function Get-DesignFilePath([string]$PackageDir) {
 function Open-Project([string]$Name, [string]$ProjectPath) {
     $null = Invoke-AgentJson -Name $Name -Method "Post" -Path "/agent/invoke" -Body ([ordered]@{
         tool = "project.open"
-        arguments = @{ path = $ProjectPath }
+        args = @{ file_path = $ProjectPath }
+        confirmed = $true
+        source = "legame_bind_smoke"
     })
     $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
     while ((Get-Date) -lt $deadline) {
         Start-Sleep -Milliseconds 500
         $state = Get-ProjectState
-        if ($state -and $state.active_project_path -and ([System.IO.Path]::GetFullPath([string]$state.active_project_path) -eq $ProjectPath)) {
+        $activePath = Get-ActiveProjectPath $state
+        if ($state -and $activePath -and ([System.IO.Path]::GetFullPath($activePath) -eq $ProjectPath)) {
             return $state
         }
     }
@@ -279,7 +298,7 @@ try {
 
     Write-Step "S2 binding 按 project UUID 目录隔离（A/B 不串）"
     $stateA = Get-ProjectState
-    $uuidA = [string]$stateA.active_project_uuid
+    $uuidA = Get-ActiveProjectUUID $stateA
     Assert-True (-not [string]::IsNullOrWhiteSpace($uuidA)) "A active_project_uuid 为空"
     $bindingA = Get-BindingPath -ProjectPath $ProjectA -ProjectUUID $uuidA
     Assert-True (Test-Path -LiteralPath $bindingA) ("A UUID binding 缺失: " + $bindingA)
@@ -299,7 +318,7 @@ try {
     $importB = Import-DesignSource -Name "import_b" -DesignSource $DesignSourceDir
     Assert-True ($importB.stop_reason -eq "edu_jam_legame_imported") ("B 导入 stop_reason=" + $importB.stop_reason)
     $stateB = Get-ProjectState
-    $uuidB = [string]$stateB.active_project_uuid
+    $uuidB = Get-ActiveProjectUUID $stateB
     Assert-True ($uuidA -ne $uuidB) "A/B 工程 uuid 相同，隔离断言无意义"
     $bindingB = Get-BindingPath -ProjectPath $ProjectB -ProjectUUID $uuidB
     Assert-True (Test-Path -LiteralPath $bindingB) ("B UUID binding 缺失: " + $bindingB)
@@ -324,12 +343,16 @@ try {
 
     Write-Step "S5 重开不切别版（A 重新打开后四元组命中）"
     $null = Open-Project -Name "open_a_again" -ProjectPath $ProjectA
-    $enterA2 = Invoke-AgentChat -Name "enter_a2" -ConversationID "legame-bind-a-owner-2" -Message "乐局状态"
-    Assert-True (($enterA2.stop_reason -eq "edu_jam_status") -or ($enterA2.stop_reason -eq "edu_jam_recovered")) ("重开后状态回执 stop_reason=" + $enterA2.stop_reason)
+    # 命令词「乐局状态」按设计跳过自动开场（eduJamAutoIntroCheckpoint 只接
+    # 自然语句），不能作为重开装载取证；用新会话自然语句触发 auto-intro。
+    $reopenConv = "legame-bind-a-reopen-" + [guid]::NewGuid().ToString("N").Substring(0,8)
+    $enterA2 = Invoke-AgentChat -Name "enter_a2" -ConversationID $reopenConv -Message "我回来了"
+    Assert-True (($enterA2.stop_reason -eq "edu_jam_entered") -or ($enterA2.stop_reason -eq "edu_jam_recovered")) ("重开后装载回执 stop_reason=" + $enterA2.stop_reason + " reply=" + $enterA2.reply)
+    Assert-True ([string]$enterA2.workflow_data.level_id -eq [string]$summary.import.card_id) ("重开后装载卡不是导入卡: " + [string]$enterA2.workflow_data.level_id)
     $compiledA2 = Get-LegameCompiled $packageA.PackageDir
     $manifestA2 = Read-JsonFile $compiledA2.ManifestPath
     Assert-True (([string]$manifestA2.cache_key.design_source_sha256) -eq ([string]$compiledManifestA.cache_key.design_source_sha256)) "重开后设计源哈希变化（切版）"
-    $summary.reopen = [ordered]@{ cache_key = $manifestA2.cache_key }
+    $summary.reopen = [ordered]@{ conversation_id = $reopenConv; stop_reason = $enterA2.stop_reason; level_id = $enterA2.workflow_data.level_id; cache_key = $manifestA2.cache_key }
 
     Write-Step "S6 revise 源→缓存失效→新卡生效（A）"
     $designPathA = Get-DesignFilePath $packageA.PackageDir
@@ -341,7 +364,7 @@ try {
     $revisedText = [regex]::Replace($designText, "(?m)^title:.*$", ("title: " + $marker), 1)
     Set-Content -LiteralPath $designPathA -Value $revisedText -Encoding UTF8 -NoNewline
     Set-Content -LiteralPath (Join-Path $RunRoot "design_A.revised.yaml") -Value $revisedText -Encoding UTF8 -NoNewline
-    $exitActive = Invoke-AgentChat -Name "exit_a_before_revise" -ConversationID "legame-bind-a-owner-2" -Message "结束乐局"
+    $exitActive = Invoke-AgentChat -Name "exit_a_before_revise" -ConversationID $reopenConv -Message "结束乐局"
     Assert-True ($exitActive.stop_reason -eq "edu_jam_exited") ("revise 前结束乐局 stop_reason=" + $exitActive.stop_reason)
     $enterA3 = Invoke-AgentChat -Name "enter_a_after_revise" -ConversationID "legame-bind-a-revise" -Message "开始乐局"
     Assert-True ($enterA3.stop_reason -eq "edu_jam_entered") ("revise 后开局 stop_reason=" + $enterA3.stop_reason)
