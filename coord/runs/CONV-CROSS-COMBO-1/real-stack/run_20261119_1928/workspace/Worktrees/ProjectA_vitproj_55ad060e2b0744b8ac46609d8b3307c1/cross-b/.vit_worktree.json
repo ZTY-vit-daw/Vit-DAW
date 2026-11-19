@@ -1,0 +1,12 @@
+{
+  "commit_id": "c_20261119T111234_928d2d79",
+  "created_at": "2026-11-19T11:12:34.8419779Z",
+  "name": "cross-b",
+  "origin_commit_id": "c_20261119T111234_928d2d79",
+  "path": "D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\Worktrees\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\cross-b",
+  "project_file_path": "D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\Worktrees\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\cross-b\\ProjectA_cross-b.vit",
+  "project_path": "D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\ProjectA.vit",
+  "root_project_path": "D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\ProjectA.vit",
+  "source_project_path": "D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\ProjectA.vit",
+  "worktree_head_commit_id": "c_20261119T111234_cb6e484e"
+}

@@ -1,0 +1,15 @@
+{
+    "apparatus_processes_started":  0,
+    "apparatus_ports_bound":  0,
+    "stack_processes_started":  0,
+    "stack_processes_stopped":  0,
+    "stack_owner":  "lead/pc-20261119",
+    "kernel_left_running":  true,
+    "zero_scope":  "apparatus-only; the real stack is owned and stopped by RuntimeOwner",
+    "run_root_only":  true,
+    "recents_restored":  true,
+    "recents_hash_before":  "63D0F3F7FCB4E874E15012D545C45284A5208750213918EB62359CAF58ECDF7B",
+    "recents_hash_after_restore":  "63D0F3F7FCB4E874E15012D545C45284A5208750213918EB62359CAF58ECDF7B",
+    "authority_restored":  true,
+    "authority_error":  ""
+}

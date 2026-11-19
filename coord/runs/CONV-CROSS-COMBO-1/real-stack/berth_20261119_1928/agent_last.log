@@ -1,0 +1,72 @@
+2026-11-19T19:12:26 [WARN] [pca-native-seed] family=generation_shell bundle=C:\Users\timoz\Library\Audio\Plug-Ins\VST3\GenShell.vst3 seed failed: processor attestation: inspect plug-in path: GetFileAttributesEx C:\Users\timoz\Library\Audio\Plug-Ins\VST3\GenShell.vst3: The system cannot find the path specified.
+2026-11-19T19:12:26 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=<none>
+2026-11-19T19:12:26 [INFO] VitAgent started req=tcp://127.0.0.1:5555 sub=tcp://127.0.0.1:5556 udp_to=4444 udp_from=4445
+2026-11-19T19:12:26 [INFO] HTTP agent API listening on http://127.0.0.1:7878
+2026-11-19T19:12:26 [INFO] runtimehost: enabled dev_root=D:\Vit_DAW kernel=tcp://127.0.0.1:5555 hub_health=http://127.0.0.1:8787/health
+2026-11-19T19:12:26 [INFO] VSP realtime publisher enabled client=vit.agent.transport_publisher hub=http://127.0.0.1:8787/vsp
+2026-11-19T19:12:26 [INFO] VSP realtime publisher enabled client=vit.agent.realtime_publisher hub=http://127.0.0.1:8787/vsp
+2026-11-19T19:12:26 [INFO] control loop started: UDP:4445 -> tcp://127.0.0.1:5555
+2026-11-19T19:12:26 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=1 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-19T19:12:26 [INFO] runtimehost: VspHub not reachable (Get "http://127.0.0.1:8787/health": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.) -> spawn path
+2026-11-19T19:12:26 [INFO] runtimehost: spawned hub pid=16496 (D:/Vit_DAW/agent/bin/VspHub.exe)
+2026-11-19T19:12:26 [INFO] runtimehost: VspHub ready (D:/Vit_DAW/agent/bin/VspHub.exe)
+2026-11-19T19:12:26 [INFO] runtimehost: kernel not reachable (kernel dial tcp://127.0.0.1:5555: zmq4: could not dial to "tcp://127.0.0.1:5555" (retry=250ms): dial tcp 127.0.0.1:5555: connectex: No connection could be made because the target machine actively refused it.) -> spawn path
+2026-11-19T19:12:26 [INFO] runtimehost: spawned kernel pid=3616 (D:/Vit_DAW/VitApp/build/VitApp_artefacts/Release/VitApp.exe)
+2026-11-19T19:12:27 [INFO] telemetry thread started: tcp://127.0.0.1:5556 -> UDP:4444
+2026-11-19T19:12:27 [INFO] runtimehost: kernel ready (D:/Vit_DAW/VitApp/build/VitApp_artefacts/Release/VitApp.exe)
+2026-11-19T19:12:28 [INFO] VitAgent registered with VSP Hub url=http://127.0.0.1:8787/vsp session_id=sess_kernel_1795086748315_739150855 type=session.hello_ack
+2026-11-19T19:12:28 [INFO] [shadow] initialized tracks=5 project_path="" replayed_deltas=0
+2026-11-19T19:12:28 [INFO] [workspace] activation pending uuid=vitproj_3826468b4bd64b3ab4a78dd4da65918f reason=startup_recovery_disabled_new_session
+2026-11-19T19:12:34 [INFO] [shadow] initialized tracks=0 project_path="" replayed_deltas=0
+2026-11-19T19:12:34 [INFO] [timing] kernel.vsp_state_snapshot ms=2 reason=new_project err=false
+2026-11-19T19:12:34 [INFO] [shadow] initialized tracks=0 project_path="" replayed_deltas=0
+2026-11-19T19:12:34 [INFO] [timing] harness.refresh_shadow ms=2 reason=new_project status=ok err=false
+2026-11-19T19:12:34 [INFO] [shadow] initialized tracks=0 project_path="" replayed_deltas=0
+2026-11-19T19:12:34 [INFO] [timing] kernel.send_command ms=38 command=new_project tool=project.new confirmed=true err=false
+2026-11-19T19:12:34 [INFO] [workspace] launcher scope kept (boot draft not activated) project="C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261119T111234_8ef54ee8\\Unsaved.vit" uuid=vitproj_c0ab0ae86fc2411a8d7b3c75dd72266b
+2026-11-19T19:12:34 [INFO] [timing] harness.invoke total_ms=111 tool=project.new command=new_project status=ok confirmed=true err=false
+2026-11-19T19:12:34 [INFO] [shadow] initialized tracks=0 project_path="" replayed_deltas=0
+2026-11-19T19:12:34 [DEBUG] [shadow] live delta uid="0/1bab29d" action="property_changed:vit_agent_history_generation"
+2026-11-19T19:12:34 [DEBUG] [shadow] live delta uid="0/1bab29d" action="property_changed:vit_project_uuid"
+2026-11-19T19:12:34 [DEBUG] [shadow] live delta uid="0/1bab29d" action="property_changed:vit_project_parent_uuid"
+2026-11-19T19:12:34 [INFO] [shadow] initialized tracks=0 project_path="D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\ProjectA.vit" replayed_deltas=0
+2026-11-19T19:12:34 [INFO] [timing] kernel.send_command ms=28 command=save_as_project tool=project.save_as confirmed=true err=false
+2026-11-19T19:12:34 [INFO] [timing] harness.invoke total_ms=110 tool=project.save_as command=save_as_project status=ok confirmed=true err=false
+2026-11-19T19:12:34 [INFO] [workspace] parent history recovery skipped parent=vitproj_c0ab0ae86fc2411a8d7b3c75dd72266b target=vitproj_55ad060e2b0744b8ac46609d8b3307c1 reason=parent project path not found for UUID vitproj_c0ab0ae86fc2411a8d7b3c75dd72266b
+2026-11-19T19:12:34 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-11-19T19:12:34 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_55ad060e2b0744b8ac46609d8b3307c1
+2026-11-19T19:12:34 [INFO] [workspace] activated project="D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\ProjectA.vit" uuid=vitproj_55ad060e2b0744b8ac46609d8b3307c1 recovered=false conversations=0 retired_legacy_b2=0 retired_legacy_b3=0
+2026-11-19T19:12:34 [INFO] [timing] harness.invoke total_ms=11 tool=version.status command=version_status status=ok confirmed=false err=false
+2026-11-19T19:12:34 [INFO] [timing] harness.invoke total_ms=67 tool=version.worktree_create command=version_worktree_create status=ok confirmed=true err=false
+2026-11-19T19:12:35 [INFO] [timing] harness.invoke total_ms=11 tool=version.status command=version_status status=ok confirmed=false err=false
+2026-11-19T19:12:35 [INFO] [timing] kernel.vsp_state_snapshot ms=2 reason=version_branch_create err=false
+2026-11-19T19:12:35 [INFO] [shadow] initialized tracks=0 project_path="D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\Worktrees\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\cross-b\\ProjectA_cross-b.vit" replayed_deltas=0
+2026-11-19T19:12:35 [INFO] [timing] harness.refresh_shadow ms=2 reason=version_branch_create status=ok err=false
+2026-11-19T19:12:35 [INFO] [timing] harness.invoke total_ms=55 tool=version.branch_create command=version_branch_create status=ok confirmed=true err=false
+2026-11-19T19:12:35 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_55ad060e2b0744b8ac46609d8b3307c1
+2026-11-19T19:12:35 [INFO] [workspace] activated project="D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\Worktrees\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\cross-b\\ProjectA_cross-b.vit" uuid=vitproj_55ad060e2b0744b8ac46609d8b3307c1 recovered=false conversations=0 retired_legacy_b2=0 retired_legacy_b3=0
+2026-11-19T19:12:37 [INFO] [timing] harness.invoke total_ms=15 tool=version.status command=version_status status=ok confirmed=false err=false
+2026-11-19T19:12:37 [INFO] [shadow] initialized tracks=0 project_path="D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\Worktrees\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\cross-b\\ProjectA_cross-b.vit" replayed_deltas=0
+2026-11-19T19:12:37 [INFO] [timing] kernel.vsp_state_snapshot ms=3 reason=open_project err=false
+2026-11-19T19:12:37 [INFO] [shadow] initialized tracks=0 project_path="D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\ProjectA.vit" replayed_deltas=0
+2026-11-19T19:12:37 [INFO] [timing] harness.refresh_shadow ms=3 reason=open_project status=ok err=false
+2026-11-19T19:12:37 [INFO] [shadow] initialized tracks=0 project_path="D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\ProjectA.vit" replayed_deltas=0
+2026-11-19T19:12:37 [INFO] [timing] kernel.send_command ms=43 command=open_project tool=project.open confirmed=true err=false
+2026-11-19T19:12:37 [INFO] [timing] harness.invoke total_ms=91 tool=project.open command=open_project status=ok confirmed=true err=false
+2026-11-19T19:12:37 [INFO] [workspace] parent history recovery skipped parent=vitproj_c0ab0ae86fc2411a8d7b3c75dd72266b target=vitproj_55ad060e2b0744b8ac46609d8b3307c1 reason=parent project path not found for UUID vitproj_c0ab0ae86fc2411a8d7b3c75dd72266b
+2026-11-19T19:12:37 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_55ad060e2b0744b8ac46609d8b3307c1
+2026-11-19T19:12:37 [INFO] [workspace] activated project="D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\ProjectA.vit" uuid=vitproj_55ad060e2b0744b8ac46609d8b3307c1 recovered=false conversations=0 retired_legacy_b2=0 retired_legacy_b3=0
+2026-11-19T19:12:39 [INFO] [timing] harness.invoke total_ms=14 tool=version.status command=version_status status=ok confirmed=false err=false
+2026-11-19T19:12:40 [INFO] [timing] kernel.vsp_state_snapshot ms=3 reason=version_conversation_open err=false
+2026-11-19T19:12:40 [INFO] [shadow] initialized tracks=0 project_path="D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\Worktrees\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\cross-b\\ProjectA_cross-b.vit" replayed_deltas=0
+2026-11-19T19:12:40 [INFO] [timing] harness.refresh_shadow ms=4 reason=version_conversation_open status=ok err=false
+2026-11-19T19:12:40 [INFO] [timing] harness.invoke total_ms=77 tool=version.conversation_open command=version_conversation_open status=ok confirmed=true err=false
+2026-11-19T19:12:40 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_55ad060e2b0744b8ac46609d8b3307c1
+2026-11-19T19:12:40 [INFO] [workspace] activated project="D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\Worktrees\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\cross-b\\ProjectA_cross-b.vit" uuid=vitproj_55ad060e2b0744b8ac46609d8b3307c1 recovered=false conversations=0 retired_legacy_b2=0 retired_legacy_b3=0
+2026-11-19T19:12:42 [INFO] [timing] harness.invoke total_ms=15 tool=version.status command=version_status status=ok confirmed=false err=false
+2026-11-19T19:12:43 [INFO] [timing] harness.invoke total_ms=18 tool=version.conversation_open command=version_conversation_open status=error confirmed=true err=true
+2026-11-19T19:12:43 [INFO] [timing] harness.invoke total_ms=67 tool=version.worktree_create command=version_worktree_create status=ok confirmed=true err=false
+2026-11-19T19:12:44 [INFO] [timing] harness.invoke total_ms=18 tool=version.status command=version_status status=ok confirmed=false err=false
+2026-11-19T19:12:44 [INFO] [timing] harness.invoke total_ms=18 tool=version.conversation_open command=version_conversation_open status=error confirmed=true err=true
+2026-11-19T19:12:45 [INFO] [timing] harness.invoke total_ms=16 tool=version.conversation_open command=version_conversation_open status=error confirmed=true err=true
+2026-11-19T19:12:46 [INFO] [timing] harness.invoke total_ms=15 tool=version.conversation_open command=version_conversation_open status=error confirmed=true err=true

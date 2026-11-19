@@ -1,0 +1,119 @@
+{
+    "schema_version":  "vit_conv_cross_combo_smoke.v1",
+    "card":  "CONV-CROSS-COMBO-1",
+    "status":  "running",
+    "runtime_owner":  "lead/pc-20261119",
+    "created_at":  "2026-11-19T19:12:34.0308097+08:00",
+    "completed_at":  "",
+    "run_root":  "D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928",
+    "repo_root":  "D:\\Vit_DAW",
+    "agent_base_url":  "http://127.0.0.1:7878",
+    "timeout_seconds":  180,
+    "script_path":  "C:\\Users\\timoz\\.codex\\worktrees\\pc422-combo\\Vit_DAW\\scripts\\run_conv_cross_combo_smoke.ps1",
+    "script_sha256":  "1B91D572330E8AE0323357EB79FCB15D862CD6BB7C5432F85944B2CF9A0D9C07",
+    "environment":  {
+                        "ps_version":  "5.1.26100.9818",
+                        "os":  "Microsoft Windows NT 10.0.26300.0",
+                        "computer":  "ZTY",
+                        "user":  "timoz",
+                        "git_head":  "7c7858f78cca717c91e5ed3094e840d44b903479",
+                        "git_status":  "M CURRENT-STATE.md  M VitApp/Workspace/Settings/Settings.xml  M VitApp/Workspace/default_project.xml  M tracktion_engine ?? .vit_derived/ ?? .zcode/ ?? .zcodeignore ?? coord/reports/2026-11-19-alma-herdr-adoption-review.md ?? coord/reports/2026-11-19-desktop-agent-mcp-federation.md ?? coord/runs/CONV-CROSS-COMBO-1/ ?? docs/ACOUSTIC_OBSERVATION_L1_L3_RELIABILITY_AUDIT_2026-10-29.md ?? docs/ADR-EFFECT-CONTROL-REDESIGN-V2.md ?? docs/ADR_AI_LISTENING_EAR_V1.md ?? docs/ADR_AI_LISTENING_EAR_V2.md ?? docs/AI_FIRST_INTERACTION_DISCUSSION_2026-10-28.md ?? docs/EDU_SEQUENCE_DEMO_PREDEFENSE_PLAN_2026-11-05.md ?? docs/FIRST_RUN_GAME_AND_LEVEL_RUNTIME_DESIGN_2026-11-05.md ?? docs/INTERVIEW_PILOT_2026-11-02.md ?? docs/PERSONAL_AGENT_DESIGN_DISCUSSION_2026-11-02.md ?? docs/SHOW_BIBLE_DRAFT_2026-11-02.md ?? docs/TEST-BARE-CONTROL-VALIDATION.md ?? ledger/",
+                        "godot_process_count":  0,
+                        "processes":  {
+                                          "agent":  {
+                                                        "name":  "VitAgent",
+                                                        "present":  true,
+                                                        "pid":  16456,
+                                                        "path":  "D:\\Vit_DAW\\agent\\bin\\VitAgent.exe",
+                                                        "sha256":  "C1667C8CDE43454F1ACEBA559E9C1407457F15CC9CC32B82E5C40680ED48698E"
+                                                    },
+                                          "kernel":  {
+                                                         "name":  "VitApp",
+                                                         "present":  true,
+                                                         "pid":  3616,
+                                                         "path":  "D:\\Vit_DAW\\VitApp\\build\\VitApp_artefacts\\Release\\VitApp.exe",
+                                                         "sha256":  "A59473614152882B21433DCEE684F8B13AE0BD5B632A97CD5E2C8765BB18348E"
+                                                     },
+                                          "vsp_hub":  {
+                                                          "name":  "VspHub",
+                                                          "present":  true,
+                                                          "pid":  16496,
+                                                          "path":  "D:\\Vit_DAW\\agent\\bin\\VspHub.exe",
+                                                          "sha256":  "B10CC41295066C48BB446B255D12D1A58D2D8D64F164D875083667B464C71F68"
+                                                      }
+                                      }
+                    },
+    "isolation":  {
+                      "run_root":  "D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928",
+                      "project_a":  "",
+                      "project_a_uuid":  "",
+                      "worktree_b":  "",
+                      "worktree_b_name":  "cross-b",
+                      "branch_name":  "cross-combo",
+                      "seed_node_id":  "",
+                      "seed_commit":  "",
+                      "branch_node_id":  "",
+                      "draft_path":  "",
+                      "draft_under_runroot":  false,
+                      "workspace_warning":  "",
+                      "workspace_warning_class":  "",
+                      "workspace_dir":  "",
+                      "workspace_manifest":  "",
+                      "workspace_manifest_ok":  false,
+                      "project_workspace_present":  false,
+                      "project_workspace_agent_store":  "",
+                      "stack_idle_at_start":  false,
+                      "initial_kernel_project":  "",
+                      "initial_kernel_uuid":  ""
+                  },
+    "kernel_log":  {
+                       "path":  "",
+                       "offset":  -1,
+                       "single_reload_count":  -1,
+                       "verified":  false
+                   },
+    "static_anchor":  null,
+    "steps":  {
+                  "s0":  false,
+                  "s1":  false,
+                  "s2":  false,
+                  "s3":  false,
+                  "s4":  false,
+                  "s5":  false,
+                  "s6":  false
+              },
+    "reload":  {
+                   "conversation_open_open_project":  -1,
+                   "branch_create_open_project":  -1,
+                   "project_open_a_open_project":  -1,
+                   "worktree_create_open_project":  -1,
+                   "target_path_seen":  false
+               },
+    "recents":  null,
+    "authority":  null,
+    "assertions":  [
+
+                   ],
+    "warnings":  [
+
+                 ],
+    "coverage":  {
+                     "real_stack_verified":  [
+
+                                             ],
+                     "unit_test_only":  [
+                                            "reload failure after target materialization is covered only by the 419 fake-kernel unit test"
+                                        ],
+                     "not_exercised":  [
+                                           "target_materialized=unknown",
+                                           "reload failure after materialization on a real kernel",
+                                           "Godot/VitShell window pixels",
+                                           "human /agent/chat conversation node"
+                                       ],
+                     "gaps":  [
+                                  "real-stack reload-failure injection is not available through the existing agent HTTP/tool surface"
+                              ]
+                 },
+    "failure":  null,
+    "teardown":  null
+}

@@ -1,0 +1,1343 @@
+{
+    "schema_version":  "vit_conv_cross_combo_smoke.v1",
+    "card":  "CONV-CROSS-COMBO-1",
+    "status":  "passed",
+    "runtime_owner":  "lead/pc-20261119",
+    "created_at":  "2026-11-19T19:12:34.0308097+08:00",
+    "completed_at":  "2026-11-19T19:12:47.5531679+08:00",
+    "run_root":  "D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928",
+    "repo_root":  "D:\\Vit_DAW",
+    "agent_base_url":  "http://127.0.0.1:7878",
+    "timeout_seconds":  180,
+    "script_path":  "C:\\Users\\timoz\\.codex\\worktrees\\pc422-combo\\Vit_DAW\\scripts\\run_conv_cross_combo_smoke.ps1",
+    "script_sha256":  "1B91D572330E8AE0323357EB79FCB15D862CD6BB7C5432F85944B2CF9A0D9C07",
+    "environment":  {
+                        "ps_version":  "5.1.26100.9818",
+                        "os":  "Microsoft Windows NT 10.0.26300.0",
+                        "computer":  "ZTY",
+                        "user":  "timoz",
+                        "git_head":  "7c7858f78cca717c91e5ed3094e840d44b903479",
+                        "git_status":  "M CURRENT-STATE.md  M VitApp/Workspace/Settings/Settings.xml  M VitApp/Workspace/default_project.xml  M tracktion_engine ?? .vit_derived/ ?? .zcode/ ?? .zcodeignore ?? coord/reports/2026-11-19-alma-herdr-adoption-review.md ?? coord/reports/2026-11-19-desktop-agent-mcp-federation.md ?? coord/runs/CONV-CROSS-COMBO-1/ ?? docs/ACOUSTIC_OBSERVATION_L1_L3_RELIABILITY_AUDIT_2026-10-29.md ?? docs/ADR-EFFECT-CONTROL-REDESIGN-V2.md ?? docs/ADR_AI_LISTENING_EAR_V1.md ?? docs/ADR_AI_LISTENING_EAR_V2.md ?? docs/AI_FIRST_INTERACTION_DISCUSSION_2026-10-28.md ?? docs/EDU_SEQUENCE_DEMO_PREDEFENSE_PLAN_2026-11-05.md ?? docs/FIRST_RUN_GAME_AND_LEVEL_RUNTIME_DESIGN_2026-11-05.md ?? docs/INTERVIEW_PILOT_2026-11-02.md ?? docs/PERSONAL_AGENT_DESIGN_DISCUSSION_2026-11-02.md ?? docs/SHOW_BIBLE_DRAFT_2026-11-02.md ?? docs/TEST-BARE-CONTROL-VALIDATION.md ?? ledger/",
+                        "godot_process_count":  0,
+                        "processes":  {
+                                          "agent":  {
+                                                        "name":  "VitAgent",
+                                                        "present":  true,
+                                                        "pid":  16456,
+                                                        "path":  "D:\\Vit_DAW\\agent\\bin\\VitAgent.exe",
+                                                        "sha256":  "C1667C8CDE43454F1ACEBA559E9C1407457F15CC9CC32B82E5C40680ED48698E"
+                                                    },
+                                          "kernel":  {
+                                                         "name":  "VitApp",
+                                                         "present":  true,
+                                                         "pid":  3616,
+                                                         "path":  "D:\\Vit_DAW\\VitApp\\build\\VitApp_artefacts\\Release\\VitApp.exe",
+                                                         "sha256":  "A59473614152882B21433DCEE684F8B13AE0BD5B632A97CD5E2C8765BB18348E"
+                                                     },
+                                          "vsp_hub":  {
+                                                          "name":  "VspHub",
+                                                          "present":  true,
+                                                          "pid":  16496,
+                                                          "path":  "D:\\Vit_DAW\\agent\\bin\\VspHub.exe",
+                                                          "sha256":  "B10CC41295066C48BB446B255D12D1A58D2D8D64F164D875083667B464C71F68"
+                                                      }
+                                      }
+                    },
+    "isolation":  {
+                      "run_root":  "D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928",
+                      "project_a":  "D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\ProjectA.vit",
+                      "project_a_uuid":  "vitproj_55ad060e2b0744b8ac46609d8b3307c1",
+                      "worktree_b":  "D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\Worktrees\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\cross-b\\ProjectA_cross-b.vit",
+                      "worktree_b_name":  "cross-b",
+                      "branch_name":  "cross-combo",
+                      "seed_node_id":  "n_20261119T111234_82b2b91c",
+                      "seed_commit":  "c_20261119T111234_cb6e484e",
+                      "branch_node_id":  "n_20261119T111235_e44f6c0b",
+                      "draft_path":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261119T111234_8ef54ee8\\Unsaved.vit",
+                      "draft_under_runroot":  false,
+                      "workspace_warning":  "",
+                      "workspace_warning_class":  "none",
+                      "workspace_dir":  "D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\.vit_agent\\vitproj_55ad060e2b0744b8ac46609d8b3307c1",
+                      "workspace_manifest":  "D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\.vit_agent\\vitproj_55ad060e2b0744b8ac46609d8b3307c1\\manifest.v2.json",
+                      "workspace_manifest_ok":  true,
+                      "project_workspace_present":  true,
+                      "project_workspace_agent_store":  "D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\.vit_agent\\vitproj_55ad060e2b0744b8ac46609d8b3307c1",
+                      "stack_idle_at_start":  true,
+                      "initial_kernel_project":  "",
+                      "initial_kernel_uuid":  "vitproj_3826468b4bd64b3ab4a78dd4da65918f"
+                  },
+    "kernel_log":  {
+                       "path":  "D:\\Vit_DAW\\VitApp\\Workspace\\Logs\\VitHeadlessServer2026-11-19_19-12-26.log",
+                       "offset":  23827,
+                       "single_reload_count":  1,
+                       "verified":  true
+                   },
+    "static_anchor":  {
+                          "available":  true,
+                          "conversation_open_with_reload":  1,
+                          "with_reload_open_project":  1,
+                          "reload_failure_test":  true,
+                          "note":  ""
+                      },
+    "steps":  {
+                  "s0":  true,
+                  "s1":  true,
+                  "s2":  true,
+                  "s3":  true,
+                  "s4":  true,
+                  "s5":  true,
+                  "s6":  true
+              },
+    "reload":  {
+                   "conversation_open_open_project":  1,
+                   "branch_create_open_project":  1,
+                   "project_open_a_open_project":  1,
+                   "worktree_create_open_project":  0,
+                   "target_path_seen":  true,
+                   "browse_open_project":  0,
+                   "verified":  true
+               },
+    "recents":  {
+                    "path":  "C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\global_project_config.json",
+                    "existed_before":  true,
+                    "hash_before":  "63D0F3F7FCB4E874E15012D545C45284A5208750213918EB62359CAF58ECDF7B",
+                    "hash_after_run":  "DF7F53A91324EF9083FC51FC3F0E6AF36C0E14A359E876C620B240A4E7E05989",
+                    "hash_after_restore":  "63D0F3F7FCB4E874E15012D545C45284A5208750213918EB62359CAF58ECDF7B",
+                    "restored":  true,
+                    "error":  ""
+                },
+    "authority":  {
+                      "files":  [
+                                    {
+                                        "name":  "settings",
+                                        "path":  "D:\\Vit_DAW\\VitApp\\Workspace\\Settings\\Settings.xml",
+                                        "existed":  true,
+                                        "hash_before":  "72F0F5112EF926ED77F59F015E6CE492142F8FDF1828E5082E970AA949EDFBB8",
+                                        "snapshot":  "D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\authority\\settings.before",
+                                        "hash_after":  "72F0F5112EF926ED77F59F015E6CE492142F8FDF1828E5082E970AA949EDFBB8",
+                                        "restored":  true,
+                                        "error":  ""
+                                    },
+                                    {
+                                        "name":  "default_project",
+                                        "path":  "D:\\Vit_DAW\\VitApp\\Workspace\\default_project.xml",
+                                        "existed":  true,
+                                        "hash_before":  "E9B668A0FA8556ACDDC180E5DDF3E540FC4A577C0F90ABA5CB6E56C0A6F9D1E9",
+                                        "snapshot":  "D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\authority\\default_project.before",
+                                        "hash_after":  "E9B668A0FA8556ACDDC180E5DDF3E540FC4A577C0F90ABA5CB6E56C0A6F9D1E9",
+                                        "restored":  true,
+                                        "error":  ""
+                                    }
+                                ],
+                      "restored":  true,
+                      "error":  ""
+                  },
+    "assertions":  [
+                       {
+                           "id":  "S0-agent-health",
+                           "ok":  true,
+                           "detail":  "/health HTTP 200",
+                           "step":  "S0",
+                           "at":  "2026-11-19T19:12:34.3302245+08:00"
+                       },
+                       {
+                           "id":  "S0-runtime-status",
+                           "ok":  true,
+                           "detail":  "/agent/runtime/status HTTP 200",
+                           "step":  "S0",
+                           "at":  "2026-11-19T19:12:34.3393449+08:00"
+                       },
+                       {
+                           "id":  "S0-kernel-online",
+                           "ok":  true,
+                           "detail":  "kernel not connected: online ",
+                           "step":  "S0",
+                           "at":  "2026-11-19T19:12:34.3498544+08:00"
+                       },
+                       {
+                           "id":  "S0-no-active-turn",
+                           "ok":  true,
+                           "detail":  "agent reports checkout_blocked=true; stop the active turn first",
+                           "step":  "S0",
+                           "at":  "2026-11-19T19:12:34.3498544+08:00"
+                       },
+                       {
+                           "id":  "S0-stack-idle",
+                           "ok":  true,
+                           "detail":  "a real project is already open; this leg would overwrite workspace state: ",
+                           "step":  "S0",
+                           "at":  "2026-11-19T19:12:34.3578509+08:00"
+                       },
+                       {
+                           "id":  "S0-kernel-log",
+                           "ok":  true,
+                           "detail":  "kernel log unavailable: D:\\Vit_DAW\\VitApp\\Workspace\\Logs\\VitHeadlessServer2026-11-19_19-12-26.log",
+                           "step":  "S0",
+                           "at":  "2026-11-19T19:12:34.3948988+08:00"
+                       },
+                       {
+                           "id":  "S0-static-reload-anchor",
+                           "ok":  true,
+                           "detail":  "conversation_open.go withProjectReload=1 withProjectReload open_project=1",
+                           "step":  "S0",
+                           "at":  "2026-11-19T19:12:34.4530822+08:00"
+                       },
+                       {
+                           "id":  "S0-recents-snapshot",
+                           "ok":  true,
+                           "detail":  "recents path=C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\global_project_config.json",
+                           "step":  "S0",
+                           "at":  "2026-11-19T19:12:34.4545900+08:00"
+                       },
+                       {
+                           "id":  "S0-authority-snapshot",
+                           "ok":  true,
+                           "detail":  "authority snapshot count != 2",
+                           "step":  "S0",
+                           "at":  "2026-11-19T19:12:34.4570868+08:00"
+                       },
+                       {
+                           "id":  "S1-project-new-ok",
+                           "ok":  true,
+                           "detail":  "project.new did not return status ok",
+                           "step":  "S1",
+                           "at":  "2026-11-19T19:12:34.6012606+08:00"
+                       },
+                       {
+                           "id":  "S1-project-new-lifecycle",
+                           "ok":  true,
+                           "detail":  "project_lifecycle=new",
+                           "step":  "S1",
+                           "at":  "2026-11-19T19:12:34.6017610+08:00"
+                       },
+                       {
+                           "id":  "S1-project-new-uuid",
+                           "ok":  true,
+                           "detail":  "project.new returned no project uuid",
+                           "step":  "S1",
+                           "at":  "2026-11-19T19:12:34.6017610+08:00"
+                       },
+                       {
+                           "id":  "S1-project-save-ok",
+                           "ok":  true,
+                           "detail":  "project.save_as did not return status ok",
+                           "step":  "S1",
+                           "at":  "2026-11-19T19:12:34.7203605+08:00"
+                       },
+                       {
+                           "id":  "S1-project-save-path",
+                           "ok":  true,
+                           "detail":  "save_as project_path=D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\ProjectA.vit expected=D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\ProjectA.vit",
+                           "step":  "S1",
+                           "at":  "2026-11-19T19:12:34.7243614+08:00"
+                       },
+                       {
+                           "id":  "S1-project-save-uuid",
+                           "ok":  true,
+                           "detail":  "save_as returned no project uuid",
+                           "step":  "S1",
+                           "at":  "2026-11-19T19:12:34.7243614+08:00"
+                       },
+                       {
+                           "id":  "S1-project-workspace-usable",
+                           "ok":  true,
+                           "detail":  "agent workspace unusable: dir=D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\.vit_agent\\vitproj_55ad060e2b0744b8ac46609d8b3307c1 manifest=D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\.vit_agent\\vitproj_55ad060e2b0744b8ac46609d8b3307c1\\manifest.v2.json warning=",
+                           "step":  "S1",
+                           "at":  "2026-11-19T19:12:34.7278604+08:00"
+                       },
+                       {
+                           "id":  "S1-project-workspace-identity",
+                           "ok":  true,
+                           "detail":  "manifest schema=vit_agent_store_manifest.v2 uuid=vitproj_55ad060e2b0744b8ac46609d8b3307c1 path=D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\ProjectA.vit",
+                           "step":  "S1",
+                           "at":  "2026-11-19T19:12:34.7368607+08:00"
+                       },
+                       {
+                           "id":  "S1-project-workspace-projection",
+                           "ok":  true,
+                           "detail":  "project_workspace.project_path=D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\ProjectA.vit",
+                           "step":  "S1",
+                           "at":  "2026-11-19T19:12:34.7368607+08:00"
+                       },
+                       {
+                           "id":  "S1-project-workspace-agentstore",
+                           "ok":  true,
+                           "detail":  "project_workspace.agent_store_dir=D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\.vit_agent\\vitproj_55ad060e2b0744b8ac46609d8b3307c1 expected=D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\.vit_agent\\vitproj_55ad060e2b0744b8ac46609d8b3307c1",
+                           "step":  "S1",
+                           "at":  "2026-11-19T19:12:34.7378634+08:00"
+                       },
+                       {
+                           "id":  "S1-project-file-exists",
+                           "ok":  true,
+                           "detail":  "project file missing: D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\ProjectA.vit",
+                           "step":  "S1",
+                           "at":  "2026-11-19T19:12:34.7383670+08:00"
+                       },
+                       {
+                           "id":  "s1_status_a-result",
+                           "ok":  true,
+                           "detail":  "s1_status_a result is null",
+                           "step":  "S1",
+                           "at":  "2026-11-19T19:12:34.7899433+08:00"
+                       },
+                       {
+                           "id":  "S1-history-path",
+                           "ok":  true,
+                           "detail":  "version.status project_path=D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\ProjectA.vit",
+                           "step":  "S1",
+                           "at":  "2026-11-19T19:12:34.7904431+08:00"
+                       },
+                       {
+                           "id":  "S1-history-initialized",
+                           "ok":  true,
+                           "detail":  "version.status A initialized=false",
+                           "step":  "S1",
+                           "at":  "2026-11-19T19:12:34.7909441+08:00"
+                       },
+                       {
+                           "id":  "S1-kernel-project-a",
+                           "ok":  true,
+                           "detail":  "S1 save_as: kernel project path=D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\ProjectA.vit expected=D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\ProjectA.vit",
+                           "step":  "S1",
+                           "at":  "2026-11-19T19:12:34.7984557+08:00"
+                       },
+                       {
+                           "id":  "S1-kernel-uuid-a",
+                           "ok":  true,
+                           "detail":  "kernel uuid=vitproj_55ad060e2b0744b8ac46609d8b3307c1 save_as uuid=vitproj_55ad060e2b0744b8ac46609d8b3307c1",
+                           "step":  "S1",
+                           "at":  "2026-11-19T19:12:34.7984557+08:00"
+                       },
+                       {
+                           "id":  "S2-worktree-create-ok",
+                           "ok":  true,
+                           "detail":  "version.worktree_create did not return status ok",
+                           "step":  "S2",
+                           "at":  "2026-11-19T19:12:34.9050507+08:00"
+                       },
+                       {
+                           "id":  "S2-worktree-name",
+                           "ok":  true,
+                           "detail":  "worktree name=cross-b",
+                           "step":  "S2",
+                           "at":  "2026-11-19T19:12:34.9055504+08:00"
+                       },
+                       {
+                           "id":  "S2-worktree-path",
+                           "ok":  true,
+                           "detail":  "worktree_create returned no project_file_path",
+                           "step":  "S2",
+                           "at":  "2026-11-19T19:12:34.9055504+08:00"
+                       },
+                       {
+                           "id":  "S2-worktree-under-runroot",
+                           "ok":  true,
+                           "detail":  "worktree B outside RunRoot: D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\Worktrees\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\cross-b\\ProjectA_cross-b.vit",
+                           "step":  "S2",
+                           "at":  "2026-11-19T19:12:34.9055504+08:00"
+                       },
+                       {
+                           "id":  "S2-worktree-file",
+                           "ok":  true,
+                           "detail":  "worktree project file missing: D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\Worktrees\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\cross-b\\ProjectA_cross-b.vit",
+                           "step":  "S2",
+                           "at":  "2026-11-19T19:12:34.9055504+08:00"
+                       },
+                       {
+                           "id":  "S2-worktree-source-checkpoint",
+                           "ok":  true,
+                           "detail":  "worktree_create returned no source_checkpoint_id (source autosave failed)",
+                           "step":  "S2",
+                           "at":  "2026-11-19T19:12:34.9065537+08:00"
+                       },
+                       {
+                           "id":  "S2-worktree-source-warning",
+                           "ok":  true,
+                           "detail":  "source_checkpoint_warning=",
+                           "step":  "S2",
+                           "at":  "2026-11-19T19:12:34.9065537+08:00"
+                       },
+                       {
+                           "id":  "S2-worktree-create-no-reload",
+                           "ok":  true,
+                           "detail":  "version.worktree_create: expected 0 open_project, got 0 (command_received=1)",
+                           "step":  "S2",
+                           "at":  "2026-11-19T19:12:35.7306750+08:00"
+                       },
+                       {
+                           "id":  "s2_status_b_seed-result",
+                           "ok":  true,
+                           "detail":  "s2_status_b_seed result is null",
+                           "step":  "S2",
+                           "at":  "2026-11-19T19:12:35.7829034+08:00"
+                       },
+                       {
+                           "id":  "S2-status-b-path",
+                           "ok":  true,
+                           "detail":  "version.status B project_path=D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\Worktrees\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\cross-b\\ProjectA_cross-b.vit",
+                           "step":  "S2",
+                           "at":  "2026-11-19T19:12:35.7839071+08:00"
+                       },
+                       {
+                           "id":  "S2-status-b-initialized",
+                           "ok":  true,
+                           "detail":  "version.status B initialized=false",
+                           "step":  "S2",
+                           "at":  "2026-11-19T19:12:35.7844119+08:00"
+                       },
+                       {
+                           "id":  "S2-status-b-worktree-count",
+                           "ok":  true,
+                           "detail":  "worktree count=2",
+                           "step":  "S2",
+                           "at":  "2026-11-19T19:12:35.7879136+08:00"
+                       },
+                       {
+                           "id":  "S2-status-b-active-branch",
+                           "ok":  true,
+                           "detail":  "B active_branch=main",
+                           "step":  "S2",
+                           "at":  "2026-11-19T19:12:35.7884174+08:00"
+                       },
+                       {
+                           "id":  "S2-status-b-head",
+                           "ok":  true,
+                           "detail":  "B head is empty",
+                           "step":  "S2",
+                           "at":  "2026-11-19T19:12:35.7884174+08:00"
+                       },
+                       {
+                           "id":  "S2-status-b-branch-head",
+                           "ok":  true,
+                           "detail":  "branches.main=c_20261119T111234_cb6e484e head=c_20261119T111234_cb6e484e",
+                           "step":  "S2",
+                           "at":  "2026-11-19T19:12:35.7894165+08:00"
+                       },
+                       {
+                           "id":  "S2-status-b-active-node",
+                           "ok":  true,
+                           "detail":  "B active_node_id is empty",
+                           "step":  "S2",
+                           "at":  "2026-11-19T19:12:35.7894165+08:00"
+                       },
+                       {
+                           "id":  "S2-status-b-node-row",
+                           "ok":  true,
+                           "detail":  "node not found: n_20261119T111234_82b2b91c",
+                           "step":  "S2",
+                           "at":  "2026-11-19T19:12:35.7959232+08:00"
+                       },
+                       {
+                           "id":  "S2-status-b-node-commit",
+                           "ok":  true,
+                           "detail":  "node commit=c_20261119T111234_cb6e484e head=c_20261119T111234_cb6e484e",
+                           "step":  "S2",
+                           "at":  "2026-11-19T19:12:35.7959232+08:00"
+                       },
+                       {
+                           "id":  "S2-branch-create-ok",
+                           "ok":  true,
+                           "detail":  "version.branch_create did not return status ok",
+                           "step":  "S2",
+                           "at":  "2026-11-19T19:12:35.9194257+08:00"
+                       },
+                       {
+                           "id":  "S2-branch-name",
+                           "ok":  true,
+                           "detail":  "branch=cross-combo",
+                           "step":  "S2",
+                           "at":  "2026-11-19T19:12:35.9199270+08:00"
+                       },
+                       {
+                           "id":  "S2-branch-commit",
+                           "ok":  true,
+                           "detail":  "branch commit=c_20261119T111234_cb6e484e",
+                           "step":  "S2",
+                           "at":  "2026-11-19T19:12:35.9199270+08:00"
+                       },
+                       {
+                           "id":  "S2-branch-reload",
+                           "ok":  true,
+                           "detail":  "branch_create did not report kernel_reloaded=true",
+                           "step":  "S2",
+                           "at":  "2026-11-19T19:12:35.9199270+08:00"
+                       },
+                       {
+                           "id":  "S2-branch-open-project-count",
+                           "ok":  true,
+                           "detail":  "branch_create open_project count=1 (expected exactly 1 setup reload)",
+                           "step":  "S2",
+                           "at":  "2026-11-19T19:12:37.4310768+08:00"
+                       },
+                       {
+                           "id":  "S2-branch-open-project-target",
+                           "ok":  true,
+                           "detail":  "branch_create open_project line does not contain B path",
+                           "step":  "S2",
+                           "at":  "2026-11-19T19:12:37.4355809+08:00"
+                       },
+                       {
+                           "id":  "S2-kernel-b-after-branch",
+                           "ok":  true,
+                           "detail":  "S2 branch_create: kernel project path=D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\Worktrees\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\cross-b\\ProjectA_cross-b.vit expected=D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\Worktrees\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\cross-b\\ProjectA_cross-b.vit",
+                           "step":  "S2",
+                           "at":  "2026-11-19T19:12:37.4487996+08:00"
+                       },
+                       {
+                           "id":  "S2-branch-ui-project-b",
+                           "ok":  true,
+                           "detail":  "ui project_path did not settle on B after branch_create",
+                           "step":  "S2",
+                           "at":  "2026-11-19T19:12:37.4752463+08:00"
+                       },
+                       {
+                           "id":  "s2_status_b_branch-result",
+                           "ok":  true,
+                           "detail":  "s2_status_b_branch result is null",
+                           "step":  "S2",
+                           "at":  "2026-11-19T19:12:37.5317112+08:00"
+                       },
+                       {
+                           "id":  "S2-branch-active",
+                           "ok":  true,
+                           "detail":  "B active_branch=cross-combo",
+                           "step":  "S2",
+                           "at":  "2026-11-19T19:12:37.5322104+08:00"
+                       },
+                       {
+                           "id":  "S2-branch-head",
+                           "ok":  true,
+                           "detail":  "branches.cross-combo=c_20261119T111234_cb6e484e",
+                           "step":  "S2",
+                           "at":  "2026-11-19T19:12:37.5332112+08:00"
+                       },
+                       {
+                           "id":  "S2-branch-head-field",
+                           "ok":  true,
+                           "detail":  "B head=c_20261119T111234_cb6e484e",
+                           "step":  "S2",
+                           "at":  "2026-11-19T19:12:37.5332112+08:00"
+                       },
+                       {
+                           "id":  "S2-branch-node-active",
+                           "ok":  true,
+                           "detail":  "B active_node_id is empty after branch_create",
+                           "step":  "S2",
+                           "at":  "2026-11-19T19:12:37.5342152+08:00"
+                       },
+                       {
+                           "id":  "S2-branch-node-row",
+                           "ok":  true,
+                           "detail":  "branch node not found: n_20261119T111235_e44f6c0b",
+                           "step":  "S2",
+                           "at":  "2026-11-19T19:12:37.5357191+08:00"
+                       },
+                       {
+                           "id":  "S2-branch-node-branch",
+                           "ok":  true,
+                           "detail":  "node branch=cross-combo",
+                           "step":  "S2",
+                           "at":  "2026-11-19T19:12:37.5362197+08:00"
+                       },
+                       {
+                           "id":  "S2-branch-node-commit",
+                           "ok":  true,
+                           "detail":  "node commit=c_20261119T111234_cb6e484e",
+                           "step":  "S2",
+                           "at":  "2026-11-19T19:12:37.5367202+08:00"
+                       },
+                       {
+                           "id":  "S2-open-a-ok",
+                           "ok":  true,
+                           "detail":  "project.open A did not return status ok",
+                           "step":  "S2",
+                           "at":  "2026-11-19T19:12:37.6542236+08:00"
+                       },
+                       {
+                           "id":  "S2-open-a-count",
+                           "ok":  true,
+                           "detail":  "project.open A count=1",
+                           "step":  "S2",
+                           "at":  "2026-11-19T19:12:39.1845192+08:00"
+                       },
+                       {
+                           "id":  "S2-open-a-target",
+                           "ok":  true,
+                           "detail":  "project.open A line does not contain A path",
+                           "step":  "S2",
+                           "at":  "2026-11-19T19:12:39.1850188+08:00"
+                       },
+                       {
+                           "id":  "S2-kernel-back-a",
+                           "ok":  true,
+                           "detail":  "S2 project.open A: kernel project path=D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\ProjectA.vit expected=D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\ProjectA.vit",
+                           "step":  "S2",
+                           "at":  "2026-11-19T19:12:39.1914226+08:00"
+                       },
+                       {
+                           "id":  "S2-back-to-a-ui",
+                           "ok":  true,
+                           "detail":  "ui project_path did not settle back on A",
+                           "step":  "S2",
+                           "at":  "2026-11-19T19:12:39.2113374+08:00"
+                       },
+                       {
+                           "id":  "S3-a-file-present",
+                           "ok":  true,
+                           "detail":  "A project file missing before browse",
+                           "step":  "S3",
+                           "at":  "2026-11-19T19:12:39.2191584+08:00"
+                       },
+                       {
+                           "id":  "S3-b-file-present",
+                           "ok":  true,
+                           "detail":  "B project file missing before browse",
+                           "step":  "S3",
+                           "at":  "2026-11-19T19:12:39.2191584+08:00"
+                       },
+                       {
+                           "id":  "S3-kernel-before",
+                           "ok":  true,
+                           "detail":  "S3 before status: kernel project path=D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\ProjectA.vit expected=D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\ProjectA.vit",
+                           "step":  "S3",
+                           "at":  "2026-11-19T19:12:39.2298598+08:00"
+                       },
+                       {
+                           "id":  "S3-ui-before",
+                           "ok":  true,
+                           "detail":  "ui project_path=D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\ProjectA.vit",
+                           "step":  "S3",
+                           "at":  "2026-11-19T19:12:39.2529379+08:00"
+                       },
+                       {
+                           "id":  "s3_status_b-result",
+                           "ok":  true,
+                           "detail":  "s3_status_b result is null",
+                           "step":  "S3",
+                           "at":  "2026-11-19T19:12:39.3102322+08:00"
+                       },
+                       {
+                           "id":  "S3-status-b-path",
+                           "ok":  true,
+                           "detail":  "status B project_path=D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\Worktrees\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\cross-b\\ProjectA_cross-b.vit",
+                           "step":  "S3",
+                           "at":  "2026-11-19T19:12:39.3112304+08:00"
+                       },
+                       {
+                           "id":  "S3-status-b-initialized",
+                           "ok":  true,
+                           "detail":  "status B initialized=false",
+                           "step":  "S3",
+                           "at":  "2026-11-19T19:12:39.3117299+08:00"
+                       },
+                       {
+                           "id":  "S3-status-b-branch",
+                           "ok":  true,
+                           "detail":  "status B active_branch=cross-combo",
+                           "step":  "S3",
+                           "at":  "2026-11-19T19:12:39.3122306+08:00"
+                       },
+                       {
+                           "id":  "S3-status-b-node",
+                           "ok":  true,
+                           "detail":  "status B active_node_id=n_20261119T111235_e44f6c0b expected=n_20261119T111235_e44f6c0b",
+                           "step":  "S3",
+                           "at":  "2026-11-19T19:12:39.3132304+08:00"
+                       },
+                       {
+                           "id":  "S3-status-b-head",
+                           "ok":  true,
+                           "detail":  "status B head=c_20261119T111234_cb6e484e",
+                           "step":  "S3",
+                           "at":  "2026-11-19T19:12:39.3132304+08:00"
+                       },
+                       {
+                           "id":  "S3-status-b-branch-head",
+                           "ok":  true,
+                           "detail":  "branches.cross-combo=c_20261119T111234_cb6e484e",
+                           "step":  "S3",
+                           "at":  "2026-11-19T19:12:39.3152395+08:00"
+                       },
+                       {
+                           "id":  "S3-b-file-unchanged",
+                           "ok":  true,
+                           "detail":  "B project file changed during read-only status",
+                           "step":  "S3",
+                           "at":  "2026-11-19T19:12:39.3177387+08:00"
+                       },
+                       {
+                           "id":  "S3-a-file-unchanged",
+                           "ok":  true,
+                           "detail":  "A project file changed during read-only status",
+                           "step":  "S3",
+                           "at":  "2026-11-19T19:12:39.3197388+08:00"
+                       },
+                       {
+                           "id":  "S3-kernel-after",
+                           "ok":  true,
+                           "detail":  "S3 after status: kernel project path=D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\ProjectA.vit expected=D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\ProjectA.vit",
+                           "step":  "S3",
+                           "at":  "2026-11-19T19:12:39.3297473+08:00"
+                       },
+                       {
+                           "id":  "S3-ui-after",
+                           "ok":  true,
+                           "detail":  "ui project_path=D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\ProjectA.vit",
+                           "step":  "S3",
+                           "at":  "2026-11-19T19:12:39.3515611+08:00"
+                       },
+                       {
+                           "id":  "S3-no-open-project",
+                           "ok":  true,
+                           "detail":  "version.status B read-only browse: expected 0 open_project, got 0 (command_received=0)",
+                           "step":  "S3",
+                           "at":  "2026-11-19T19:12:40.1529793+08:00"
+                       },
+                       {
+                           "id":  "S4-kernel-before",
+                           "ok":  true,
+                           "detail":  "S4 before conversation_open: kernel project path=D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\ProjectA.vit expected=D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\ProjectA.vit",
+                           "step":  "S4",
+                           "at":  "2026-11-19T19:12:40.1715859+08:00"
+                       },
+                       {
+                           "id":  "S4-result",
+                           "ok":  true,
+                           "detail":  "conversation_open result is null",
+                           "step":  "S4",
+                           "at":  "2026-11-19T19:12:40.3053197+08:00"
+                       },
+                       {
+                           "id":  "S4-status",
+                           "ok":  true,
+                           "detail":  "conversation_open result status=ok",
+                           "step":  "S4",
+                           "at":  "2026-11-19T19:12:40.3063202+08:00"
+                       },
+                       {
+                           "id":  "S4-project-file-path",
+                           "ok":  true,
+                           "detail":  "result project_file_path=D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\Worktrees\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\cross-b\\ProjectA_cross-b.vit",
+                           "step":  "S4",
+                           "at":  "2026-11-19T19:12:40.3068188+08:00"
+                       },
+                       {
+                           "id":  "S4-worktree-name",
+                           "ok":  true,
+                           "detail":  "worktree.name=cross-b",
+                           "step":  "S4",
+                           "at":  "2026-11-19T19:12:40.3078225+08:00"
+                       },
+                       {
+                           "id":  "S4-worktree-not-root",
+                           "ok":  true,
+                           "detail":  "target worktree reported worktree_is_root=False",
+                           "step":  "S4",
+                           "at":  "2026-11-19T19:12:40.3093253+08:00"
+                       },
+                       {
+                           "id":  "S4-same-worktree-false",
+                           "ok":  true,
+                           "detail":  "same_worktree must be false for a cross-worktree open",
+                           "step":  "S4",
+                           "at":  "2026-11-19T19:12:40.3103271+08:00"
+                       },
+                       {
+                           "id":  "S4-target-materialized",
+                           "ok":  true,
+                           "detail":  "target_materialized=false after successful materialization",
+                           "step":  "S4",
+                           "at":  "2026-11-19T19:12:40.3103271+08:00"
+                       },
+                       {
+                           "id":  "S4-kernel-reloaded",
+                           "ok":  true,
+                           "detail":  "kernel_reloaded=false",
+                           "step":  "S4",
+                           "at":  "2026-11-19T19:12:40.3108294+08:00"
+                       },
+                       {
+                           "id":  "S4-refresh-reloaded",
+                           "ok":  true,
+                           "detail":  "result.refresh.kernel_reloaded=false",
+                           "step":  "S4",
+                           "at":  "2026-11-19T19:12:40.3113294+08:00"
+                       },
+                       {
+                           "id":  "S4-refresh-reason",
+                           "ok":  true,
+                           "detail":  "refresh.reason=version_conversation_open",
+                           "step":  "S4",
+                           "at":  "2026-11-19T19:12:40.3123298+08:00"
+                       },
+                       {
+                           "id":  "S4-refresh-shadow",
+                           "ok":  true,
+                           "detail":  "result.refresh.shadow_refreshed=false",
+                           "step":  "S4",
+                           "at":  "2026-11-19T19:12:40.3123298+08:00"
+                       },
+                       {
+                           "id":  "S4-mode",
+                           "ok":  true,
+                           "detail":  "mode=branch_checkout",
+                           "step":  "S4",
+                           "at":  "2026-11-19T19:12:40.3128296+08:00"
+                       },
+                       {
+                           "id":  "S4-branch",
+                           "ok":  true,
+                           "detail":  "branch=cross-combo",
+                           "step":  "S4",
+                           "at":  "2026-11-19T19:12:40.3128296+08:00"
+                       },
+                       {
+                           "id":  "S4-detached",
+                           "ok":  true,
+                           "detail":  "detached=true; target branch was not activated",
+                           "step":  "S4",
+                           "at":  "2026-11-19T19:12:40.3138312+08:00"
+                       },
+                       {
+                           "id":  "S4-head",
+                           "ok":  true,
+                           "detail":  "head=c_20261119T111234_cb6e484e",
+                           "step":  "S4",
+                           "at":  "2026-11-19T19:12:40.3143334+08:00"
+                       },
+                       {
+                           "id":  "S4-target-commit",
+                           "ok":  true,
+                           "detail":  "target_commit_id=c_20261119T111234_cb6e484e",
+                           "step":  "S4",
+                           "at":  "2026-11-19T19:12:40.3148333+08:00"
+                       },
+                       {
+                           "id":  "S4-active-branch",
+                           "ok":  true,
+                           "detail":  "active_branch=cross-combo",
+                           "step":  "S4",
+                           "at":  "2026-11-19T19:12:40.3158332+08:00"
+                       },
+                       {
+                           "id":  "S4-active-node",
+                           "ok":  true,
+                           "detail":  "active_node_id=n_20261119T111235_e44f6c0b expected=n_20261119T111235_e44f6c0b",
+                           "step":  "S4",
+                           "at":  "2026-11-19T19:12:40.3163332+08:00"
+                       },
+                       {
+                           "id":  "S4-active-worktree",
+                           "ok":  true,
+                           "detail":  "active_worktree=cross-b",
+                           "step":  "S4",
+                           "at":  "2026-11-19T19:12:40.3168332+08:00"
+                       },
+                       {
+                           "id":  "S4-branch-warning",
+                           "ok":  true,
+                           "detail":  "unexpected branch_warning=",
+                           "step":  "S4",
+                           "at":  "2026-11-19T19:12:40.3168332+08:00"
+                       },
+                       {
+                           "id":  "S4-switch-autosave",
+                           "ok":  true,
+                           "detail":  "conversation_open disclosed neither switch_autosave_commit_id nor switch_autosave_warning",
+                           "step":  "S4",
+                           "at":  "2026-11-19T19:12:40.3178357+08:00"
+                       },
+                       {
+                           "id":  "S4-single-open-project",
+                           "ok":  true,
+                           "detail":  "conversation_open open_project count=1 (expected exactly 1)",
+                           "step":  "S4",
+                           "at":  "2026-11-19T19:12:41.8218797+08:00"
+                       },
+                       {
+                           "id":  "S4-open-project-target",
+                           "ok":  true,
+                           "detail":  "single open_project line does not contain target B path",
+                           "step":  "S4",
+                           "at":  "2026-11-19T19:12:41.8228798+08:00"
+                       },
+                       {
+                           "id":  "S4-kernel-project-b",
+                           "ok":  true,
+                           "detail":  "kernel project path did not become B within 30s",
+                           "step":  "S4",
+                           "at":  "2026-11-19T19:12:41.8414974+08:00"
+                       },
+                       {
+                           "id":  "S4-ui-project-b",
+                           "ok":  true,
+                           "detail":  "ui project_path did not become B within 30s",
+                           "step":  "S4",
+                           "at":  "2026-11-19T19:12:41.8695042+08:00"
+                       },
+                       {
+                           "id":  "S4-state-path-b",
+                           "ok":  true,
+                           "detail":  "state current_project.path=D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\Worktrees\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\cross-b\\ProjectA_cross-b.vit",
+                           "step":  "S4",
+                           "at":  "2026-11-19T19:12:42.8828259+08:00"
+                       },
+                       {
+                           "id":  "S4-ui-path-b",
+                           "ok":  true,
+                           "detail":  "ui project.project_path=D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\Worktrees\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\cross-b\\ProjectA_cross-b.vit",
+                           "step":  "S4",
+                           "at":  "2026-11-19T19:12:42.9063412+08:00"
+                       },
+                       {
+                           "id":  "S4-daw-track-count",
+                           "ok":  true,
+                           "detail":  "ui track_count=0 shadow track_count=0",
+                           "step":  "S4",
+                           "at":  "2026-11-19T19:12:42.9108467+08:00"
+                       },
+                       {
+                           "id":  "S4-daw-graph-revision",
+                           "ok":  true,
+                           "detail":  "ui graph_revision= shadow graph_revision=",
+                           "step":  "S4",
+                           "at":  "2026-11-19T19:12:42.9118474+08:00"
+                       },
+                       {
+                           "id":  "S4-daw-initialized",
+                           "ok":  true,
+                           "detail":  "ui project.initialized=false",
+                           "step":  "S4",
+                           "at":  "2026-11-19T19:12:42.9123478+08:00"
+                       },
+                       {
+                           "id":  "s4_status_b_after-result",
+                           "ok":  true,
+                           "detail":  "s4_status_b_after result is null",
+                           "step":  "S4",
+                           "at":  "2026-11-19T19:12:42.9614974+08:00"
+                       },
+                       {
+                           "id":  "S4-history-path",
+                           "ok":  true,
+                           "detail":  "post-open status B project_path=D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\Worktrees\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\cross-b\\ProjectA_cross-b.vit",
+                           "step":  "S4",
+                           "at":  "2026-11-19T19:12:42.9624971+08:00"
+                       },
+                       {
+                           "id":  "S4-history-branch",
+                           "ok":  true,
+                           "detail":  "post-open active_branch=cross-combo",
+                           "step":  "S4",
+                           "at":  "2026-11-19T19:12:42.9629974+08:00"
+                       },
+                       {
+                           "id":  "S4-history-node",
+                           "ok":  true,
+                           "detail":  "post-open active_node_id=n_20261119T111235_e44f6c0b",
+                           "step":  "S4",
+                           "at":  "2026-11-19T19:12:42.9639996+08:00"
+                       },
+                       {
+                           "id":  "S4-history-head",
+                           "ok":  true,
+                           "detail":  "post-open head=c_20261119T111234_cb6e484e",
+                           "step":  "S4",
+                           "at":  "2026-11-19T19:12:42.9645033+08:00"
+                       },
+                       {
+                           "id":  "S4-history-worktree",
+                           "ok":  true,
+                           "detail":  "post-open active_worktree=cross-b",
+                           "step":  "S4",
+                           "at":  "2026-11-19T19:12:42.9650030+08:00"
+                       },
+                       {
+                           "id":  "S4-a-file-unchanged",
+                           "ok":  true,
+                           "detail":  "A project file changed during conversation_open",
+                           "step":  "S4",
+                           "at":  "2026-11-19T19:12:42.9660023+08:00"
+                       },
+                       {
+                           "id":  "s5_unknown_worktree-http",
+                           "ok":  true,
+                           "detail":  "s5_unknown_worktree: HTTP 400 body={\"status\":\"error\",\"agent_action_id\":\"act_f52ad18532f92ce3\",\"tool\":\"version.conversation_open\",\"command_name\":\"version_conversation_open\",\"risk_level\":\"confirm\",\"requires_confirmation\":false,\"result\":{\"error\":\"worktree not found: cross-missing-f09c2c2c\",\"kernel_reloaded\":false,\"project_file_path\":\"\",\"project_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\Worktrees\\\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\\\cross-b\\\\ProjectA_cross-b.vit\",\"requested_branch\":\"\",\"requested_node_id\":\"n_20261119T111235_e44f6c0b\",\"same_worktree\":false,\"status\":\"error\",\"target_materialized\":false},\"project_history\":{\"active_branch\":\"cross-combo\",\"active_node_id\":\"n_20261119T111235_e44f6c0b\",\"active_worktree\":\"cross-b\",\"available\":true,\"branches\":{\"cross-combo\":\"c_20261119T111234_cb6e484e\",\"main\":\"c_20261119T111234_cb6e484e\"},\"commit_count\":1,\"detached\":false,\"draft\":false,\"head\":\"c_20261119T111234_cb6e484e\",\"initialized\":true,\"project_label\":\"ProjectA_cross-b\",\"project_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\Worktrees\\\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\\\cross-b\\\\ProjectA_cross-b.vit\",\"project_uuid\":\"vitproj_55ad060e2b0744b8ac46609d8b3307c1\",\"recent_checkpoints\":[{\"branch\":\"main\",\"checkpoint_kind\":\"manual\",\"created_at\":\"2026-11-19T11:12:34.849987Z\",\"id\":\"c_20261119T111234_cb6e484e\",\"message\":\"worktree seed from c_20261119T111234_928d2d79\"}],\"refs\":{\"refs/heads/cross-combo\":\"c_20261119T111234_cb6e484e\",\"refs/heads/main\":\"c_20261119T111234_cb6e484e\"},\"root_project_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\ProjectA.vit\",\"unsaved\":false,\"warnings\":[],\"worktree_count\":2,\"worktrees\":[{\"commit_id\":\"c_20261119T111240_b18f9361\",\"created_at\":\"2026-11-19T11:12:43.0081354Z\",\"is_root\":true,\"label\":\"主工作树\",\"name\":\"main\",\"origin_commit_id\":\"c_20261119T111240_b18f9361\",\"path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\",\"project_file_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\ProjectA.vit\",\"project_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\ProjectA.vit\",\"root_project_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\ProjectA.vit\"},{\"commit_id\":\"c_20261119T111234_928d2d79\",\"created_at\":\"2026-11-19T11:12:34.8419779Z\",\"name\":\"cross-b\",\"origin_commit_id\":\"c_20261119T111234_928d2d79\",\"path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\Worktrees\\\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\\\cross-b\",\"project_file_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\Worktrees\\\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\\\cross-b\\\\ProjectA_cross-b.vit\",\"project_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\ProjectA.vit\",\"root_project_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\ProjectA.vit\",\"source_project_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\ProjectA.vit\",\"worktree_head_commit_id\":\"c_20261119T111234_cb6e484e\"}]},\"error\":\"worktree not found: cross-missing-f09c2c2c\"}",
+                           "step":  "S5",
+                           "at":  "2026-11-19T19:12:43.0496691+08:00"
+                       },
+                       {
+                           "id":  "s5_unknown_worktree-status",
+                           "ok":  true,
+                           "detail":  "s5_unknown_worktree: expected InvokeResponse.status=error",
+                           "step":  "S5",
+                           "at":  "2026-11-19T19:12:43.0501689+08:00"
+                       },
+                       {
+                           "id":  "s5_unknown_worktree-result",
+                           "ok":  true,
+                           "detail":  "s5_unknown_worktree: result map missing",
+                           "step":  "S5",
+                           "at":  "2026-11-19T19:12:43.0501689+08:00"
+                       },
+                       {
+                           "id":  "s5_unknown_worktree-target-disclosed",
+                           "ok":  true,
+                           "detail":  "s5_unknown_worktree: target_materialized field not disclosed",
+                           "step":  "S5",
+                           "at":  "2026-11-19T19:12:43.0506689+08:00"
+                       },
+                       {
+                           "id":  "s5_unknown_worktree-target-not-materialized",
+                           "ok":  true,
+                           "detail":  "s5_unknown_worktree: target_materialized must be false before materialization",
+                           "step":  "S5",
+                           "at":  "2026-11-19T19:12:43.0506689+08:00"
+                       },
+                       {
+                           "id":  "s5_unknown_worktree-kernel-not-reloaded",
+                           "ok":  true,
+                           "detail":  "s5_unknown_worktree: kernel_reloaded must be false",
+                           "step":  "S5",
+                           "at":  "2026-11-19T19:12:43.0506689+08:00"
+                       },
+                       {
+                           "id":  "s5_unknown_worktree-error-text",
+                           "ok":  true,
+                           "detail":  "s5_unknown_worktree: error=worktree not found: cross-missing-f09c2c2c expected to contain=worktree not found",
+                           "step":  "S5",
+                           "at":  "2026-11-19T19:12:43.0526705+08:00"
+                       },
+                       {
+                           "id":  "s5_unknown_worktree-no-open-project",
+                           "ok":  true,
+                           "detail":  "s5_unknown_worktree: expected 0 open_project, got 0 (command_received=0)",
+                           "step":  "S5",
+                           "at":  "2026-11-19T19:12:43.8589922+08:00"
+                       },
+                       {
+                           "id":  "s5_unknown_worktree-kernel-current",
+                           "ok":  true,
+                           "detail":  "s5_unknown_worktree: current kernel project changed",
+                           "step":  "S5",
+                           "at":  "2026-11-19T19:12:43.8731866+08:00"
+                       },
+                       {
+                           "id":  "S5-expired-create",
+                           "ok":  true,
+                           "detail":  "version.worktree_create for expired fixture failed",
+                           "step":  "S5",
+                           "at":  "2026-11-19T19:12:43.9951102+08:00"
+                       },
+                       {
+                           "id":  "S5-expired-path",
+                           "ok":  true,
+                           "detail":  "expired fixture worktree has no project_file_path",
+                           "step":  "S5",
+                           "at":  "2026-11-19T19:12:43.9956127+08:00"
+                       },
+                       {
+                           "id":  "S5-expired-under-runroot",
+                           "ok":  true,
+                           "detail":  "expired fixture outside RunRoot: D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\Worktrees\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\cross-expired\\ProjectA_cross-expired.vit",
+                           "step":  "S5",
+                           "at":  "2026-11-19T19:12:43.9966124+08:00"
+                       },
+                       {
+                           "id":  "S5-expired-create-no-reload",
+                           "ok":  true,
+                           "detail":  "expired fixture worktree_create: expected 0 open_project, got 0 (command_received=1)",
+                           "step":  "S5",
+                           "at":  "2026-11-19T19:12:44.8113812+08:00"
+                       },
+                       {
+                           "id":  "s5_status_expired-result",
+                           "ok":  true,
+                           "detail":  "s5_status_expired result is null",
+                           "step":  "S5",
+                           "at":  "2026-11-19T19:12:44.8552834+08:00"
+                       },
+                       {
+                           "id":  "S5-expired-file-removed",
+                           "ok":  true,
+                           "detail":  "failed to remove expired fixture project file: D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\Worktrees\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\cross-expired\\ProjectA_cross-expired.vit",
+                           "step":  "S5",
+                           "at":  "2026-11-19T19:12:44.8602886+08:00"
+                       },
+                       {
+                           "id":  "s5_expired_worktree-http",
+                           "ok":  true,
+                           "detail":  "s5_expired_worktree: HTTP 400 body={\"status\":\"error\",\"agent_action_id\":\"act_945179a8b7469572\",\"tool\":\"version.conversation_open\",\"command_name\":\"version_conversation_open\",\"risk_level\":\"confirm\",\"requires_confirmation\":false,\"result\":{\"error\":\"worktree project file does not exist: D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\Worktrees\\\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\\\cross-expired\\\\ProjectA_cross-expired.vit\",\"kernel_reloaded\":false,\"project_file_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\Worktrees\\\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\\\cross-expired\\\\ProjectA_cross-expired.vit\",\"project_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\Worktrees\\\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\\\cross-b\\\\ProjectA_cross-b.vit\",\"requested_branch\":\"\",\"requested_node_id\":\"n_20261119T111243_b820fde3\",\"same_worktree\":false,\"status\":\"error\",\"target_materialized\":false,\"worktree\":{\"commit_id\":\"c_20261119T111243_1f2a13c5\",\"created_at\":\"2026-11-19T11:12:43.9275046Z\",\"name\":\"cross-expired\",\"origin_commit_id\":\"c_20261119T111243_1f2a13c5\",\"path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\Worktrees\\\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\\\cross-expired\",\"project_file_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\Worktrees\\\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\\\cross-expired\\\\ProjectA_cross-expired.vit\",\"project_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\ProjectA.vit\",\"root_project_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\ProjectA.vit\",\"source_project_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\Worktrees\\\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\\\cross-b\\\\ProjectA_cross-b.vit\",\"worktree_head_commit_id\":\"c_20261119T111243_e06a65b6\"},\"worktree_is_root\":false,\"worktree_name\":\"cross-expired\"},\"project_history\":{\"active_branch\":\"cross-combo\",\"active_node_id\":\"n_20261119T111235_e44f6c0b\",\"active_worktree\":\"cross-b\",\"available\":true,\"branches\":{\"cross-combo\":\"c_20261119T111243_1f2a13c5\",\"main\":\"c_20261119T111234_cb6e484e\"},\"commit_count\":2,\"detached\":false,\"draft\":false,\"head\":\"c_20261119T111243_1f2a13c5\",\"initialized\":true,\"project_label\":\"ProjectA_cross-b\",\"project_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\Worktrees\\\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\\\cross-b\\\\ProjectA_cross-b.vit\",\"project_uuid\":\"vitproj_55ad060e2b0744b8ac46609d8b3307c1\",\"recent_checkpoints\":[{\"branch\":\"cross-combo\",\"checkpoint_kind\":\"auto_worktree_source\",\"created_at\":\"2026-11-19T11:12:43.9100042Z\",\"id\":\"c_20261119T111243_1f2a13c5\",\"message\":\"Worktree source autosave\"},{\"branch\":\"main\",\"checkpoint_kind\":\"manual\",\"created_at\":\"2026-11-19T11:12:34.849987Z\",\"id\":\"c_20261119T111234_cb6e484e\",\"message\":\"worktree seed from c_20261119T111234_928d2d79\"}],\"refs\":{\"refs/heads/cross-combo\":\"c_20261119T111243_1f2a13c5\",\"refs/heads/main\":\"c_20261119T111234_cb6e484e\"},\"root_project_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\ProjectA.vit\",\"unsaved\":false,\"warnings\":[],\"worktree_count\":3,\"worktrees\":[{\"commit_id\":\"c_20261119T111240_b18f9361\",\"created_at\":\"2026-11-19T11:12:44.9019108Z\",\"is_root\":true,\"label\":\"主工作树\",\"name\":\"main\",\"origin_commit_id\":\"c_20261119T111240_b18f9361\",\"path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\",\"project_file_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\ProjectA.vit\",\"project_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\ProjectA.vit\",\"root_project_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\ProjectA.vit\"},{\"commit_id\":\"c_20261119T111234_928d2d79\",\"created_at\":\"2026-11-19T11:12:34.8419779Z\",\"name\":\"cross-b\",\"origin_commit_id\":\"c_20261119T111234_928d2d79\",\"path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\Worktrees\\\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\\\cross-b\",\"project_file_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\Worktrees\\\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\\\cross-b\\\\ProjectA_cross-b.vit\",\"project_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\ProjectA.vit\",\"root_project_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\ProjectA.vit\",\"source_project_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\ProjectA.vit\",\"worktree_head_commit_id\":\"c_20261119T111234_cb6e484e\"},{\"commit_id\":\"c_20261119T111243_1f2a13c5\",\"created_at\":\"2026-11-19T11:12:43.9275046Z\",\"name\":\"cross-expired\",\"origin_commit_id\":\"c_20261119T111243_1f2a13c5\",\"path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\Worktrees\\\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\\\cross-expired\",\"project_file_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\Worktrees\\\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\\\cross-expired\\\\ProjectA_cross-expired.vit\",\"project_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\ProjectA.vit\",\"root_project_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\ProjectA.vit\",\"source_project_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\Worktrees\\\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\\\cross-b\\\\ProjectA_cross-b.vit\",\"worktree_head_commit_id\":\"c_20261119T111243_e06a65b6\"}]},\"error\":\"worktree project file does not exist: D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\Worktrees\\\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\\\cross-expired\\\\ProjectA_cross-expired.vit\"}",
+                           "step":  "S5",
+                           "at":  "2026-11-19T19:12:44.9285683+08:00"
+                       },
+                       {
+                           "id":  "s5_expired_worktree-status",
+                           "ok":  true,
+                           "detail":  "s5_expired_worktree: expected InvokeResponse.status=error",
+                           "step":  "S5",
+                           "at":  "2026-11-19T19:12:44.9285683+08:00"
+                       },
+                       {
+                           "id":  "s5_expired_worktree-result",
+                           "ok":  true,
+                           "detail":  "s5_expired_worktree: result map missing",
+                           "step":  "S5",
+                           "at":  "2026-11-19T19:12:44.9290687+08:00"
+                       },
+                       {
+                           "id":  "s5_expired_worktree-target-disclosed",
+                           "ok":  true,
+                           "detail":  "s5_expired_worktree: target_materialized field not disclosed",
+                           "step":  "S5",
+                           "at":  "2026-11-19T19:12:44.9300697+08:00"
+                       },
+                       {
+                           "id":  "s5_expired_worktree-target-not-materialized",
+                           "ok":  true,
+                           "detail":  "s5_expired_worktree: target_materialized must be false before materialization",
+                           "step":  "S5",
+                           "at":  "2026-11-19T19:12:44.9305680+08:00"
+                       },
+                       {
+                           "id":  "s5_expired_worktree-kernel-not-reloaded",
+                           "ok":  true,
+                           "detail":  "s5_expired_worktree: kernel_reloaded must be false",
+                           "step":  "S5",
+                           "at":  "2026-11-19T19:12:44.9315671+08:00"
+                       },
+                       {
+                           "id":  "s5_expired_worktree-error-text",
+                           "ok":  true,
+                           "detail":  "s5_expired_worktree: error=worktree project file does not exist: D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\Worktrees\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\cross-expired\\ProjectA_cross-expired.vit expected to contain=worktree project file does not exist",
+                           "step":  "S5",
+                           "at":  "2026-11-19T19:12:44.9320690+08:00"
+                       },
+                       {
+                           "id":  "s5_expired_worktree-no-open-project",
+                           "ok":  true,
+                           "detail":  "s5_expired_worktree: expected 0 open_project, got 0 (command_received=0)",
+                           "step":  "S5",
+                           "at":  "2026-11-19T19:12:45.7332086+08:00"
+                       },
+                       {
+                           "id":  "s5_expired_worktree-kernel-current",
+                           "ok":  true,
+                           "detail":  "s5_expired_worktree: current kernel project changed",
+                           "step":  "S5",
+                           "at":  "2026-11-19T19:12:45.7472151+08:00"
+                       },
+                       {
+                           "id":  "s5_unknown_node-http",
+                           "ok":  true,
+                           "detail":  "s5_unknown_node: HTTP 400 body={\"status\":\"error\",\"agent_action_id\":\"act_fd6beb8e276e5f86\",\"tool\":\"version.conversation_open\",\"command_name\":\"version_conversation_open\",\"risk_level\":\"confirm\",\"requires_confirmation\":false,\"result\":{\"error\":\"conversation node not found in target worktree history: n_missing_0d84134c\",\"kernel_reloaded\":false,\"project_file_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\Worktrees\\\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\\\cross-b\\\\ProjectA_cross-b.vit\",\"project_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\Worktrees\\\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\\\cross-b\\\\ProjectA_cross-b.vit\",\"requested_branch\":\"\",\"requested_node_id\":\"n_missing_0d84134c\",\"same_worktree\":true,\"status\":\"error\",\"target_materialized\":false,\"worktree\":{\"commit_id\":\"c_20261119T111234_928d2d79\",\"created_at\":\"2026-11-19T11:12:34.8419779Z\",\"name\":\"cross-b\",\"origin_commit_id\":\"c_20261119T111234_928d2d79\",\"path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\Worktrees\\\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\\\cross-b\",\"project_file_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\Worktrees\\\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\\\cross-b\\\\ProjectA_cross-b.vit\",\"project_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\ProjectA.vit\",\"root_project_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\ProjectA.vit\",\"source_project_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\ProjectA.vit\",\"worktree_head_commit_id\":\"c_20261119T111234_cb6e484e\"},\"worktree_is_root\":false,\"worktree_name\":\"cross-b\"},\"project_history\":{\"active_branch\":\"cross-combo\",\"active_node_id\":\"n_20261119T111235_e44f6c0b\",\"active_worktree\":\"cross-b\",\"available\":true,\"branches\":{\"cross-combo\":\"c_20261119T111243_1f2a13c5\",\"main\":\"c_20261119T111234_cb6e484e\"},\"commit_count\":2,\"detached\":false,\"draft\":false,\"head\":\"c_20261119T111243_1f2a13c5\",\"initialized\":true,\"project_label\":\"ProjectA_cross-b\",\"project_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\Worktrees\\\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\\\cross-b\\\\ProjectA_cross-b.vit\",\"project_uuid\":\"vitproj_55ad060e2b0744b8ac46609d8b3307c1\",\"recent_checkpoints\":[{\"branch\":\"cross-combo\",\"checkpoint_kind\":\"auto_worktree_source\",\"created_at\":\"2026-11-19T11:12:43.9100042Z\",\"id\":\"c_20261119T111243_1f2a13c5\",\"message\":\"Worktree source autosave\"},{\"branch\":\"main\",\"checkpoint_kind\":\"manual\",\"created_at\":\"2026-11-19T11:12:34.849987Z\",\"id\":\"c_20261119T111234_cb6e484e\",\"message\":\"worktree seed from c_20261119T111234_928d2d79\"}],\"refs\":{\"refs/heads/cross-combo\":\"c_20261119T111243_1f2a13c5\",\"refs/heads/main\":\"c_20261119T111234_cb6e484e\"},\"root_project_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\ProjectA.vit\",\"unsaved\":false,\"warnings\":[],\"worktree_count\":3,\"worktrees\":[{\"commit_id\":\"c_20261119T111240_b18f9361\",\"created_at\":\"2026-11-19T11:12:45.7777263Z\",\"is_root\":true,\"label\":\"主工作树\",\"name\":\"main\",\"origin_commit_id\":\"c_20261119T111240_b18f9361\",\"path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\",\"project_file_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\ProjectA.vit\",\"project_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\ProjectA.vit\",\"root_project_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\ProjectA.vit\"},{\"commit_id\":\"c_20261119T111234_928d2d79\",\"created_at\":\"2026-11-19T11:12:34.8419779Z\",\"name\":\"cross-b\",\"origin_commit_id\":\"c_20261119T111234_928d2d79\",\"path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\Worktrees\\\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\\\cross-b\",\"project_file_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\Worktrees\\\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\\\cross-b\\\\ProjectA_cross-b.vit\",\"project_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\ProjectA.vit\",\"root_project_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\ProjectA.vit\",\"source_project_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\ProjectA.vit\",\"worktree_head_commit_id\":\"c_20261119T111234_cb6e484e\"},{\"commit_id\":\"c_20261119T111243_1f2a13c5\",\"created_at\":\"2026-11-19T11:12:43.9275046Z\",\"name\":\"cross-expired\",\"origin_commit_id\":\"c_20261119T111243_1f2a13c5\",\"path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\Worktrees\\\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\\\cross-expired\",\"project_file_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\Worktrees\\\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\\\cross-expired\\\\ProjectA_cross-expired.vit\",\"project_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\ProjectA.vit\",\"root_project_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\ProjectA.vit\",\"source_project_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\Worktrees\\\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\\\cross-b\\\\ProjectA_cross-b.vit\",\"worktree_head_commit_id\":\"c_20261119T111243_e06a65b6\"}]},\"error\":\"conversation node not found in target worktree history: n_missing_0d84134c\"}",
+                           "step":  "S5",
+                           "at":  "2026-11-19T19:12:45.8052000+08:00"
+                       },
+                       {
+                           "id":  "s5_unknown_node-status",
+                           "ok":  true,
+                           "detail":  "s5_unknown_node: expected InvokeResponse.status=error",
+                           "step":  "S5",
+                           "at":  "2026-11-19T19:12:45.8052000+08:00"
+                       },
+                       {
+                           "id":  "s5_unknown_node-result",
+                           "ok":  true,
+                           "detail":  "s5_unknown_node: result map missing",
+                           "step":  "S5",
+                           "at":  "2026-11-19T19:12:45.8056996+08:00"
+                       },
+                       {
+                           "id":  "s5_unknown_node-target-disclosed",
+                           "ok":  true,
+                           "detail":  "s5_unknown_node: target_materialized field not disclosed",
+                           "step":  "S5",
+                           "at":  "2026-11-19T19:12:45.8056996+08:00"
+                       },
+                       {
+                           "id":  "s5_unknown_node-target-not-materialized",
+                           "ok":  true,
+                           "detail":  "s5_unknown_node: target_materialized must be false before materialization",
+                           "step":  "S5",
+                           "at":  "2026-11-19T19:12:45.8072090+08:00"
+                       },
+                       {
+                           "id":  "s5_unknown_node-kernel-not-reloaded",
+                           "ok":  true,
+                           "detail":  "s5_unknown_node: kernel_reloaded must be false",
+                           "step":  "S5",
+                           "at":  "2026-11-19T19:12:45.8077124+08:00"
+                       },
+                       {
+                           "id":  "s5_unknown_node-error-text",
+                           "ok":  true,
+                           "detail":  "s5_unknown_node: error=conversation node not found in target worktree history: n_missing_0d84134c expected to contain=conversation node not found",
+                           "step":  "S5",
+                           "at":  "2026-11-19T19:12:45.8082125+08:00"
+                       },
+                       {
+                           "id":  "s5_unknown_node-no-open-project",
+                           "ok":  true,
+                           "detail":  "s5_unknown_node: expected 0 open_project, got 0 (command_received=0)",
+                           "step":  "S5",
+                           "at":  "2026-11-19T19:12:46.6088952+08:00"
+                       },
+                       {
+                           "id":  "s5_unknown_node-kernel-current",
+                           "ok":  true,
+                           "detail":  "s5_unknown_node: current kernel project changed",
+                           "step":  "S5",
+                           "at":  "2026-11-19T19:12:46.6159015+08:00"
+                       },
+                       {
+                           "id":  "s5_unknown_branch-http",
+                           "ok":  true,
+                           "detail":  "s5_unknown_branch: HTTP 400 body={\"status\":\"error\",\"agent_action_id\":\"act_bf6a9984ec7f572e\",\"tool\":\"version.conversation_open\",\"command_name\":\"version_conversation_open\",\"risk_level\":\"confirm\",\"requires_confirmation\":false,\"result\":{\"error\":\"branch not found in target worktree: missing-branch-ef613abe\",\"kernel_reloaded\":false,\"project_file_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\Worktrees\\\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\\\cross-b\\\\ProjectA_cross-b.vit\",\"project_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\Worktrees\\\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\\\cross-b\\\\ProjectA_cross-b.vit\",\"requested_branch\":\"missing-branch-ef613abe\",\"requested_node_id\":\"n_20261119T111235_e44f6c0b\",\"same_worktree\":true,\"status\":\"error\",\"target_commit_id\":\"c_20261119T111234_cb6e484e\",\"target_materialized\":false,\"worktree\":{\"commit_id\":\"c_20261119T111234_928d2d79\",\"created_at\":\"2026-11-19T11:12:34.8419779Z\",\"name\":\"cross-b\",\"origin_commit_id\":\"c_20261119T111234_928d2d79\",\"path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\Worktrees\\\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\\\cross-b\",\"project_file_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\Worktrees\\\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\\\cross-b\\\\ProjectA_cross-b.vit\",\"project_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\ProjectA.vit\",\"root_project_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\ProjectA.vit\",\"source_project_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\ProjectA.vit\",\"worktree_head_commit_id\":\"c_20261119T111234_cb6e484e\"},\"worktree_is_root\":false,\"worktree_name\":\"cross-b\"},\"project_history\":{\"active_branch\":\"cross-combo\",\"active_node_id\":\"n_20261119T111235_e44f6c0b\",\"active_worktree\":\"cross-b\",\"available\":true,\"branches\":{\"cross-combo\":\"c_20261119T111243_1f2a13c5\",\"main\":\"c_20261119T111234_cb6e484e\"},\"commit_count\":2,\"detached\":false,\"draft\":false,\"head\":\"c_20261119T111243_1f2a13c5\",\"initialized\":true,\"project_label\":\"ProjectA_cross-b\",\"project_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\Worktrees\\\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\\\cross-b\\\\ProjectA_cross-b.vit\",\"project_uuid\":\"vitproj_55ad060e2b0744b8ac46609d8b3307c1\",\"recent_checkpoints\":[{\"branch\":\"cross-combo\",\"checkpoint_kind\":\"auto_worktree_source\",\"created_at\":\"2026-11-19T11:12:43.9100042Z\",\"id\":\"c_20261119T111243_1f2a13c5\",\"message\":\"Worktree source autosave\"},{\"branch\":\"main\",\"checkpoint_kind\":\"manual\",\"created_at\":\"2026-11-19T11:12:34.849987Z\",\"id\":\"c_20261119T111234_cb6e484e\",\"message\":\"worktree seed from c_20261119T111234_928d2d79\"}],\"refs\":{\"refs/heads/cross-combo\":\"c_20261119T111243_1f2a13c5\",\"refs/heads/main\":\"c_20261119T111234_cb6e484e\"},\"root_project_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\ProjectA.vit\",\"unsaved\":false,\"warnings\":[],\"worktree_count\":3,\"worktrees\":[{\"commit_id\":\"c_20261119T111240_b18f9361\",\"created_at\":\"2026-11-19T11:12:46.6538206Z\",\"is_root\":true,\"label\":\"主工作树\",\"name\":\"main\",\"origin_commit_id\":\"c_20261119T111240_b18f9361\",\"path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\",\"project_file_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\ProjectA.vit\",\"project_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\ProjectA.vit\",\"root_project_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\ProjectA.vit\"},{\"commit_id\":\"c_20261119T111234_928d2d79\",\"created_at\":\"2026-11-19T11:12:34.8419779Z\",\"name\":\"cross-b\",\"origin_commit_id\":\"c_20261119T111234_928d2d79\",\"path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\Worktrees\\\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\\\cross-b\",\"project_file_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\Worktrees\\\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\\\cross-b\\\\ProjectA_cross-b.vit\",\"project_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\ProjectA.vit\",\"root_project_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\ProjectA.vit\",\"source_project_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\ProjectA.vit\",\"worktree_head_commit_id\":\"c_20261119T111234_cb6e484e\"},{\"commit_id\":\"c_20261119T111243_1f2a13c5\",\"created_at\":\"2026-11-19T11:12:43.9275046Z\",\"name\":\"cross-expired\",\"origin_commit_id\":\"c_20261119T111243_1f2a13c5\",\"path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\Worktrees\\\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\\\cross-expired\",\"project_file_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\Worktrees\\\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\\\cross-expired\\\\ProjectA_cross-expired.vit\",\"project_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\ProjectA.vit\",\"root_project_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\ProjectA.vit\",\"source_project_path\":\"D:\\\\Vit_DAW\\\\coord\\\\runs\\\\CONV-CROSS-COMBO-1\\\\real-stack\\\\run_20261119_1928\\\\workspace\\\\Worktrees\\\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\\\cross-b\\\\ProjectA_cross-b.vit\",\"worktree_head_commit_id\":\"c_20261119T111243_e06a65b6\"}]},\"error\":\"branch not found in target worktree: missing-branch-ef613abe\"}",
+                           "step":  "S5",
+                           "at":  "2026-11-19T19:12:46.6754821+08:00"
+                       },
+                       {
+                           "id":  "s5_unknown_branch-status",
+                           "ok":  true,
+                           "detail":  "s5_unknown_branch: expected InvokeResponse.status=error",
+                           "step":  "S5",
+                           "at":  "2026-11-19T19:12:46.6764872+08:00"
+                       },
+                       {
+                           "id":  "s5_unknown_branch-result",
+                           "ok":  true,
+                           "detail":  "s5_unknown_branch: result map missing",
+                           "step":  "S5",
+                           "at":  "2026-11-19T19:12:46.6764872+08:00"
+                       },
+                       {
+                           "id":  "s5_unknown_branch-target-disclosed",
+                           "ok":  true,
+                           "detail":  "s5_unknown_branch: target_materialized field not disclosed",
+                           "step":  "S5",
+                           "at":  "2026-11-19T19:12:46.6769929+08:00"
+                       },
+                       {
+                           "id":  "s5_unknown_branch-target-not-materialized",
+                           "ok":  true,
+                           "detail":  "s5_unknown_branch: target_materialized must be false before materialization",
+                           "step":  "S5",
+                           "at":  "2026-11-19T19:12:46.6769929+08:00"
+                       },
+                       {
+                           "id":  "s5_unknown_branch-kernel-not-reloaded",
+                           "ok":  true,
+                           "detail":  "s5_unknown_branch: kernel_reloaded must be false",
+                           "step":  "S5",
+                           "at":  "2026-11-19T19:12:46.6769929+08:00"
+                       },
+                       {
+                           "id":  "s5_unknown_branch-error-text",
+                           "ok":  true,
+                           "detail":  "s5_unknown_branch: error=branch not found in target worktree: missing-branch-ef613abe expected to contain=branch not found",
+                           "step":  "S5",
+                           "at":  "2026-11-19T19:12:46.6769929+08:00"
+                       },
+                       {
+                           "id":  "s5_unknown_branch-no-open-project",
+                           "ok":  true,
+                           "detail":  "s5_unknown_branch: expected 0 open_project, got 0 (command_received=0)",
+                           "step":  "S5",
+                           "at":  "2026-11-19T19:12:47.4827533+08:00"
+                       },
+                       {
+                           "id":  "s5_unknown_branch-kernel-current",
+                           "ok":  true,
+                           "detail":  "s5_unknown_branch: current kernel project changed",
+                           "step":  "S5",
+                           "at":  "2026-11-19T19:12:47.4893405+08:00"
+                       },
+                       {
+                           "id":  "S5-kernel-still-b",
+                           "ok":  true,
+                           "detail":  "S5 failures: kernel project path=D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\Worktrees\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\cross-b\\ProjectA_cross-b.vit expected=D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928\\workspace\\Worktrees\\ProjectA_vitproj_55ad060e2b0744b8ac46609d8b3307c1\\cross-b\\ProjectA_cross-b.vit",
+                           "step":  "S5",
+                           "at":  "2026-11-19T19:12:47.5123928+08:00"
+                       },
+                       {
+                           "id":  "S6-recents-restored",
+                           "ok":  true,
+                           "detail":  "recents before=63D0F3F7FCB4E874E15012D545C45284A5208750213918EB62359CAF58ECDF7B after=63D0F3F7FCB4E874E15012D545C45284A5208750213918EB62359CAF58ECDF7B",
+                           "step":  "S6",
+                           "at":  "2026-11-19T19:12:47.5516679+08:00"
+                       },
+                       {
+                           "id":  "S6-authority-restored",
+                           "ok":  true,
+                           "detail":  "authority restore error=",
+                           "step":  "S6",
+                           "at":  "2026-11-19T19:12:47.5526678+08:00"
+                       },
+                       {
+                           "id":  "S6-apparatus-zero",
+                           "ok":  true,
+                           "detail":  "script processes=0 ports=0",
+                           "step":  "S6",
+                           "at":  "2026-11-19T19:12:47.5526678+08:00"
+                       },
+                       {
+                           "id":  "S6-runroot-only",
+                           "ok":  true,
+                           "detail":  "A/B/C must stay under D:\\Vit_DAW\\coord\\runs\\CONV-CROSS-COMBO-1\\real-stack\\run_20261119_1928",
+                           "step":  "S6",
+                           "at":  "2026-11-19T19:12:47.5531679+08:00"
+                       },
+                       {
+                           "id":  "S6-teardown-ok",
+                           "ok":  true,
+                           "detail":  "recents/authority restore and apparatus zero",
+                           "step":  "S6",
+                           "at":  "2026-11-19T19:12:47.5531679+08:00"
+                       }
+                   ],
+    "warnings":  [
+                     "draft materialized outside RunRoot: C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261119T111234_8ef54ee8\\Unsaved.vit"
+                 ],
+    "coverage":  {
+                     "real_stack_verified":  [
+                                                 "S1 project.new + project.save_as under fresh RunRoot",
+                                                 "S2 version.worktree_create + version.branch_create target branch/node; project.open back to A",
+                                                 "S3 version.status {project_path:B} read-only; kernel stays A; zero open_project; A/B file hashes unchanged",
+                                                 "S4 version.conversation_open cross-worktree branch checkout; target path/branch/node/HEAD active; exactly one open_project; DAW projection consistency",
+                                                 "S5 unknown/expired worktree + unknown node/branch: HTTP error, target_materialized=false, kernel_reloaded=false, zero reload, current project unchanged"
+                                             ],
+                     "unit_test_only":  [
+                                            "reload failure after target materialization (419 TestConversationOpenReloadFailureIsExplicit uses a fake kernel; not injectable through the public real-stack surface)"
+                                        ],
+                     "not_exercised":  [
+                                           "target_materialized=unknown (partial materialization error path)",
+                                           "reload failure after materialization on a real kernel",
+                                           "Godot/VitShell window pixels (script asserts agent-visible DAW projection, not GUI rendering)",
+                                           "human /agent/chat conversation node (zero-LLM leg uses product-generated worktree seed + branch_marker nodes)"
+                                       ],
+                     "gaps":  [
+                                  "Single open_project reload is verified at runtime from the kernel Command received log; if the kernel log is unavailable the script fails honest instead of claiming a count.",
+                                  "A deterministic real-stack reload failure cannot be injected through the existing agent HTTP/tool surface without racing the filesystem or killing the kernel; 419 unit test is the only coverage and is not claimed as real-stack.",
+                                  "The target conversation node is a product-generated branch_marker node, not a model-authored chat turn, because this leg is zero-LLM."
+                              ]
+                 },
+    "failure":  null,
+    "teardown":  {
+                     "apparatus_processes_started":  0,
+                     "apparatus_ports_bound":  0,
+                     "stack_processes_started":  0,
+                     "stack_processes_stopped":  0,
+                     "stack_owner":  "lead/pc-20261119",
+                     "kernel_left_running":  true,
+                     "zero_scope":  "apparatus-only; the real stack is owned and stopped by RuntimeOwner",
+                     "run_root_only":  true,
+                     "recents_restored":  true,
+                     "recents_hash_before":  "63D0F3F7FCB4E874E15012D545C45284A5208750213918EB62359CAF58ECDF7B",
+                     "recents_hash_after_restore":  "63D0F3F7FCB4E874E15012D545C45284A5208750213918EB62359CAF58ECDF7B",
+                     "authority_restored":  true,
+                     "authority_error":  ""
+                 },
+    "assertion_count":  166,
+    "assertions_passed":  166
+}
