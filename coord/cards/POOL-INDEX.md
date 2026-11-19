@@ -1,8 +1,15 @@
-﻿# 共享卡池统一索引（POOL-INDEX）
+# 共享卡池统一索引（POOL-INDEX）
 
 - 维护：GLM 主管决策流（主线）/ 2026-11-06 建立（用户指令「按三线执行计划整理任务池」）
 - **权威规则**：领取凭证=**卡文件名（卡 ID）**；数字池序仅排序辅助。编号空间（2026-11-07 早窗主管裁定修订）：主线（混音/自由态/A-F/仪器）**258–275 封块**（269–274 为 11-07 凌晨连续发卡已成事实追认，275=B3-ABLATION 本次启用；原「267–275 留空」缓冲规则作废——消歧目的已被 11-07 凌晨发卡突破，回改成本>收益，[映射表](../reports/2026-11-05-nov-three-line-execution-plan.md)在案可查旧号）；三线（乐局/编曲/生成）**276–291**（原 260–275，2026-11-06 撞号协调改号）；**292 起两线共用递增序列，发卡时以本索引登记先后为准**。
 - 状态口径：todo=可领取（含挂起待触发）；doing=执行中（worktree+分支登记）；done=执行侧自验完成待主管验收；archive=裁定退出执行的历史记录（不再领取）。
+
+## 2026-11-19 入口快照（397–431 全量回填留 gate）
+
+- done：**425 G0-LEGAME-BIND-1（W01-C 真栈 S0–S7 PASS）**；397/409–421/423–428/430–431 见 gate 与 brief。
+- doing：ARRLOOP-AUTHBRIDGE-1、WAVESHELL-LOADING-FORENSICS-1、LAUNCHER-ZEROFRICTION-1、SRC-PRESET-AGENT-1、YUE-INSTRUMENTAL-PATH-1、GODOT-RETRY-LAUNCHER-1、WINDOW-TRANSITION-OBSERVER-1。
+- todo 首排：422 CONV-CROSS-COMBO-1；432 W02-A1（每轮课程上下文/选中 clip 绑定，设计卡）。
+- 真栈：空闲；425 的 default_project 权威偏差见 `coord/runs/G0-LEGAME-BIND-1/real-stack/run_20261119_1818/DEVICE-NOTES.md`。
 
 ## 一、主线（混音/自由态/A-F/仪器）——GLM 主管决策流管辖
 

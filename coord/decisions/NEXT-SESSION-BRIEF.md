@@ -14,7 +14,7 @@
 ## 未结/下一首排
 
 1. **422 CONV-CROSS-COMBO-1**（todo）：B2b 跨工作树真栈组合验证；先写 runbook+脚本（零栈），再候栈窗口；421/419 已合入。
-2. **W02 最小切片**（设计+实现）：每轮课程上下文/选中 clip 绑定/结构检查/自然推进；依赖 W01 已收口，先核对 374/375 对 W08/W18 的覆盖边界；建议拆 a（上下文+clip 契约）/b（检查+真实 LLM 反馈+恢复）。
+2. **W02 最小切片**：设计卡已落 [432 W02-A1](../cards/todo/2026-11-19-W02-A1-LESSON-CTX-CLIP-1.md)——审计发现选中 clip 未消费、pullback 注入不达模型；建议先派 A1a（选中 clip 绑定，零栈可测），A1b 另定 prompt 路径；W18 不在 A1 依赖内。
 3. **425 装置债**：berth 启动前复制并还原 `Settings.xml`/`default_project.xml`；425 脚本内建 A/B 创建或 setup 前置隔离；`default_project.xml` 已被内核改为空白默认（预跑为六 stems 测试残留，非用户工程；仅存哈希无法逐字节还原）——候用户确认接受。详见 `coord/runs/G0-LEGAME-BIND-1/real-stack/run_20261119_1818/DEVICE-NOTES.md`。
 4. 用户节点：390 YuE instrumental 真栈生成+人耳；384 M2/点音色演示；材料听核。
 5. 旧池未动：doing 8 / blocked 6；POOL-INDEX 397–431 回填留 gate。
