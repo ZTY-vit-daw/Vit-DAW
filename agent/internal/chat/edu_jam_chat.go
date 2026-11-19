@@ -168,6 +168,11 @@ func (s *Server) handleEduJamChat(ctx context.Context, conversationID, mode, tex
 	if !ok {
 		return ChatResponse{}, false
 	}
+	// W02-A1b：非命令轮在有活跃乐局时注入**有界**课程上下文（纯内存投影，
+	// 不读内核）；命令轮/无活跃局已在上面返回，不会注入。contextruntime 以
+	// additive/omitempty 的 lesson_context 字段接收，模型快照因此能看到当前
+	// 关卡与选中 clip，而整份设计源/notes/文件路径不进上下文。
+	injectEduJamLessonContext(chatContext, session, card)
 	session.TurnsSinceAdvance++
 	if goal, due := eduJamPullbackGoal(session, card); due {
 		if chatContext != nil {

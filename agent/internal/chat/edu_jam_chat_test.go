@@ -13,6 +13,7 @@ import (
 	"sync"
 	"testing"
 
+	"vit-daw-agent/internal/contextruntime"
 	"vit-daw-agent/internal/edu"
 )
 
@@ -871,6 +872,179 @@ func TestEduJamAdvanceCrossSlotSelectionDisclosesUnmatched(t *testing.T) {
 
 // TestEduJamRequestSelectedClipIDResolution 覆盖三个选择键的解析与优先级
 // （piano_roll_focus_clip_id > selected_clip_id > selected_clip_ids[0]）。
+// ---- W02-A1b：有界课程上下文注入（非命令轮 + 活跃乐局）----
+
+// TestEduJamLessonContextInjectedOnOrdinaryTurn 覆盖注入主路径：非命令轮在有
+// 活跃乐局时把有界课程上下文写进 chatContext；字段来自夹具卡（card/node/
+// assets/write_boundary），selected_clip 复用 A1a 三键解析；allowed 9→8 截断
+// 置 truncated=true；设计源/notes/文件路径不进上下文。命令轮不注入；推进后
+// node 跟随当前节点。
+func TestEduJamLessonContextInjectedOnOrdinaryTurn(t *testing.T) {
+	fake := &eduJamFakeKernel{
+		tracks: eduJamRealShapeTracks(
+			eduJamFakeTrack("t1", eduJamFakeClip("c_n0", 26.0)),
+			eduJamFakeTrack("t2"),
+			eduJamFakeTrack("t3"),
+		),
+		notes: map[string][]any{"c_n0": eduJamNoteRows(eduJamThemeNotes(t))},
+	}
+	server := newEduJamTestServer(t, fake)
+	ctx := context.Background()
+	conv := "conv-edu-lesson-context"
+	if _, handled := server.handleEduJamChat(ctx, conv, "chat", "开始乐局", eduJamChatCtx()); !handled {
+		t.Fatalf("enter not handled")
+	}
+
+	chatCtx := map[string]any{
+		"piano_roll_focus_clip_id": "c_focus",
+		"selected_clip_id":         "c_single",
+		"selected_clip_ids":        []any{"c_multi"},
+		"selected_track_id":        "track_selected",
+		"selected_clip_track_id":   "track_clip",
+	}
+	if _, handled := server.handleEduJamChat(ctx, conv, "chat", "这里为什么要这样写？", chatCtx); handled {
+		t.Fatalf("ordinary turn must flow to the normal loop")
+	}
+	lesson, ok := chatCtx[contextruntime.LessonContextKey].(map[string]any)
+	if !ok {
+		t.Fatalf("lesson context not injected: %v", chatCtx)
+	}
+	if lesson["schema_version"] != contextruntime.LessonContextSchemaVersion {
+		t.Fatalf("schema_version = %v", lesson["schema_version"])
+	}
+	card, _ := lesson["card"].(map[string]any)
+	if card["id"] != "first-run-twinkle" || !strings.Contains(card["title"].(string), "小星星") {
+		t.Fatalf("card = %v", card)
+	}
+	node, _ := lesson["node"].(map[string]any)
+	if node["id"] != "n0_photo_score_open" || node["title"] != "拍谱开局" || !strings.Contains(node["goal"].(string), "MIDI") {
+		t.Fatalf("node = %v", node)
+	}
+	assets, ok := lesson["assets"].([]map[string]any)
+	if !ok || len(assets) != 2 {
+		t.Fatalf("assets = %v", lesson["assets"])
+	}
+	for _, row := range assets {
+		if len(row) != 2 || row["id"] == nil || row["kind"] == nil {
+			t.Fatalf("asset row must carry only id/kind: %v", row)
+		}
+	}
+	allowed, ok := lesson["allowed"].([]string)
+	if !ok || len(allowed) != contextruntime.LessonContextMaxItems || allowed[0] != "import_midi_to_track" {
+		t.Fatalf("allowed = %v", lesson["allowed"])
+	}
+	if lesson["truncated"] != true {
+		t.Fatalf("fixture allows 9 boundary entries; truncated = %v", lesson["truncated"])
+	}
+	clip, _ := lesson["selected_clip"].(map[string]any)
+	if clip["clip_id"] != "c_focus" || clip["track_id"] != "track_selected" {
+		t.Fatalf("selected_clip = %v", clip)
+	}
+	raw, err := json.Marshal(lesson)
+	if err != nil {
+		t.Fatalf("marshal lesson: %v", err)
+	}
+	for _, forbidden := range []string{"theme_twinkle_v0.mid", "sha256", "assets/", "\"notes\"", "design_v1_yaml"} {
+		if strings.Contains(string(raw), forbidden) {
+			t.Fatalf("lesson leaked %q: %s", forbidden, raw)
+		}
+	}
+
+	// Command turn: the jam face answers it and must not inject lesson context.
+	commandCtx := map[string]any{}
+	if _, handled := server.handleEduJamChat(ctx, conv, "chat", "写好了", commandCtx); !handled {
+		t.Fatalf("check turn not handled")
+	}
+	if _, injected := commandCtx[contextruntime.LessonContextKey]; injected {
+		t.Fatalf("command turn injected lesson context: %v", commandCtx)
+	}
+
+	// The next ordinary turn follows the advanced node.
+	nextCtx := map[string]any{}
+	if _, handled := server.handleEduJamChat(ctx, conv, "chat", "那第二关要做什么？", nextCtx); handled {
+		t.Fatalf("ordinary turn after advance must flow to the normal loop")
+	}
+	nextLesson, ok := nextCtx[contextruntime.LessonContextKey].(map[string]any)
+	if !ok {
+		t.Fatalf("lesson context not injected after advance: %v", nextCtx)
+	}
+	if nextNode, _ := nextLesson["node"].(map[string]any); nextNode["id"] != "n1_read_and_fix" {
+		t.Fatalf("lesson node did not follow the current jam node: %v", nextLesson["node"])
+	}
+}
+
+// TestEduJamLessonContextReachesModelAssembly 覆盖审计发现 #2 的闭环：聊天层
+// 注入的 chatContext 键经 assembleChatInput → contextruntime.Build 进入模型
+// 可见的 user 节快照（契约字段出现在模型输入的单测腿，非真栈）。
+func TestEduJamLessonContextReachesModelAssembly(t *testing.T) {
+	fake := &eduJamFakeKernel{
+		tracks: eduJamRealShapeTracks(eduJamFakeTrack("t1"), eduJamFakeTrack("t2"), eduJamFakeTrack("t3")),
+		notes:  map[string][]any{},
+	}
+	server := newEduJamTestServer(t, fake)
+	ctx := context.Background()
+	conv := "conv-edu-lesson-assembly"
+	if _, handled := server.handleEduJamChat(ctx, conv, "chat", "开始乐局", eduJamChatCtx()); !handled {
+		t.Fatalf("enter not handled")
+	}
+	chatCtx := map[string]any{"selected_clip_id": "c_focus", "selected_clip_track_id": "t1"}
+	if _, handled := server.handleEduJamChat(ctx, conv, "chat", "这里为什么要这样写？", chatCtx); handled {
+		t.Fatalf("ordinary turn must flow to the normal loop")
+	}
+	assembly := server.buildAssembly(ctx, conv, "这里为什么要这样写？", chatCtx)
+	var snapshotText string
+	for _, msg := range assembly.Messages {
+		if strings.Contains(msg.Content, "\"lesson_context\"") {
+			snapshotText = msg.Content
+			break
+		}
+	}
+	if snapshotText == "" {
+		t.Fatalf("lesson_context missing from the assembled model input")
+	}
+	for _, want := range []string{"vit.edu_jam.lesson_context.v1", "first-run-twinkle", "n0_photo_score_open", "c_focus"} {
+		if !strings.Contains(snapshotText, want) {
+			t.Fatalf("assembled model input missing %q", want)
+		}
+	}
+	if strings.Contains(snapshotText, "theme_twinkle_v0.mid") {
+		t.Fatalf("assembled model input leaked an asset file path")
+	}
+}
+
+// TestEduJamLessonContextNotInjectedWithoutActiveJam 覆盖零注入边界：无乐局与
+// 已退出（终态）会话的普通轮都不得写 lesson_context。
+func TestEduJamLessonContextNotInjectedWithoutActiveJam(t *testing.T) {
+	fake := &eduJamFakeKernel{
+		tracks: eduJamRealShapeTracks(eduJamFakeTrack("t1"), eduJamFakeTrack("t2"), eduJamFakeTrack("t3")),
+		notes:  map[string][]any{},
+	}
+	server := newEduJamTestServer(t, fake)
+	ctx := context.Background()
+
+	noJamCtx := map[string]any{"selected_clip_id": "c1", "selected_track_id": "t1"}
+	if _, handled := server.handleEduJamChat(ctx, "conv-edu-lesson-no-jam", "chat", "为什么这样写？", noJamCtx); handled {
+		t.Fatalf("ordinary turn without a jam must flow to the normal loop")
+	}
+	if _, injected := noJamCtx[contextruntime.LessonContextKey]; injected {
+		t.Fatalf("no-jam turn injected lesson context: %v", noJamCtx)
+	}
+
+	conv := "conv-edu-lesson-exited"
+	if _, handled := server.handleEduJamChat(ctx, conv, "chat", "开始乐局", eduJamChatCtx()); !handled {
+		t.Fatalf("enter not handled")
+	}
+	if _, handled := server.handleEduJamChat(ctx, conv, "chat", "结束乐局", eduJamChatCtx()); !handled {
+		t.Fatalf("exit not handled")
+	}
+	exitedCtx := map[string]any{}
+	if _, handled := server.handleEduJamChat(ctx, conv, "chat", "接着聊聊别的", exitedCtx); handled {
+		t.Fatalf("ordinary turn after exit must flow to the normal loop")
+	}
+	if _, injected := exitedCtx[contextruntime.LessonContextKey]; injected {
+		t.Fatalf("terminal jam injected lesson context: %v", exitedCtx)
+	}
+}
 func TestEduJamRequestSelectedClipIDResolution(t *testing.T) {
 	cases := []struct {
 		name string

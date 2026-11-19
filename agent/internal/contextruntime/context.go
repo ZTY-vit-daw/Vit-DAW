@@ -17,6 +17,24 @@ import (
 
 const SchemaVersion = "vit_context_snapshot.v1"
 
+// W02-A1b lesson overlay contract. The lesson context is additive context,
+// never a design-source channel: the snapshot boundary re-applies these bounds
+// and the field stays omitempty so old snapshots keep their exact JSON.
+const (
+	// LessonContextKey is the request-context key carrying the bounded lesson
+	// projection written by the chat leg.
+	LessonContextKey = "edu_jam_lesson_context"
+	// LessonContextSchemaVersion is the lesson payload schema this projection
+	// recognizes; the snapshot always stamps the contract version it enforces.
+	LessonContextSchemaVersion = "vit.edu_jam.lesson_context.v1"
+	// LessonContextTitleMaxRunes bounds card.id/title and node.title.
+	LessonContextTitleMaxRunes = 200
+	// LessonContextGoalMaxRunes bounds node.goal.
+	LessonContextGoalMaxRunes = 500
+	// LessonContextMaxItems bounds assets and write-boundary allow entries.
+	LessonContextMaxItems = 8
+)
+
 type Options struct {
 	RecentTurns             int
 	RecentTraceEvents       int
@@ -69,6 +87,7 @@ type Snapshot struct {
 	ProjectChange         map[string]any   `json:"project_change,omitempty"`
 	ProjectHistorySummary map[string]any   `json:"project_history_summary,omitempty"`
 	PluginContextSummary  map[string]any   `json:"plugin_context_summary,omitempty"`
+	LessonContext         map[string]any   `json:"lesson_context,omitempty"`
 	ToolResultSummary     []map[string]any `json:"tool_result_summary,omitempty"`
 	Warnings              []string         `json:"warnings,omitempty"`
 }
@@ -127,6 +146,7 @@ func Build(in Input, opts Options) Snapshot {
 	dawSemanticSummary := summarizeDAWSemantic(selection, dawStateSummary, projectHistorySummary, in.ProjectHistorySummary, pluginContextSummary, toolResultSummary, in.Context, opts)
 	recentGoalContext := summarizeRecentGoalContext(in.GoalTrace, in.PlanItems, in.PendingToolCall, in.PendingToolQueue, in.ExecutionMemory, in.RecentObservation, in.PreviousSnapshot, opts)
 	projectChange := compactProjectChange(in.ProjectChange, opts)
+	lessonContext := projectLessonContext(in.Context)
 
 	return Snapshot{
 		SchemaVersion:         SchemaVersion,
@@ -146,6 +166,7 @@ func Build(in Input, opts Options) Snapshot {
 		ProjectChange:         projectChange,
 		ProjectHistorySummary: projectHistorySummary,
 		PluginContextSummary:  pluginContextSummary,
+		LessonContext:         lessonContext,
 		ToolResultSummary:     toolResultSummary,
 		Warnings:              warnings,
 	}
@@ -1871,4 +1892,149 @@ func firstNonEmpty(values ...string) string {
 		}
 	}
 	return ""
+}
+
+// projectLessonContext clones the bounded edu-jam lesson context out of the
+// request context. Only the contract fields survive (schema_version, card,
+// node, assets, selected_clip, allowed, truncated); design-source YAML, the
+// notes table, file paths and every other request key are dropped. Rows are
+// rebuilt one by one, so the snapshot never aliases the caller's maps: a later
+// request mutation cannot rewrite an already-built snapshot. Absent, empty or
+// non-map payloads project to nil so the omitempty field keeps old snapshots
+// and their JSON byte-identical.
+func projectLessonContext(ctx map[string]any) map[string]any {
+	if len(ctx) == 0 {
+		return nil
+	}
+	raw, ok := ctx[LessonContextKey].(map[string]any)
+	if !ok || len(raw) == 0 {
+		return nil
+	}
+	truncated := lessonContextBool(raw["truncated"])
+	out := map[string]any{"schema_version": LessonContextSchemaVersion}
+	if card := lessonContextMap(raw["card"]); len(card) > 0 {
+		row := map[string]any{}
+		if id := lessonContextText(card["id"]); id != "" {
+			row["id"] = id
+		}
+		if title, cut := lessonContextCappedText(card["title"], LessonContextTitleMaxRunes); title != "" {
+			row["title"] = title
+			truncated = truncated || cut
+		}
+		if len(row) > 0 {
+			out["card"] = row
+		}
+	}
+	if node := lessonContextMap(raw["node"]); len(node) > 0 {
+		row := map[string]any{}
+		if id := lessonContextText(node["id"]); id != "" {
+			row["id"] = id
+		}
+		if title, cut := lessonContextCappedText(node["title"], LessonContextTitleMaxRunes); title != "" {
+			row["title"] = title
+			truncated = truncated || cut
+		}
+		if goal, cut := lessonContextCappedText(node["goal"], LessonContextGoalMaxRunes); goal != "" {
+			row["goal"] = goal
+			truncated = truncated || cut
+		}
+		if len(row) > 0 {
+			out["node"] = row
+		}
+	}
+	if rows := mapRows(raw["assets"]); len(rows) > 0 {
+		assets := make([]map[string]any, 0, len(rows))
+		for _, asset := range rows {
+			id := lessonContextText(asset["id"])
+			if id == "" {
+				continue
+			}
+			row := map[string]any{"id": id}
+			if kind := lessonContextText(asset["kind"]); kind != "" {
+				row["kind"] = kind
+			}
+			assets = append(assets, row)
+		}
+		if len(assets) > LessonContextMaxItems {
+			assets = assets[:LessonContextMaxItems]
+			truncated = true
+		}
+		if len(assets) > 0 {
+			out["assets"] = assets
+		}
+	}
+	if clip := lessonContextMap(raw["selected_clip"]); len(clip) > 0 {
+		row := map[string]any{}
+		if id := lessonContextText(clip["clip_id"]); id != "" {
+			row["clip_id"] = id
+		}
+		if id := lessonContextText(clip["track_id"]); id != "" {
+			row["track_id"] = id
+		}
+		if len(row) > 0 {
+			out["selected_clip"] = row
+		}
+	}
+	if names := stringSlice(raw["allowed"]); len(names) > 0 {
+		allowed := make([]string, 0, len(names))
+		for _, name := range names {
+			if name = strings.TrimSpace(name); name != "" {
+				allowed = append(allowed, name)
+			}
+		}
+		if len(allowed) > LessonContextMaxItems {
+			allowed = allowed[:LessonContextMaxItems]
+			truncated = true
+		}
+		if len(allowed) > 0 {
+			out["allowed"] = allowed
+		}
+	}
+	if len(out) == 1 {
+		return nil // schema_version only: no contract content to inject
+	}
+	out["truncated"] = truncated
+	return out
+}
+
+func lessonContextMap(value any) map[string]any {
+	row, _ := value.(map[string]any)
+	return row
+}
+
+func lessonContextText(value any) string {
+	if value == nil {
+		return ""
+	}
+	text := strings.TrimSpace(fmt.Sprint(value))
+	if text == "" || text == "<nil>" {
+		return ""
+	}
+	return text
+}
+
+func lessonContextCappedText(value any, max int) (string, bool) {
+	text := lessonContextText(value)
+	if text == "" {
+		return "", false
+	}
+	if max <= 0 {
+		return text, false
+	}
+	runes := []rune(text)
+	if len(runes) <= max {
+		return text, false
+	}
+	return string(runes[:max]), true
+}
+
+func lessonContextBool(value any) bool {
+	switch v := value.(type) {
+	case bool:
+		return v
+	case string:
+		return strings.EqualFold(strings.TrimSpace(v), "true")
+	default:
+		return false
+	}
 }
