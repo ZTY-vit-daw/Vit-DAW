@@ -116,6 +116,16 @@ type ObservedEvent struct {
 	Key  string `json:"key,omitempty"`
 }
 
+// 观察面的 clip 绑定范围（Observation.ClipScope 闭集，additive）：
+// selected=当前节点判定轨槽内的选中 clip 被采用；first=请求上下文无选中，按槽内
+// 首个 MIDI clip；selection_unmatched=有选中但不在当前节点判定轨槽内（或该槽内
+// 该 clip 非 MIDI）→ 回落首个 clip 并如实披露，不静默冒充选中。
+const (
+	ClipScopeSelected           = "selected"
+	ClipScopeFirst              = "first"
+	ClipScopeSelectionUnmatched = "selection_unmatched"
+)
+
 // Observation 是一次推进的纯数据观察输入（零 IO，全部由调用方从读取命令
 // 返回值组装；判定器输入=notes 数组的契约在此落型）。
 type Observation struct {
@@ -127,6 +137,12 @@ type Observation struct {
 	TempoSet bool `json:"tempo_set,omitempty"`
 	// Events 是窗口内交互事件观察。
 	Events []ObservedEvent `json:"events,omitempty"`
+	// ClipIDs 是本次观察实际读取的 clip（运行时轨槽名 → clip id）；无 MIDI clip
+	// 的槽不出现。additive（omitempty）：既有 JSON 消费者看不到该键时语义不变。
+	ClipIDs map[string]string `json:"clip_ids,omitempty"`
+	// ClipScope 是本次观察的 clip 绑定范围（ClipScope* 闭集）；additive
+	// （omitempty）。选中未匹配时调用方必须向用户/回执披露，不得静默冒充选中。
+	ClipScope string `json:"clip_scope,omitempty"`
 }
 
 // NewJamState 创建初始状态：全部节点 pending，首节点进入 active
