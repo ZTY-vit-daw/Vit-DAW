@@ -1,0 +1,55 @@
+{
+  "status": "design_and_source_checks_passed_not_runtime_tested",
+  "source_sha256": "4fe0feddfe8abb15113925dd8480d8d2a2bebc363c8d4343beb8d9958acd4b65",
+  "source_unchanged": true,
+  "cached_pages": 17,
+  "unit_body_pages": 15,
+  "cached_image_hashes": "PASS",
+  "yaml_duplicate_keys": "none",
+  "yaml_reference_integrity": "PASS",
+  "curriculum_nodes": 8,
+  "learning_objectives": 4,
+  "selected_symbolic_timing": "PASS",
+  "local_links_checked": 69,
+  "teaching_time_budget": null,
+  "exhibition_minutes": 5,
+  "pending_playable_materials": [
+    "listening-xiaocao",
+    "listening-huainian",
+    "theme-reference-melody"
+  ],
+  "production_ready": false,
+  "limits": [
+    "Original score pages and text are cached. 20 planned excerpts still require transcription.",
+    "Two generated MIDI files match the selected visually checked symbols; actual soundfont/Vit playback and MusicXML alignment remain unverified.",
+    "Material-group loading, UI, meter control, checks and the score-to-YuE2 bridge remain to implement."
+  ],
+  "design_revision": 2,
+  "materials_catalog_entries": 22,
+  "generated_midi_assets": 2,
+  "pending_catalog_transcriptions": 20,
+  "midi_symbolic_verification": [
+    {
+      "file": "assets/midi/exercise2-prototype_demo-C_80bpm.mid",
+      "smf_parse": "PASS",
+      "notes": 7,
+      "pitch_onset_duration_match": "PASS",
+      "time_signature": "PASS",
+      "sha256": "PASS",
+      "end_quarter_beats": 8.0,
+      "sound_check": "not_performed"
+    },
+    {
+      "file": "assets/midi/sanshilipu-first8_rhythm-only_GM37_80bpm.mid",
+      "smf_parse": "PASS",
+      "notes": 22,
+      "pitch_onset_duration_match": "PASS",
+      "time_signature": "PASS",
+      "sha256": "PASS",
+      "end_quarter_beats": 16.0,
+      "sound_check": "not_performed"
+    }
+  ],
+  "local_lesson_links_checked": 56,
+  "local_lesson_and_decision_links_checked": 66
+}

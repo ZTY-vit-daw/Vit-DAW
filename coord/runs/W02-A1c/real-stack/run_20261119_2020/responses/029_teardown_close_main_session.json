@@ -1,0 +1,82 @@
+﻿{
+    "conversation_id":  "w02-a1c-20261119_202005",
+    "task_id":  "task_cf34f66f6b4a3444",
+    "goal_id":  "goal_6149fe7c34956933",
+    "run_id":  "run_dfb322271462dcb4",
+    "original_intent":  "结束乐局",
+    "reply":  "乐局已退出（状态保留在快照里，想再玩说「开始乐局」开新局）。",
+    "agent_mode":  "default",
+    "needs_confirmation":  false,
+    "workflow":  "edu_jam",
+    "workflow_data":  {
+                          "current_node":  "n3-contours",
+                          "end_reason":  "user_exit",
+                          "level_id":  "music-creation-unit2-demo",
+                          "schema_version":  "vit.edu_jam_session.v0",
+                          "status":  "exited"
+                      },
+    "goal_status":  "completed",
+    "goal_summary":  "结束乐局",
+    "stop_reason":  "edu_jam_exited",
+    "project_history":  {
+                            "active_branch":  "main",
+                            "active_node_id":  "n_20261119T122017_95d9a00a",
+                            "active_worktree":  "",
+                            "available":  true,
+                            "branches":  {
+                                             "main":  "c_20261119T122012_9ccdfda3"
+                                         },
+                            "commit_count":  3,
+                            "conversation_messages":  [
+                                                          {
+                                                              "content":  "结束乐局",
+                                                              "logical_message_id":  "n_20261119T122017_e04cec84",
+                                                              "message_kind":  "user",
+                                                              "node_id":  "n_20261119T122017_e04cec84",
+                                                              "role":  "user"
+                                                          },
+                                                          {
+                                                              "content":  "乐局已退出（状态保留在快照里，想再玩说「开始乐局」开新局）。",
+                                                              "logical_message_id":  "n_20261119T122017_95d9a00a",
+                                                              "message_kind":  "assistant",
+                                                              "node_id":  "n_20261119T122017_95d9a00a",
+                                                              "role":  "assistant"
+                                                          }
+                                                      ],
+                            "detached":  false,
+                            "draft":  false,
+                            "head":  "c_20261119T122012_9ccdfda3",
+                            "initialized":  true,
+                            "project_label":  "W02-A1c-A-20261119_202005",
+                            "project_path":  "D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2020\\W02-A1c-A-20261119_202005.vit",
+                            "project_uuid":  "vitproj_badad83edace470da3ab05d079c0f61b",
+                            "refs":  {
+                                         "refs/heads/main":  "c_20261119T122012_9ccdfda3"
+                                     },
+                            "root_project_path":  "",
+                            "unsaved":  false,
+                            "warnings":  [
+
+                                         ],
+                            "worktrees":  [
+                                              {
+                                                  "commit_id":  "c_20261119T122012_9ccdfda3",
+                                                  "created_at":  "2026-11-19T12:20:17.648767Z",
+                                                  "is_root":  true,
+                                                  "label":  "主工作树",
+                                                  "name":  "main",
+                                                  "origin_commit_id":  "c_20261119T122012_9ccdfda3",
+                                                  "path":  "D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2020",
+                                                  "project_file_path":  "D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2020\\W02-A1c-A-20261119_202005.vit",
+                                                  "project_path":  "D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2020\\W02-A1c-A-20261119_202005.vit",
+                                                  "root_project_path":  "D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2020\\W02-A1c-A-20261119_202005.vit"
+                                              }
+                                          ]
+                        },
+    "context_flow":  "project",
+    "lifecycle":  "durable",
+    "persistence":  "project_history",
+    "message_kind":  "assistant",
+    "turn_id":  "run_dfb322271462dcb4",
+    "logical_message_id":  "n_20261119T122017_95d9a00a"
+}

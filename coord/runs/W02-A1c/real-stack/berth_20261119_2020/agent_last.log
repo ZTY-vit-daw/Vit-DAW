@@ -1,0 +1,219 @@
+2026-11-19T20:19:57 [WARN] [pca-native-seed] family=generation_shell bundle=C:\Users\timoz\Library\Audio\Plug-Ins\VST3\GenShell.vst3 seed failed: processor attestation: inspect plug-in path: GetFileAttributesEx C:\Users\timoz\Library\Audio\Plug-Ins\VST3\GenShell.vst3: The system cannot find the path specified.
+2026-11-19T20:19:57 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=<none>
+2026-11-19T20:19:57 [INFO] HTTP agent API listening on http://127.0.0.1:7878
+2026-11-19T20:19:57 [INFO] VitAgent started req=tcp://127.0.0.1:5555 sub=tcp://127.0.0.1:5556 udp_to=4444 udp_from=4445
+2026-11-19T20:19:57 [INFO] runtimehost: enabled dev_root=D:\Vit_DAW kernel=tcp://127.0.0.1:5555 hub_health=http://127.0.0.1:8787/health
+2026-11-19T20:19:57 [INFO] VSP realtime publisher enabled client=vit.agent.realtime_publisher hub=http://127.0.0.1:8787/vsp
+2026-11-19T20:19:57 [INFO] VSP realtime publisher enabled client=vit.agent.transport_publisher hub=http://127.0.0.1:8787/vsp
+2026-11-19T20:19:57 [INFO] control loop started: UDP:4445 -> tcp://127.0.0.1:5555
+2026-11-19T20:19:57 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=1 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-19T20:19:57 [INFO] runtimehost: VspHub not reachable (Get "http://127.0.0.1:8787/health": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.) -> spawn path
+2026-11-19T20:19:57 [INFO] runtimehost: spawned hub pid=30444 (D:/Vit_DAW/agent/bin/VspHub.exe)
+2026-11-19T20:19:57 [INFO] runtimehost: VspHub ready (D:/Vit_DAW/agent/bin/VspHub.exe)
+2026-11-19T20:19:57 [INFO] runtimehost: kernel not reachable (kernel dial tcp://127.0.0.1:5555: zmq4: could not dial to "tcp://127.0.0.1:5555" (retry=250ms): dial tcp 127.0.0.1:5555: connectex: No connection could be made because the target machine actively refused it.) -> spawn path
+2026-11-19T20:19:57 [INFO] runtimehost: spawned kernel pid=22248 (D:/Vit_DAW/VitApp/build/VitApp_artefacts/Release/VitApp.exe)
+2026-11-19T20:19:58 [INFO] telemetry thread started: tcp://127.0.0.1:5556 -> UDP:4444
+2026-11-19T20:19:58 [INFO] runtimehost: kernel ready (D:/Vit_DAW/VitApp/build/VitApp_artefacts/Release/VitApp.exe)
+2026-11-19T20:19:59 [INFO] VitAgent registered with VSP Hub url=http://127.0.0.1:8787/vsp session_id=sess_kernel_1795090799079_781132913 type=session.hello_ack
+2026-11-19T20:19:59 [INFO] [shadow] initialized tracks=5 project_path="" replayed_deltas=0
+2026-11-19T20:19:59 [INFO] [workspace] activation pending uuid=vitproj_3826468b4bd64b3ab4a78dd4da65918f reason=startup_recovery_disabled_new_session
+2026-11-19T20:20:06 [INFO] [shadow] initialized tracks=0 project_path="" replayed_deltas=0
+2026-11-19T20:20:06 [INFO] [timing] kernel.vsp_state_snapshot ms=2 reason=new_project err=false
+2026-11-19T20:20:06 [INFO] [shadow] initialized tracks=0 project_path="" replayed_deltas=0
+2026-11-19T20:20:06 [INFO] [timing] harness.refresh_shadow ms=2 reason=new_project status=ok err=false
+2026-11-19T20:20:06 [INFO] [shadow] initialized tracks=0 project_path="" replayed_deltas=0
+2026-11-19T20:20:06 [INFO] [timing] kernel.send_command ms=30 command=new_project tool=project.new confirmed=true err=false
+2026-11-19T20:20:06 [INFO] [timing] harness.invoke total_ms=80 tool=project.new command=new_project status=ok confirmed=true err=false
+2026-11-19T20:20:06 [INFO] [workspace] launcher scope kept (boot draft not activated) project="C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261119T122006_e8f4ed48\\Unsaved.vit" uuid=vitproj_8701beb35823498b820d0af8de75fd86
+2026-11-19T20:20:06 [INFO] [shadow] initialized tracks=0 project_path="" replayed_deltas=0
+2026-11-19T20:20:06 [DEBUG] [shadow] live delta uid="0/36de2dd" action="property_changed:vit_agent_history_generation"
+2026-11-19T20:20:06 [DEBUG] [shadow] live delta uid="0/36de2dd" action="property_changed:vit_project_uuid"
+2026-11-19T20:20:06 [DEBUG] [shadow] live delta uid="0/36de2dd" action="property_changed:vit_project_parent_uuid"
+2026-11-19T20:20:06 [INFO] [shadow] initialized tracks=0 project_path="D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2020\\W02-A1c-A-20261119_202005.vit" replayed_deltas=0
+2026-11-19T20:20:06 [INFO] [timing] kernel.send_command ms=26 command=save_as_project tool=project.save_as confirmed=true err=false
+2026-11-19T20:20:06 [INFO] [timing] harness.invoke total_ms=93 tool=project.save_as command=save_as_project status=ok confirmed=true err=false
+2026-11-19T20:20:06 [INFO] [workspace] parent history recovery skipped parent=vitproj_8701beb35823498b820d0af8de75fd86 target=vitproj_badad83edace470da3ab05d079c0f61b reason=parent project path not found for UUID vitproj_8701beb35823498b820d0af8de75fd86
+2026-11-19T20:20:06 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-11-19T20:20:06 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_badad83edace470da3ab05d079c0f61b
+2026-11-19T20:20:06 [INFO] [workspace] activated project="D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2020\\W02-A1c-A-20261119_202005.vit" uuid=vitproj_badad83edace470da3ab05d079c0f61b recovered=false conversations=0 retired_legacy_b2=0 retired_legacy_b3=0
+2026-11-19T20:20:07 [INFO] [timing] agent_loop_chat total_ms=98 conversation=w02-a1c-20261119_202005 goal= mode=default status=completed stop=edu_jam_legame_imported completed_steps=0 executed=0
+2026-11-19T20:20:07 [INFO] [media_refs] ms=1 conversation=w02-a1c-20261119_202005 user_paths=1 reply_names=0 files=0 folders=1 mentions_media=false artifacts=0
+2026-11-19T20:20:07 [INFO] [vit_checkpoint] async checkpoint launched project=D:\Vit_DAW\coord\runs\W02-A1c\real-stack\run_20261119_2020\W02-A1c-A-20261119_202005.vit revision=3
+2026-11-19T20:20:07 [INFO] [chat.artifacts] conversation=w02-a1c-20261119_202005 response_artifacts=0 request_artifacts=0 executed=0 reply_len=368
+2026-11-19T20:20:07 [INFO] [vit_checkpoint] async checkpoint done project=D:\Vit_DAW\coord\runs\W02-A1c\real-stack\run_20261119_2020\W02-A1c-A-20261119_202005.vit revision=3 commit=c_20261119T122007_9d240ce5 rebound=1 total_ms=17
+2026-11-19T20:20:07 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_badad83edace470da3ab05d079c0f61b
+2026-11-19T20:20:07 [INFO] [timing] http.chat total_ms=664 conversation=w02-a1c-20261119_202005 message_len=102
+2026-11-19T20:20:08 [INFO] [timing] agent_loop_chat total_ms=23 conversation=w02-a1c-20261119_202005 goal= mode=default status=completed stop=edu_jam_entered completed_steps=0 executed=0
+2026-11-19T20:20:08 [INFO] [media_refs] ms=0 conversation=w02-a1c-20261119_202005 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-11-19T20:20:08 [INFO] [vit_checkpoint] gate skipped zero-change turn project=D:\Vit_DAW\coord\runs\W02-A1c\real-stack\run_20261119_2020\W02-A1c-A-20261119_202005.vit revision=3
+2026-11-19T20:20:08 [INFO] [chat.artifacts] conversation=w02-a1c-20261119_202005 response_artifacts=0 request_artifacts=0 executed=0 reply_len=543
+2026-11-19T20:20:08 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_badad83edace470da3ab05d079c0f61b
+2026-11-19T20:20:08 [INFO] [timing] http.chat total_ms=518 conversation=w02-a1c-20261119_202005 message_len=12
+2026-11-19T20:20:08 [INFO] [timing] agent_loop_chat total_ms=9 conversation=w02-a1c-20261119_202005 goal= mode=default status=completed stop=edu_jam_event_recorded completed_steps=0 executed=0
+2026-11-19T20:20:08 [INFO] [media_refs] ms=0 conversation=w02-a1c-20261119_202005 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-11-19T20:20:08 [INFO] [vit_checkpoint] gate skipped zero-change turn project=D:\Vit_DAW\coord\runs\W02-A1c\real-stack\run_20261119_2020\W02-A1c-A-20261119_202005.vit revision=3
+2026-11-19T20:20:08 [INFO] [chat.artifacts] conversation=w02-a1c-20261119_202005 response_artifacts=0 request_artifacts=0 executed=0 reply_len=51
+2026-11-19T20:20:08 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_badad83edace470da3ab05d079c0f61b
+2026-11-19T20:20:08 [INFO] [timing] http.chat total_ms=501 conversation=w02-a1c-20261119_202005 message_len=27
+2026-11-19T20:20:09 [INFO] [timing] agent_loop_chat total_ms=10 conversation=w02-a1c-20261119_202005 goal= mode=default status=completed stop=edu_jam_node_done completed_steps=0 executed=0
+2026-11-19T20:20:09 [INFO] [media_refs] ms=0 conversation=w02-a1c-20261119_202005 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-11-19T20:20:09 [INFO] [vit_checkpoint] gate skipped zero-change turn project=D:\Vit_DAW\coord\runs\W02-A1c\real-stack\run_20261119_2020\W02-A1c-A-20261119_202005.vit revision=3
+2026-11-19T20:20:09 [INFO] [chat.artifacts] conversation=w02-a1c-20261119_202005 response_artifacts=0 request_artifacts=0 executed=0 reply_len=247
+2026-11-19T20:20:09 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_badad83edace470da3ab05d079c0f61b
+2026-11-19T20:20:09 [INFO] [timing] http.chat total_ms=522 conversation=w02-a1c-20261119_202005 message_len=9
+2026-11-19T20:20:09 [INFO] [timing] agent_loop_chat total_ms=6 conversation=w02-a1c-20261119_202005 goal= mode=default status=completed stop=edu_jam_event_recorded completed_steps=0 executed=0
+2026-11-19T20:20:09 [INFO] [media_refs] ms=0 conversation=w02-a1c-20261119_202005 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-11-19T20:20:09 [INFO] [vit_checkpoint] gate skipped zero-change turn project=D:\Vit_DAW\coord\runs\W02-A1c\real-stack\run_20261119_2020\W02-A1c-A-20261119_202005.vit revision=3
+2026-11-19T20:20:09 [INFO] [chat.artifacts] conversation=w02-a1c-20261119_202005 response_artifacts=0 request_artifacts=0 executed=0 reply_len=56
+2026-11-19T20:20:09 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_badad83edace470da3ab05d079c0f61b
+2026-11-19T20:20:09 [INFO] [timing] http.chat total_ms=501 conversation=w02-a1c-20261119_202005 message_len=32
+2026-11-19T20:20:10 [INFO] [timing] agent_loop_chat total_ms=12 conversation=w02-a1c-20261119_202005 goal= mode=default status=completed stop=edu_jam_node_done completed_steps=0 executed=0
+2026-11-19T20:20:10 [INFO] [media_refs] ms=0 conversation=w02-a1c-20261119_202005 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-11-19T20:20:10 [INFO] [vit_checkpoint] gate skipped zero-change turn project=D:\Vit_DAW\coord\runs\W02-A1c\real-stack\run_20261119_2020\W02-A1c-A-20261119_202005.vit revision=3
+2026-11-19T20:20:10 [INFO] [chat.artifacts] conversation=w02-a1c-20261119_202005 response_artifacts=0 request_artifacts=0 executed=0 reply_len=268
+2026-11-19T20:20:10 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_badad83edace470da3ab05d079c0f61b
+2026-11-19T20:20:10 [INFO] [timing] http.chat total_ms=505 conversation=w02-a1c-20261119_202005 message_len=9
+2026-11-19T20:20:10 [INFO] [shadow] initialized tracks=0 project_path="D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2020\\W02-A1c-A-20261119_202005.vit" replayed_deltas=0
+2026-11-19T20:20:10 [INFO] [timing] kernel.send_command ms=2 command=get_project_state tool=project.state confirmed=false err=false
+2026-11-19T20:20:10 [INFO] [timing] harness.invoke total_ms=11 tool=project.state command=get_project_state status=ok confirmed=false err=false
+2026-11-19T20:20:10 [INFO] [shadow] initialized tracks=0 project_path="D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2020\\W02-A1c-A-20261119_202005.vit" replayed_deltas=0
+2026-11-19T20:20:10 [DEBUG] [shadow] live delta uid="TRACK" action="node_added"
+2026-11-19T20:20:10 [INFO] [timing] kernel.vsp_state_snapshot ms=2 reason=add_track err=false
+2026-11-19T20:20:10 [DEBUG] [shadow] live delta uid="1007" action="property_changed:id"
+2026-11-19T20:20:10 [INFO] [shadow] initialized tracks=1 project_path="D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2020\\W02-A1c-A-20261119_202005.vit" replayed_deltas=1
+2026-11-19T20:20:10 [INFO] [timing] harness.refresh_shadow ms=11 reason=add_track status=ok err=false
+2026-11-19T20:20:10 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-11-19T20:20:10 [INFO] [shadow] initialized tracks=1 project_path="D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2020\\W02-A1c-A-20261119_202005.vit" replayed_deltas=1
+2026-11-19T20:20:10 [INFO] [timing] kernel.send_command ms=32 command=add_track tool=track.add confirmed=true err=false
+2026-11-19T20:20:10 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-11-19T20:20:10 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-11-19T20:20:10 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-11-19T20:20:10 [INFO] [timing] harness.invoke total_ms=43 tool=track.add command=add_track status=ok confirmed=true err=false
+2026-11-19T20:20:10 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-11-19T20:20:10 [DEBUG] [shadow] live delta uid="1008" action="node_added"
+2026-11-19T20:20:10 [DEBUG] [shadow] live delta uid="1009" action="node_added"
+2026-11-19T20:20:10 [DEBUG] [shadow] live delta uid="1008" action="property_changed:remapOnTempoChange"
+2026-11-19T20:20:10 [DEBUG] [shadow] live delta uid="1007" action="property_changed:name"
+2026-11-19T20:20:10 [DEBUG] [shadow] live delta uid="0/36de2dd" action="property_changed:lastSignificantChange"
+2026-11-19T20:20:10 [DEBUG] [shadow] live delta uid="1007" action="property_changed:name"
+2026-11-19T20:20:10 [INFO] [shadow] initialized tracks=1 project_path="D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2020\\W02-A1c-A-20261119_202005.vit" replayed_deltas=3
+2026-11-19T20:20:10 [INFO] [timing] kernel.send_command ms=2 command=get_project_state tool=project.state confirmed=false err=false
+2026-11-19T20:20:10 [INFO] [timing] harness.invoke total_ms=10 tool=project.state command=get_project_state status=ok confirmed=false err=false
+2026-11-19T20:20:10 [INFO] [shadow] initialized tracks=1 project_path="D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2020\\W02-A1c-A-20261119_202005.vit" replayed_deltas=3
+2026-11-19T20:20:10 [DEBUG] [shadow] live delta uid="TRACK" action="node_added"
+2026-11-19T20:20:10 [INFO] [timing] kernel.vsp_state_snapshot ms=2 reason=add_track err=false
+2026-11-19T20:20:10 [DEBUG] [shadow] live delta uid="1010" action="property_changed:id"
+2026-11-19T20:20:10 [INFO] [shadow] initialized tracks=2 project_path="D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2020\\W02-A1c-A-20261119_202005.vit" replayed_deltas=4
+2026-11-19T20:20:10 [INFO] [timing] harness.refresh_shadow ms=4 reason=add_track status=ok err=false
+2026-11-19T20:20:10 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-11-19T20:20:10 [INFO] [shadow] initialized tracks=2 project_path="D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2020\\W02-A1c-A-20261119_202005.vit" replayed_deltas=4
+2026-11-19T20:20:10 [INFO] [timing] kernel.send_command ms=33 command=add_track tool=track.add confirmed=true err=false
+2026-11-19T20:20:10 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-11-19T20:20:10 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-11-19T20:20:10 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-11-19T20:20:10 [INFO] [timing] harness.invoke total_ms=46 tool=track.add command=add_track status=ok confirmed=true err=false
+2026-11-19T20:20:10 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-11-19T20:20:10 [DEBUG] [shadow] live delta uid="1011" action="node_added"
+2026-11-19T20:20:10 [DEBUG] [shadow] live delta uid="1012" action="node_added"
+2026-11-19T20:20:10 [DEBUG] [shadow] live delta uid="1011" action="property_changed:remapOnTempoChange"
+2026-11-19T20:20:10 [DEBUG] [shadow] live delta uid="1010" action="property_changed:name"
+2026-11-19T20:20:10 [DEBUG] [shadow] live delta uid="0/36de2dd" action="property_changed:lastSignificantChange"
+2026-11-19T20:20:10 [DEBUG] [shadow] live delta uid="1010" action="property_changed:name"
+2026-11-19T20:20:11 [INFO] [shadow] initialized tracks=2 project_path="D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2020\\W02-A1c-A-20261119_202005.vit" replayed_deltas=6
+2026-11-19T20:20:11 [INFO] [timing] kernel.send_command ms=4 command=get_project_state tool=project.state confirmed=false err=false
+2026-11-19T20:20:11 [INFO] [timing] harness.invoke total_ms=13 tool=project.state command=get_project_state status=ok confirmed=false err=false
+2026-11-19T20:20:11 [INFO] [shadow] initialized tracks=2 project_path="D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2020\\W02-A1c-A-20261119_202005.vit" replayed_deltas=6
+2026-11-19T20:20:11 [DEBUG] [shadow] live delta uid="AUTOMATIONCURVES" action="node_added"
+2026-11-19T20:20:11 [DEBUG] [shadow] live delta uid="QUANTISATION" action="node_added"
+2026-11-19T20:20:11 [DEBUG] [shadow] live delta uid="GROOVE" action="node_added"
+2026-11-19T20:20:11 [INFO] [timing] kernel.vsp_state_snapshot ms=3 reason=create_midi_clip err=false
+2026-11-19T20:20:11 [DEBUG] [shadow] live delta uid="SEQUENCE" action="node_added"
+2026-11-19T20:20:11 [INFO] [shadow] initialized tracks=2 project_path="D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2020\\W02-A1c-A-20261119_202005.vit" replayed_deltas=6
+2026-11-19T20:20:11 [INFO] [timing] harness.refresh_shadow ms=21 reason=create_midi_clip status=ok err=false
+2026-11-19T20:20:11 [DEBUG] [shadow] live delta uid="1013" action="property_changed:currentTake"
+2026-11-19T20:20:11 [INFO] [shadow] initialized tracks=2 project_path="D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2020\\W02-A1c-A-20261119_202005.vit" replayed_deltas=7
+2026-11-19T20:20:11 [INFO] [timing] kernel.send_command ms=43 command=create_midi_clip tool=midi.create_clip confirmed=true err=false
+2026-11-19T20:20:11 [DEBUG] [shadow] live delta uid="1013" action="property_changed:speed"
+2026-11-19T20:20:11 [DEBUG] [shadow] live delta uid="1013" action="node_added"
+2026-11-19T20:20:11 [DEBUG] [shadow] live delta uid="1013" action="property_changed:colour"
+2026-11-19T20:20:11 [INFO] [timing] harness.invoke total_ms=56 tool=midi.create_clip command=create_midi_clip status=ok confirmed=true err=false
+2026-11-19T20:20:11 [DEBUG] [shadow] live delta uid="0/36de2dd" action="property_changed:lastSignificantChange"
+2026-11-19T20:20:11 [INFO] [shadow] initialized tracks=2 project_path="D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2020\\W02-A1c-A-20261119_202005.vit" replayed_deltas=7
+2026-11-19T20:20:11 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-19T20:20:11 [INFO] [timing] kernel.vsp_state_snapshot ms=3 reason=add_midi_notes_bulk err=false
+2026-11-19T20:20:11 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-19T20:20:11 [INFO] [shadow] initialized tracks=2 project_path="D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2020\\W02-A1c-A-20261119_202005.vit" replayed_deltas=7
+2026-11-19T20:20:11 [INFO] [timing] harness.refresh_shadow ms=13 reason=add_midi_notes_bulk status=ok err=false
+2026-11-19T20:20:11 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-19T20:20:11 [INFO] [shadow] initialized tracks=2 project_path="D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2020\\W02-A1c-A-20261119_202005.vit" replayed_deltas=7
+2026-11-19T20:20:11 [INFO] [timing] kernel.send_command ms=41 command=add_midi_notes_bulk tool=midi.legacy_add_notes_bulk confirmed=true err=false
+2026-11-19T20:20:11 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-19T20:20:11 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-19T20:20:11 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-19T20:20:11 [INFO] [timing] harness.invoke total_ms=53 tool=midi.legacy_add_notes_bulk command=add_midi_notes_bulk status=ok confirmed=true err=false
+2026-11-19T20:20:11 [DEBUG] [shadow] live delta uid="0/36de2dd" action="property_changed:lastSignificantChange"
+2026-11-19T20:20:11 [INFO] [shadow] initialized tracks=2 project_path="D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2020\\W02-A1c-A-20261119_202005.vit" replayed_deltas=7
+2026-11-19T20:20:11 [INFO] [shadow] refreshed after structural_delta source=vsp.state.snapshot revision=7
+2026-11-19T20:20:11 [INFO] [timing] kernel.send_command ms=1 command=get_midi_clip_notes tool=midi.read_notes confirmed=false err=false
+2026-11-19T20:20:11 [INFO] [timing] harness.invoke total_ms=13 tool=midi.read_notes command=get_midi_clip_notes status=ok confirmed=false err=false
+2026-11-19T20:20:11 [INFO] [shadow] initialized tracks=2 project_path="D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2020\\W02-A1c-A-20261119_202005.vit" replayed_deltas=7
+2026-11-19T20:20:11 [DEBUG] [shadow] live delta uid="AUTOMATIONCURVES" action="node_added"
+2026-11-19T20:20:11 [DEBUG] [shadow] live delta uid="QUANTISATION" action="node_added"
+2026-11-19T20:20:11 [DEBUG] [shadow] live delta uid="GROOVE" action="node_added"
+2026-11-19T20:20:11 [DEBUG] [shadow] live delta uid="SEQUENCE" action="node_added"
+2026-11-19T20:20:11 [INFO] [timing] kernel.vsp_state_snapshot ms=2 reason=create_midi_clip err=false
+2026-11-19T20:20:11 [DEBUG] [shadow] live delta uid="1014" action="property_changed:currentTake"
+2026-11-19T20:20:11 [INFO] [shadow] initialized tracks=2 project_path="D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2020\\W02-A1c-A-20261119_202005.vit" replayed_deltas=8
+2026-11-19T20:20:11 [INFO] [timing] harness.refresh_shadow ms=19 reason=create_midi_clip status=ok err=false
+2026-11-19T20:20:11 [DEBUG] [shadow] live delta uid="1014" action="property_changed:speed"
+2026-11-19T20:20:11 [INFO] [shadow] initialized tracks=2 project_path="D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2020\\W02-A1c-A-20261119_202005.vit" replayed_deltas=8
+2026-11-19T20:20:11 [INFO] [timing] kernel.send_command ms=40 command=create_midi_clip tool=midi.create_clip confirmed=true err=false
+2026-11-19T20:20:11 [DEBUG] [shadow] live delta uid="1014" action="node_added"
+2026-11-19T20:20:11 [DEBUG] [shadow] live delta uid="1014" action="property_changed:colour"
+2026-11-19T20:20:11 [INFO] [timing] harness.invoke total_ms=53 tool=midi.create_clip command=create_midi_clip status=ok confirmed=true err=false
+2026-11-19T20:20:11 [DEBUG] [shadow] live delta uid="0/36de2dd" action="property_changed:lastSignificantChange"
+2026-11-19T20:20:11 [INFO] [shadow] initialized tracks=2 project_path="D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2020\\W02-A1c-A-20261119_202005.vit" replayed_deltas=8
+2026-11-19T20:20:11 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-19T20:20:11 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-19T20:20:11 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-19T20:20:11 [INFO] [timing] kernel.vsp_state_snapshot ms=3 reason=add_midi_notes_bulk err=false
+2026-11-19T20:20:11 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-19T20:20:11 [INFO] [shadow] initialized tracks=2 project_path="D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2020\\W02-A1c-A-20261119_202005.vit" replayed_deltas=8
+2026-11-19T20:20:11 [INFO] [timing] harness.refresh_shadow ms=17 reason=add_midi_notes_bulk status=ok err=false
+2026-11-19T20:20:11 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-19T20:20:11 [INFO] [shadow] initialized tracks=2 project_path="D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2020\\W02-A1c-A-20261119_202005.vit" replayed_deltas=8
+2026-11-19T20:20:11 [INFO] [timing] kernel.send_command ms=47 command=add_midi_notes_bulk tool=midi.legacy_add_notes_bulk confirmed=true err=false
+2026-11-19T20:20:11 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-19T20:20:11 [DEBUG] [shadow] live delta uid="0/36de2dd" action="property_changed:lastSignificantChange"
+2026-11-19T20:20:11 [INFO] [timing] harness.invoke total_ms=60 tool=midi.legacy_add_notes_bulk command=add_midi_notes_bulk status=ok confirmed=true err=false
+2026-11-19T20:20:11 [INFO] [timing] kernel.send_command ms=1 command=get_midi_clip_notes tool=midi.read_notes confirmed=false err=false
+2026-11-19T20:20:11 [INFO] [timing] harness.invoke total_ms=12 tool=midi.read_notes command=get_midi_clip_notes status=ok confirmed=false err=false
+2026-11-19T20:20:11 [INFO] [timing] harness.invoke total_ms=12 tool=clip.select command=select_clip status=ok confirmed=false err=false
+2026-11-19T20:20:12 [INFO] [timing] agent_loop_chat total_ms=11 conversation=w02-a1c-20261119_202005 goal= mode=default status=completed stop=edu_jam_node_done completed_steps=0 executed=0
+2026-11-19T20:20:12 [INFO] [media_refs] ms=0 conversation=w02-a1c-20261119_202005 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-11-19T20:20:12 [INFO] [vit_checkpoint] async checkpoint launched project=D:\Vit_DAW\coord\runs\W02-A1c\real-stack\run_20261119_2020\W02-A1c-A-20261119_202005.vit revision=9
+2026-11-19T20:20:12 [INFO] [chat.artifacts] conversation=w02-a1c-20261119_202005 response_artifacts=0 request_artifacts=0 executed=0 reply_len=252
+2026-11-19T20:20:12 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_badad83edace470da3ab05d079c0f61b
+2026-11-19T20:20:12 [INFO] [timing] http.chat total_ms=527 conversation=w02-a1c-20261119_202005 message_len=9
+2026-11-19T20:20:12 [INFO] [vit_checkpoint] async checkpoint done project=D:\Vit_DAW\coord\runs\W02-A1c\real-stack\run_20261119_2020\W02-A1c-A-20261119_202005.vit revision=9 commit=c_20261119T122012_9ccdfda3 rebound=1 total_ms=19
+2026-11-19T20:20:12 [INFO] [media_refs] ms=0 conversation=w02-a1c-20261119_202005 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-11-19T20:20:12 [INFO] [vit_checkpoint] gate skipped zero-change turn project=D:\Vit_DAW\coord\runs\W02-A1c\real-stack\run_20261119_2020\W02-A1c-A-20261119_202005.vit revision=9
+2026-11-19T20:20:12 [INFO] [chat.artifacts] conversation=w02-a1c-20261119_202005 response_artifacts=0 request_artifacts=0 executed=0 reply_len=84
+2026-11-19T20:20:12 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_badad83edace470da3ab05d079c0f61b
+2026-11-19T20:20:12 [INFO] [timing] http.chat total_ms=54 conversation=w02-a1c-20261119_202005 message_len=69
+2026-11-19T20:20:12 [INFO] [shadow] initialized tracks=2 project_path="D:\\Vit_DAW\\coord\\runs\\W02-A1c\\real-stack\\run_20261119_2020\\W02-A1c-A-20261119_202005.vit" replayed_deltas=8
+2026-11-19T20:20:12 [INFO] [shadow] refreshed after structural_delta source=vsp.state.snapshot revision=9
+2026-11-19T20:20:16 [INFO] [timing] message_loop.llm ms=1601 goal=goal_b79293a04593ac06 conversation=w02-a1c-20261119_202005 turn=1 messages=3 chars=71189 message_chars=0:system:54277,1:user:23,2:user:16889 err=false
+2026-11-19T20:20:16 [INFO] [continuation.arm] conversation=w02-a1c-20261119_202005 goal=goal_b79293a04593ac06 status=completed stop=done limit= continuation=false durable= lifecycle=none scheduled=false budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false
+2026-11-19T20:20:16 [INFO] [timing] agent_loop_chat total_ms=3395 conversation=w02-a1c-20261119_202005 goal=goal_b79293a04593ac06 mode=default status=completed stop=done completed_steps=0 executed=0
+2026-11-19T20:20:16 [INFO] [media_refs] ms=0 conversation=w02-a1c-20261119_202005 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-11-19T20:20:16 [INFO] [vit_checkpoint] gate skipped zero-change turn project=D:\Vit_DAW\coord\runs\W02-A1c\real-stack\run_20261119_2020\W02-A1c-A-20261119_202005.vit revision=9
+2026-11-19T20:20:16 [INFO] [chat.artifacts] conversation=w02-a1c-20261119_202005 response_artifacts=0 request_artifacts=0 executed=0 reply_len=284
+2026-11-19T20:20:16 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_badad83edace470da3ab05d079c0f61b
+2026-11-19T20:20:16 [INFO] [timing] http.chat total_ms=3900 conversation=w02-a1c-20261119_202005 message_len=69
+2026-11-19T20:20:17 [INFO] [timing] agent_loop_chat total_ms=6 conversation=w02-a1c-20261119_202005 goal= mode=default status=completed stop=edu_jam_exited completed_steps=0 executed=0
+2026-11-19T20:20:17 [INFO] [media_refs] ms=0 conversation=w02-a1c-20261119_202005 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-11-19T20:20:17 [INFO] [vit_checkpoint] gate skipped zero-change turn project=D:\Vit_DAW\coord\runs\W02-A1c\real-stack\run_20261119_2020\W02-A1c-A-20261119_202005.vit revision=9
+2026-11-19T20:20:17 [INFO] [chat.artifacts] conversation=w02-a1c-20261119_202005 response_artifacts=0 request_artifacts=0 executed=0 reply_len=90
+2026-11-19T20:20:17 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_badad83edace470da3ab05d079c0f61b
+2026-11-19T20:20:17 [INFO] [timing] http.chat total_ms=512 conversation=w02-a1c-20261119_202005 message_len=12

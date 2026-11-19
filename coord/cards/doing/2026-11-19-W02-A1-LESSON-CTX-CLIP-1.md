@@ -77,6 +77,14 @@
 - 真 LLM 纪律：单次正式轮、写明成功条件/失败分类/止损；LLM 超时/环境中断与断言失败分开记；不原样重跑。
 - 验收：PowerShell 解析、无授权 exit 3、dry-run exit 0；不启栈；API 缺口如实登记；回执≤15行。
 
+## A1c attempt1 + A1b 生产路径修正（2026-11-19 20:23）
+
+- S0/S1/S1.5/S2/S3 **PASS**（选中 clip 1014 生效）；S4 失败：真实提问进入 free-state message loop，prompt render 含 `free_state=True`/`selected_clip` 但无 `lesson_context`；`agent_context_snapshots.jsonl` 未新增（stale）。
+- 归因：`agentloop.buildModelContextSnapshot` neutral 分支重建 snapshot 未携带 `full.LessonContext`；A1b 单测走 `chat.buildAssembly`，未覆盖 agentloop neutral 路径。
+- 修复（**文件域扩展**）：`agent/internal/agentloop/helpers.go` + 测试；neutral 重建后保留 `full.LessonContext`，仍剥离 plugin 身份；free-state neutral 快照断言 `lesson_context` 在、plugin 键不在。
+- A1c 候修复后第二轮；不原样重跑。证据：[FINDING](../../runs/W02-A1c/real-stack/run_20261119_2020/FINDING.md)、[s4_prompt_render](../../runs/W02-A1c/real-stack/run_20261119_2020/evidence/s4_prompt_render.jsonl)。
+
+
 
 
 

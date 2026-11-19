@@ -1,0 +1,151 @@
+{
+  "schema_version": "vit.lesson_source_cache.v0",
+  "source_path_at_extraction": "C:\\Users\\timoz\\Downloads\\2017年版高中教材-音乐编创（必修）.pdf",
+  "source_filename": "2017年版高中教材-音乐编创（必修）.pdf",
+  "source_sha256": "4fe0feddfe8abb15113925dd8480d8d2a2bebc363c8d4343beb8d9958acd4b65",
+  "source_bytes": 62024131,
+  "total_pdf_pages": 127,
+  "unit_title": "第二单元 旋律写作",
+  "unit_cover_pdf_page": 20,
+  "body_pdf_pages": [
+    21,
+    35
+  ],
+  "body_printed_pages": [
+    16,
+    30
+  ],
+  "context_pdf_pages": [
+    2
+  ],
+  "next_unit_pdf_page_checked": 36,
+  "text_is_score_transcription": false,
+  "notes": [
+    "文件名包含2017年版；未从版权页独立核定出版版次。",
+    "所有谱例以原页图像为准；文本提取不恢复音符。",
+    "节奏或音符人工校订若未单独声明，不得认为已验证可播放。"
+  ],
+  "pages": [
+    {
+      "pdf_page": 2,
+      "printed_page": null,
+      "kind": "contents",
+      "image": "source/pages/pdf-002_contents.png",
+      "image_sha256": "5c01f7f0664f96d542cd3b96bd23b67c4f3d44efc7574dc77b20e23bbc154242"
+    },
+    {
+      "pdf_page": 20,
+      "printed_page": null,
+      "kind": "unit_cover",
+      "image": "source/pages/pdf-020_unit-cover.png",
+      "image_sha256": "71675919eb8e149d5816254ad7ff5696b3289b96aa674a2f735930d87fbf56ca"
+    },
+    {
+      "pdf_page": 21,
+      "printed_page": 16,
+      "kind": "body",
+      "image": "source/pages/pdf-021_book-016.png",
+      "image_sha256": "c8e9db280e7520e4cb818c5e8277584b91169c12ffeaa0436408f42fcf8e7675"
+    },
+    {
+      "pdf_page": 22,
+      "printed_page": 17,
+      "kind": "body",
+      "image": "source/pages/pdf-022_book-017.png",
+      "image_sha256": "868e48eae630d2946e4eae9ffabe9684594678f24a3c5043944561c40091d2be"
+    },
+    {
+      "pdf_page": 23,
+      "printed_page": 18,
+      "kind": "body",
+      "image": "source/pages/pdf-023_book-018.png",
+      "image_sha256": "b81ed64445206bc7ce1c547fd22e0c904a0656cba61d4bc8b992a9befb0516ef"
+    },
+    {
+      "pdf_page": 24,
+      "printed_page": 19,
+      "kind": "body",
+      "image": "source/pages/pdf-024_book-019.png",
+      "image_sha256": "12875dca6d0df1cdd8a9d2821cdb55361f9f4047ec9b6bcaeb6c3567a500aeb7"
+    },
+    {
+      "pdf_page": 25,
+      "printed_page": 20,
+      "kind": "body",
+      "image": "source/pages/pdf-025_book-020.png",
+      "image_sha256": "f8ca5fa87f95b2f524c40264a1e524d5b1ae25cc97ea248fc315c677c9613b76"
+    },
+    {
+      "pdf_page": 26,
+      "printed_page": 21,
+      "kind": "body",
+      "image": "source/pages/pdf-026_book-021.png",
+      "image_sha256": "8a8ac25aa3d2e13efbba43003617c008caa90acb3672a1ba8bdf3682390da964"
+    },
+    {
+      "pdf_page": 27,
+      "printed_page": 22,
+      "kind": "body",
+      "image": "source/pages/pdf-027_book-022.png",
+      "image_sha256": "dcc9e81be19053919d1fdfa74c2fe85f417c5d5797e6acbec4b052f32c19a7ae"
+    },
+    {
+      "pdf_page": 28,
+      "printed_page": 23,
+      "kind": "body",
+      "image": "source/pages/pdf-028_book-023.png",
+      "image_sha256": "4f363c6a25c5ceb312cf37f041d0496f45ddbbbe827f468652e347e15be0d590"
+    },
+    {
+      "pdf_page": 29,
+      "printed_page": 24,
+      "kind": "body",
+      "image": "source/pages/pdf-029_book-024.png",
+      "image_sha256": "6e381e6318035fa3336d91094ae99d311dee78cae98fadc5d2faef795d85694d"
+    },
+    {
+      "pdf_page": 30,
+      "printed_page": 25,
+      "kind": "body",
+      "image": "source/pages/pdf-030_book-025.png",
+      "image_sha256": "764b79ef5464f9b1c73d839a49338c9903c59ac5244111ca9573fd7127d4d3bf"
+    },
+    {
+      "pdf_page": 31,
+      "printed_page": 26,
+      "kind": "body",
+      "image": "source/pages/pdf-031_book-026.png",
+      "image_sha256": "c2e5fa7748c4e11e952c65a90c1a2e2bf1ff19365e14e2f9e6b9270ce1f10fd6"
+    },
+    {
+      "pdf_page": 32,
+      "printed_page": 27,
+      "kind": "body",
+      "image": "source/pages/pdf-032_book-027.png",
+      "image_sha256": "a49ddb8500fcc903554906ade10b5772b025c42c0b769c1b3ff8e8ce0b4454cc"
+    },
+    {
+      "pdf_page": 33,
+      "printed_page": 28,
+      "kind": "body",
+      "image": "source/pages/pdf-033_book-028.png",
+      "image_sha256": "fa1e3bc56874c6e79fb8a5f41632ce19b30f4b188506506198cf782bea24d522"
+    },
+    {
+      "pdf_page": 34,
+      "printed_page": 29,
+      "kind": "body",
+      "image": "source/pages/pdf-034_book-029.png",
+      "image_sha256": "c55f27bfeb6dea35563a7934e98c639794534ef9c9d53be1628f488eca16b1c5"
+    },
+    {
+      "pdf_page": 35,
+      "printed_page": 30,
+      "kind": "body",
+      "image": "source/pages/pdf-035_book-030.png",
+      "image_sha256": "3f1a0c7216ee1e0367108a38ffe7091d911da3dfcdfeae50351899b9624d6e77"
+    }
+  ],
+  "source_unchanged": true,
+  "contact_sheet": "source/unit2-contact-sheet.png"
+}
