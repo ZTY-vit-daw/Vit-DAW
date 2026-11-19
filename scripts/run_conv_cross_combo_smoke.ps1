@@ -1323,7 +1323,10 @@ try {
     Assert-That "S4-project-file-path" (Test-SamePath (Get-Str $conv "project_file_path") $script:WorktreeB) ("result project_file_path=" + (Get-Str $conv "project_file_path")) "conversation_open_target_path"
     $convWorktree = Get-Prop $conv "worktree"
     Assert-That "S4-worktree-name" ((Get-Str $convWorktree "name") -eq $script:WorktreeName) ("worktree.name=" + (Get-Str $convWorktree "name")) "conversation_open_worktree"
-    Assert-That "S4-worktree-not-root" (-not (Get-Bool $convWorktree "is_root" $true)) "target worktree reported is_root=true" "conversation_open_worktree_root"
+    # conversation_open returns result.worktree as the raw Project History row,
+    # which has no is_root key; the authoritative target-root flag is the
+    # top-level result.worktree_is_root (set by conversationOpen from target.isRoot).
+    Assert-That "S4-worktree-not-root" (-not (Get-Bool $conv "worktree_is_root" $true)) ("target worktree reported worktree_is_root=" + (Get-Str $conv "worktree_is_root")) "conversation_open_worktree_root"
     Assert-That "S4-same-worktree-false" (-not (Get-Bool $conv "same_worktree" $true)) "same_worktree must be false for a cross-worktree open" "conversation_open_same_worktree"
     Assert-That "S4-target-materialized" (Get-Bool $conv "target_materialized" $false) "target_materialized=false after successful materialization" "conversation_open_materialized"
     Assert-That "S4-kernel-reloaded" (Get-Bool $conv "kernel_reloaded" $false) "kernel_reloaded=false" "conversation_open_reloaded"
