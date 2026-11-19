@@ -33,3 +33,12 @@
 
 - A2a 真栈 exit 0 + 选中 clip notes 读取证据 + 回复不伪；A2b 只在用户/主管对契约选项裁定后开工。
 - 若模型在未读 notes 时自宣“看过/听过”，立即停手，不上交为 PASS。
+
+## A2a 领取（2026-11-19 21:08）
+
+- owner=`w02fb`（DeepSeek-V4.1-Flash，PC，独立 worktree）；分支 `codex/w02-a2a-feedback-433`；worktree `C:/Users/timoz/.codex/worktrees/pc433-feedback/Vit_DAW`；基线 main `2794d135`。
+- 本轮只扩 A1c 真栈脚本的 work-question 模式 + RUNBOOK；不启栈、不改产品代码。
+- 场景：复用 A1c S0–S3（导入/开局/双 clip/选中 second），S4W 发送针对选中 clip 的作品问题；要求模型通过 `get_midi_clip_notes` 或等价证据读到实际 notes，回复引用至少一个实际音符特征，或诚实说需要更多信息；未读 notes 不得声称看过。默认 status 模式保持 A1c 原语义。
+- 文件域：`scripts/run_w02_a1c_smoke.ps1`、`coord/runs/W02-A1c/RUNBOOK.md`、`coord/runs/W02-A2a/`；不改产品/设计源/其他脚本。
+- 验收：PowerShell 解析、无授权 exit 3、dry-run exit 0；不启栈；真实 LLM 单次正式回合留给 lead 跑；回执≤15行。
+
