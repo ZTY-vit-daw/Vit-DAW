@@ -1,0 +1,8 @@
+{
+  "released_at": "2026-11-20T20:05+08:00",
+  "processes": 0, "tcp_listen": 0,
+  "authority_restore": {"recents": "24ce0281 match", "Settings.xml": "72f0f511 match", "default_project.xml": "2cf36a50 match"},
+  "http_load_receipt": "http_load_receipt.json (track 1015/clip 1018/plugin 1022/instr_attached=true/idem same-ids)",
+  "evidence": "UI 会话四步 completed + v0 TUTOR-SIM-1 兼容（无简报/材料卡）；DOM 断言在主管会话记录",
+  "observations": ["词答案须走对话输入框（步骤卡为数字框拒文本，打磨项）", "跨会话 load_material 各建一轨（按会话记忆 loaded 态，设计内）"]
+}

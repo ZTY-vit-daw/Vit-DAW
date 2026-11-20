@@ -56,3 +56,4 @@
 - 装置：`coord/experiments/tutor-sim-2/`（v1 四步：听主题 42 音→听辨模进→装载材料→完成确认；expect=作者写的模拟问答，不映射生产 done_when；`assets/theme_twinkle_v0.mid` 原样复制，sha256 `276e1ffb…` 与冻结源一致亲证）。
 - 文件域偏差（如实）：`agent/internal/chat/server.go` +1 行（tutor 路由注册，与 435 先例同型）；`agent/internal/tutorsim/tutorsim_test.go` 既有「wrong schema」拒绝例的替换值 `vit.tutor_sim.v1` 按本卡设计成为合法 schema，该例改测 `vit.tutor_sim.v2`（断言强度不变，未减测试）；`agent/webui/src/lib/api.ts` 零改动（load 端点请求用 projectService 本地 helper，apiPath 只读复用）。
 - 遗留/风险（记录于证据卷 REPORT.md §边界）：①音源预设（program/state blob）不在既有内核命令面（298 证），本卡不发明命令——真栈腿若要求预设级音色需另开卡；②材料装载态为会话内存（agent 重启丢失，与 tutor 会话同级）；③webui 一次无关 pre-existing flake 观察（ScoreWorkbenchPanel.test.tsx teardown 竞态 unhandled error，与本卡文件域无关，复跑即绿，见证据卷）。
+

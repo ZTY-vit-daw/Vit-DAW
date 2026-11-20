@@ -1,0 +1,5 @@
+24ce028164273c90798c3b13ef276ec14c54c6fbe31b3b807abf621664de4503 *recents.before.json
+72f0f5112ef926ed77f59f015e6ce492142f8fdf1828e5082e970aa949edfbb8 *Settings.xml.before
+2cf36a509602d45480eab59190e4f163157431f0ca6dc13889d28ba8c2a11b1f *default_project.xml.before
+d94e8168a40127c95c2b0dedaa1e7eb518a598ee266e349b1c9a5200b172522f *D:/Vit_DAW/agent/bin/VitAgent.exe
+c55d18106ad3c71e04c4bff6b9b81aa5248ea961cd41143d106278a4cfb6975d *D:/Vit_DAW/agent/webui/dist/index.html
