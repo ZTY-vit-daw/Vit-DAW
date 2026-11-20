@@ -27,7 +27,8 @@
   2. 产物路径：代码=main b5f7b6ab（agent/internal/chat/tutor_sim.go + agent/webui/src/project/ 10 文件）；证据=本目录（PROGRESS.md/receipt.md/gate1..4 log）；
   3. 遇到的问题：worktree 无 node_modules（npm ci 4s 解决）；merge 时 main 被 443/351/398 coord 提交推进，--ff-only 失败改 ort 真合并（无冲突，无越域，未触碰他卡暂存）；
   4. 断了 0 次（未感知重派）。
-- 遗留：真栈手测并入 443 窗口（卡面既定）；origin push 视网络在本会话末尝试，失败则本地提交为权威输入待主管同步。
+- 遗留：真栈手测并入 443 窗口（卡面既定）；origin push 已成功（a6420951..27973df2 main→main，exit 0）。
+- worktree D:/Vit_DAW_wt_pc444input 与分支 pc444-input 保留作复验（验收后由决策侧清理）。
 
 ## 长命令记录（S7）
 
