@@ -92,6 +92,42 @@ func (s *Server) recordPendingPlanRetirementLocked(plan PendingPlan, reason stri
 	}, reason)
 }
 
+// interactionContinuationMissingReceipt returns the explicit receipt for a
+// decision on an interaction card that WAS found and consumed but whose
+// workflow continuation (candidate/session) is gone
+// (FIX-GOALSTATUS-FORGERY-SWEEP-1: the last three canned
+// "已处理或已过期" workflow fallbacks — section-automation-choreo, native mix
+// tick and mix treatment — that fabricated goal_status=completed for a
+// decision that was never executed). Unlike the catch-all, the card itself
+// existed, so the already-retired/not-found split collapses here into one
+// honest state: the continuation is missing, the decision was NOT executed,
+// and the goal did not complete because of it. takePendingInteraction already
+// stamped the retirement log ("consumed"), so a repeated respond gets the
+// interaction_already_retired receipt from the catch-all; this receipt is
+// exempt from the goal_status refill and from closing the runtime goal
+// (see receiptCarriesNoGoalStatus).
+func (s *Server) interactionContinuationMissingReceipt(interaction PendingInteraction, subject string) ChatResponse {
+	if s != nil && s.logger != nil {
+		s.logger.Warn("[interaction.respond] workflow continuation missing for interaction=%s workflow=%s subject=%s (candidate expired, or lost to a workspace switch/restart); decision not executed", interaction.ID, interaction.Workflow, subject)
+	}
+	return ChatResponse{
+		ConversationID: interaction.ConversationID,
+		GoalID:         interaction.GoalID,
+		RunID:          interaction.RunID,
+		Reply:          "这个" + subject + "对应的执行候选已丢失（可能已过期，或随工作区切换/重启丢失）；本次决定未执行，未产生任何修改，目标未因此完成。",
+		Workflow:       interaction.Workflow,
+		WorkflowData: mergeContext(interaction.Payload, map[string]any{
+			"interaction_id":     interaction.ID,
+			"status":             "continuation_missing",
+			"decision_executed":  false,
+			"mutation_performed": false,
+			"reason_candidates":  []string{"candidate_expired", "lost_to_workspace_switch", "lost_to_restart"},
+		}),
+		GoalStatus: "",
+		StopReason: "interaction_continuation_missing",
+	}
+}
+
 // preserveInFlightInteractions merges live in-memory interactions into a
 // workspace snapshot being restored (FIX-GOV-INTERACTION-TTL-1). The restore
 // replaces the answerable map wholesale with the snapshot read from disk; a
