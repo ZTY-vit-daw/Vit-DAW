@@ -1,0 +1,47 @@
+STACKLEASE-OWNER-PARAM-1 验收证据（命令+退出码）— 2026-11-21 leaseparam442
+
+## 执行命令与退出码（全部零栈：未启 VitApp/Godot/agent/真实内核）
+
+1. worktree 自测（pc442-lease @ b71a37df，PS 5.1）：
+   powershell -NoProfile -ExecutionPolicy Bypass -File D:/Vit_DAW_wt_pc442/scripts/stack_lease_gate_selftest.ps1 -RepoRoot D:/Vit_DAW_wt_pc442
+   → exit 0（首跑曾 exit 1 抓 3 处问题，修复后复跑绿；两轮报告分别见
+   %TEMP%/stack_lease_gate_selftest_20261121_000834 与 _20261121_001056，末轮副本 selftest_report.json）
+2. 合入后 main 复跑（c6ce90bb）：
+   powershell -NoProfile -ExecutionPolicy Bypass -File D:/Vit_DAW/scripts/stack_lease_gate_selftest.ps1 -RepoRoot D:/Vit_DAW
+   → exit 0（run root %TEMP%/stack_lease_gate_selftest_20261121_001217）
+3. grep 亲证硬编码清零：见 hardcode_grep_evidence.txt
+   - device 脚本（除自测外 114 个 scripts/*.ps1）'owner=Codex'/'/root/entry388'/'/root/restore403' 零命中（grep exit 1）
+   - 5 个改动装置脚本中 'entry388'/'restore403' 零命中（grep exit 1）
+   - 自测文件 5 处命中均为合成 fixture/needle 数据行（测试数据，非门逻辑）
+
+## 自测内容（dry-run 到 lease 检查处的零栈实现方式）
+
+自测脚本对 3 个改动装置脚本做 AST 逐字抽取其 Get-StackLeaseVerdict 函数
+（与脚本运行时执行的是同一段代码），对 18 个合成 ledger 案例断言判定与原因，
+并跨副本同步比对；对 2 个 head-window 门抽取 Get-LatestOccupancyEvent 断言
+5 个案例；对 5 个改动脚本做 Parser::ParseFile 零错检查；对 scripts/*.ps1 做
+硬编码 owner 串扫描。即：改动脚本"解析过+门逻辑在合成输入上 dry-run 执行"
+以 exit 0 亲证。真实栈未被启动，符合卡片"零栈验收"约束。
+
+## 修改面（6 文件，全部 scripts/*.ps1 文件域）
+
+- scripts/run_entry_management_acceptance.ps1：+LeaseOwner/LeaseCard 参数；head-4 窗口+硬编码 owner → Get-StackLeaseVerdict；拒绝附逐条件原因+最新事件行+lease_verdict.json 工件；补 UTF-8 BOM
+- scripts/vitshell_smoke.ps1：+ForensicsOwner 参数；\*\*\d+ 卡号正则（与现行 ledger 格式不兼容的 408 假拒活体）+硬编码 owner → Get-StackLeaseVerdict；文件头检查放宽到语义核并回显实际首行；补 UTF-8 BOM
+- scripts/vitshell_zproduct_smoke.ps1：Assert-Lease 严格时间戳正则+owner 子串匹配+单条通用拒绝 → Get-StackLeaseVerdict（owner 改精确等值比对，比原子串更严）
+- scripts/vitshell_full_smoke.ps1：head-4/6 窗口+未转义卡号正则 → Get-LatestOccupancyEvent+字面 Contains+可诊断拒绝；git show 退出码检查
+- scripts/vitshell_open_chain_smoke.ps1：head-6 窗口+硬编码 SHELL-2 → Get-LatestOccupancyEvent+-OccupancyCard 参数（缺省保持兼容）+可诊断拒绝
+- scripts/stack_lease_gate_selftest.ps1：新增自测（255 行）
+
+## Git 轨迹
+
+- 领取提交：d170d36a（main，仅本卡 coord 文件）
+- 实现提交：b71a37df（pc442-lease）
+- 合入提交：c6ce90bb（main merge --no-ff）
+- 领取基线：main 883a0db9；origin/main a6420951（本地领先未推，协调提交由主管序列化）
+
+## 遗留与边界声明
+
+- 停止条件边界：ledger 解析门恰 5 处（=5 未触发 >5 停卡），判定已在卡面与 PROGRESS.md 标注候主管复核。
+- 调用方契约变化：entry388 重跑与 403 取证重跑须显式传 -LeaseOwner/-LeaseCard 与 -ForensicsOwner（空值 fail-closed 并回显 ledger 最新事件）；相关运行命令文档在卡面/docs，不在本卡文件域，未改动。
+- B 类（4 个 RuntimeOwner 参数门）与 C 类（端口守卫）按普查判定无需改动，未触碰。
+- 本卡为装置面（scripts/*.ps1）窄修，无 Go/C++/webui 产品代码改动；按 AGENTS §5，其验收门槛为脚本解析/dry-run/自测（零栈卡，无端侧烟测义务）。

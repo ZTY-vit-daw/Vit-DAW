@@ -1,0 +1,12 @@
+== grep 1: hardcoded owner strings in scripts/*.ps1 (selftest excluded, synthetic fixtures only) ==
+grep1_exit=1 (1=zero hits, PASS)
+== grep 2: full scan incl. selftest (hits must be selftest fixture/needle lines only) ==
+      5 scripts/stack_lease_gate_selftest.ps1
+== grep 3: selftest fixture hits are data lines (show) ==
+15:#   4. Hardcoded-owner scan: 'owner=Codex', '/root/entry388', '/root/restore403'
+104:    @{ Name="grant_current_format"; Lines=@("# PC 真实运行栈占用记录", "- 2026-11-20 23
+109:    @{ Name="grant_backtick_owner"; Lines=@("# hdr", '- 2026-11-21 00:01 +0800 占用 / **CARD-Z
+221:Write-Step "4/4 hardcoded-owner scan (owner=Codex / /root/entry388 / /root/restore403 must be ab
+222:$needles = @('owner=Codex', '/root/entry388', '/root/restore403')
+== grep 4: old gate literal shapes absent from device scripts ==
+grep4_exit=1 (1=zero hits, PASS)

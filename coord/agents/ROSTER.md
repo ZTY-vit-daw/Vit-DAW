@@ -1,6 +1,6 @@
 # 子代理名册（复用优先）
 
-> 用途：主管发卡前先查此表，优先 `send_message` 复用同一产线子代理；新卡/完结后更新。最后更新：2026-11-20（tutorprod438b 续任完成 438 v2 实现，done 待验收）。
+> 用途：主管发卡前先查此表，优先 `send_message` 复用同一产线子代理；新卡/完结后更新。最后更新：2026-11-21（leaseparam442 完成 442 lease 门窄修，done 待验收）。
 
 | owner | 产线 | worktree / 分支 | 最近任务 | 状态 |
 |---|---|---|---|---|
@@ -24,6 +24,7 @@
 | `scorexfer440` | YUE 纯器乐谱迁移线 | pc440 / scorexfer440（基线 7e77c7b7） | 440 腿A+腿B 零栈执行完成：金样对账逐字节（197→0/78→275）+两段式接线，两门绿合入 main（05be3d6f），done 待验收，证据 coord/runs/YUE-INSTRUMENTAL-SCORE-TRANSFER-1/ | inactive（待验收，可续腿C 真栈腿） |
 | `forge334` | goal_status 伪造面清扫（chat 决策应答面） | pc334forge / port/goalstatus-forgery-sweep-1（基线 948d7b1c） | 334 全树普查+同型修 5 处（三罐头兜底+no_candidate+F4 finalize 回填/运行时双守卫）：红 4/4 活体复现→绿 7/7，chat 全包绿合入 main（c656d675→9c0fd8c3），done 待验收，证据 coord/runs/FIX-GOALSTATUS-FORGERY-SWEEP-1/ | inactive（待验收，可续同族存疑站点清扫） |
 | `sighyg331` | VST3 信令卫生线（C++ engine） | wt_pc331 / pc331-sighyg（engine 分支 pc331-sighyg 在主模块仓库 .git/modules/tracktion_engine） | 331 VST3-SIGNAL-HYGIENE-1 零栈执行完成：engine 98fb0200（守卫模式感知+VIT331_SETUP/SIGNAL 断言面，env 门 VIT331_CONSISTENT_SETUP 默认关），四门绿（configure/冷构建/go build/定向 go test），done 待验收（真栈腿 lead 留决策侧），证据 coord/runs/VST3-SIGNAL-HYGIENE-1/ | inactive（待验收，可续真栈腿/翻默认） |
+| `leaseparam442` | ps1 装置 lease 门卫生线 | pc442-lease / pc442-lease（基线 d170d36a） | 442 STACKLEASE-OWNER-PARAM-1 零栈执行完成：5 装置收口（owner 参数化+记录行解析容错+拒绝可诊断，entry388/restore403 硬编码清零）+自测 18 案×3 副本绿，合入 main（b71a37df→c6ce90bb），done 待验收，证据 coord/runs/STACKLEASE-OWNER-PARAM-1/ | inactive（待验收，可续装置面同族卫生） |
 | `entry413` / `ringfix416` / `presmerge412` / `producer410` / `ready411` | 窗口线旧执行 | 各自 worktree | 已结案 | inactive（一般不再复用） |
 
 ## 复用规则

@@ -1,0 +1,24 @@
+﻿{
+    "schema_version":  "stack_lease_gate_selftest.v1",
+    "card":  "STACKLEASE-OWNER-PARAM-1",
+    "run_root":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\stack_lease_gate_selftest_20261121_001056",
+    "changed_scripts":  [
+                            "run_entry_management_acceptance.ps1",
+                            "vitshell_smoke.ps1",
+                            "vitshell_zproduct_smoke.ps1",
+                            "vitshell_full_smoke.ps1",
+                            "vitshell_open_chain_smoke.ps1"
+                        ],
+    "verdict_cases":  18,
+    "locator_cases":  5,
+    "hardcoded_scan_needles":  [
+                                   "owner=Codex",
+                                   "/root/entry388",
+                                   "/root/restore403"
+                               ],
+    "failures":  [
+
+                 ],
+    "status":  "passed",
+    "finished_at":  "2026-11-21T00:10:57.4622385+08:00"
+}

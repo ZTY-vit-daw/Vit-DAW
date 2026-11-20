@@ -24,3 +24,12 @@
 ## 验收（零栈）
 
 - 改动脚本语法过（`powershell -NoProfile -Command` 解析/`-WhatIf` 或 dry-run 到 lease 检查处）；自测 exit 0；硬编码串清零（grep 亲证）。
+
+## 执行完成（done 待验收，2026-11-21）
+
+- 实现 commit：pc442-lease b71a37df；合入 main：merge --no-ff c6ce90bb（6 文件 597+/27-，全部 scripts/*.ps1 域内）。
+- 验收三件亲证（零栈，未启真实栈）：5 改动脚本 Parser 零错；自测 scripts/stack_lease_gate_selftest.ps1 在 worktree 与合入后 main 两轮均 exit 0（AST 逐字抽取 3 副本门函数 ×18 案例跨副本同步 + 2 副本定位器 ×5 案例 + 硬编码扫描）；grep 亲证 device 脚本（114 个）硬编码 owner 串零命中。
+- 停止条件：未触发（恰 5 处 ledger 解析门，=5 非 >5）；判定边界与普查全文候复核。
+- 调用方契约变化（需知悉）：entry388 重跑须显式 -LeaseOwner/-LeaseCard；vitshell_smoke 取证重跑须显式 -ForensicsOwner（空值 fail-closed 并回显 ledger 最新事件）。entry_management/vitshell_smoke 补了 UTF-8 BOM（原无 BOM 文件加入 CJK 字面量防 PS5.1 ANSI 误读）。
+- 证据：coord/runs/STACKLEASE-OWNER-PARAM-1/（acceptance_evidence.txt / selftest_report.json / hardcode_grep_evidence.txt / claim_baseline_git.txt / PROGRESS.md）。
+- worktree D:/Vit_DAW_wt_pc442 + 分支 pc442-lease 保留（名册 leaseparam442 可续）。
