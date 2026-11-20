@@ -1,6 +1,15 @@
 # AUDIO-CPP-INSTRUMENTAL-SPIKE-1：audio.cpp 器乐通路 spike（LoRA 路线）
 
 - 池序 439；P2；PC；发卡=lead（2026-11-20）；派发确认=用户「没问题」（audio.cpp 路线批准）；验收负责人=lead（步①人耳=用户）。
+
+## 领取（audiocpp439，2026-11-20 19:05 +0800）
+
+- 执行会话：ZCode GLM-5.3-Flash 子代理 audiocpp439（PC，主仓 D:/Vit_DAW，main 工作树；本轮仅步①，步②条件触发不在本轮）。
+- 领取基线：`git rev-parse HEAD` = `e2dbd4537e22aa4e61b37a236c927bff13b04aa1`。
+- 领取时 `git status --short` 已有非本卡改动（原样保留不触碰）：`CURRENT-STATE.md`、`VitApp/Workspace/Settings/Settings.xml`、`VitApp/Workspace/default_project.xml`（M）、`coord/cards/blocked/2026-11-20-TUTOR-SIM-4-PROD-NODES.md`（D）、`tracktion_engine`（M 子模块）、若干未跟踪 docs/coord/reports/ledger/.vit_derived 文件。
+- **调度变更（lead 2026-11-20 19:0x）**：三件下载改由用户终端手动执行（用户网络更稳）；本会话不自行下载，轮询等待 `E:\AI\audio-cpp\` 文件就位（≤90 分钟，60s 间隔，大小稳定判据）后继续 SHA 留档与生成。
+- 部署布局（以文件就位为准）：`E:\AI\audio-cpp\engine\`（v0.9.5 windows-x64-cuda12.4 bin+cudart 解压产物）、`models\yue2-3b-q8_0.gguf`、`models\yue2-vae-f32.gguf`、`models\sidecars\{4 件}`、`models\lora\ar_lora_inst_v3abc.safetensors`（AR LoRA only；NAR LoRA 本轮不挂，stock NAR decoder）。
+- 失败分类：按卡面（环境中断类 vs 概率类负结果）；生成预算恰 1 次；同形失败两次停卡。
 - 背景：390 fallback 收口后新证据——官方 instrumental=LoRA 适配器方案（`Mothersuperior/YuE2-instrumental-cot-full-loras`，AR+joint NAR 对）；yue2.cpp 无 LoRA 支持=纯 conditioning 不可能到达；audio.cpp v0.8.1+ 支持 `yue2.ar_lora`/`yue2.nar_lora`，Q8 峰值 <9GB（4070 12GB 可容）。
 
 ## 目标（两步，步②条件触发）
