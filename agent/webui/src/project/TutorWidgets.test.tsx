@@ -1,13 +1,23 @@
+// @vitest-environment jsdom
 /*
  * TUTOR-SIM-3（池序 437）：导师进度卡 / 步骤输入卡的静态渲染断言。
  * 交互提交链（发 /agent/chat、进度推进）由 ProjectSurface.tutor.test.tsx 覆盖。
+ * SIM-MUSIC-WIDGET-1（441）：MidiMaterialCard 谱面展开交互（jsdom + fixture 解析喂入）。
  */
 
+import { StrictMode, act } from "react";
+import { createRoot, type Root } from "react-dom/client";
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 
 import { AudioMaterialCard, MidiMaterialCard, TutorProgressCard, TutorStepCard } from "./TutorWidgets";
+import { parseMidiScore } from "./midiScore";
+import type { ScoreModel } from "../scoreworkbench/model";
 import type { TutorMaterialView, TutorStepView } from "./projectData";
+
+(globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 const ACTIVE_VIEW: TutorStepView = {
   stepIndex: 1,
@@ -174,5 +184,104 @@ describe("AudioMaterialCard（TUTOR-SIM-4 schema 位）", () => {
     expect(markup).toContain('data-tutor-material-kind="audio"');
     expect(markup).toContain("data-widget-audio-player");
     expect(markup).toContain("data-audio-unavailable");
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/* SIM-MUSIC-WIDGET-1（441）：材料卡谱面展开（查看谱面 / 收起）           */
+/* ------------------------------------------------------------------ */
+
+// 仓库装置 fixture（只读）：小星星主题 42 音 / 48 拍 / 4/4 / 100 BPM。
+const FIXTURE_REL = "../../coord/experiments/tutor-sim-2/assets/theme_twinkle_v0.mid";
+
+function fixtureScoreModel(): ScoreModel {
+  const text = readFileSync(join(process.cwd(), FIXTURE_REL), "latin1");
+  const bytes = new Uint8Array(text.length);
+  for (let i = 0; i < text.length; i++) bytes[i] = text.charCodeAt(i) & 0xff;
+  return parseMidiScore(bytes).model;
+}
+
+const LOADED_MATERIAL: TutorMaterialView = {
+  ...MIDI_MATERIAL,
+  loaded: true,
+  instrumentAttached: true
+};
+
+describe("MidiMaterialCard 谱面入口（SIM-MUSIC-WIDGET-1）", () => {
+  it("无谱面数据：无谱面入口（fail-honest，不伪造）", () => {
+    const markup = renderToStaticMarkup(<MidiMaterialCard view={LOADED_MATERIAL} onLoad={() => undefined} />);
+    expect(markup).not.toContain("data-tutor-score-toggle");
+    expect(markup).toContain('data-tutor-score-available="false"');
+  });
+
+  it("有谱面数据但材料未装载：无谱面入口（谱面=已装载材料的交互）", () => {
+    const markup = renderToStaticMarkup(
+      <MidiMaterialCard view={MIDI_MATERIAL} onLoad={() => undefined} score={fixtureScoreModel()} />
+    );
+    expect(markup).not.toContain("data-tutor-score-toggle");
+    expect(markup).toContain('data-tutor-score-available="false"');
+  });
+
+  it("已装载 + 有谱面数据：默认收起（入口在，谱面不在）", () => {
+    const markup = renderToStaticMarkup(
+      <MidiMaterialCard view={LOADED_MATERIAL} onLoad={() => undefined} score={fixtureScoreModel()} />
+    );
+    expect(markup).toContain("data-tutor-score-toggle");
+    expect(markup).toContain("查看谱面");
+    expect(markup).toContain('data-tutor-score-open="false"');
+    expect(markup).not.toContain("data-tutor-score-svg");
+    expect(markup).toContain('data-tutor-score-available="true"');
+  });
+});
+
+describe("MidiMaterialCard 谱面展开交互（SIM-MUSIC-WIDGET-1，jsdom）", () => {
+  const mounted: Array<{ root: Root; container: HTMLElement }> = [];
+
+  afterEach(() => {
+    for (const entry of mounted.splice(0)) {
+      act(() => entry.root.unmount());
+      entry.container.remove();
+    }
+  });
+
+  function mountScoreCard(score: ScoreModel | null): HTMLElement {
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+    const root = createRoot(container);
+    act(() => {
+      root.render(
+        <StrictMode>
+          <MidiMaterialCard view={LOADED_MATERIAL} onLoad={() => undefined} score={score} />
+        </StrictMode>
+      );
+    });
+    mounted.push({ root, container });
+    return container;
+  }
+
+  it("展开：VexFlow 谱面渲染 + 音符数/拍号来自装置 fixture（42 音 / 4/4）；收起：谱面移除", () => {
+    const container = mountScoreCard(fixtureScoreModel());
+    const toggle = container.querySelector<HTMLElement>("[data-tutor-score-toggle]");
+    expect(toggle).not.toBeNull();
+    expect(container.querySelector("[data-tutor-score-svg]")).toBeNull();
+
+    act(() => {
+      toggle!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+    const svgHost = container.querySelector<HTMLElement>("[data-tutor-score-svg]");
+    expect(svgHost).not.toBeNull();
+    expect(svgHost!.querySelector("svg")).not.toBeNull(); // VexFlow SVG 在卷（374 渲染层复用）
+    expect(container.querySelector("[data-tutor-score-notes]")?.textContent).toContain("42 音");
+    expect(container.querySelector("[data-tutor-score-timesig]")?.textContent).toBe("4/4");
+    expect(container.querySelector("[data-tutor-score]")?.getAttribute("data-tutor-score-open")).toBe("true");
+
+    act(() => {
+      container.querySelector<HTMLElement>("[data-tutor-score-toggle]")!.dispatchEvent(
+        new MouseEvent("click", { bubbles: true })
+      );
+    });
+    expect(container.querySelector("[data-tutor-score-svg]")).toBeNull();
+    expect(container.querySelector("[data-tutor-score]")?.getAttribute("data-tutor-score-open")).toBe("false");
+    expect(container.querySelector("[data-tutor-score-toggle]")!.textContent).toContain("查看谱面");
   });
 });

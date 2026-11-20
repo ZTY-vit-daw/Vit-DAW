@@ -50,12 +50,16 @@ import {
   type ProjectSurfaceState,
   type ProjectThreadItem,
   type SnapshotReceiptView,
-  type TrajectoryView
+  type TrajectoryView,
+  type TutorMaterialView
 } from "./projectData";
 import { createProjectLiveService } from "./projectService";
 import { abReadyLabel } from "./projectFixtures";
+// SIM-MUSIC-WIDGET-1（441）：谱面模型复用 374 scoreworkbench 记谱形状（只读 import）。
+import type { ScoreModel } from "../scoreworkbench/model";
 // TUTOR-SIM-3（437）：导师进度卡 + 步骤输入卡（对话流内控件；数据只来自 workflow_data）。
 // TUTOR-SIM-4（438）：材料卡（midi_clip 装载 / audio schema 位）。
+// SIM-MUSIC-WIDGET-1（441）：MidiMaterialCard 谱面展开（MaterialScoreView 卡内挂载）。
 import { AudioMaterialCard, MidiMaterialCard, TutorProgressCard, TutorStepCard } from "./TutorWidgets";
 // SHELL-6（池序 367）：工程面交互链复用 launcher 面的桥客户端与纯文案/视图件
 //（import-only，零修改 launcher/）。同一 ask_vit_launcher 契约、同一
@@ -123,6 +127,9 @@ export interface ProjectFixtureOverrides {
   forceComposerState?: ProjectComposerState;
   /** fixture 服务替身（离线交互；省略 = 纯静态展示）。 */
   service?: ProjectService;
+  /** SIM-MUSIC-WIDGET-1（441）：fixture 注入的谱面模型（按材料名索引；gallery/
+   * 测试离线注入——装置侧材料文件解析 midiScore.ts 的产物可经此喂入）。 */
+  tutorScores?: Record<string, ScoreModel>;
 }
 
 export interface ProjectSurfaceProps {
@@ -146,6 +153,13 @@ export interface ProjectSurfaceProps {
   /** CONV-RAIL-1（418）：动作成功后刷新对话流数据（App 重新 fetchUIState；不传=不刷新，
    * 动作成功事实不受刷新失败影响）。 */
   onRefreshConversationState?: () => void | Promise<unknown>;
+  /** SIM-MUSIC-WIDGET-1（441）：live 谱面数据接缝（midi_clip 材料装载成功后
+   * 回读音符序列；未传=无谱面数据，入口不渲染，fail-honest 不伪造）。后续
+   * 真栈卡接装载链内核回读（createAgentScoreBridge.reload，374 既有协议）。 */
+  tutorScoreLoader?: (
+    title: string,
+    receipt: { trackID: string; clipID: string }
+  ) => Promise<ScoreModel | null>;
 }
 
 /** 轨迹视图 → 344 StatusCard 三态映射（idle 由 surface 渲染为待机行）。 */
@@ -386,7 +400,8 @@ export function ProjectSurface({
   onOpenSettings,
   active = true,
   conversationUIState,
-  onRefreshConversationState
+  onRefreshConversationState,
+  tutorScoreLoader
 }: ProjectSurfaceProps) {
   const presentation = useWindowPresentation();
   const launchBusy = isWindowLaunchBusy(presentation.state);
@@ -1001,6 +1016,18 @@ export function ProjectSurface({
   const tutorView = tutorProjectPath ? state.tutorViews[tutorProjectPath] ?? null : null;
   // TUTOR-SIM-4（438）：材料装载在途（同名材料按钮禁用防重复）。
   const [loadingMaterial, setLoadingMaterial] = useState<string | null>(null);
+  // SIM-MUSIC-WIDGET-1（441）：已装载材料的谱面模型（按材料名索引）。
+  // fixture 注入（gallery/测试离线喂入）或 live tutorScoreLoader 接缝回读；
+  // 无数据=谱面入口不渲染（fail-honest，不伪造谱面）。
+  const [tutorScores, setTutorScores] = useState<Record<string, ScoreModel>>(
+    () => fixture?.tutorScores ?? {}
+  );
+  // 装载回执处理中查材料 kind / loader 用 ref（避免 loadTutorMaterial 随
+  // tutorViews/props 频繁重建；回调依赖面保持 438 原状）。
+  const tutorMaterialsRef = useRef<TutorMaterialView[]>([]);
+  tutorMaterialsRef.current = tutorView?.materials ?? [];
+  const tutorScoreLoaderRef = useRef(tutorScoreLoader);
+  tutorScoreLoaderRef.current = tutorScoreLoader;
   const loadTutorMaterial = useCallback(
     (title: string) => {
       const service = serviceRef.current;
@@ -1024,6 +1051,19 @@ export function ProjectSurface({
               clipID: outcome.clipID,
               instrumentAttached: outcome.instrumentAttached
             });
+            // SIM-MUSIC-WIDGET-1（441）：谱面数据接缝——只对 midi_clip 材料经
+            // tutorScoreLoader 回读（live=装载链内核回读 374 既有协议，由调用方
+            // 接线；未接线/失败/材料非 midi_clip=无谱面数据，入口不渲染）。
+            const material = tutorMaterialsRef.current.find((item) => item.title === title);
+            const loader = tutorScoreLoaderRef.current;
+            if (material?.kind === "midi_clip" && loader) {
+              void loader(title, { trackID: outcome.trackID, clipID: outcome.clipID })
+                .then((model) => {
+                  if (!mountedRef.current || !model) return;
+                  setTutorScores((prev) => ({ ...prev, [title]: model }));
+                })
+                .catch(() => undefined);
+            }
           } else {
             setNotice(`材料装载失败：${outcome.reason}`);
           }
@@ -1464,6 +1504,7 @@ export function ProjectSurface({
                           view={material}
                           pending={loadingMaterial === material.title}
                           onLoad={() => loadTutorMaterial(material.title)}
+                          score={tutorScores[material.title]}
                         />
                       ) : (
                         <AudioMaterialCard key={material.title} view={material} />
