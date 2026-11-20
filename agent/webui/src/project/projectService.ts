@@ -24,7 +24,7 @@ import type {
   TutorMaterialLoadOutcome,
   TutorStartOutcome
 } from "./projectData";
-import { tutorBriefFromWorkflowData, tutorMaterialsFromWorkflowData } from "./projectData";
+import { tutorAnswerKindFromWorkflowData, tutorBriefFromWorkflowData, tutorMaterialsFromWorkflowData } from "./projectData";
 
 /**
  * SHELL-6：工程面消费的 chat 回执子集——types.ts ChatResponse 尚未声明
@@ -63,7 +63,9 @@ export function projectContextFromUIState(uiState: Awaited<ReturnType<typeof fet
 
 /** TUTOR-SIM-2（436）：导师开场回执 → 接缝结果；不可用/缺字段一律 unavailable。
  * TUTOR-SIM-4（438）：v1 回执带 workflow_data（brief/materials）；v0 回执没有
- * workflow_data 时输出对象**不含**这两个键（436 回执映射的严格相等面不变）。 */
+ * workflow_data 时输出对象**不含**这两个键（436 回执映射的严格相等面不变）。
+ * TUTOR-INPUT-TYPE-1（444）：workflow_data 在场时投影 answerKind（缺省 number；
+ * 无 workflow_data 的 v0 输出不含该键，436 严格键面不变）。 */
 export function tutorStartOutcomeFromResponse(response: Awaited<ReturnType<typeof startTutorSim>>): TutorStartOutcome {
   if (response.status !== "ok") {
     return { status: "unavailable", reason: response.reason || response.error || response.status };
@@ -84,6 +86,7 @@ export function tutorStartOutcomeFromResponse(response: Awaited<ReturnType<typeo
   if (workflowData !== undefined && workflowData !== null) {
     const materials = tutorMaterialsFromWorkflowData(workflowData);
     outcome.brief = tutorBriefFromWorkflowData(workflowData);
+    outcome.answerKind = tutorAnswerKindFromWorkflowData(workflowData);
     if (materials !== null) outcome.materials = materials;
   }
   return outcome;

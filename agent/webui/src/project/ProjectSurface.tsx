@@ -37,6 +37,7 @@ import {
   nextProjectItemID,
   projectThreadItemsFromOutcome,
   reduceProject,
+  tutorAnswerKindFromWorkflowData,
   tutorBriefFromWorkflowData,
   tutorMaterialsFromWorkflowData,
   tutorProgressFromSteps,
@@ -920,7 +921,10 @@ export function ProjectSurface({
               ...startProgress,
               prompt: reply,
               brief: outcome.brief,
-              materials: outcome.materials
+              materials: outcome.materials,
+              // TUTOR-INPUT-TYPE-1（444）：开场回执的输入型（v0 无 workflow_data
+              // 时 undefined，reducer 按缺省 number 处理）。
+              answerKind: outcome.answerKind
             }
           });
         }
@@ -953,11 +957,14 @@ export function ProjectSurface({
               type: "tutorViewUpdated",
               projectPath: tutorProjectPath,
               // TUTOR-SIM-4：brief/materials 随回执更新（缺省由 reducer 回退旧值）。
+              // TUTOR-INPUT-TYPE-1（444）：输入型随回执更新（服务端 answer_kind
+              // 单点投影；缺省/非 "text" 均为 number，v0 行为不变）。
               view: {
                 ...progress,
                 prompt: outcome.text,
                 brief: tutorBriefFromWorkflowData(outcome.workflowData),
-                materials: tutorMaterialsFromWorkflowData(outcome.workflowData) ?? undefined
+                materials: tutorMaterialsFromWorkflowData(outcome.workflowData) ?? undefined,
+                answerKind: tutorAnswerKindFromWorkflowData(outcome.workflowData)
               }
             });
           }

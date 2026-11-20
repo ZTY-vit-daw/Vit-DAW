@@ -85,6 +85,68 @@ describe("TutorStepCard", () => {
 });
 
 /* ------------------------------------------------------------------ */
+/* TUTOR-INPUT-TYPE-1（444）：步骤卡输入型按 answer_kind 自适应           */
+/* ------------------------------------------------------------------ */
+
+describe("TutorStepCard 输入型自适应（TUTOR-INPUT-TYPE-1）", () => {
+  it("answerKind 缺省/number：数字框（v0 行为不变）", () => {
+    const defaultMarkup = renderToStaticMarkup(<TutorStepCard view={ACTIVE_VIEW} onSubmit={() => undefined} />);
+    expect(defaultMarkup).toContain('data-tutor-step-input-kind="number"');
+    expect(defaultMarkup).toContain('type="number"');
+    expect(defaultMarkup).toContain("输入数字答案");
+    const numberMarkup = renderToStaticMarkup(
+      <TutorStepCard view={{ ...ACTIVE_VIEW, answerKind: "number" }} onSubmit={() => undefined} />
+    );
+    expect(numberMarkup).toContain('data-tutor-step-input-kind="number"');
+    expect(numberMarkup).toContain('type="number"');
+    expect(numberMarkup).toContain("输入数字答案");
+  });
+
+  it("answerKind text：文本框 + 词答案占位（静态）", () => {
+    const markup = renderToStaticMarkup(
+      <TutorStepCard view={{ ...ACTIVE_VIEW, answerKind: "text" }} onSubmit={() => undefined} />
+    );
+    expect(markup).toContain('data-tutor-step-input-kind="text"');
+    expect(markup).toContain('type="text"');
+    expect(markup).not.toContain('type="number"');
+    expect(markup).toContain("输入文本答案");
+    expect(markup).not.toContain("输入数字答案");
+  });
+
+  it("answerKind text：词答案可输入可提交（jsdom 交互，提交链路不变）", async () => {
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+    const root = createRoot(container);
+    const submitted: string[] = [];
+    act(() => {
+      root.render(
+        <TutorStepCard
+          view={{ ...ACTIVE_VIEW, answerKind: "text", prompt: "确认完成：输入「完成」。" }}
+          onSubmit={(value) => submitted.push(value)}
+        />
+      );
+    });
+    const input = container.querySelector("[data-tutor-step-input]") as HTMLInputElement;
+    expect(input).not.toBeNull();
+    expect(input.type).toBe("text");
+    act(() => {
+      const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
+      setter?.call(input, "模进");
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    const form = container.querySelector("[data-tutor-step-form]") as HTMLFormElement;
+    act(() => {
+      form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+    });
+    expect(submitted).toEqual(["模进"]);
+    act(() => {
+      root.unmount();
+    });
+    container.remove();
+  });
+});
+
+/* ------------------------------------------------------------------ */
 /* TUTOR-SIM-4（438）：brief 折叠 / MidiMaterialCard / AudioMaterialCard  */
 /* ------------------------------------------------------------------ */
 

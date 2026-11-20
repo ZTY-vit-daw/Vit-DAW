@@ -297,3 +297,46 @@ describe("TUTOR-SIM-4：start 回执携带 brief/materials（workflow_data 局�
     }
   });
 });
+
+describe("TUTOR-INPUT-TYPE-1：start 回执投影 answerKind", () => {
+  it("workflow_data.answer_kind=text → text；number → number；v0（无 workflow_data）不含键", () => {
+    const text = tutorStartOutcomeFromResponse({
+      status: "ok",
+      conversation_id: "tutor_kind_text",
+      reply: "开场",
+      step_index: 1,
+      step_total: 4,
+      step_id: "step-confirm",
+      workflow_data: { step_index: 1, step_total: 4, step_id: "step-confirm", answer_kind: "text" }
+    } as never);
+    if (text.status === "ok") {
+      expect(text.answerKind).toBe("text");
+    }
+    const number = tutorStartOutcomeFromResponse({
+      status: "ok",
+      conversation_id: "tutor_kind_number",
+      reply: "开场",
+      step_index: 1,
+      step_total: 4,
+      step_id: "step-listen",
+      workflow_data: { step_index: 1, step_total: 4, step_id: "step-listen", answer_kind: "number" }
+    } as never);
+    if (number.status === "ok") {
+      expect(number.answerKind).toBe("number");
+    }
+    const legacy = tutorStartOutcomeFromResponse({
+      status: "ok",
+      conversation_id: "tutor_kind_legacy",
+      reply: "开场",
+      step_index: 1,
+      step_total: 3,
+      step_id: "step-1"
+    });
+    if (legacy.status === "ok") {
+      // 旧服务端 v0 回执（无 workflow_data）：不含 answerKind 键（436 键面不变，
+      // UI 按缺省 number 渲染数字框）。
+      expect(legacy.answerKind).toBeUndefined();
+      expect(Object.keys(legacy)).not.toContain("answerKind");
+    }
+  });
+});

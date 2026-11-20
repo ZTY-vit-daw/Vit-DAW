@@ -672,3 +672,72 @@ describe("SIM-MUSIC-WIDGET-1：材料卡谱面展开（surface 注入链）", ()
     expect(container.querySelector("[data-tutor-material]")?.getAttribute("data-tutor-score-available")).toBe("false");
   });
 });
+
+/* ------------------------------------------------------------------ */
+/* TUTOR-INPUT-TYPE-1（444）：输入型随回执自适应（surface 接线）          */
+/* ------------------------------------------------------------------ */
+
+const TEXT_OPENING: TutorStartOutcome = {
+  ...OK_OPENING,
+  answerKind: "text"
+};
+
+describe("TUTOR-INPUT-TYPE-1：surface 输入型接线", () => {
+  it("开场 answerKind=text → 文本框；词答案可提交；number 步回数字框（v0 步不变）", async () => {
+    const submits: string[] = [];
+    const base = createProjectFixtureService({ context: CONTEXT, tutorStart: TEXT_OPENING, tutorStartCalls: [] });
+    const service: ProjectService = {
+      ...base,
+      async sendMessage(text: string) {
+        submits.push(text);
+        // 词答案步（step-confirm 型 fixture 语义）→ 通过 → 下一数字步。
+        return {
+          text: text === "完成" ? "确认通过。" : "还没通过。",
+          workflow: "tutor_sim",
+          workflowData: { step_index: 2, step_total: 3, completed: false, answer_kind: "number" }
+        };
+      }
+    };
+    const { container } = mount(<ProjectSurface fixture={{ context: CONTEXT, service }} />);
+    await flush();
+
+    // 开场回执 answerKind=text：文本框（词答案场景，type=number 会拒字）。
+    const input = tutorStepInput(container);
+    expect(input.type).toBe("text");
+    expect(input.getAttribute("data-tutor-step-input-kind")).toBe("text");
+    expect(container.querySelector("[data-tutor-step-input]")?.getAttribute("placeholder")).toBe("输入文本答案");
+
+    // 词答案「完成」走既有提交链（onSubmit → sendMessage）。
+    submitTutorStep(container, "完成");
+    await flush();
+    expect(submits).toEqual(["完成"]);
+
+    // 下一数字步回执 answer_kind=number：键面回数字框（换步不粘带 text）。
+    const nextInput = tutorStepInput(container);
+    expect(nextInput.type).toBe("number");
+    expect(nextInput.getAttribute("data-tutor-step-input-kind")).toBe("number");
+    expect(nextInput.getAttribute("placeholder")).toBe("输入数字答案");
+  });
+
+  it("回执无 answer_kind（v0 旧服务端形状）：恒为数字框，现行为不回归", async () => {
+    const base = createProjectFixtureService({ context: CONTEXT, tutorStart: OK_OPENING });
+    const service: ProjectService = {
+      ...base,
+      async sendMessage() {
+        return {
+          text: "还没通过。",
+          workflow: "tutor_sim",
+          workflowData: { step_index: 1, step_total: 3, completed: false }
+        };
+      }
+    };
+    const { container } = mount(<ProjectSurface fixture={{ context: CONTEXT, service }} />);
+    await flush();
+    const input = tutorStepInput(container);
+    expect(input.type).toBe("number");
+    expect(input.getAttribute("data-tutor-step-input-kind")).toBe("number");
+    submitTutorStep(container, "6");
+    await flush();
+    expect(tutorStepInput(container).type).toBe("number");
+  });
+});

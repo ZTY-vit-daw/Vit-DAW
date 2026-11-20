@@ -52,11 +52,24 @@ export interface TutorProgressView {
 /** 步骤输入卡视图：步骤寻址 + 最近 assistant 回复作为当前问题/引导。
  * prompt 只来自服务端 reply；服务端判定答案永不下发、永不显示。
  * TUTOR-SIM-4（438）：brief 教学简报与材料列表（v1 实验字段；可选，v0 实验
- * 两字段缺省空 → UI 不渲染简报/材料卡）。 */
+ * 两字段缺省空 → UI 不渲染简报/材料卡）。
+ * TUTOR-INPUT-TYPE-1（444）：answerKind 输入型（"number"|"text"，由服务端
+ * workflow_data.answer_kind 投影）。缺省/undefined = number（v0 兼容面：
+ * 旧回执无该键恒为数字框）；视图仅在 "text" 时落键，"number" 不落键——
+ * 437 严格相等面不回归。 */
 export interface TutorStepView extends TutorProgressView {
   prompt: string;
   brief?: string;
   materials?: TutorMaterialView[];
+  answerKind?: "number" | "text";
+}
+
+/** TUTOR-INPUT-TYPE-1（444）：workflow_data.answer_kind → 输入型。
+ * 只有服务端显式下发 "text" 才是文本答案；缺省/非对象/其他值一律 number
+ * （v0 兼容：旧回执无 answer_kind → 数字框，现行为不变）。 */
+export function tutorAnswerKindFromWorkflowData(data: unknown): "number" | "text" {
+  if (!data || typeof data !== "object" || Array.isArray(data)) return "number";
+  return (data as Record<string, unknown>).answer_kind === "text" ? "text" : "number";
 }
 
 /** 材料视图（服务端 workflow_data.materials 的只读投影；kind 只认
@@ -526,6 +539,9 @@ export function reduceProject(state: ProjectSurfaceState, event: ProjectEvent): 
       // TUTOR-SIM-3：每工程保留一份最新结构化视图；空路径/非法步骤不落状态。
       // TUTOR-SIM-4：brief/materials 随事件更新（缺省回退旧值）；两者皆空时
       // 不落键——v0 实验的存储视图保持 437 原形状（严格相等面不回归）。
+      // TUTOR-INPUT-TYPE-1（444）：answerKind 显式 "text" 落键；显式 "number"
+      // 不落键且清除可能残留的旧 text（步进换步后旧型别不粘带）；事件缺省
+      // （v0 形状）回退旧值。number 是缺省渲染面，不落键保持 v0 存储形状。
       const path = event.projectPath.trim();
       if (!path) return state;
       const progress = tutorProgressFromSteps(event.view.stepIndex, event.view.stepTotal, event.view.completed);
@@ -536,9 +552,16 @@ export function reduceProject(state: ProjectSurfaceState, event: ProjectEvent): 
       // materials 已是投影后的视图数组（raw workflow_data 的校验投影单点在
       // tutorMaterialsFromWorkflowData / tutorStartOutcomeFromResponse）。
       const materials = event.view.materials ?? previous?.materials ?? [];
+      const answerKind =
+        event.view.answerKind === "text"
+          ? "text"
+          : event.view.answerKind === "number"
+            ? undefined
+            : previous?.answerKind;
       const view: TutorStepView = { ...progress, prompt };
       if (brief) view.brief = brief;
       if (materials.length > 0) view.materials = materials;
+      if (answerKind === "text") view.answerKind = "text";
       return {
         ...state,
         tutorViews: { ...state.tutorViews, [path]: view }
@@ -644,7 +667,9 @@ export interface ProjectChatOutcome {
 
 /** TUTOR-SIM-2（436）：自动开场接缝回执。
  * unavailable = 工程无 sidecar / LLM 配置缺失 / 请求失败——UI 必须静默。
- * TUTOR-SIM-4（438）：ok 变体携带当前步 brief/materials（v0 实验缺省空）。 */
+ * TUTOR-SIM-4（438）：ok 变体携带当前步 brief/materials（v0 实验缺省空）。
+ * TUTOR-INPUT-TYPE-1（444）：answerKind 当前步输入型（仅 workflow_data 在场
+ * 时投影；缺省 number——436 v0 无 workflow_data 的严格键面不回归）。 */
 export type TutorStartOutcome =
   | {
       status: "ok";
@@ -655,6 +680,7 @@ export type TutorStartOutcome =
       stepID: string;
       brief?: string;
       materials?: TutorMaterialView[];
+      answerKind?: "number" | "text";
     }
   | { status: "unavailable"; reason?: string };
 

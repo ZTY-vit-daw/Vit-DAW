@@ -782,6 +782,90 @@ func TestTutorV1ChatCarriesBriefAndMaterialsPerStep(t *testing.T) {
 	}
 }
 
+// TUTOR-INPUT-TYPE-1（池序 444）：expect 纯数字 → number，其余 → text；
+// 空串（Parse 校验外防御面）→ number 兼容 v0。
+func TestTutorSimAnswerKindClassification(t *testing.T) {
+	cases := []struct {
+		expect string
+		want   string
+	}{
+		{"7", tutorSimAnswerKindNumber},
+		{"42", tutorSimAnswerKindNumber},
+		{" 123 ", tutorSimAnswerKindNumber},
+		{"007", tutorSimAnswerKindNumber},
+		{"完成", tutorSimAnswerKindText},
+		{"模进", tutorSimAnswerKindText},
+		{"已装载", tutorSimAnswerKindText},
+		{"12a", tutorSimAnswerKindText},
+		{"1 2", tutorSimAnswerKindText},
+		{"-5", tutorSimAnswerKindText},
+		{"", tutorSimAnswerKindNumber},
+		{"   ", tutorSimAnswerKindNumber},
+	}
+	for _, tc := range cases {
+		if got := tutorSimAnswerKind(tc.expect); got != tc.want {
+			t.Fatalf("tutorSimAnswerKind(%q) = %q, want %q", tc.expect, got, tc.want)
+		}
+	}
+}
+
+func TestTutorV0CarriesNumericAnswerKind(t *testing.T) {
+	// v0 fixture 全部纯数字 expect：start 与 chat 的 workflow_data.answer_kind
+	// 恒为 number（数字框=现行为，v0 兼容面）。
+	projectPath, _ := writeTutorProject(t, tutorSimTestYAML)
+	fake := &fakeTutorCompleter{replies: []string{"opening", "advanced"}}
+	server := newTutorTestServer(t, fake)
+	body := startTutorConversation(t, server, projectPath, "conv-v0-kind")
+	data := tutorMap(t, body, "workflow_data")
+	if got := tutorString(t, data, "answer_kind"); got != tutorSimAnswerKindNumber {
+		t.Fatalf("v0 start answer_kind = %q, want %q", got, tutorSimAnswerKindNumber)
+	}
+	// 错输入不推进：answer_kind 仍是当前数字步。
+	wrong := postTutorChat(t, server, "conv-v0-kind", "6")
+	wrongData := tutorMap(t, wrong, "workflow_data")
+	if tutorInt(t, wrongData, "step_index") != 1 {
+		t.Fatalf("wrong input advanced: %v", wrongData["step_index"])
+	}
+	if got := tutorString(t, wrongData, "answer_kind"); got != tutorSimAnswerKindNumber {
+		t.Fatalf("v0 retry answer_kind = %q, want %q", got, tutorSimAnswerKindNumber)
+	}
+	chat := postTutorChat(t, server, "conv-v0-kind", "7")
+	chatData := tutorMap(t, chat, "workflow_data")
+	if tutorInt(t, chatData, "step_index") != 2 {
+		t.Fatalf("advance step_index = %v", chatData["step_index"])
+	}
+	if got := tutorString(t, chatData, "answer_kind"); got != tutorSimAnswerKindNumber {
+		t.Fatalf("v0 chat answer_kind = %q, want %q", got, tutorSimAnswerKindNumber)
+	}
+}
+
+func TestTutorV1AnswerKindTextStep(t *testing.T) {
+	// v1 fixture：第 1 步 expect=42（number）→ 提交 42 推进到 step-confirm
+	// （expect=完成）→ chat 回执 answer_kind 翻为 text（词答案=文本框）。
+	projectPath := writeTutorV1Project(t)
+	fake := &fakeTutorCompleter{replies: []string{"opening", "advanced"}}
+	server := newTutorTestServer(t, fake)
+	body := startTutorConversation(t, server, projectPath, "conv-v1-kind")
+	startData := tutorMap(t, body, "workflow_data")
+	if got := tutorString(t, startData, "answer_kind"); got != tutorSimAnswerKindNumber {
+		t.Fatalf("v1 start answer_kind = %q, want %q", got, tutorSimAnswerKindNumber)
+	}
+	chat := postTutorChat(t, server, "conv-v1-kind", "42")
+	data := tutorMap(t, chat, "workflow_data")
+	if tutorString(t, data, "step_id") != "step-confirm" {
+		t.Fatalf("advanced step = %v", data["step_id"])
+	}
+	if got := tutorString(t, data, "answer_kind"); got != tutorSimAnswerKindText {
+		t.Fatalf("step-confirm answer_kind = %q, want %q", got, tutorSimAnswerKindText)
+	}
+	// 完成态重复输入（AlreadyCompleted）：answer_kind 保持末步（text）。
+	repeat := postTutorChat(t, server, "conv-v1-kind", "42")
+	repeatData := tutorMap(t, repeat, "workflow_data")
+	if got := tutorString(t, repeatData, "answer_kind"); got != tutorSimAnswerKindText {
+		t.Fatalf("already-completed answer_kind = %q, want %q", got, tutorSimAnswerKindText)
+	}
+}
+
 func TestTutorLoadMaterialGuards(t *testing.T) {
 	projectPath := writeTutorV1Project(t)
 	server := newTutorTestServer(t, &fakeTutorCompleter{})
