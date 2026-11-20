@@ -1,0 +1,7 @@
+{
+  "released_at": "2026-11-21T00:05+08:00",
+  "processes": 0, "tcp": 0,
+  "authority_restore": "三件哈希一致（24ce0281/72f0f511/2cf36a50）",
+  "realstack_result": "材料装载真内核 PASS（新会话 track+Surge 挂载）；谱面入口 fail-honest PASS（无 live loader 不渲染=设计内）；谱面渲染证据=render smoke fixture 面（零栈已绿）；live 数据链接缝未接线=443 另卡",
+  "note": "工程保留昨日两轨+今夜一轨（per-session 装载语义，438 已录）"
+}

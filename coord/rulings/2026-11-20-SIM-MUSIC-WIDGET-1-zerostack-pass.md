@@ -18,6 +18,7 @@
 - 装置行为：test:render 会覆写 `coord/runs/UI-*` 烟测工件（既有装置行为，未入 commit；§10 登记随装置）。
 - 执行侧环境中断一次（junction node_modules→vite @fs 越界白屏，连续 2 次同断点后修 robocopy 真副本）——分类正确、主仓对照排除回归。
 
-## 下一步
+## 真栈腿（2026-11-21 00:05，lead 亲跑，边界收口）
 
-- 真栈手测窗（lead）：装载→查看谱面→42 音 4/4 渲染断言；随后 live 谱面数据链接缝候另卡。
+- berth_20261120_2350（agent a320cc94/dist 8eaf74a6）：**材料装载真内核 PASS**（新会话 track+Surge 挂载）；**谱面入口 fail-honest PASS**（live `tutorScoreLoader` 接缝设计上由调用方接线、441 未接——无数据入口不渲染，亲证 count=0）；谱面渲染证据=render smoke fixture 面（零栈已绿 11 段）。teardown 全零+三件哈希还原亲证。
+- **441 整卡 PASS 收口**；live 数据链接线=**443 SIM-LIVE-SCORE-LINK-1 另卡**（回读通道+App 容器接线；真栈手测随 443）。
