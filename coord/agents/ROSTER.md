@@ -20,6 +20,7 @@
 | `tutorprod438b` | TUTOR-SIM 生产节点 | pc438b / port/tutor-sim-4-438b（基线 841b9ef4） | 438 v2 续任实现完成：v1 schema+MIDI 材料装载+webui 材料卡，三门绿合入 main（950f1695→51eff149），done 待验收，证据 coord/runs/TUTOR-SIM-4/v2/ | inactive（待验收，可续真栈腿） |
 | `w02fb` | W02 A2a 作品反馈装置 | pc433-feedback / codex/w02-a2a-feedback-433 | A2a device 073d5f37（真回合未跑） | inactive（可续） |
 | `combo422` | 422 跨工作树验证装置 | pc422-combo / codex/conv-cross-combo-422 | 422 真栈 PASS 218dff3c | inactive（可续） |
+| `scorecard441` | SIM 线对话流谱面卡 | pc441-scorecard / pc441-scorecard（基线 cd6032c7） | 441 SIM-MUSIC-WIDGET-1 零栈执行完成：谱面卡（midiScore 装置解析+renderScoreInto 复用）三门绿合入 main（d9daabf3→08f24c7b），done 待验收，证据 coord/runs/SIM-MUSIC-WIDGET-1/ | inactive（待验收，可续真栈数据链腿） |
 | `entry413` / `ringfix416` / `presmerge412` / `producer410` / `ready411` | 窗口线旧执行 | 各自 worktree | 已结案 | inactive（一般不再复用） |
 
 ## 复用规则

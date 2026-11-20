@@ -1,0 +1,23 @@
+# PROGRESS — scorecard441 (SIM-MUSIC-WIDGET-1)
+
+- 任务卡: D:/Vit_DAW/coord/cards/todo/2026-11-20-SIM-MUSIC-WIDGET-1.md
+- 产线: scorecard441；零栈全腿（webui 域）；不启真实栈。
+- 步骤清单:
+  - [x] S1 勘察完成（结论见卡面领取节：374 复用锚点=render.ts renderScoreInto + model.ts；fixture 实测 42音/48拍/4-4/100bpm/division480；Go 回执无音符→装置侧 TS 解析 + live loader 接缝留位）
+  - [x] S2 worktree D:/Vit_DAW_wt_pc441score + 分支 pc441-scorecard（main@cd6032c7）
+  - [x] S3 领取记录提交 main → commit a56a8b89（只加本卡 coord 卡面文件）
+  - [x] S4 实现：midiScore.ts（装置侧 SMF 只读解析，13 用例）+ TutorWidgets（MidiMaterialCard score prop + MaterialScoreView 复用 renderScoreInto）+ ProjectSurface（fixture.tutorScores 注入 + tutorScoreLoader live 接缝）+ CSS
+  - [x] S5 vitest 全量 821 passed（67 files）exit 0（真实 node_modules 副本下复跑同绿）
+  - [x] S6 npm run build exit 0（tsc --noEmit 干净 + vite build）
+  - [x] S7 npm run test:render exit 0（11 项全 PASS 含 ENTRY388/PROJECT）
+  - [x] S8 分支 commit d9daabf3 + main merge 08f24c7b + 卡面移 done/（执行完成节）
+  - [x] S9 receipt.md 落盘 + ROSTER scorecard441 行 + coord 提交 main
+- 终态: **DONE**（2026-11-20；三门 exit 0；零栈腿完成，真栈手测留 lead）
+- 命令记录（跑长命令前先记这里）:
+  - node_modules 初用 junction（指向主仓）→ test:render ENTRY388 FAIL（vite @fs 对 junction 物理路径 D:/Vit_DAW 越界拒绝→模块 MIME json→白屏；诊断脚本 C:/Users/timoz/AppData/Local/Temp/entry388_diag.mjs 定位；主仓同诊断 PASS 证明非代码回归）→ 删 junction 用 robocopy 真实副本（172M，robocopy exit 1=成功）→ 三门重跑全绿。**环境中断已修复，非本卡代码回归**。
+  - npx tsc --noEmit → exit 0
+  - npm run test → 821 passed exit 0（两次：junction 期 + 真实副本期）
+  - npm run build → exit 0（两次）
+  - npm run test:render → 第一次/第二次 exit 1（ENTRY388 FAIL=junction 环境问题）；真实副本后 exit 0
+  - vitest run src/project/ → 143 passed（存量 124 + 新增 19）
+- 断点: 无（首轮开工 2026-11-20）

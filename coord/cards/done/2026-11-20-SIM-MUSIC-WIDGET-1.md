@@ -29,3 +29,12 @@
 - fixture 实测锚定（node 解析亲证）：`theme_twinkle_v0.mid` = format 0 单轨 / division 480 / 42 noteOn / 48 拍 / 拍号 meta nn=4 dd=2（**4/4**，卡面「3-4 拍号」按实际装置 4/4 断言）/ tempo 600000us=100 BPM。
 - 数据源裁定：`workflow_data.materials` 仅摘要（Go `tutorsim.go` 不下发音符序列，Go `midi.go` 的 `ParseMidi.Notes` 无网络面）→ 按卡面授权走「装置侧材料文件只读解析」（TS 解析器，纯函数，fail-closed）；live 装载链内核回读（`createAgentScoreBridge({clipID,trackID}).reload()`，374 既有协议）留为 ProjectSurface 可注入接缝，本卡不接线、后续真栈卡接入。
 - 停止条件评估：未触发（渲染层可复用，无 iframe/无复制）。
+
+## 执行完成（scorecard441，2026-11-20）
+
+- 实现 commit：分支 `pc441-scorecard` `d9daabf3`；merge main `08f24c7b`（7 文件，+813/-6：`agent/webui/src/project/midiScore.ts|test.ts` 新增，`TutorWidgets.tsx|.css|.test.tsx`、`ProjectSurface.tsx|.tutor.test.tsx` 扩展）。
+- 交互形态：MidiMaterialCard 谱面入口（有数据+已装载才显，fail-honest）→「查看谱面」内联展开（默认收起，与简报卡同模式）→ `MaterialScoreView` 复用 374 `renderScoreInto` 渲染 VexFlow beat-grid SVG + 音符数/拍号 meta；收起即移除；渲染异常显形不卸载对话流；AudioPlayer 挂载留位（注释锚点，后续卡）。
+- 数据链：装置侧解析 `parseMidiScore`（fixture .mid 字节→ScoreModel，与 Go tutorsim 同语法面+拍号 meta）；surface 注入接缝 `fixture.tutorScores`（gallery/测试）与 live `tutorScoreLoader`（装载回执 trackID/clipID→后续真栈卡接 `createAgentScoreBridge.reload`）。
+- 三门（worktree，真实 node_modules）：`npm run test` 821 passed（67 files，含新增 19 例）exit 0；`npm run build` exit 0；`npm run test:render` exit 0（11 项全 PASS 含 PROJECT/ENTRY388）。证据：`coord/runs/SIM-MUSIC-WIDGET-1/`。
+- 环境中断记录：junction 共享 node_modules 时 test:render ENTRY388 FAIL（vite @fs 对 junction 物理路径越界拒绝→模块 MIME json→白屏）——主仓同诊断 PASS 证明非代码回归；改真实副本后复现消失。烟测工件（coord/runs/UI-*）被本卡烟测覆盖但未混入提交。
+- 边界：零栈腿；vitest 断言=解析器+组件+surface 注入链；**真栈手测留 lead**（VitShell 产品入口，谱面数据 live 链待后续卡接线后可手测全链）。
