@@ -26,6 +26,7 @@
 | `sighyg331` | VST3 信令卫生线（C++ engine） | wt_pc331 / pc331-sighyg（engine 分支 pc331-sighyg 在主模块仓库 .git/modules/tracktion_engine） | 331 VST3-SIGNAL-HYGIENE-1 零栈执行完成：engine 98fb0200（守卫模式感知+VIT331_SETUP/SIGNAL 断言面，env 门 VIT331_CONSISTENT_SETUP 默认关），四门绿（configure/冷构建/go build/定向 go test），done 待验收（真栈腿 lead 留决策侧），证据 coord/runs/VST3-SIGNAL-HYGIENE-1/ | inactive（待验收，可续真栈腿/翻默认） |
 | `leaseparam442` | ps1 装置 lease 门卫生线 | pc442-lease / pc442-lease（基线 d170d36a） | 442 STACKLEASE-OWNER-PARAM-1 零栈执行完成：5 装置收口（owner 参数化+记录行解析容错+拒绝可诊断，entry388/restore403 硬编码清零）+自测 18 案×3 副本绿，合入 main（b71a37df→c6ce90bb），done 待验收，证据 coord/runs/STACKLEASE-OWNER-PARAM-1/ | inactive（待验收，可续装置面同族卫生） |
 | `scorefollow398` | 谱面选轨同步线（scoreworkbench） | pc398follow / pc398-follow（基线 36a0bc1d） | 398 SCORE-GUI-FOLLOW-1 零栈执行完成：两入口选择同步（边沿触发跟随+select_track 回写核对+dirty 待切防抢回/busy defer/跨工程清簿记），三门绿合入 main（31eff44e→56ea1732），done 待验收，证据 coord/runs/SCORE-GUI-FOLLOW-1/ | inactive（待验收，可续真栈 Godot 装配腿） |
+| `inputtype444` | 导师步骤卡输入型线 | pc444input / pc444-input（基线 0a1e409b，worktree D:/Vit_DAW_wt_pc444input） | 444 TUTOR-INPUT-TYPE-1 零栈执行完成：workflow_data.answer_kind（expect 纯数字判定，v0 缺省 number）+ TutorStepCard 数字/文本框自适应，四门绿合入 main（7195a8b1→b5f7b6ab），done 待验收，证据 coord/runs/TUTOR-INPUT-TYPE-1/ | inactive（待验收，可续真栈手测腿并入 443 窗口） |
 | `entry413` / `ringfix416` / `presmerge412` / `producer410` / `ready411` | 窗口线旧执行 | 各自 worktree | 已结案 | inactive（一般不再复用） |
 
 ## 复用规则
