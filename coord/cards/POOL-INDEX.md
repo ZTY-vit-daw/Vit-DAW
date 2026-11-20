@@ -10,7 +10,7 @@
 - doing：ARRLOOP-AUTHBRIDGE-1、WAVESHELL-LOADING-FORENSICS-1、LAUNCHER-ZEROFRICTION-1、SRC-PRESET-AGENT-1、GODOT-RETRY-LAUNCHER-1、WINDOW-TRANSITION-OBSERVER-1、433 W02-A2（A2a 装置已合；真回合未跑）、434 W02-A1-HANDTEST-V0（产品 v0 未过，superseded 待归档）。
 - blocked：438 TUTOR-SIM-4 v1 已停卡归档（premise_falsified：无音频资产+done_when 非文本，证据 `coord/runs/TUTOR-SIM-4/README.md`）；v2 按用户裁定改道（材料主形态=MIDI clip 装载，audio 留 schema 位）。
 - done（新增）：**438 TUTOR-SIM-4 v2（2026-11-20 零栈三门+真栈手测全过 PASS，[裁定](../rulings/2026-11-20-TUTOR-SIM-4-pass.md)——材料装载真内核收据 track/clip/plugin+Surge 实挂+幂等同 id；四步 completed；v0 兼容零新卡；SIM 线下一卡=音乐控件谱面/Tap/播放器）**。
-- todo 首排：**439 AUDIO-CPP-INSTRUMENTAL-SPIKE-1 步①执行完成：Q8+LoRA 生成 60s WAV（exit 0/VRAM 6.4G/SHA 全对），用户判定=成段人声→概率类负结果已落卡；Q8-LoRA 重量化混杂因素登记（audio.cpp 文档明示 Q8 合并非 BF16 等价），BF16 基座单发重试 a/b 候用户裁定（`coord/cards/todo/2026-11-20-AUDIO-CPP-INSTRUMENTAL-SPIKE-1.md`）**；434 归档留 gate。
+- todo 首排：SIM 线音乐控件卡（谱面/Tap/播放器，W05/W06/W07）**未发卡候写**；433 W02-A2 真回合候栈窗口；384 M2/点音色演示候用户在场。
 - 真栈：空闲；425 的 default_project 权威偏差见 `coord/runs/G0-LEGAME-BIND-1/real-stack/run_20261119_1818/DEVICE-NOTES.md`。
 
 ## 一、主线（混音/自由态/A-F/仪器）——GLM 主管决策流管辖
@@ -264,7 +264,7 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 436 | TUTOR-SIM-2 | done 真栈 PASS（VitShell 自动开场手测，用户确认） |
 | 437 | TUTOR-SIM-3 | done 真栈 PASS（2026-11-20 浏览器级 DOM 手测：1/3→错不推进→7/42/123→completed 禁用+普通工程零卡；[裁定](../rulings/2026-11-20-TUTOR-SIM-3-pass.md)） |
 | 438 | TUTOR-SIM-4 | done PASS（v1 停卡归档→v2 MIDI 材料装载重发；零栈三门+真栈手测全过：材料装载真内核 track/clip/plugin+Surge 实挂+幂等+四步 completed+v0 兼容；[裁定](../rulings/2026-11-20-TUTOR-SIM-4-pass.md)） |
-| 439 | AUDIO-CPP-INSTRUMENTAL-SPIKE-1 | todo 步① 执行完成（Q8+LoRA 60s WAV exit 0/VRAM 6.4G/SHA 全对，用户判定=成段人声概率类负结果；Q8-LoRA 重量化混杂因素登记；BF16 基座对照轮进行中 2026-11-20） |
+| 439 | AUDIO-CPP-INSTRUMENTAL-SPIKE-1 | done 负结果收口（Q8+LoRA 与 BF16+LoRA 双基座用户均判成段人声；单变量隔离亲证；四路证伪齐（381/390/439①/①-B）→ 步②不触发、YuE2 本地 instrumental 线关闭；audio.cpp 部署保留候上游演进；[裁定](../rulings/2026-11-20-AUDIO-CPP-INSTRUMENTAL-SPIKE-1-negative.md)） |
 
 
 
