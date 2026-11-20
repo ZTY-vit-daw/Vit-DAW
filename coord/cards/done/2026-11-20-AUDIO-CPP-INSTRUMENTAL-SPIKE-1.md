@@ -48,3 +48,8 @@
 - audio.cpp 官方文档明示：**LoRA 合并进 Q8 基座会重量化，不等价于 BF16 先合并**——本次被测=Q8 基座+LoRA，LoRA 效果可能被量化合并损伤。干净判定的唯一变量隔离=BF16 基座（`yue2-3b-bf16.gguf` 同仓在库，~6.2GB）重跑一次。
 - 另一未证面：Mothersuperior「joint_v1 NAR LoRA」存在性未落实（本仓文件列表仅 AR 件）。
 - 处置选项：a) BF16 单发重试（下载 6.2GB + 一次生成）后终裁；b) 就此整卡负结果收口（fallback 口径不变，损失=下载流量）。
+
+## 终局（2026-11-20 20:20，负结果收口）
+
+- 步①-B BF16 对照轮（audiocpp439，run_20261120_195455）：单变量隔离亲证（命令唯一差异=基座；双 WAV SHA 相异；LoRA projections=196；VRAM 9.6G 无 OOM；exit 0），**用户人耳判定=成段人声**。
+- 四路证伪齐（381/390/439①/439①-B）→ 整卡负结果，步②不触发；裁定：[negative](../../rulings/2026-11-20-AUDIO-CPP-INSTRUMENTAL-SPIKE-1-negative.md)。439 done。
