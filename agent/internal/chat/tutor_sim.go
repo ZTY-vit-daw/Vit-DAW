@@ -42,6 +42,11 @@ const (
 	tutorSimFailurePermanent = "permanent"
 	tutorSimFailureEmpty     = "empty_reply"
 	tutorSimFailureConfig    = "config"
+
+	// TUTOR-INPUT-TYPE-1（池序 444）：workflow_data.answer_kind 取值。UI 按它
+	// 渲染数字框或文本框；缺省语义是 number（v0 兼容面：无该键=数字框）。
+	tutorSimAnswerKindNumber = "number"
+	tutorSimAnswerKindText   = "text"
 )
 
 var errTutorSimEmptyReply = errors.New("tutor_sim: empty LLM reply")
@@ -787,17 +792,42 @@ func tutorSimVerdictData(exp *tutorsim.Experiment, verdict tutorsim.Verdict) map
 	})
 }
 
+// tutorSimAnswerKind maps the current step's expect to the UI input kind
+// (TUTOR-INPUT-TYPE-1, pool 444): a purely numeric expect (digits only after
+// trimming) keeps the number box (v0 behavior); any other expect — word
+// answers like 「完成」/「模进」/「已装载」 — renders a text box. An empty
+// expect is not reachable through Parse validation (expect is required) but
+// still defaults to number as the fail-closed v0-compatible value. The
+// server-side exact-match verdict is authoritative either way; the input kind
+// only shapes which keyboard the learner gets.
+func tutorSimAnswerKind(expect string) string {
+	trimmed := strings.TrimSpace(expect)
+	if trimmed == "" {
+		return tutorSimAnswerKindNumber
+	}
+	for _, r := range trimmed {
+		if r < '0' || r > '9' {
+			return tutorSimAnswerKindText
+		}
+	}
+	return tutorSimAnswerKindNumber
+}
+
 // tutorSimStepWorkflowData augments the structured verdict fields with the
 // current step's teaching payload (TUTOR-SIM-4 v1): brief prose and the
 // material list annotated with the session's load state. v0 experiments
 // carry an empty brief and an empty (non-null) materials list so the UI can
-// key on presence without schema sniffing.
+// key on presence without schema sniffing. TUTOR-INPUT-TYPE-1 adds the
+// current step's answer_kind (start and chat surfaces share this single
+// projection point; the already-completed path keeps the last step's kind
+// through verdict.StepIndex).
 func tutorSimStepWorkflowData(exp *tutorsim.Experiment, stepIndex int, loaded map[string]tutorsim.MaterialLoadState, data map[string]any) map[string]any {
 	if exp == nil || stepIndex < 1 || stepIndex > len(exp.Steps) {
 		return data
 	}
 	step := exp.Steps[stepIndex-1]
 	data["brief"] = step.Brief
+	data["answer_kind"] = tutorSimAnswerKind(step.Expect)
 	materials := make([]map[string]any, 0, len(step.Materials))
 	for _, material := range step.Materials {
 		materials = append(materials, tutorSimMaterialPayload(material, loaded[material.Title]))

@@ -13,6 +13,7 @@ import {
   reduceProject,
   replyAsksConfirmation,
   requestMacroApply,
+  tutorAnswerKindFromWorkflowData,
   tutorBriefFromWorkflowData,
   tutorMaterialsFromValue,
   tutorMaterialsFromWorkflowData,
@@ -631,5 +632,77 @@ describe("TUTOR-SIM-4：brief/materials reducer", () => {
       instrumentAttached: true
     });
     expect(s4.tutorViews["D:/none.vit"]).toBeUndefined();
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/* TUTOR-INPUT-TYPE-1（444）：answer_kind 投影 + answerKind reducer       */
+/* ------------------------------------------------------------------ */
+
+describe("TUTOR-INPUT-TYPE-1：tutorAnswerKindFromWorkflowData", () => {
+  it('只认显式 "text"；缺省/非对象/其他值一律 number（v0 兼容面）', () => {
+    expect(tutorAnswerKindFromWorkflowData({ answer_kind: "text" })).toBe("text");
+    expect(tutorAnswerKindFromWorkflowData({ answer_kind: "number" })).toBe("number");
+    expect(tutorAnswerKindFromWorkflowData({ step_index: 1, step_total: 3, completed: false })).toBe("number");
+    expect(tutorAnswerKindFromWorkflowData({})).toBe("number");
+    expect(tutorAnswerKindFromWorkflowData({ answer_kind: "TEXT" })).toBe("number");
+    expect(tutorAnswerKindFromWorkflowData({ answer_kind: 42 })).toBe("number");
+    expect(tutorAnswerKindFromWorkflowData(null)).toBe("number");
+    expect(tutorAnswerKindFromWorkflowData(undefined)).toBe("number");
+    expect(tutorAnswerKindFromWorkflowData("text")).toBe("number");
+    expect(tutorAnswerKindFromWorkflowData([1, 2])).toBe("number");
+  });
+});
+
+describe("TUTOR-INPUT-TYPE-1：answerKind reducer 携带/清除/回退", () => {
+  it('text 落键；number 不落键且清除旧 text（换步不粘带）；缺省回退旧值', () => {
+    let s = emptyProjectState();
+    // v0 形状事件（无 answerKind）：视图不落 answerKind 键（437 严格相等面）。
+    s = reduceProject(s, {
+      type: "tutorViewUpdated",
+      projectPath: "D:/kind.vit",
+      view: { stepIndex: 1, stepTotal: 3, completed: false, prompt: "第 1 步" }
+    });
+    expect(s.tutorViews["D:/kind.vit"]).toEqual({
+      stepIndex: 1,
+      stepTotal: 3,
+      completed: false,
+      prompt: "第 1 步"
+    });
+
+    // 显式 text：落键。
+    s = reduceProject(s, {
+      type: "tutorViewUpdated",
+      projectPath: "D:/kind.vit",
+      view: { stepIndex: 1, stepTotal: 3, completed: false, prompt: "输入「完成」", answerKind: "text" }
+    });
+    expect(s.tutorViews["D:/kind.vit"]).toEqual({
+      stepIndex: 1,
+      stepTotal: 3,
+      completed: false,
+      prompt: "输入「完成」",
+      answerKind: "text"
+    });
+
+    // 缺省（v0 形状）事件：回退旧 text。
+    s = reduceProject(s, {
+      type: "tutorViewUpdated",
+      projectPath: "D:/kind.vit",
+      view: { stepIndex: 1, stepTotal: 3, completed: false, prompt: "" }
+    });
+    expect(s.tutorViews["D:/kind.vit"]?.answerKind).toBe("text");
+
+    // 显式 number（服务端判定本步是数字答案）：键移除，旧 text 不粘带。
+    s = reduceProject(s, {
+      type: "tutorViewUpdated",
+      projectPath: "D:/kind.vit",
+      view: { stepIndex: 2, stepTotal: 3, completed: false, prompt: "输入数字", answerKind: "number" }
+    });
+    expect(s.tutorViews["D:/kind.vit"]).toEqual({
+      stepIndex: 2,
+      stepTotal: 3,
+      completed: false,
+      prompt: "输入数字"
+    });
   });
 });

@@ -8,8 +8,9 @@
  *   服务端判定答案，也不显示任何原始 JSON/状态文本；
  * - completed 后输入与提交禁用（保留只读问题与完成态），不自动发送、无命令词。
  *
- * 呈现：纯展示 + 受控数字输入；提交经 ProjectSurface 的既有 tutor 会话通道，
- * 本组件不发网络、不伪造步骤推进。
+ * 呈现：纯展示 + 受控步骤答案输入（TUTOR-INPUT-TYPE-1：数字框/文本框按
+ * workflow_data.answer_kind 自适应）；提交经 ProjectSurface 的既有 tutor 会话
+ * 通道，本组件不发网络、不伪造步骤推进。
  */
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
@@ -50,13 +51,17 @@ export interface TutorStepCardProps {
   onSubmit: (value: string) => void;
 }
 
-/** 当前步骤问题 + 数字输入 + 提交；completed 后禁用并显示完成。
- * TUTOR-SIM-4：brief 教学简报折叠展示（默认收起，只来自 workflow_data）。 */
+/** 当前步骤问题 + 步骤答案输入 + 提交；completed 后禁用并显示完成。
+ * TUTOR-SIM-4：brief 教学简报折叠展示（默认收起，只来自 workflow_data）。
+ * TUTOR-INPUT-TYPE-1（444）：输入型按 view.answerKind 自适应——"text" 渲染
+ * 文本框（词答案「完成」「模进」等可输入），缺省/undefined/"number" 渲染
+ * 数字框（v0 行为）。提交链路不变：仍走 onSubmit(文本)，服务端判定权威。 */
 export function TutorStepCard({ view, pending = false, onSubmit }: TutorStepCardProps) {
   const [value, setValue] = useState("");
   const [briefOpen, setBriefOpen] = useState(false);
   const disabled = view.completed || pending;
   const brief = (view.brief ?? "").trim();
+  const textInput = view.answerKind === "text";
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const text = value.trim();
@@ -114,11 +119,12 @@ export function TutorStepCard({ view, pending = false, onSubmit }: TutorStepCard
         <input
           className="v5-project-tutor-step-input"
           data-tutor-step-input
-          type="number"
-          inputMode="numeric"
+          data-tutor-step-input-kind={textInput ? "text" : "number"}
+          type={textInput ? "text" : "number"}
+          inputMode={textInput ? "text" : "numeric"}
           value={value}
           disabled={disabled}
-          placeholder={view.completed ? "实验已完成" : "输入数字答案"}
+          placeholder={view.completed ? "实验已完成" : textInput ? "输入文本答案" : "输入数字答案"}
           aria-label="步骤答案"
           onChange={(event) => setValue(event.target.value)}
         />
