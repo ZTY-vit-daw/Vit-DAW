@@ -58,9 +58,9 @@ func (h *Harness) genGenerate(ctx context.Context, cmd map[string]any) (map[stri
 	// instrumental score resting, dispatched summary) and ensures the local
 	// engine is up before any request leaves the process.
 	var (
-		prepared      *genapi.YuePrepareResult
-		engineHandle  *genapi.EngineHandle
-		scoreInput    *genapi.YueScoreInput
+		prepared     *genapi.YuePrepareResult
+		engineHandle *genapi.EngineHandle
+		scoreInput   *genapi.YueScoreInput
 	)
 	if provider.Dialect == "yue_local" {
 		prepared, engineHandle, scoreInput, rerr = h.genYuePrepareLocal(ctx, provider, cmd, req, promptEvidence)
@@ -73,14 +73,37 @@ func (h *Harness) genGenerate(ctx context.Context, cmd map[string]any) (map[stri
 
 	limitations := provider.Limitations(req)
 
-	genCtx, cancel := context.WithTimeout(ctx, provider.Timeout())
-	defer cancel()
-	result, err := genapi.Generate(genCtx, provider, req)
-	if err != nil {
-		gerr := genapi.AsError(err)
-		payload := gerr.ResultPayload()
-		payload["provider_id"] = providerID
-		return map[string]any{"status": "error", "error": gerr.Error(), "result": payload}, gerr
+	var twoStage *genapi.YueTwoStageResult
+	var result *genapi.Result
+	if provider.Dialect == "yue_local" && req.Instrumental {
+		// YUE-INSTRUMENTAL-SCORE-TRANSFER-1 leg B: instrumental yue_local
+		// requests run the two-stage score-transfer route — pass1 generation
+		// -> Go Vocal->Ins score transfer -> pass2 fixed-abc re-render (two
+		// engine jobs, double cost disclosed; final WAV/version from pass2).
+		// Each stage carries its own provider timeout budget (Generate
+		// applies cfg.TimeoutSeconds per call), so the two stages are NOT
+		// wrapped in a single per-request deadline that could kill pass2
+		// mid-render.
+		twoStage, err = genapi.YueGenerateInstrumentalTwoStage(ctx, provider, req, genapi.YueTwoStageOptions{
+			LyricsUserProvided: prepared != nil && prepared.LyricsUserProvided,
+		})
+		if err != nil {
+			gerr := genapi.AsError(err)
+			payload := gerr.ResultPayload()
+			payload["provider_id"] = providerID
+			return map[string]any{"status": "error", "error": gerr.Error(), "result": payload}, gerr
+		}
+		result = twoStage.Final()
+	} else {
+		genCtx, cancel := context.WithTimeout(ctx, provider.Timeout())
+		defer cancel()
+		result, err = genapi.Generate(genCtx, provider, req)
+		if err != nil {
+			gerr := genapi.AsError(err)
+			payload := gerr.ResultPayload()
+			payload["provider_id"] = providerID
+			return map[string]any{"status": "error", "error": gerr.Error(), "result": payload}, gerr
+		}
 	}
 
 	out := map[string]any{
@@ -108,6 +131,11 @@ func (h *Harness) genGenerate(ctx context.Context, cmd map[string]any) (map[stri
 		if len(prepared.Actions) > 0 {
 			out["conditioning_actions"] = prepared.Actions
 		}
+	}
+	if twoStage != nil {
+		// YUE-INSTRUMENTAL-SCORE-TRANSFER-1: job archive face — both job ids,
+		// the vocal/ins conservation receipt and the pass2 request口径.
+		out["two_stage"] = twoStage.ReceiptMap(provider)
 	}
 	if engineHandle != nil {
 		out["engine"] = map[string]any{

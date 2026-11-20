@@ -452,7 +452,7 @@ func yueCompileEvents(in yueCompileInput) (string, error) {
 	// Independent re-parse roundtrip: exact note events and harmony.
 	parsed, perr := yueParseNativeScore(text)
 	if perr != nil {
-		return "", fmt.Errorf("Internal note roundtrip failed: %v\ncompiled text:\n%s", perr, text)
+		return "", fmt.Errorf("Internal note roundtrip failed: %v", perr)
 	}
 	parsedIns := make([]cnote, 0, len(parsed.Voices["Ins"].Notes))
 	for _, nt := range parsed.Voices["Ins"].Notes {

@@ -52,6 +52,11 @@ type YuePrepareResult struct {
 	Request    GenerationRequest
 	Dispatched map[string]any
 	Actions    []string
+	// LyricsUserProvided: the request's lyrics were explicitly provided by
+	// the caller (not prepare-derived section tags). The two-stage pass2
+	// lyrics discipline honors this (user lyrics ride verbatim, never
+	// silently replaced).
+	LyricsUserProvided bool
 }
 
 // YueProtectedExtraKeys are the request fields a provider's fixed
@@ -87,8 +92,9 @@ func YuePrepareRequest(req GenerationRequest, opts YuePrepareOptions) (YuePrepar
 	// request-side; the engine has no instrumental switch and may still sing
 	// (YUE-VOCAL-FORENSICS-1; suppression effect on yue2.cpp unproven).
 	if res.Request.Instrumental {
+		res.LyricsUserProvided = strings.TrimSpace(res.Request.Lyrics) != ""
 		style = yueNormalizeInstrumentalStyle(style)
-		res.Actions = append(res.Actions, "style: normalized to the official instrumental recipe (\"Instrumental, \" prefix, no vocals/no singing/no choir/no spoken words conditions; yue_local has no instrumental parameter, engine-side muting not guaranteed — the engine may still produce vocals)")
+		res.Actions = append(res.Actions, "style: normalized to the official instrumental recipe (\"Instrumental, \" prefix, no vocals/no singing/no choir/no spoken words conditions; instrumental = two-stage score-transfer route with double generation cost — pass1 may still sing, its vocal melody is the transfer source, and the pass2 suppression is structural)")
 		if strings.TrimSpace(res.Request.ABC) != "" {
 			// Official lyrics discipline: empty or exactly the score's
 			// section tags; sung words never ride an instrumental request.
@@ -114,11 +120,18 @@ func YuePrepareRequest(req GenerationRequest, opts YuePrepareOptions) (YuePrepar
 			}
 			if changed {
 				res.Request.ABC = rested
-				res.Actions = append(res.Actions, "abc: Vocal voice rested (equal-length rests, chords preserved) — request-side score conditioning; the engine may still sing (no instrumental switch, YUE-VOCAL-FORENSICS-1)")
+				res.Actions = append(res.Actions, "abc: Vocal voice rested (equal-length rests, chords preserved) — pass1 request-side conditioning; the engine may still sing and pass1 does not suppress vocals (its vocal melody is the two-stage transfer source, YUE-INSTRUMENTAL-SCORE-TRANSFER-1)")
 			} else if strings.Contains(res.Request.ABC, "V: Vocal") {
-				res.Actions = append(res.Actions, "abc: Vocal voice already silent (no sounding notes to rest; request-side conditioning only — the engine may still sing, YUE-VOCAL-FORENSICS-1)")
+				res.Actions = append(res.Actions, "abc: Vocal voice already silent (no sounding notes to rest; pass1 conditioning only — the engine may still sing, pass1 does not suppress vocals, YUE-INSTRUMENTAL-SCORE-TRANSFER-1)")
 			}
 		}
+		// The route itself (S6 disclosure, YUE-INSTRUMENTAL-SCORE-TRANSFER-1):
+		// instrumental is delivered by TWO engine jobs — pass1 generation,
+		// Go Vocal->Ins score transfer, pass2 fixed-abc re-render. Vocal
+		// suppression is structural in the pass2 score (zero sounding Vocal
+		// notes), guaranteed by the score transfer, not by any engine-side
+		// switch; user listening remains the acceptance gate (leg C).
+		res.Actions = append(res.Actions, "instrumental route: two-stage score transfer (pass1 generation -> Go Vocal->Ins score transfer -> pass2 fixed-abc re-render on the same engine; double generation cost; pass1 may still sing — its vocal melody is the transfer source; pass2 vocal suppression is structural; user listening remains the acceptance gate)")
 	}
 	for _, extra := range opts.StyleExtra {
 		tag := strings.TrimSpace(extra)
