@@ -6,8 +6,8 @@
 
 ## 2026-11-20 入口快照（397–431 全量回填留 gate）
 
-- done：**437 TUTOR-SIM-3（2026-11-20 真栈浏览器级 DOM 手测 PASS，[裁定](../rulings/2026-11-20-TUTOR-SIM-3-pass.md)）**、**425 G0-LEGAME-BIND-1（W01-C 真栈 PASS）**、**422 CONV-CROSS-COMBO-1（B2b 真栈 PASS，166 断言）**、**432 W02-A1（A1a/A1b/A1c 全 PASS）**、**435 TUTOR-SIM-1（真实 flash 三步导师循环 PASS）**、**436 TUTOR-SIM-2（VitShell 自动开场手测 PASS）**；397/409–421/423–428/430–431 见 gate 与 brief。
-- doing：ARRLOOP-AUTHBRIDGE-1、WAVESHELL-LOADING-FORENSICS-1、LAUNCHER-ZEROFRICTION-1、SRC-PRESET-AGENT-1、YUE-INSTRUMENTAL-PATH-1、GODOT-RETRY-LAUNCHER-1、WINDOW-TRANSITION-OBSERVER-1、433 W02-A2（A2a 装置已合；真回合未跑）、434 W02-A1-HANDTEST-V0（产品 v0 未过，superseded 待归档）。
+- done：**437 TUTOR-SIM-3（2026-11-20 真栈浏览器级 DOM 手测 PASS，[裁定](../rulings/2026-11-20-TUTOR-SIM-3-pass.md)）**、**390 YUE-INSTRUMENTAL-PATH-1（2026-11-20 整卡收口：技术两腿 pass+真栈新配方证成，用户听核=成段人声→fallback 带人声+披露终态，[裁定](../rulings/2026-11-20-YUE-INSTRUMENTAL-PATH-1-fallback.md)；教学素材转 MIDI clip 裁定）**、**425 G0-LEGAME-BIND-1（W01-C 真栈 PASS）**、**422 CONV-CROSS-COMBO-1（B2b 真栈 PASS，166 断言）**、**432 W02-A1（A1a/A1b/A1c 全 PASS）**、**435 TUTOR-SIM-1（真实 flash 三步导师循环 PASS）**、**436 TUTOR-SIM-2（VitShell 自动开场手测 PASS）**；397/409–421/423–428/430–431 见 gate 与 brief。
+- doing：ARRLOOP-AUTHBRIDGE-1、WAVESHELL-LOADING-FORENSICS-1、LAUNCHER-ZEROFRICTION-1、SRC-PRESET-AGENT-1、GODOT-RETRY-LAUNCHER-1、WINDOW-TRANSITION-OBSERVER-1、433 W02-A2（A2a 装置已合；真回合未跑）、434 W02-A1-HANDTEST-V0（产品 v0 未过，superseded 待归档）。
 - blocked：438 TUTOR-SIM-4 v1 已停卡归档（premise_falsified：无音频资产+done_when 非文本，证据 `coord/runs/TUTOR-SIM-4/README.md`）→ **v2 重发 todo 已派 flash**（2026-11-20 用户裁定改道：材料主形态=MIDI clip 装载进工程挂音源播放，theme_twinkle_v0.mid 复用，audio 留 schema 位；卡=`coord/cards/todo/2026-11-20-TUTOR-SIM-4-PROD-NODES.md` v2）。
 - todo 首排：390 YuE instrumental 真栈生成+人耳（用户在场）；TUTOR-SIM-4 拆卡裁决；音乐控件（谱面/Tap/播放器）随 SIM 线。
 - 真栈：空闲；425 的 default_project 权威偏差见 `coord/runs/G0-LEGAME-BIND-1/real-stack/run_20261119_1818/DEVICE-NOTES.md`。
