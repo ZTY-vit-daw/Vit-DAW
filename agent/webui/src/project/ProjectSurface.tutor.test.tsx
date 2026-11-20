@@ -13,9 +13,13 @@ import type { ReactElement } from "react";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 
 import { ProjectSurface } from "./ProjectSurface";
 import { createProjectFixtureService } from "./projectFixtures";
+import { parseMidiScore } from "./midiScore";
+import type { ScoreModel } from "../scoreworkbench/model";
 import type { ProjectContextView, ProjectThreadItem, ProjectService, TutorStartOutcome } from "./projectData";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -605,5 +609,66 @@ describe("TUTOR-SIM-4：brief 与材料卡（surface 装载链）", () => {
     expect(v0.container.querySelector("[data-tutor-brief]")).toBeNull();
     expect(v0.container.querySelector("[data-tutor-materials]")).toBeNull();
     expect(v0.container.querySelector("[data-tutor-material]")).toBeNull();
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/* SIM-MUSIC-WIDGET-1（441）：材料卡谱面展开（fixture 注入 / 未注入降级）  */
+/* ------------------------------------------------------------------ */
+
+// 仓库装置 fixture（只读）：小星星主题 42 音 / 48 拍 / 4/4。
+const SCORE_FIXTURE_REL = "../../coord/experiments/tutor-sim-2/assets/theme_twinkle_v0.mid";
+
+function fixtureScoreModel(): ScoreModel {
+  const text = readFileSync(join(process.cwd(), SCORE_FIXTURE_REL), "latin1");
+  const bytes = new Uint8Array(text.length);
+  for (let i = 0; i < text.length; i++) bytes[i] = text.charCodeAt(i) & 0xff;
+  return parseMidiScore(bytes).model;
+}
+
+describe("SIM-MUSIC-WIDGET-1：材料卡谱面展开（surface 注入链）", () => {
+  it("fixture 注入谱面 + 装载成功：谱面入口出现，展开渲染（42 音 / 4/4 SVG）", async () => {
+    const service = createProjectFixtureService({
+      context: CONTEXT,
+      tutorStart: MATERIAL_START,
+      loadMaterialCalls: []
+    });
+    const { container } = mount(
+      <ProjectSurface
+        fixture={{ context: CONTEXT, service, tutorScores: { "小星星主题（fixture）": fixtureScoreModel() } }}
+      />
+    );
+    await flush();
+    // 未装载：谱面入口不渲染（谱面=已装载材料的交互）。
+    expect(container.querySelector("[data-tutor-score-toggle]")).toBeNull();
+
+    click(container.querySelector("[data-tutor-material-load]") as Element);
+    await flush();
+    const material = container.querySelector("[data-tutor-material]");
+    expect(material?.getAttribute("data-tutor-material-loaded")).toBe("true");
+    expect(material?.getAttribute("data-tutor-score-available")).toBe("true");
+    // 默认收起（不撑爆对话流），入口在。
+    expect(container.querySelector("[data-tutor-score-toggle]")?.textContent).toContain("查看谱面");
+    expect(container.querySelector("[data-tutor-score-svg]")).toBeNull();
+
+    click(container.querySelector("[data-tutor-score-toggle]") as Element);
+    await flush();
+    const svgHost = container.querySelector("[data-tutor-score-svg]");
+    expect(svgHost).not.toBeNull();
+    expect(svgHost?.querySelector("svg")).not.toBeNull(); // 374 渲染层复用（VexFlow beat-grid）
+    expect(container.querySelector("[data-tutor-score-notes]")?.textContent).toContain("42 音");
+    expect(container.querySelector("[data-tutor-score-timesig]")?.textContent).toBe("4/4");
+    expect(container.querySelector("[data-tutor-score]")?.getAttribute("data-tutor-score-open")).toBe("true");
+  });
+
+  it("未注入谱面：装载成功后无谱面入口（fail-honest 零回归面）", async () => {
+    const service = createProjectFixtureService({ context: CONTEXT, tutorStart: MATERIAL_START });
+    const { container } = mount(<ProjectSurface fixture={{ context: CONTEXT, service }} />);
+    await flush();
+    click(container.querySelector("[data-tutor-material-load]") as Element);
+    await flush();
+    expect(container.querySelector("[data-tutor-material]")?.getAttribute("data-tutor-material-loaded")).toBe("true");
+    expect(container.querySelector("[data-tutor-score-toggle]")).toBeNull();
+    expect(container.querySelector("[data-tutor-material]")?.getAttribute("data-tutor-score-available")).toBe("false");
   });
 });

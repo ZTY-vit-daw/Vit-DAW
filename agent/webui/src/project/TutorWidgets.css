@@ -187,3 +187,53 @@
   color: var(--v5-danger, #b45309);
   overflow-wrap: anywhere;
 }
+
+/* ---- SIM-MUSIC-WIDGET-1（441）：材料卡内联谱面 ---- */
+
+.v5-project-tutor-material-score {
+  flex-basis: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.v5-project-tutor-material-score-toggle {
+  align-self: flex-start;
+  padding: 2px 8px;
+  font-size: var(--v5-t-caption);
+}
+
+.v5-project-tutor-score {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 320px;
+  overflow: auto;
+  padding: 8px;
+  border: 1px solid var(--v5-ui-border, #d4d4d8);
+  border-radius: 8px;
+  background: var(--v5-ui-surface, #fafafa);
+}
+
+.v5-project-tutor-score-meta {
+  display: flex;
+  gap: 12px;
+  font-size: var(--v5-t-caption);
+  color: var(--v5-ui-muted);
+}
+
+.v5-project-tutor-score-svg {
+  line-height: 0;
+}
+
+.v5-project-tutor-score-svg svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.v5-project-tutor-score-error {
+  margin: 0;
+  color: var(--v5-danger, #b45309);
+  font-size: var(--v5-t-caption);
+  overflow-wrap: anywhere;
+}
