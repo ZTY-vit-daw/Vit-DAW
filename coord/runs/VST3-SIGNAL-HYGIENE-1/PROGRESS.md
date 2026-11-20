@@ -32,7 +32,16 @@ S4 轮询构建结果 → S7 收尾。
   - `go test ./internal/vst3host/... ./internal/processorregistry/... ./internal/pluginprobe/... -count=1` exit 0（三包全 ok；本卡 Go 源零改动，此为卡面名义域最近证据面）。
 - S6 [done] 规范锚点文档：`coord/runs/VST3-SIGNAL-HYGIENE-1/SPEC-ANCHOR.md`（规范原文/六锚点现状/机理精化/修法评估+定案/改动面+断言面/缺陷登记/真栈腿 lead/边界）。
 - S4 [done] 编译门 PASS：configure exit 0（77.4s）+ `cmake --build --config Release --parallel` exit 0（日志零 `error C`/`error LNK`；我改头文件所在 TU juce_audio_processors_headless.cpp 编译通过；仅既有 C4819 代码页警告）；产物 `D:/Vit_DAW_wt_pc331/VitApp/build_release/VitApp_artefacts/Release/VitApp.exe` 31,995,392 B，SHA256=`0abdc136a024e4b09dd3b8dbf89098d410b524535c94919cd4cf156a5202823d`；未运行 exe（真栈禁启）。
-- S7 [in_progress] 收尾：wt_pc331 卡面回执+git mv done+ROSTER 行+证据副本 → 分支提交 → main 合并。
+- S7 [done] 收尾完成：分支 pc331-sighyg 提交 `862ede3d`（卡面回执+git mv done/、证据两件、ROSTER sighyg331 行）→ main FF 合并成功（d170d36a→862ede3d，MERGE_EXIT=0，无冲突）；main HEAD=862ede3d。
+
+## 终态
+
+**DONE（2026-11-21，执行侧自验 done 待主管验收）**——四件套：
+- 执行的命令+退出码：cmake configure exit 0 / cmake --build Release --parallel exit 0 / go build ./... exit 0 / go test（vst3host+processorregistry+pluginprobe 三包，-count=1）exit 0 / git 提交×3（883a0db9 领取、98fb0200 engine、862ede3d 回执+done）与 FF 合并 exit 0。
+- 产物路径：engine 修复=`D:/Vit_DAW/tracktion_engine` 分支 `pc331-sighyg` @ `98fb0200`（1 file +92/-1）；卡面=`D:/Vit_DAW/coord/cards/done/2026-11-09-VST3-SIGNAL-HYGIENE-1.md`；证据=`D:/Vit_DAW/coord/runs/VST3-SIGNAL-HYGIENE-1/`（本文件+SPEC-ANCHOR.md）；ROSTER=`D:/Vit_DAW/coord/agents/ROSTER.md` sighyg331 行；构建产物=wt_pc331 VitApp.exe（SHA256 0abdc136…823d）。
+- 遇到的问题：①派发提示词猜测 Go 代码域（vst3host/processorregistry/pluginprobe）grep 零命中→实际信令面=C++ engine，按卡面文件域执行；②C 原型 9b8cc8a/遥测 cd957f4 因 309 栈腿 worktree 删除+本地分支未推而永久丢失→C 直接转正不可行，依回执文字重做（setup 级 kOffline 方向）；③engine 分支改放主模块仓库防 309 失分支复发；④构建日志仅存 tail（管道缓冲），零 error 以退出码+链接行+grep error=0 三重亲证。
+- 断了几次：0（单次执行无重派感知）。
+- 真栈腿（lead 留决策侧）：栈协议两条登记+E4 Surge 不回退+A/B 两 run 断言 VIT331_SIGNAL 判定键（SPEC-ANCHOR §5/§7）；PASS 后翻默认+landing engine 分支。
 
 ## S2/S3 落盘记录
 
