@@ -1,0 +1,13 @@
+{
+  "vocal_notes_before": 197,
+  "vocal_notes_after": 0,
+  "original_ins_notes": 78,
+  "unaltered_ins_notes": 78,
+  "output_ins_notes": 275,
+  "vocal_pitch_onset_duration_preserved": true,
+  "meter_and_tempo_preserved": true,
+  "chords": "preserved",
+  "overlap_policy": "vocal",
+  "affected_ins_notes": [],
+  "nominal_seconds": 173.79310344827587
+}

@@ -36,3 +36,16 @@
 - 本轮范围：腿A+腿B 零栈（金样对账单测+两段式 dry-run 假引擎单测）；腿C 真栈+人耳留 lead。文件域 `agent/internal/genapi` + `agent/internal/harness`（gen_generate.go 接线）+ 本卡 coord 文件
 - 金样前置验证：仓库 py 脚本重跑 original.abc→迁移谱与金样 LF 逐字节一致、receipt 197→0/78→275/unaltered 78/affected=[]（证据 `coord/runs/YUE-INSTRUMENTAL-SCORE-TRANSFER-1/py_repro_check/`）——Go 对账以逐字节一致为目标
 - 执行进度日志：`coord/runs/YUE-INSTRUMENTAL-SCORE-TRANSFER-1/PROGRESS.md`
+
+
+## 回执（执行完成待验收，2026-11-20）
+
+- 执行：scorexfer440（worktree D:/Vit_DAW_wt_pc440，分支 scorexfer440）；腿C 真栈+人耳未动，留 lead。
+- 提交：cab1cadb（腿A：abc_tools/compile_score/instrumentalize 三件精确 Go 移植 4 文件）+ 9354bc99（腿B：两段式接线+假引擎单测+披露更新 9 文件）；merge 05be3d6f 合入 main（无冲突，合入后 main 上复跑两门仍绿）。
+- 验收命令+退出码（worktree 与合入后 main 双跑一致）：`cd agent && go build ./...` exit 0；`go test ./internal/genapi ./internal/harness -count=1` exit 0（两包 ok）。
+- 金样对账（TestYueInstrumentalizeGoldPairBytes/PerNote）：迁移输出与金样 instrumental.abc **逐字节一致（LF）**；vocal 197→0、Ins 78→275、unaltered 78、affected=[]、bpm 87/bars 84、nominal_seconds 精确；逐音 pitch/onset/duration=源 Vocal+Ins 有序并集；和弦/拍号/速度保留——**达成**，未放宽任何断言。
+- 两段式要点：pass1=条件化请求原样生成（人声=迁移源，非失败）→ replay sidecar 取生成谱（缺失=classified response_parse_error，pass1 工件留盘）→ Go 谱迁移 → pass2=同引擎固定迁移谱重渲染（214808 口径：abc 逐字节[builder 改 verbatim]、style 保持、cot 按迁移谱 Vocal 和弦重推导、歌词官方纪律重推导/用户词保留）；yueRequestBuilder/迁移谱全链路零逐音改写。收据入档：genGenerate out["two_stage"] + genJobRecord.TwoStage（双 job id+守恒表+固定 seed+final_version_source=pass2）；每段各自 provider 超时预算。
+- 披露文案变更（S6/381 新口径）：必含 two-stage score transfer / double generation cost / structural / pass1 may still sing / user listening gate；禁含 validated instrumental / engine-side muting / guaranteed by the engine / single-stage engine-level suppression；Limitations 显式否定句「no single-stage engine-level suppression is claimed」；381 回归断言已按此重写（yue_prepare_test.go）。
+- 测试卫生：假引擎/金样全部内嵌或 t.TempDir()，未触碰 sealed/holdout、源码树运行态与真实栈；TestGenJobsLifecycleYueLocal 按两段式更新 fixture 与断言（覆盖面扩大，原断言未放宽）。
+- 遗留/风险：①腿C 未做——端到端真栈 1–2 次生成+用户人耳判零人声前，本卡不构成「已接通」宣称；②pass1 生成谱若偏离 native dialect（引擎侧概率输出）→ 两段式 classified 失败（invalid generated abc），如发生属 372 §8 概率类，如实记录不重跑；③两段=双倍生成成本已入披露；④go vet shm_windows.go 既有 unsafe.Pointer 提示（非本卡域，未动）。
+- 证据：`coord/runs/YUE-INSTRUMENTAL-SCORE-TRANSFER-1/`（PROGRESS.md 全日志+py_repro_check 金样复跑+两个生成脚本）。
