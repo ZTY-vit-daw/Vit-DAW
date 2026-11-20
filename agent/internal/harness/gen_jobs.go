@@ -58,6 +58,10 @@ type genJobRecord struct {
 	ReplayPath  string                `json:"replay_path,omitempty"`
 	StatusTrail []string              `json:"status_trail,omitempty"`
 	TrackID     string                `json:"track_id,omitempty"`
+	// TwoStage archives the two-stage score-transfer receipt
+	// (YUE-INSTRUMENTAL-SCORE-TRANSFER-1: pass1/pass2 job ids + the
+	// vocal/ins conservation table). Present on instrumental yue_local jobs.
+	TwoStage map[string]any `json:"two_stage,omitempty"`
 }
 
 // genJobStore is the in-memory index plus the JSON archive dir.
@@ -312,6 +316,9 @@ func (h *Harness) genJobRun(ctx context.Context, store *genJobStore, jobID strin
 				rec.SourceABC = head
 			}
 		}
+		if ts, ok := result["two_stage"].(map[string]any); ok {
+			rec.TwoStage = ts
+		}
 	})
 	if uerr != nil {
 		fail("archive_error", uerr)
@@ -403,6 +410,9 @@ func (h *Harness) genJobsStatus(cmd map[string]any) (map[string]any, error) {
 	}
 	if rec.SourceABC != "" {
 		out["source_abc_head"] = rec.SourceABC
+	}
+	if rec.TwoStage != nil {
+		out["two_stage"] = rec.TwoStage
 	}
 	if len(rec.Artifacts) > 0 {
 		out["artifacts"] = rec.Artifacts

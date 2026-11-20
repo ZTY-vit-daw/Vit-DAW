@@ -230,8 +230,11 @@ func yueRequestBuilder(d dialect, req GenerationRequest, cfg ProviderConfig) map
 	if strings.TrimSpace(req.Lyrics) != "" {
 		body["lyrics"] = req.Lyrics
 	}
-	if a := strings.TrimSpace(req.ABC); a != "" {
-		body["abc"] = a
+	if strings.TrimSpace(req.ABC) != "" {
+		// Verbatim, whitespace included: the engine's request echo (replay
+		// JSON) must equal the prepared/transferred score byte-for-byte —
+		// the 214808 two-stage evidence anchors on the exact abc bytes.
+		body["abc"] = req.ABC
 	}
 	if req.DurationSeconds > 0 {
 		body["duration"] = req.DurationSeconds
@@ -371,7 +374,7 @@ func (p ProviderConfig) Limitations(req GenerationRequest) []string {
 			out = append(out, "musical_key: yue_local has no key parameter; put K: in the ABC score (hard control, 100% key match in local probes)")
 		}
 		if req.Instrumental {
-			out = append(out, "instrumental: yue_local has no instrumental switch; the request carries the official instrumental conditioning (normalized style, section-tag lyrics, derived cot, rested Vocal score) but the engine may still sing — user listening is the acceptance gate (YUE-VOCAL-FORENSICS-1; suppression effect on yue2.cpp unproven)")
+			out = append(out, "instrumental: two-stage score-transfer route (pass1 generation -> Go Vocal->Ins score transfer -> pass2 fixed-abc re-render on the same engine; double generation cost; pass1 may still sing — its vocal melody is the transfer source; pass2 vocal suppression is structural in the transferred score, and no single-stage engine-level suppression is claimed; user listening remains the acceptance gate — YUE-INSTRUMENTAL-SCORE-TRANSFER-1 leg C)")
 		}
 		if req.Count > 1 {
 			out = append(out, "count: the local engine runs --max-batch=1 (one song per request); use synth_batch_size via provider extra_params for acoustic variations")

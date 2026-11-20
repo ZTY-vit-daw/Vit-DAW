@@ -78,16 +78,28 @@ func TestYuePrepareInstrumentalConditioning(t *testing.T) {
 	if res.Request.COT != "melody" {
 		t.Fatalf("cot must derive melody for a chordless Vocal voice, got %q", res.Request.COT)
 	}
-	// YUE-VOCAL-FORENSICS-1: the disclosure must not oversell request-side
-	// conditioning — the engine has no instrumental switch and may still
-	// sing. Guard the wording so a future edit cannot reintroduce
-	// "validated instrumental" claims (372 receipt oversell root cause).
+	// YUE-INSTRUMENTAL-SCORE-TRANSFER-1 S6 + 381 anti-oversell, new scope:
+	// the disclosure must name the two-stage score-transfer route (double
+	// generation cost, structural pass2 suppression, honest pass1 face) and
+	// must never claim a validated path, engine-side muting, or any
+	// single-stage engine-level suppression (372 receipt oversell root
+	// cause; the 440 route replaced the pre-440 request-side wording).
 	joined := strings.Join(res.Actions, "\n")
-	if !strings.Contains(joined, "engine-side muting not guaranteed") {
-		t.Fatalf("instrumental actions must disclose that engine-side muting is not guaranteed: %#v", res.Actions)
+	for _, need := range []string{"two-stage score transfer", "double generation cost", "structural", "pass1 may still sing", "user listening remains the acceptance gate"} {
+		if !strings.Contains(joined, need) {
+			t.Fatalf("instrumental actions must disclose %q: %#v", need, res.Actions)
+		}
 	}
-	if strings.Contains(joined, "validated instrumental") {
-		t.Fatalf("actions must not claim a validated instrumental path: %#v", res.Actions)
+	for _, forbid := range []string{"validated instrumental", "engine-side muting", "guaranteed by the engine", "single-stage engine-level suppression"} {
+		if strings.Contains(joined, forbid) {
+			t.Fatalf("actions must not claim %q: %#v", forbid, res.Actions)
+		}
+	}
+	// Limitations face: the route is disclosed with the explicit negation of
+	// the forbidden claim (the negation itself is required wording).
+	lims := strings.Join(ProviderConfig{ID: "yue-local", Dialect: "yue_local", BaseURL: "http://127.0.0.1:8087"}.Limitations(res.Request), "\n")
+	if !strings.Contains(lims, "two-stage score-transfer route") || !strings.Contains(lims, "no single-stage engine-level suppression is claimed") || !strings.Contains(lims, "user listening remains the acceptance gate") {
+		t.Fatalf("instrumental limitation wording wrong: %s", lims)
 	}
 	// Count>1 collapses to one job per version with disclosure.
 	res2, err := YuePrepareRequest(GenerationRequest{ABC: abc, Count: 2, StyleTags: "x"}, YuePrepareOptions{})
