@@ -388,9 +388,27 @@ foreach ($port in @($AgentPort, $StatusPort, 8787, 5555)) {
     if (-not (Test-PortBindable -Port $port)) { throw "preflight: port $port not bindable (lingering bound socket) - no silent reuse" }
 }
 if (-not (Test-UdpBindable -Port 4445)) { throw "preflight: UDP 4445 not bindable - no silent reuse" }
-$occupancyHead = if ($EntryManagementChecks) { (& git -C $MainRoot show origin/main:coord/resources/PC-RUNTIME-STACK.md | Select-Object -First 4) -join "`n" } else { (Get-Content (Join-Path $MainRoot "coord/resources/PC-RUNTIME-STACK.md") -TotalCount 6) -join "`n" }
-if ($occupancyHead -notmatch $CardId) { throw "occupancy record head does not name $CardId - register before running" }
-Write-Ok "stack clean (processes=0, TCP 7878/7879/8787/5555 + UDP 4445 free), occupancy names $CardId"
+# STACKLEASE-OWNER-PARAM-1 (442): parse the LATEST ledger event line instead of a
+# fixed head-4/6 window (window misses = 408-class false reject; window hits could
+# also false-accept a stale older event). Card id matched literally on a
+# paren-normalized line; rejection carries the latest event for diagnosis.
+function Get-LatestOccupancyEvent {
+    param([string[]]$LedgerLines)
+    foreach ($line in $LedgerLines) {
+        if ($line -match '^\s*-\s+\S') { return $line.Trim() }
+    }
+    return $null
+}
+$occupancyLines = if ($EntryManagementChecks) {
+    $shown = @(& git -C $MainRoot show origin/main:coord/resources/PC-RUNTIME-STACK.md)
+    if ($LASTEXITCODE -ne 0) { throw "ENV-INTERRUPT: occupancy ledger read failed (git show exit $LASTEXITCODE)" }
+    $shown
+} else { @(Get-Content (Join-Path $MainRoot "coord/resources/PC-RUNTIME-STACK.md")) }
+$occupancyLatest = Get-LatestOccupancyEvent -LedgerLines $occupancyLines
+if ($null -eq $occupancyLatest) { throw "occupancy record has no '- ' event line in coord/resources/PC-RUNTIME-STACK.md - register before running" }
+$occupancyNorm = $occupancyLatest -replace '（','(' -replace '）',')'
+if (-not $occupancyNorm.Contains($CardId)) { throw "latest occupancy event does not name $CardId - register before running; latest event: $occupancyLatest" }
+Write-Ok "stack clean (processes=0, TCP 7878/7879/8787/5555 + UDP 4445 free), occupancy latest event names $CardId"
 
 # ---------- artifacts scaffold + S10 snapshots ----------
 

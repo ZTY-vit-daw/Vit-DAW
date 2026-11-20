@@ -45,20 +45,109 @@ function Git-Read([string[]]$Arguments) {
     if ($gitExit -ne 0) { throw "git $Arguments failed (exit $gitExit): $output" }
     return ($output -join "`n")
 }
+# STACKLEASE-OWNER-PARAM-1 (442): tolerant pure gate core for the stack-lease
+# ledger line in coord/resources/PC-RUNTIME-STACK.md. The LATEST event line
+# (first line matching "- " after optional whitespace; ledger is newest-first)
+# must grant occupancy to the exact expected owner AND name the expected card.
+# Tolerant to: leading/trailing whitespace, timestamp format variance (the
+# timestamp is not parsed at all), field order within the line, full-width
+# parens in card naming, owner value quoting (backtick/single/double/bare
+# multi-word). Never weakens the gate: every rejection lists machine-checkable
+# reasons plus the offending latest event line (fail closed with diagnosis).
+function Get-StackLeaseVerdict {
+    param(
+        [string[]]$LeaseLines,
+        [string]$ExpectedOwner,
+        [string]$ExpectedCard,
+        [string[]]$GrantStates = @('预留','占用','续预留')
+    )
+    $result = [ordered]@{ Pass=$false; Reasons=@(); LatestLine=''; State=''; Owner=''; OwnerExpected=$ExpectedOwner; CardHit=$false }
+    $latest = $null
+    foreach ($line in $LeaseLines) {
+        if ($line -match '^\s*-\s+\S') { $latest = $line.Trim(); break }
+    }
+    if ([string]::IsNullOrEmpty($latest)) {
+        $result.Reasons = @('no event line found: ledger contains no line starting with "- " (expected newest-first event list in coord/resources/PC-RUNTIME-STACK.md)')
+        return $result
+    }
+    $result.LatestLine = $latest
+    $normalized = $latest -replace '（','(' -replace '）',')'
+    # state: earliest occupancy/release marker in the line wins (header position precedes prose).
+    $stateHits = @()
+    foreach ($state in @($GrantStates + @('释放'))) {
+        $idx = $normalized.IndexOf($state, [System.StringComparison]::Ordinal)
+        if ($idx -ge 0) { $stateHits += [pscustomobject]@{ Name=$state; Index=$idx } }
+    }
+    if (-not $stateHits -or $stateHits.Count -eq 0) {
+        $result.Reasons += 'no occupancy state marker (预留/占用/续预留) in latest event line'
+    } else {
+        $first = $stateHits | Sort-Object -Property Index | Select-Object -First 1
+        $result.State = $first.Name
+        if ($GrantStates -notcontains $first.Name) {
+            $result.Reasons += ('latest event is a release (释放), not an active lease: state=' + $first.Name)
+        }
+    }
+    if ($normalized -match '无.*启动权') {
+        $result.Reasons += 'latest event declares no startup rights (无启动权)'
+    }
+    if ([string]::IsNullOrWhiteSpace($ExpectedCard)) {
+        $result.Reasons += 'no expected card passed (pass the card id registered on the latest ledger event)'
+    } elseif ($normalized.Contains($ExpectedCard)) {
+        $result.CardHit = $true
+    } else {
+        $result.Reasons += ('latest event does not name expected card: expected=[' + $ExpectedCard + ']')
+    }
+    $ownerCount = ([regex]::Matches($normalized, 'owner\s*=')).Count
+    if ($ownerCount -eq 0) {
+        $result.Reasons += 'no owner= field in latest event line'
+    } elseif ($ownerCount -gt 1) {
+        $result.Reasons += ('ambiguous owner field: ' + $ownerCount + ' owner= tokens in one event line')
+    } else {
+        $m = [regex]::Match($normalized, 'owner\s*=\s*`([^`]+)`')
+        if (-not $m.Success) { $m = [regex]::Match($normalized, 'owner\s*=\s*"([^"]+)"') }
+        if (-not $m.Success) { $m = [regex]::Match($normalized, "owner\s*=\s*'([^']+)'") }
+        $bareCaptured = $false
+        if (-not $m.Success) {
+            $m = [regex]::Match($normalized, 'owner\s*=\s*([^；;，,。、()（）\r\n]+)')
+            $bareCaptured = $m.Success
+        }
+        if ($m.Success) {
+            $value = $m.Groups[1].Value.Trim()
+            # bare value may embed a quoted session id (ledger style: owner=Name `<id>`);
+            # the quoted id is the canonical comparable owner (pre-442 gate contract).
+            if ($bareCaptured) {
+                $q = [regex]::Match($value, '`([^`]+)`')
+                if ($q.Success) { $value = $q.Groups[1].Value.Trim() }
+            }
+            $result.Owner = $value
+            if ([string]::IsNullOrWhiteSpace($ExpectedOwner)) {
+                $result.Reasons += ('no expected owner passed: ledger latest event owner=[' + $result.Owner + '] (pass -LeaseOwner matching this value)')
+            } elseif ($result.Owner -cne $ExpectedOwner.Trim()) {
+                $result.Reasons += ('owner mismatch: ledger latest event owner=[' + $result.Owner + '], expected=[' + $ExpectedOwner.Trim() + ']')
+            }
+        } else {
+            $result.Reasons += 'owner= field present but value not extractable (unterminated quote?)'
+        }
+    }
+    $result.Pass = ($result.Reasons.Count -eq 0)
+    return $result
+}
 function Assert-Lease {
     # Fetch only; never checkout/merge/push or acquire a lease on the caller's behalf.
     $null = Git-Read -Arguments @('-C',$MainRoot,'fetch','origin','main')
     $remoteHead = Git-Read -Arguments @('-C',$MainRoot,'rev-parse','origin/main')
     $resource = Git-Read -Arguments @('-C',$MainRoot,'show','origin/main:coord/resources/PC-RUNTIME-STACK.md')
     $resource | Out-File -LiteralPath (Join-Path $RunRoot 'remote_resource.md') -Encoding utf8
-    $latest = ($resource -split "`n" | Where-Object { $_ -match '^- ' } | Select-Object -First 1)
-    # The action belongs to the timestamped event header, not its teardown prose.
-    $eventHeader = ($latest -split '/',2)[0]
-    if ($eventHeader -notmatch '^-\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}(?::\d{2})?\s+[+-]\d{2}:?\d{2}\s+(预留|占用)\s*$' -or $latest -match '无.*启动权' -or
-        $latest -notmatch ([regex]::Escape($CardId)) -or $latest -notmatch ('owner=.*'+[regex]::Escape($LeaseOwner)+'[ `；;,（(]') -or ([regex]::Matches($latest,'owner=')).Count -ne 1) {
-        throw 'latest remote resource event does not grant this exact 409 runtime owner'
+    # 442: format-tolerant latest-event gate with per-condition diagnosis
+    # (was: strict event-header timestamp regex + owner trailing-delimiter
+    # substring + one generic throw -- the 408 false-reject shape).
+    # Owner matching is now exact equality on the extracted owner value
+    # (substring-with-delimiter could falsely grant on overlapping ids).
+    $verdict = Get-StackLeaseVerdict -LeaseLines ($resource -split "`n") -ExpectedOwner $LeaseOwner -ExpectedCard $CardId
+    if (-not $verdict.Pass) {
+        throw ('409 runtime lease rejected by ledger gate: ' + (($verdict.Reasons) -join ' | ') + ' [latest event: ' + $verdict.LatestLine + ']')
     }
-    $report.remote_head = $remoteHead; $report.lease = $latest
+    $report.remote_head = $remoteHead; $report.lease = $verdict.LatestLine
     return [DateTime]::UtcNow
 }
 function Get-Clearance {

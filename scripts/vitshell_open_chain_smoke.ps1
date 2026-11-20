@@ -24,6 +24,9 @@ param(
     [int]$AgentReadyTimeoutSec = 120,
     [int]$OpenChainTimeoutSec = 240,
     [string]$RunRoot = "",
+    # STACKLEASE-OWNER-PARAM-1 (442): occupancy card id is a parameter now
+    # (default keeps the historical SHELL-2 contract; was a hardcoded literal).
+    [string]$OccupancyCard = 'SHELL-2',
     [switch]$SkipBuild
 )
 
@@ -154,9 +157,22 @@ foreach ($port in @($AgentPort, $StatusPort)) {
     $owner = Get-TcpListenerPid -Port $port
     if ($null -ne $owner) { throw "preflight: port $port already listening (pid=$owner) - no silent reuse" }
 }
-$occupancyHead = (Get-Content (Join-Path $MainRoot "coord/resources/PC-RUNTIME-STACK.md") -TotalCount 6) -join "`n"
-if ($occupancyHead -notmatch "SHELL-2") { throw "occupancy record head does not name SHELL-2 - register before running" }
-Write-Ok "stack clean (processes=0, ports free), occupancy names SHELL-2"
+# STACKLEASE-OWNER-PARAM-1 (442): parse the LATEST ledger event line instead of a
+# fixed head-6 window (window misses = 408-class false reject); card id matched
+# literally on a paren-normalized line; rejection carries the latest event.
+function Get-LatestOccupancyEvent {
+    param([string[]]$LedgerLines)
+    foreach ($line in $LedgerLines) {
+        if ($line -match '^\s*-\s+\S') { return $line.Trim() }
+    }
+    return $null
+}
+$occupancyLines = @(Get-Content (Join-Path $MainRoot "coord/resources/PC-RUNTIME-STACK.md"))
+$occupancyLatest = Get-LatestOccupancyEvent -LedgerLines $occupancyLines
+if ($null -eq $occupancyLatest) { throw "occupancy record has no '- ' event line in coord/resources/PC-RUNTIME-STACK.md - register before running" }
+$occupancyNorm = $occupancyLatest -replace '（','(' -replace '）',')'
+if (-not $occupancyNorm.Contains($OccupancyCard)) { throw "latest occupancy event does not name $OccupancyCard - register before running; latest event: $occupancyLatest" }
+Write-Ok "stack clean (processes=0, ports free), occupancy latest event names $OccupancyCard"
 
 # ---------- artifacts scaffold + S10 snapshots ----------
 
