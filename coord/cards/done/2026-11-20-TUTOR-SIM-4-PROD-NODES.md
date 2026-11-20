@@ -43,3 +43,16 @@
 - 主工作树既有改动与本卡无关（CURRENT-STATE.md / Settings.xml / default_project.xml / blocked v1 卡删除未提交 / tracktion_engine submodule / 若干 untracked docs），不触碰不整理（§12 纪律）
 - 停止条件预核（通过）：`theme_twinkle_v0.mid` 已零栈解析验证（format 0 / 1 轨 / 480 PPQ / 42 音 / tempo 100 / 全曲 48 拍，notes 与 level.yaml `notes.theme` 逐音一致）；装载链命令面（add_track / insert_midi_clip / add_midi_notes / rename_track / rack_add_node）均为既有已证命令，无缺口
 - v1 停卡卷：`coord/runs/TUTOR-SIM-4/README.md`（已阅，v2 不走音频资产方向）
+
+## 执行回执（tutorprod438b，2026-11-20；done 待验收）
+
+- 续任说明：前一执行进程被客户端更新中断（领取已完成、实现零进度），tutorprod438b 从零实现起步；分支基线 `841b9ef4`，实现提交 `950f1695`，main 合并 `51eff149`（含本卡 done 移位由后续 coord 提交记录）。
+- 三门验收（全部亲跑，worktree `D:/Vit_DAW_wt_pc438b`）：
+  1. `cd agent && go build ./...` exit 0；`go test ./internal/chat -count=1` ok（124.9s）；`go test ./internal/tutorsim -count=1` ok。
+  2. `cd agent/webui && npm run test` 66 文件 / 802 用例全过（437 既有用例零回归）；`npm run build`（tsc --noEmit + vite build）exit 0。
+  3. smoke 扩展：`run_tutor_sim_smoke.ps1 -DryRun` exit 0（headless 断言已入卷：schema/step_total 按 start 回执自适应、v1 断言 workflow_data 含 brief/materials、v0 断言 materials 空数组、-Answers/-WrongAnswer 参数化）。真栈腿由 lead 开窗。
+- 证据卷：`coord/runs/TUTOR-SIM-4/v2/`（REPORT.md 含命令/退出码/锚点/边界）。
+- 实现要点：tutorsim v1 schema（brief/materials，v0 兼容缺省空）；`tutorsim/midi.go` 最小 SMF 解析（装置摘要 42 音/48 拍/100 BPM 与 level.yaml 一致）；`POST /agent/tutor/load_material` 走既有已证内核命令面（add_track→rename_track→insert_midi_clip→add_midi_notes，W1 锚点）+ best-effort rack_add_node（Surge XT identifier=384 腿 D provenance `VST3-Surge XT-1e1bcfb-190e4fbd`）；already_loaded 幂等；音源被拒非致命如实记录；webui brief 折叠 + MidiMaterialCard（已装载置灰防重复）+ audio 材料复用 AudioPlayer（无内容禁播降级）。
+- 装置：`coord/experiments/tutor-sim-2/`（v1 四步：听主题 42 音→听辨模进→装载材料→完成确认；expect=作者写的模拟问答，不映射生产 done_when；`assets/theme_twinkle_v0.mid` 原样复制，sha256 `276e1ffb…` 与冻结源一致亲证）。
+- 文件域偏差（如实）：`agent/internal/chat/server.go` +1 行（tutor 路由注册，与 435 先例同型）；`agent/internal/tutorsim/tutorsim_test.go` 既有「wrong schema」拒绝例的替换值 `vit.tutor_sim.v1` 按本卡设计成为合法 schema，该例改测 `vit.tutor_sim.v2`（断言强度不变，未减测试）；`agent/webui/src/lib/api.ts` 零改动（load 端点请求用 projectService 本地 helper，apiPath 只读复用）。
+- 遗留/风险（记录于证据卷 REPORT.md §边界）：①音源预设（program/state blob）不在既有内核命令面（298 证），本卡不发明命令——真栈腿若要求预设级音色需另开卡；②材料装载态为会话内存（agent 重启丢失，与 tutor 会话同级）；③webui 一次无关 pre-existing flake 观察（ScoreWorkbenchPanel.test.tsx teardown 竞态 unhandled error，与本卡文件域无关，复跑即绿，见证据卷）。
