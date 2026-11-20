@@ -37,6 +37,8 @@ import {
   nextProjectItemID,
   projectThreadItemsFromOutcome,
   reduceProject,
+  tutorBriefFromWorkflowData,
+  tutorMaterialsFromWorkflowData,
   tutorProgressFromSteps,
   tutorProgressFromWorkflowData,
   type ABActionView,
@@ -53,7 +55,8 @@ import {
 import { createProjectLiveService } from "./projectService";
 import { abReadyLabel } from "./projectFixtures";
 // TUTOR-SIM-3（437）：导师进度卡 + 步骤输入卡（对话流内控件；数据只来自 workflow_data）。
-import { TutorProgressCard, TutorStepCard } from "./TutorWidgets";
+// TUTOR-SIM-4（438）：材料卡（midi_clip 装载 / audio schema 位）。
+import { AudioMaterialCard, MidiMaterialCard, TutorProgressCard, TutorStepCard } from "./TutorWidgets";
 // SHELL-6（池序 367）：工程面交互链复用 launcher 面的桥客户端与纯文案/视图件
 //（import-only，零修改 launcher/）。同一 ask_vit_launcher 契约、同一
 // vit_governance_required 页内治理载荷——宿主（VitShell LauncherBridge）对
@@ -898,7 +901,12 @@ export function ProjectSurface({
           dispatch({
             type: "tutorViewUpdated",
             projectPath: tutorProjectPath,
-            view: { ...startProgress, prompt: reply }
+            view: {
+              ...startProgress,
+              prompt: reply,
+              brief: outcome.brief,
+              materials: outcome.materials
+            }
           });
         }
         if (!reply) return;
@@ -929,7 +937,13 @@ export function ProjectSurface({
             dispatch({
               type: "tutorViewUpdated",
               projectPath: tutorProjectPath,
-              view: { ...progress, prompt: outcome.text }
+              // TUTOR-SIM-4：brief/materials 随回执更新（缺省由 reducer 回退旧值）。
+              view: {
+                ...progress,
+                prompt: outcome.text,
+                brief: tutorBriefFromWorkflowData(outcome.workflowData),
+                materials: tutorMaterialsFromWorkflowData(outcome.workflowData) ?? undefined
+              }
             });
           }
         }
@@ -985,6 +999,42 @@ export function ProjectSurface({
   const contextSource = state.context?.source ?? "none";
   // TUTOR-SIM-3：只渲染当前工程的导师控件（普通工程无条目 → 零 UI 变化）。
   const tutorView = tutorProjectPath ? state.tutorViews[tutorProjectPath] ?? null : null;
+  // TUTOR-SIM-4（438）：材料装载在途（同名材料按钮禁用防重复）。
+  const [loadingMaterial, setLoadingMaterial] = useState<string | null>(null);
+  const loadTutorMaterial = useCallback(
+    (title: string) => {
+      const service = serviceRef.current;
+      const conversationID = tutorConversationRef.current;
+      if (!service) return;
+      if (!conversationID) {
+        setNotice("导师会话未就绪，暂时无法装载材料。");
+        return;
+      }
+      setLoadingMaterial(title);
+      void service
+        .loadTutorMaterial(conversationID, title)
+        .then((outcome) => {
+          if (!mountedRef.current || tutorCurrentPathRef.current !== tutorProjectPath) return;
+          if (outcome.ok) {
+            dispatch({
+              type: "tutorMaterialLoaded",
+              projectPath: tutorProjectPath,
+              title,
+              trackID: outcome.trackID,
+              clipID: outcome.clipID,
+              instrumentAttached: outcome.instrumentAttached
+            });
+          } else {
+            setNotice(`材料装载失败：${outcome.reason}`);
+          }
+        })
+        .catch(() => setNotice("材料装载失败：请求未送达。"))
+        .finally(() => {
+          if (mountedRef.current) setLoadingMaterial(null);
+        });
+    },
+    [tutorProjectPath]
+  );
 
   // CONV-RAIL-CROSS-1（421，B2b）：工程面左栏内容 = 工作区→工作树→分支对话流树
   //（数据=App 注入的 ui state + 其它工作树 version.status 懒加载缓存）；点击任何
@@ -1404,6 +1454,23 @@ export function ProjectSurface({
                   pending={state.replying}
                   onSubmit={(value) => void send(value)}
                 />
+                {tutorView.materials && tutorView.materials.length > 0 ? (
+                  // TUTOR-SIM-4：当前步材料卡（装载态只来自服务端回执）。
+                  <div data-tutor-materials>
+                    {tutorView.materials.map((material) =>
+                      material.kind === "midi_clip" ? (
+                        <MidiMaterialCard
+                          key={material.title}
+                          view={material}
+                          pending={loadingMaterial === material.title}
+                          onLoad={() => loadTutorMaterial(material.title)}
+                        />
+                      ) : (
+                        <AudioMaterialCard key={material.title} view={material} />
+                      )
+                    )}
+                  </div>
+                ) : null}
               </div>
             ) : null}
             {notice ? (

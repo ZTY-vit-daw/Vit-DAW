@@ -100,3 +100,90 @@
   line-height: 1.5;
   color: var(--v5-ui-muted);
 }
+
+/* TUTOR-SIM-4（池序 438）：brief 折叠块与材料卡。 */
+
+.v5-project-tutor-brief {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.v5-project-tutor-brief-toggle {
+  align-self: flex-start;
+  padding: 2px 8px;
+  border: 1px solid var(--v5-ui-border);
+  border-radius: var(--v5-radius-control);
+  background: var(--v5-ui-plate);
+  color: var(--v5-ui-muted);
+  font: inherit;
+  font-size: var(--v5-t-caption);
+  cursor: pointer;
+}
+
+.v5-project-tutor-brief-toggle:hover {
+  color: var(--v5-ui-text);
+}
+
+.v5-project-tutor-brief-text {
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px dashed var(--v5-ui-border);
+  border-radius: 6px;
+  background: var(--v5-ui-plate);
+  font-size: var(--v5-t-caption);
+  line-height: 1.6;
+  color: var(--v5-ui-text);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.v5-project-tutor-material {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--v5-ui-plate);
+  border: 1px solid var(--v5-ui-border);
+  border-radius: var(--v5-radius-control);
+  font-size: var(--v5-t-caption);
+  color: var(--v5-ui-text);
+}
+
+.v5-project-tutor-material--audio {
+  display: block;
+}
+
+.v5-project-tutor-material-name {
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.v5-project-tutor-material-summary {
+  color: var(--v5-ui-muted);
+  overflow-wrap: anywhere;
+}
+
+.v5-project-tutor-material-load {
+  margin-left: auto;
+  padding: 2px 10px;
+  font-size: var(--v5-t-caption);
+}
+
+.v5-project-tutor-material-load:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.v5-project-tutor-material-instrument {
+  flex-basis: 100%;
+  color: var(--v5-ui-muted);
+  overflow-wrap: anywhere;
+}
+
+.v5-project-tutor-material-error {
+  flex-basis: 100%;
+  color: var(--v5-danger, #b45309);
+  overflow-wrap: anywhere;
+}

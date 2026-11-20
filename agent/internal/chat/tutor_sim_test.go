@@ -2,9 +2,11 @@ package chat
 
 import (
 	"context"
+	"encoding/binary"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -592,5 +594,406 @@ func TestTutorPromptsNeverCarryExpect(t *testing.T) {
 		if strings.Contains(promptText(i), "expect") {
 			t.Fatalf("prompt %d mentions expect: %q", i, promptText(i))
 		}
+	}
+}
+
+/* ------------------------------------------------------------------ */
+/* TUTOR-SIM-4（池序 438）：v1 schema（brief/materials）+ 材料装载面      */
+/* ------------------------------------------------------------------ */
+
+const tutorSimV1TestYAML = `schema_version: vit.tutor_sim.v1
+id: tutor-v1-material
+persona: |
+  实验导师，简短、不透露答案。
+steps:
+  - id: step-listen
+    ask: "听并回答：主题有几个音？只输入数字。"
+    expect: "42"
+    retry: "重试：再听一遍。"
+    pass: "通过。"
+    brief: |
+      教学简报：先点材料卡装载主题，再从头听一遍。
+    materials:
+      - kind: midi_clip
+        title: 主题材料
+        path: assets/theme.mid
+  - id: step-confirm
+    ask: "确认完成：输入「完成」。"
+    expect: "完成"
+    retry: "重试确认。"
+    pass: "通过确认。"
+`
+
+// writeTutorMidiSMF 构造 480 ticks/qn、tempo 100 BPM、两个音（60/67）的
+// 最小 format 0 SMF（与 tutorsim 包测试同型的手工字节）。
+func writeTutorMidiSMF(t *testing.T) []byte {
+	t.Helper()
+	out := []byte{'M', 'T', 'h', 'd'}
+	out = append(out, 0, 0, 0, 6, 0, 0, 0, 1, 0x01, 0xE0) // format 0, 1 track, division 480
+	out = append(out, 'M', 'T', 'r', 'k', 0, 0, 0, 0)
+	body := []byte{
+		0x00, 0xFF, 0x51, 0x03, 0x09, 0x27, 0xC0, // tempo 600000 → 100 BPM
+		0x00, 0x90, 60, 90,  // tick 0 on
+		0x7C, 0x80, 60, 64,  // +124 off
+		0x04, 0x90, 67, 100, // +4 → tick 128 on
+		0x7C, 0x80, 67, 64,  // +124 → end tick 252
+		0x00, 0xFF, 0x2F, 0x00,
+	}
+	out = append(out, body...)
+	binary.BigEndian.PutUint32(out[len(out)-len(body)-4:], uint32(len(body)))
+	return out
+}
+
+func writeTutorV1Project(t *testing.T) (projectPath string) {
+	t.Helper()
+	projectPath, sidecarPath := writeTutorProject(t, tutorSimV1TestYAML)
+	assetDir := filepath.Join(filepath.Dir(sidecarPath), "assets")
+	if err := os.MkdirAll(assetDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(assetDir, "theme.mid"), writeTutorMidiSMF(t), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	return projectPath
+}
+
+type fakeTutorKernel struct {
+	mu       sync.Mutex
+	commands []map[string]any
+	replies  []map[string]any // 按命令顺序弹出；空表=按命令名给默认 ok 回执
+}
+
+func (f *fakeTutorKernel) send(_ context.Context, cmd map[string]any) (map[string]any, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	name := fmt.Sprint(cmd["cmd"])
+	f.commands = append(f.commands, cmd)
+	if len(f.replies) > 0 {
+		reply := f.replies[0]
+		f.replies = f.replies[1:]
+		return reply, nil
+	}
+	switch name {
+	case "add_track":
+		return map[string]any{"status": "ok", "track_id": "trk-1"}, nil
+	case "rename_track", "add_midi_notes":
+		return map[string]any{"status": "ok"}, nil
+	case "insert_midi_clip":
+		return map[string]any{"status": "ok", "clip_id": "clip-1"}, nil
+	case "rack_add_node":
+		return map[string]any{"status": "ok", "plugin_id": "pl-1"}, nil
+	default:
+		return map[string]any{"status": "error", "error": "unexpected command " + name}, nil
+	}
+}
+
+func (f *fakeTutorKernel) recorded() []map[string]any {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return append([]map[string]any(nil), f.commands...)
+}
+
+func attachTutorKernel(server *Server, fake *fakeTutorKernel) {
+	server.tutorSim.kernelSendOverride = fake.send
+}
+
+func tutorAnySlice(t *testing.T, body map[string]any, key string) []any {
+	t.Helper()
+	value, ok := body[key].([]any)
+	if !ok {
+		t.Fatalf("field %q = %#v, want array", key, body[key])
+	}
+	return value
+}
+
+func TestTutorV1StartCarriesBriefAndMaterials(t *testing.T) {
+	projectPath := writeTutorV1Project(t)
+	server := newTutorTestServer(t, &fakeTutorCompleter{})
+	body := startTutorConversation(t, server, projectPath, "conv-v1-start")
+	if got := tutorString(t, body, "schema_version"); got != "vit.tutor_sim.v1" {
+		t.Fatalf("schema_version = %q", got)
+	}
+	data := tutorMap(t, body, "workflow_data")
+	if brief := tutorString(t, data, "brief"); !strings.Contains(brief, "教学简报") {
+		t.Fatalf("start brief = %q", brief)
+	}
+	materials := tutorAnySlice(t, data, "materials")
+	if len(materials) != 1 {
+		t.Fatalf("start materials = %v", materials)
+	}
+	material := materials[0].(map[string]any)
+	if material["kind"] != "midi_clip" || material["title"] != "主题材料" || material["path"] != "assets/theme.mid" {
+		t.Fatalf("material payload = %v", material)
+	}
+	if int(material["note_count"].(float64)) != 2 {
+		t.Fatalf("note_count = %v", material["note_count"])
+	}
+	if math.Abs(material["duration_beats"].(float64)-252.0/480.0) > 1e-9 {
+		t.Fatalf("duration_beats = %v", material["duration_beats"])
+	}
+	if math.Abs(material["tempo_bpm"].(float64)-100) > 1e-6 {
+		t.Fatalf("tempo_bpm = %v", material["tempo_bpm"])
+	}
+	if material["loaded"] != false || material["loading"] != false {
+		t.Fatalf("load state flags = %v", material)
+	}
+}
+
+func TestTutorV0WorkflowDataKeepsEmptyBriefAndMaterials(t *testing.T) {
+	projectPath, _ := writeTutorProject(t, tutorSimTestYAML)
+	fake := &fakeTutorCompleter{replies: []string{"opening", "advanced"}}
+	server := newTutorTestServer(t, fake)
+	body := startTutorConversation(t, server, projectPath, "conv-v0")
+	data := tutorMap(t, body, "workflow_data")
+	if tutorString(t, data, "brief") != "" {
+		t.Fatalf("v0 start brief = %q", tutorString(t, data, "brief"))
+	}
+	if materials := tutorAnySlice(t, data, "materials"); len(materials) != 0 {
+		t.Fatalf("v0 start materials = %v", materials)
+	}
+	chat := postTutorChat(t, server, "conv-v0", "7")
+	chatData := tutorMap(t, chat, "workflow_data")
+	if tutorString(t, chatData, "brief") != "" || len(tutorAnySlice(t, chatData, "materials")) != 0 {
+		t.Fatalf("v0 chat brief/materials = %v / %v", chatData["brief"], chatData["materials"])
+	}
+}
+
+func TestTutorV1ChatCarriesBriefAndMaterialsPerStep(t *testing.T) {
+	projectPath := writeTutorV1Project(t)
+	fake := &fakeTutorCompleter{replies: []string{"opening", "advanced"}}
+	server := newTutorTestServer(t, fake)
+	startTutorConversation(t, server, projectPath, "conv-v1-chat")
+	chat := postTutorChat(t, server, "conv-v1-chat", "42")
+	data := tutorMap(t, chat, "workflow_data")
+	if tutorString(t, data, "step_id") != "step-confirm" {
+		t.Fatalf("advanced step = %v", data["step_id"])
+	}
+	// 第 2 步无 brief/材料：字段保留但为空（UI 不渲染卡）。
+	if tutorString(t, data, "brief") != "" || len(tutorAnySlice(t, data, "materials")) != 0 {
+		t.Fatalf("step-2 brief/materials = %v / %v", data["brief"], data["materials"])
+	}
+	// brief 永不进 LLM 提示词（教学面只在 workflow_data）。
+	for i := 0; i < fake.callCount(); i++ {
+		for _, message := range fake.request(t, i).Messages {
+			if strings.Contains(message.Content, "教学简报") {
+				t.Fatalf("brief leaked into prompt %d: %q", i, message.Content)
+			}
+		}
+	}
+}
+
+func TestTutorLoadMaterialGuards(t *testing.T) {
+	projectPath := writeTutorV1Project(t)
+	server := newTutorTestServer(t, &fakeTutorCompleter{})
+	attachTutorKernel(server, &fakeTutorKernel{})
+
+	status, _ := doTutorJSON(t, server, http.MethodGet, "/agent/tutor/load_material", nil)
+	if status != http.StatusMethodNotAllowed {
+		t.Fatalf("GET load_material = %d", status)
+	}
+	status, body := doTutorJSON(t, server, http.MethodPost, "/agent/tutor/load_material", map[string]any{"conversation_id": "c"})
+	if status != http.StatusBadRequest || tutorString(t, body, "error") == "" {
+		t.Fatalf("missing title status=%d body=%v", status, body)
+	}
+	status, body = doTutorJSON(t, server, http.MethodPost, "/agent/tutor/load_material", map[string]any{"conversation_id": "missing", "material_title": "主题材料"})
+	if status != http.StatusNotFound || tutorString(t, body, "error") != "unknown_tutor_session" {
+		t.Fatalf("unknown session status=%d body=%v", status, body)
+	}
+	startTutorConversation(t, server, projectPath, "conv-guards")
+	status, body = doTutorJSON(t, server, http.MethodPost, "/agent/tutor/load_material", map[string]any{"conversation_id": "conv-guards", "material_title": "不存在的材料"})
+	if status != http.StatusNotFound || tutorString(t, body, "error") != "unknown_material" {
+		t.Fatalf("unknown material status=%d body=%v", status, body)
+	}
+}
+
+func TestTutorLoadMaterialFullChainAndIdempotency(t *testing.T) {
+	projectPath := writeTutorV1Project(t)
+	fake := &fakeTutorCompleter{replies: []string{"opening"}}
+	server := newTutorTestServer(t, fake)
+	kernel := &fakeTutorKernel{}
+	attachTutorKernel(server, kernel)
+	startTutorConversation(t, server, projectPath, "conv-load")
+
+	status, body := doTutorJSON(t, server, http.MethodPost, "/agent/tutor/load_material", map[string]any{
+		"conversation_id": "conv-load", "material_title": "主题材料",
+	})
+	if status != http.StatusOK || tutorString(t, body, "status") != "ok" {
+		t.Fatalf("load status=%d body=%v", status, body)
+	}
+	load := tutorMap(t, body, "load")
+	if load["loaded"] != true || load["track_id"] != "trk-1" || load["clip_id"] != "clip-1" || load["plugin_id"] != "pl-1" {
+		t.Fatalf("load payload = %v", load)
+	}
+	if load["instrument_attached"] != true {
+		t.Fatalf("instrument flag = %v", load["instrument_attached"])
+	}
+	material := tutorMap(t, body, "material")
+	if material["note_count"].(float64) != 2 || material["path"] != "assets/theme.mid" {
+		t.Fatalf("material payload = %v", material)
+	}
+
+	// 命令链=W1 已证命令面（add_track → rename_track → insert_midi_clip →
+	// add_midi_notes → rack_add_node）。
+	commands := kernel.recorded()
+	wantOrder := []string{"add_track", "rename_track", "insert_midi_clip", "add_midi_notes", "rack_add_node"}
+	if len(commands) != len(wantOrder) {
+		t.Fatalf("kernel commands = %d, want %d: %v", len(commands), len(wantOrder), commands)
+	}
+	for i, name := range wantOrder {
+		if got := commands[i]["cmd"]; got != name {
+			t.Fatalf("command %d = %v, want %s", i, got, name)
+		}
+	}
+	if commands[1]["track_id"] != "trk-1" || commands[1]["name"] != "主题材料" {
+		t.Fatalf("rename_track args = %v", commands[1])
+	}
+	if commands[2]["time_unit"] != "beats" || commands[2]["start"] != 0.0 {
+		t.Fatalf("insert_midi_clip args = %v", commands[2])
+	}
+	if math.Abs(commands[2]["length"].(float64)-252.0/480.0) > 1e-9 {
+		t.Fatalf("clip length = %v", commands[2]["length"])
+	}
+	if commands[3]["clip_id"] != "clip-1" || commands[3]["time_unit"] != "beats" {
+		t.Fatalf("add_midi_notes args = %v", commands[3])
+	}
+	notes := commands[3]["notes"].([]map[string]any)
+	if len(notes) != 2 || notes[0]["pitch"] != 60 || notes[1]["pitch"] != 67 {
+		t.Fatalf("note rows = %v", notes)
+	}
+	if notes[0]["velocity"] != 90 || notes[1]["velocity"] != 100 {
+		t.Fatalf("velocities = %v", notes)
+	}
+	if commands[4]["plugin_kind"] != "Instrument" || commands[4]["plugin_identifier"] != tutorSimDefaultInstrumentIdentifier || commands[4]["auto_connect"] != true {
+		t.Fatalf("rack_add_node args = %v", commands[4])
+	}
+
+	// 重复装载：already_loaded 且不再发内核命令。
+	status, body = doTutorJSON(t, server, http.MethodPost, "/agent/tutor/load_material", map[string]any{
+		"conversation_id": "conv-load", "material_title": "主题材料",
+	})
+	if status != http.StatusOK || tutorString(t, body, "status") != "ok" || tutorBool(t, body, "already_loaded") != true {
+		t.Fatalf("reload status=%d body=%v", status, body)
+	}
+	if len(kernel.recorded()) != len(wantOrder) {
+		t.Fatalf("reload issued extra kernel commands: %d", len(kernel.recorded()))
+	}
+}
+
+func TestTutorLoadMaterialInstrumentRejectionIsNotFatal(t *testing.T) {
+	projectPath := writeTutorV1Project(t)
+	server := newTutorTestServer(t, &fakeTutorCompleter{})
+	kernel := &fakeTutorKernel{replies: []map[string]any{
+		{"status": "ok", "track_id": "trk-9"},
+		{"status": "ok"},
+		{"status": "ok", "clip_id": "clip-9"},
+		{"status": "ok"},
+		{"status": "error", "error": "plugin not found"},
+	}}
+	attachTutorKernel(server, kernel)
+	startTutorConversation(t, server, projectPath, "conv-inst")
+	status, body := doTutorJSON(t, server, http.MethodPost, "/agent/tutor/load_material", map[string]any{
+		"conversation_id": "conv-inst", "material_title": "主题材料",
+	})
+	if status != http.StatusOK || tutorString(t, body, "status") != "ok" {
+		t.Fatalf("load status=%d body=%v", status, body)
+	}
+	load := tutorMap(t, body, "load")
+	if load["loaded"] != true || load["instrument_attached"] != false {
+		t.Fatalf("load payload = %v", load)
+	}
+	if got := load["instrument_error"]; got != "plugin not found" {
+		t.Fatalf("instrument_error = %v", got)
+	}
+	if load["track_id"] != "trk-9" || load["clip_id"] != "clip-9" {
+		t.Fatalf("evidence ids = %v", load)
+	}
+}
+
+func TestTutorLoadMaterialKernelFailureRecordsEvidenceAndRetries(t *testing.T) {
+	projectPath := writeTutorV1Project(t)
+	server := newTutorTestServer(t, &fakeTutorCompleter{})
+	kernel := &fakeTutorKernel{replies: []map[string]any{
+		{"status": "ok", "track_id": "trk-x"},
+		{"status": "error", "error": "rename refused"},
+	}}
+	attachTutorKernel(server, kernel)
+	startTutorConversation(t, server, projectPath, "conv-fail")
+	status, body := doTutorJSON(t, server, http.MethodPost, "/agent/tutor/load_material", map[string]any{
+		"conversation_id": "conv-fail", "material_title": "主题材料",
+	})
+	if status != http.StatusBadGateway || tutorString(t, body, "failure_class") != "kernel_error" {
+		t.Fatalf("failure status=%d body=%v", status, body)
+	}
+	load := tutorMap(t, body, "load")
+	if load["loaded"] != false || load["track_id"] != "trk-x" {
+		t.Fatalf("evidence payload = %v", load)
+	}
+	if got := tutorString(t, body, "error"); !strings.Contains(got, "rename refused") {
+		t.Fatalf("error = %q", got)
+	}
+	// 失败后可重试：重置回执为默认 ok，第二次成功。
+	kernel.replies = nil
+	status, body = doTutorJSON(t, server, http.MethodPost, "/agent/tutor/load_material", map[string]any{
+		"conversation_id": "conv-fail", "material_title": "主题材料",
+	})
+	if status != http.StatusOK || tutorString(t, body, "status") != "ok" {
+		t.Fatalf("retry status=%d body=%v", status, body)
+	}
+	if tutorMap(t, body, "load")["loaded"] != true {
+		t.Fatalf("retry payload = %v", body["load"])
+	}
+}
+
+func TestTutorLoadMaterialUnavailableMaterials(t *testing.T) {
+	// midi 材料文件缺失：实验加载记录 summary_error，装载拒绝 422。
+	projectPath, _ := writeTutorProject(t, tutorSimV1TestYAML)
+	server := newTutorTestServer(t, &fakeTutorCompleter{})
+	attachTutorKernel(server, &fakeTutorKernel{})
+	startTutorConversation(t, server, projectPath, "conv-missing")
+	status, body := doTutorJSON(t, server, http.MethodPost, "/agent/tutor/load_material", map[string]any{
+		"conversation_id": "conv-missing", "material_title": "主题材料",
+	})
+	if status != http.StatusUnprocessableEntity || tutorString(t, body, "failure_class") != "material_unavailable" {
+		t.Fatalf("missing file status=%d body=%v", status, body)
+	}
+	if tutorMap(t, body, "material")["summary_error"] == "" {
+		t.Fatalf("summary_error not surfaced: %v", body["material"])
+	}
+
+	// audio 材料：schema 位，本轮不可装载。
+	audioYAML := `schema_version: vit.tutor_sim.v1
+id: tutor-audio-slot
+persona: |
+  实验导师。
+steps:
+  - id: step-audio
+    ask: "听音频"
+    expect: "ok"
+    retry: "重试"
+    pass: "通过"
+    materials:
+      - kind: audio
+        title: 音频材料位
+`
+	audioPath, _ := writeTutorProject(t, audioYAML)
+	startTutorConversation(t, server, audioPath, "conv-audio")
+	status, body = doTutorJSON(t, server, http.MethodPost, "/agent/tutor/load_material", map[string]any{
+		"conversation_id": "conv-audio", "material_title": "音频材料位",
+	})
+	if status != http.StatusUnprocessableEntity || tutorString(t, body, "failure_class") != "audio_not_loadable" {
+		t.Fatalf("audio slot status=%d body=%v", status, body)
+	}
+}
+
+func TestTutorLoadMaterialKernelUnavailable(t *testing.T) {
+	projectPath := writeTutorV1Project(t)
+	server := newTutorTestServer(t, &fakeTutorCompleter{})
+	// 不注入 kernelSendOverride 且 server.kernel 为 nil → kernel_unavailable。
+	startTutorConversation(t, server, projectPath, "conv-nokernel")
+	status, body := doTutorJSON(t, server, http.MethodPost, "/agent/tutor/load_material", map[string]any{
+		"conversation_id": "conv-nokernel", "material_title": "主题材料",
+	})
+	if status != http.StatusServiceUnavailable || tutorString(t, body, "failure_class") != "kernel_unavailable" {
+		t.Fatalf("kernel unavailable status=%d body=%v", status, body)
 	}
 }

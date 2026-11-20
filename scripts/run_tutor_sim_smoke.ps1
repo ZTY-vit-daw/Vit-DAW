@@ -3,9 +3,10 @@ TUTOR-SIM-1（池序 435）真栈烟测腿 —— RUNBOOK + 待授权执行器�
 
 目标（全部满足 -> exit 0）：
   S1 已打开工程旁存在 .vit_agent/tutor_sim.yaml，agent 当前工程路径与 -ProjectPath 一致；
-  S2 POST /agent/tutor/start 成功：status=ok、第 1/3 步、LLM 开场非空；
-  S3 错误输入 "0" 不推进：workflow=tutor_sim、passed=false、step_index=1；
-  S4 输入 7 -> 第 2 步；输入 42 -> 第 3 步；输入 123 -> completed；
+  S2 POST /agent/tutor/start 成功：status=ok、第 1/N 步（N 按 start 回执自适应）、LLM 开场非空；
+     TUTOR-SIM-4：workflow_data 含 brief/materials 字段（v1 装置；v0 装置 materials 为空数组）；
+  S3 错误输入（-WrongAnswer，默认 "0"）不推进：workflow=tutor_sim、passed=false、step_index=1；
+  S4 逐步输入 -Answers（默认 "7,42,123"）-> 逐步推进至 completed；
   S5 GET /agent/tutor/status 与上述步骤一致，完成后 completed=true；
   S6 完成后继续输入不再推进、不再需要 LLM，stop_reason=tutor_sim_already_completed；
   S7 所有用户可见 reply 不含命令词（开始乐局 / 写好了 / 乐局状态 / 乐局事件），
@@ -18,6 +19,8 @@ TUTOR-SIM-1（池序 435）真栈烟测腿 —— RUNBOOK + 待授权执行器�
 -DryRun 只打印执行计划，不发任何 HTTP，exit 0。
 授权后示例（单行）：
   powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\run_tutor_sim_smoke.ps1 -StackAuthorized -RuntimeOwner "<主管登记 owner>" -ProjectPath "<工程.vit>"
+tutor-sim-2（v1，四步小星星装置）：
+  powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\run_tutor_sim_smoke.ps1 -StackAuthorized -RuntimeOwner "<owner>" -ProjectPath "<工程.vit>" -Answers "42,模进,已装载,完成"
 #>
 [CmdletBinding()]
 param(
@@ -28,6 +31,10 @@ param(
     [string]$RuntimeOwner = "",
     [string]$RunRoot = "",
     [int]$TimeoutSeconds = 120,
+    # TUTOR-SIM-4（438）：逐步正确答案（逗号分隔；默认= tutor-sim-1 三步装置）。
+    [string]$Answers = "7,42,123",
+    # TUTOR-SIM-4：错误答案（默认 0；必须不等于任何 -Answers 项）。
+    [string]$WrongAnswer = "0",
     [switch]$StackAuthorized,
     [switch]$DryRun
 )
@@ -112,6 +119,7 @@ if (-not $StackAuthorized -and -not $DryRun) {
     Write-Host "        工程已由产品入口打开，且 <工程目录>/.vit_agent/tutor_sim.yaml 已放置；" -ForegroundColor Yellow
     Write-Host "        实验文件模板见 coord/experiments/tutor-sim-1/tutor_sim.yaml 与 README.md。" -ForegroundColor Yellow
     Write-Host "  授权后追加：-StackAuthorized -RuntimeOwner '<owner>' -ProjectPath '<工程.vit>'。" -ForegroundColor Yellow
+    Write-Host "        v1 四步装置（tutor-sim-2）追加：-Answers '42,模进,已装载,完成'。" -ForegroundColor Yellow
     Write-Host "  本脚本不启动/重启/停止栈进程（只走 agent HTTP）。" -ForegroundColor Yellow
     exit 3
 }
@@ -137,13 +145,13 @@ if ($DryRun) {
         sidecar_path = $sidecarPath
         sidecar_exists = ($sidecarPath -ne "" -and (Test-Path -LiteralPath $sidecarPath))
         runtime_owner = $RuntimeOwner
+        answers = $Answers
+        wrong_answer = $WrongAnswer
         planned_steps = @(
             "GET /health 与 /agent/state（真栈时）",
             "POST /agent/tutor/start {conversation_id, project_path}",
-            "POST /agent/chat 错输入 0 -> 断言不推进",
-            "POST /agent/chat 7 -> 第 2 步",
-            "POST /agent/chat 42 -> 第 3 步",
-            "POST /agent/chat 123 -> completed",
+            "POST /agent/chat 错输入 $WrongAnswer -> 断言不推进",
+            "POST /agent/chat 逐步答案 $Answers -> 断言推进/完成 + workflow_data brief/materials",
             "GET /agent/tutor/status 断言 completed",
             "完成后追加输入 -> 断言 already_completed"
         )
@@ -200,6 +208,37 @@ $summary = [ordered]@{
 $turnRecords = @()
 $commandWordsFound = @()
 $answerLeakWarnings = @()
+
+# TUTOR-SIM-4（438）：逐步答案与错误答案（答案序列按 -Answers 参数自适应）。
+$answerSequence = @()
+foreach ($answer in ($Answers -split ",")) {
+    $trimmedAnswer = $answer.Trim()
+    if (-not [string]::IsNullOrWhiteSpace($trimmedAnswer)) { $answerSequence += $trimmedAnswer }
+}
+if ($answerSequence.Count -eq 0) { Fail "-Answers 至少需要一个答案（逗号分隔）" }
+$wrongAnswerText = $WrongAnswer.Trim()
+if ($answerSequence -contains $wrongAnswerText) {
+    Fail "-WrongAnswer ($wrongAnswerText) 不得与任何 -Answers 项相同（错输入断言会失真）"
+}
+# start 回执自适应的期望总步数（v0 三步 / v1 按装置）。
+$script:expectedStepTotal = 0
+$script:startSchemaVersion = ""
+
+function Assert-TutorWorkflowDataPayload {
+    # TUTOR-SIM-4：v1 装置断言 workflow_data 含 brief/materials 字段；
+    # v0 装置断言 materials 为空数组（UI 不渲染卡的契约面）。
+    param($Data, [string]$Name)
+    Assert-True ($null -ne $Data) ($Name + " 缺 workflow_data")
+    $schemaVersion = [string](Get-JsonMember $Data "schema_version")
+    $brief = Get-JsonMember $Data "brief"
+    $materials = Get-JsonMember $Data "materials"
+    if ($schemaVersion -eq "vit.tutor_sim.v1") {
+        Assert-True ($null -ne $brief) ($Name + " v1 workflow_data 缺 brief")
+        Assert-True ($null -ne $materials) ($Name + " v1 workflow_data 缺 materials")
+    } else {
+        Assert-True ($null -eq $materials -or @($materials).Count -eq 0) ($Name + " v0 workflow_data materials 应为空")
+    }
+}
 
 function Save-Summary {
     param([string]$Status, [string]$ErrorText)
@@ -331,7 +370,8 @@ function Assert-Turn {
     Assert-True ([bool](Get-JsonMember $data "passed") -eq $Passed) ($Name + " passed=" + [string](Get-JsonMember $data "passed") + "，期望 " + $Passed)
     Assert-True ([bool](Get-JsonMember $data "completed") -eq $Completed) ($Name + " completed=" + [string](Get-JsonMember $data "completed") + "，期望 " + $Completed)
     Assert-True ([int](Get-JsonMember $data "step_index") -eq $StepIndex) ($Name + " step_index=" + [string](Get-JsonMember $data "step_index") + "，期望 " + $StepIndex)
-    Assert-True ([int](Get-JsonMember $data "step_total") -eq 3) ($Name + " step_total=" + [string](Get-JsonMember $data "step_total") + "，期望 3")
+    Assert-TutorWorkflowDataPayload -Data $data -Name $Name
+    Assert-True ([int](Get-JsonMember $data "step_total") -eq $script:expectedStepTotal) ($Name + " step_total=" + [string](Get-JsonMember $data "step_total") + "，期望 " + [string]$script:expectedStepTotal)
     if (-not [string]::IsNullOrWhiteSpace($StepID)) {
         Assert-True ([string](Get-JsonMember $data "step_id") -eq $StepID) ($Name + " step_id=" + [string](Get-JsonMember $data "step_id") + "，期望 " + $StepID)
     }
@@ -369,7 +409,7 @@ try {
     Assert-True (Test-SamePath $activePath $resolvedProject) ("agent 当前工程路径与 -ProjectPath 不一致: " + $activePath + " != " + $resolvedProject)
     Write-Ok "agent 可见且当前工程匹配"
 
-    Write-Step "S1 start：无命令词、LLM 人设开场、第 1/3 步"
+    Write-Step "S1 start：无命令词、LLM 人设开场、第 1/N 步（N 按 start 自适应）"
     $start = Invoke-AgentJson -Name "start" -Method "Post" -Path "/agent/tutor/start" -Body ([ordered]@{
         conversation_id = $ConversationID
         project_path = $resolvedProject
@@ -384,30 +424,36 @@ try {
     }
     Assert-True ([string](Get-JsonMember $start "status") -eq "ok") ("start status=" + [string](Get-JsonMember $start "status") + " reason=" + [string](Get-JsonMember $start "reason"))
     Assert-True ([int](Get-JsonMember $start "step_index") -eq 1) "start step_index 不是 1"
-    Assert-True ([int](Get-JsonMember $start "step_total") -eq 3) "start step_total 不是 3"
+    # TUTOR-SIM-4：schema 与总步数按 start 回执自适应（v0/v1 装置共用此脚本）。
+    $script:startSchemaVersion = [string](Get-JsonMember $start "schema_version")
+    Assert-True ($script:startSchemaVersion -eq "vit.tutor_sim.v0" -or $script:startSchemaVersion -eq "vit.tutor_sim.v1") ("start schema_version 不是 v0/v1: " + $script:startSchemaVersion)
+    $script:expectedStepTotal = [int](Get-JsonMember $start "step_total")
+    Assert-True ($script:expectedStepTotal -ge 1) "start step_total < 1"
     Assert-True (-not [string]::IsNullOrWhiteSpace([string](Get-JsonMember $start "step_id"))) "start step_id 为空"
     Assert-True ([string](Get-JsonMember $start "conversation_id") -eq $ConversationID) "start conversation_id 与请求不一致"
-    Assert-True ([string](Get-JsonMember $start "schema_version") -eq "vit.tutor_sim.v0") "start schema_version 不是 vit.tutor_sim.v0"
+    Assert-True ($answerSequence.Count -eq $script:expectedStepTotal) ("-Answers 项数 " + [string]($answerSequence.Count) + " 与 step_total " + [string]$script:expectedStepTotal + " 不一致")
+    Assert-TutorWorkflowDataPayload -Data (Get-JsonMember $start "workflow_data") -Name "start"
     $startReply = [string](Get-JsonMember $start "reply")
     Assert-True (-not [string]::IsNullOrWhiteSpace($startReply)) "start reply 为空（LLM 未生成开场）"
     Record-Reply "start" $startReply
     $summary.start = [ordered]@{
         conversation_id = [string](Get-JsonMember $start "conversation_id")
         experiment_id = [string](Get-JsonMember $start "experiment_id")
+        schema_version = $script:startSchemaVersion
         step_index = [int](Get-JsonMember $start "step_index")
         step_total = [int](Get-JsonMember $start "step_total")
         step_id = [string](Get-JsonMember $start "step_id")
         reply = $startReply
     }
-    foreach ($expectValue in @("7", "42", "123")) {
+    foreach ($expectValue in $answerSequence) {
         if ($startReply.Contains($expectValue)) {
             $script:answerLeakWarnings = @($script:answerLeakWarnings) + @("start reply 含 expect 值 " + $expectValue)
         }
     }
     Write-Ok "开场已生成"
 
-    Write-Step "S2 错输入 0：判定失败、不推进"
-    $wrong = Send-TutorChat -Name "wrong_0" -Message "0"
+    Write-Step ("S2 错输入 " + $wrongAnswerText + "：判定失败、不推进")
+    $wrong = Send-TutorChat -Name "wrong_0" -Message $wrongAnswerText
     Assert-Turn -Response $wrong -Name "wrong_0" -Passed $false -Completed $false -StepIndex 1 -StepID ([string](Get-JsonMember $start "step_id")) -StopReason "tutor_sim_retry"
     $wrongStatus = Get-TutorStatus "status_after_wrong"
     Assert-True ([int](Get-JsonMember $wrongStatus "step_index") -eq 1) "错误输入后 status step_index 不是 1"
@@ -416,30 +462,30 @@ try {
     Assert-True ([int](Get-JsonMember $wrongStatus "failures") -eq 1) "错误输入后 failures 不是 1"
     Write-Ok "错误输入未推进"
 
-    Write-Step "S3 输入 7：推进到第 2 步"
-    $step2 = Send-TutorChat -Name "answer_7" -Message "7"
-    Assert-Turn -Response $step2 -Name "answer_7" -Passed $true -Completed $false -StepIndex 2 -StepID "" -StopReason "tutor_sim_step_advanced"
-    $status2 = Get-TutorStatus "status_after_7"
-    Assert-True ([int](Get-JsonMember $status2 "step_index") -eq 2) "7 之后 status step_index 不是 2"
-    Assert-True (-not [bool](Get-JsonMember $status2 "completed")) "7 之后 status completed=true"
-    Write-Ok "第 2 步"
+    for ($step = 1; $step -le $answerSequence.Count; $step++) {
+        $answer = $answerSequence[$step - 1]
+        if ($step -lt $answerSequence.Count) {
+            $nextStep = $step + 1
+            Write-Step ("S" + ($step + 2) + " 输入 " + $answer + "：推进到第 " + $nextStep + " 步")
+            $turn = Send-TutorChat -Name ("answer_" + $step) -Message $answer
+            Assert-Turn -Response $turn -Name ("answer_" + $step) -Passed $true -Completed $false -StepIndex $nextStep -StepID "" -StopReason "tutor_sim_step_advanced"
+            $turnStatus = Get-TutorStatus ("status_after_" + $step)
+            Assert-True ([int](Get-JsonMember $turnStatus "step_index") -eq $nextStep) ($answer + " 之后 status step_index 不是 " + $nextStep)
+            Assert-True (-not [bool](Get-JsonMember $turnStatus "completed")) ($answer + " 之后 status completed=true")
+            Write-Ok ("第 " + $nextStep + " 步")
+        } else {
+            Write-Step ("S" + ($step + 2) + " 输入 " + $answer + "：完成")
+            $turn = Send-TutorChat -Name ("answer_" + $step) -Message $answer
+            Assert-Turn -Response $turn -Name ("answer_" + $step) -Passed $true -Completed $true -StepIndex $script:expectedStepTotal -StepID "" -StopReason "tutor_sim_completed"
+            Assert-True ([string](Get-JsonMember $turn "goal_status") -eq "completed") "完成回执 goal_status 不是 completed"
+            Write-Ok "实验 completed"
+        }
+    }
 
-    Write-Step "S4 输入 42：推进到第 3 步"
-    $step3 = Send-TutorChat -Name "answer_42" -Message "42"
-    Assert-Turn -Response $step3 -Name "answer_42" -Passed $true -Completed $false -StepIndex 3 -StepID "" -StopReason "tutor_sim_step_advanced"
-    $status3 = Get-TutorStatus "status_after_42"
-    Assert-True ([int](Get-JsonMember $status3 "step_index") -eq 3) "42 之后 status step_index 不是 3"
-    Assert-True (-not [bool](Get-JsonMember $status3 "completed")) "42 之后 status completed=true"
-    Write-Ok "第 3 步"
-
-    Write-Step "S5 输入 123：完成"
-    $completed = Send-TutorChat -Name "answer_123" -Message "123"
-    Assert-Turn -Response $completed -Name "answer_123" -Passed $true -Completed $true -StepIndex 3 -StepID "" -StopReason "tutor_sim_completed"
-    Assert-True ([string](Get-JsonMember $completed "goal_status") -eq "completed") "完成回执 goal_status 不是 completed"
     $finalStatus = Get-TutorStatus "status_completed"
     Assert-True ([bool](Get-JsonMember $finalStatus "completed")) "完成后 status completed=false"
     Assert-True ([string](Get-JsonMember $finalStatus "session_status") -eq "completed") "完成后 session_status 不是 completed"
-    Assert-True ([int](Get-JsonMember $finalStatus "step_index") -eq 3) "完成后 status step_index 不是 3"
+    Assert-True ([int](Get-JsonMember $finalStatus "step_index") -eq $script:expectedStepTotal) ("完成后 status step_index 不是 " + [string]$script:expectedStepTotal)
     $summary.final_status = [ordered]@{
         step_index = [int](Get-JsonMember $finalStatus "step_index")
         step_total = [int](Get-JsonMember $finalStatus "step_total")
@@ -449,16 +495,16 @@ try {
         attempts = [int](Get-JsonMember $finalStatus "attempts")
         failures = [int](Get-JsonMember $finalStatus "failures")
     }
-    Write-Ok "实验 completed"
+    Write-Ok "完成态核对"
 
     Write-Step "S6 完成后追加输入：不推进、不进入普通 loop"
-    $after = Send-TutorChat -Name "after_completed" -Message "7"
+    $after = Send-TutorChat -Name "after_completed" -Message $answerSequence[0]
     $afterData = Get-JsonMember $after "workflow_data"
     Assert-True ([string](Get-JsonMember $after "stop_reason") -eq "tutor_sim_already_completed") ("完成后 stop_reason=" + [string](Get-JsonMember $after "stop_reason"))
     Assert-True ([bool](Get-JsonMember $afterData "completed")) "完成后追加输入 completed=false"
     Assert-True (-not [bool](Get-JsonMember $afterData "passed")) "完成后追加输入 passed=true"
     $afterStatus = Get-TutorStatus "status_after_completed"
-    Assert-True ([int](Get-JsonMember $afterStatus "step_index") -eq 3) "完成后追加输入改变了 step_index"
+    Assert-True ([int](Get-JsonMember $afterStatus "step_index") -eq $script:expectedStepTotal) "完成后追加输入改变了 step_index"
     Assert-True ([int](Get-JsonMember $afterStatus "attempts") -eq [int](Get-JsonMember $finalStatus "attempts")) "完成后追加输入改变了 attempts"
     Write-Ok "完成后已停止"
 

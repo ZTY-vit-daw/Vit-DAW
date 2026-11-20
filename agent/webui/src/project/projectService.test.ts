@@ -22,6 +22,7 @@ vi.mock("../lib/api", () => api);
 import {
   createProjectLiveService,
   projectContextFromUIState,
+  tutorMaterialLoadOutcomeFromResponse,
   tutorStartOutcomeFromResponse
 } from "./projectService";
 
@@ -185,5 +186,114 @@ describe("TUTOR-SIM-2：lib/api.startTutorSim 真实请求形状", () => {
     // 两字段均可选：空载荷也要是合法 JSON。
     await expect(actual.startTutorSim()).rejects.toThrow("llm_config_incomplete");
     expect(fetchMock.mock.calls[1]?.[1]?.body).toBe("{}");
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/* TUTOR-SIM-4（438）：材料装载接缝                                      */
+/* ------------------------------------------------------------------ */
+
+describe("TUTOR-SIM-4：loadTutorMaterial 请求形状与回执映射", () => {
+  it("装载请求 POST /agent/tutor/load_material，成功回执映射 track/clip/音源", async () => {
+    const fetchMock = vi.fn().mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          status: "ok",
+          conversation_id: "tutor_live_438",
+          load: { loaded: true, track_id: "trk-1", clip_id: "clip-1", plugin_id: "pl-1", instrument_attached: true }
+        }),
+        { status: 200 }
+      )
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const actual = createProjectLiveService();
+    const outcome = await actual.loadTutorMaterial("tutor_live_438", "主题材料");
+    expect(outcome).toEqual({
+      ok: true,
+      alreadyLoaded: false,
+      trackID: "trk-1",
+      clipID: "clip-1",
+      pluginID: "pl-1",
+      instrumentAttached: true
+    });
+    const [path, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(path).toBe("/agent/tutor/load_material");
+    expect(init.method).toBe("POST");
+    expect(JSON.parse(String(init.body))).toEqual({ conversation_id: "tutor_live_438", material_title: "主题材料" });
+  });
+
+  it("already_loaded 与音源被拒都算 ok（best-effort 如实带回）；失败映射 ok:false", () => {
+    expect(
+      tutorMaterialLoadOutcomeFromResponse({ status: "ok", already_loaded: true, load: { loaded: true, track_id: "t", clip_id: "c" } })
+    ).toMatchObject({ ok: true, alreadyLoaded: true, instrumentAttached: false });
+    expect(
+      tutorMaterialLoadOutcomeFromResponse({
+        status: "ok",
+        load: { loaded: true, track_id: "t", clip_id: "c", instrument_attached: false, instrument_error: "plugin not found" }
+      })
+    ).toEqual({
+      ok: true,
+      alreadyLoaded: false,
+      trackID: "t",
+      clipID: "c",
+      pluginID: "",
+      instrumentAttached: false,
+      instrumentError: "plugin not found"
+    });
+    expect(tutorMaterialLoadOutcomeFromResponse({ status: "error", error: "unknown_material" })).toEqual({
+      ok: false,
+      reason: "unknown_material"
+    });
+    expect(tutorMaterialLoadOutcomeFromResponse({ status: "error", failure_class: "kernel_error" })).toEqual({
+      ok: false,
+      reason: "kernel_error"
+    });
+    expect(tutorMaterialLoadOutcomeFromResponse({})).toEqual({ ok: false, reason: "load_failed" });
+  });
+
+  it("装载网络失败降级 ok:false，不抛进 UI", async () => {
+    const fetchMock = vi.fn().mockRejectedValueOnce(new Error("socket closed"));
+    vi.stubGlobal("fetch", fetchMock);
+    const actual = createProjectLiveService();
+    await expect(actual.loadTutorMaterial("c", "t")).resolves.toEqual({ ok: false, reason: "socket closed" });
+  });
+});
+
+describe("TUTOR-SIM-4：start 回执携带 brief/materials（workflow_data 局部扩展）", () => {
+  it("v1 开场投影 brief/materials；v0（无 workflow_data）两字段缺省空", () => {
+    const v1 = tutorStartOutcomeFromResponse({
+      status: "ok",
+      conversation_id: "tutor_v1",
+      reply: "开场",
+      step_index: 1,
+      step_total: 4,
+      step_id: "step-hear-theme",
+      workflow_data: {
+        step_index: 1,
+        step_total: 4,
+        step_id: "step-hear-theme",
+        brief: "教学简报",
+        materials: [{ kind: "midi_clip", title: "主题", path: "assets/theme.mid", note_count: 42, loaded: false }]
+      }
+    } as never);
+    expect(v1.status).toBe("ok");
+    if (v1.status === "ok") {
+      expect(v1.brief).toBe("教学简报");
+      expect(v1.materials?.[0]).toMatchObject({ kind: "midi_clip", title: "主题", noteCount: 42, loaded: false });
+    }
+    const v0 = tutorStartOutcomeFromResponse({
+      status: "ok",
+      conversation_id: "tutor_v0",
+      reply: "开场",
+      step_index: 1,
+      step_total: 3,
+      step_id: "step-1"
+    });
+    if (v0.status === "ok") {
+      // v0 回执无 workflow_data：输出不含 brief/materials 键（436 严格映射面）。
+      expect(v0.brief).toBeUndefined();
+      expect(v0.materials).toBeUndefined();
+      expect(Object.keys(v0).sort()).toEqual(["conversationID", "reply", "status", "stepID", "stepIndex", "stepTotal"]);
+    }
   });
 });

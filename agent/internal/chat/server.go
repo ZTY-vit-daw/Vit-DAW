@@ -747,6 +747,7 @@ func (s *Server) Routes() http.Handler {
 	mux.HandleFunc("/agent/chat", s.handleChat)
 	mux.HandleFunc("/agent/tutor/start", s.handleTutorStart)
 	mux.HandleFunc("/agent/tutor/status", s.handleTutorStatus)
+	mux.HandleFunc("/agent/tutor/load_material", s.handleTutorLoadMaterial)
 	mux.HandleFunc("/agent/launcher/greeting", s.handleLauncherGreeting)
 	mux.HandleFunc("/agent/launcher/recent-projects", s.handleLauncherRecentProjects)
 	mux.HandleFunc("/agent/note/archive", s.handleNoteArchive)

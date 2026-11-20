@@ -16,6 +16,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -56,6 +57,10 @@ type tutorSimRuntime struct {
 	store      *tutorsim.Store
 	completer  tutorSimCompleter
 	loadConfig func() (config.EngineConfig, string, error)
+	// kernelSendOverride is the test seam for the material load chain
+	// (production wraps Server.kernel.SendCommand; the same seam shape as
+	// eduJamKernelSendOverride).
+	kernelSendOverride func(ctx context.Context, cmd map[string]any) (map[string]any, error)
 }
 
 func newTutorSimRuntime() *tutorSimRuntime {
@@ -92,19 +97,20 @@ type tutorSimStartRequest struct {
 }
 
 type tutorSimStartResponse struct {
-	Status         string `json:"status"`
-	Reason         string `json:"reason,omitempty"`
-	Error          string `json:"error,omitempty"`
-	FailureClass   string `json:"failure_class,omitempty"`
-	ConversationID string `json:"conversation_id,omitempty"`
-	ExperimentID   string `json:"experiment_id,omitempty"`
-	SchemaVersion  string `json:"schema_version,omitempty"`
-	ProjectPath    string `json:"project_path,omitempty"`
-	SidecarPath    string `json:"sidecar_path,omitempty"`
-	StepIndex      int    `json:"step_index,omitempty"`
-	StepTotal      int    `json:"step_total,omitempty"`
-	StepID         string `json:"step_id,omitempty"`
-	Reply          string `json:"reply,omitempty"`
+	Status         string         `json:"status"`
+	Reason         string         `json:"reason,omitempty"`
+	Error          string         `json:"error,omitempty"`
+	FailureClass   string         `json:"failure_class,omitempty"`
+	ConversationID string         `json:"conversation_id,omitempty"`
+	ExperimentID   string         `json:"experiment_id,omitempty"`
+	SchemaVersion  string         `json:"schema_version,omitempty"`
+	ProjectPath    string         `json:"project_path,omitempty"`
+	SidecarPath    string         `json:"sidecar_path,omitempty"`
+	StepIndex      int            `json:"step_index,omitempty"`
+	StepTotal      int            `json:"step_total,omitempty"`
+	StepID         string         `json:"step_id,omitempty"`
+	Reply          string         `json:"reply,omitempty"`
+	WorkflowData   map[string]any `json:"workflow_data,omitempty"`
 }
 
 type tutorSimStatusResponse struct {
@@ -225,13 +231,24 @@ func (s *Server) handleTutorStart(w http.ResponseWriter, r *http.Request) {
 		Status:         "ok",
 		ConversationID: conversationID,
 		ExperimentID:   snapshot.ExperimentID,
-		SchemaVersion:  tutorsim.SchemaVersion,
+		SchemaVersion:  exp.SchemaVersion,
 		ProjectPath:    projectPath,
 		SidecarPath:    sidecarPath,
 		StepIndex:      snapshot.StepIndex,
 		StepTotal:      snapshot.StepTotal,
 		StepID:         snapshot.StepID,
 		Reply:          reply,
+		WorkflowData: tutorSimStepWorkflowData(exp, snapshot.StepIndex, rt.store.LoadedMaterials(conversationID), map[string]any{
+			"schema_version": exp.SchemaVersion,
+			"experiment_id":  exp.ID,
+			"step_index":     snapshot.StepIndex,
+			"step_total":     snapshot.StepTotal,
+			"step_id":        snapshot.StepID,
+			"passed":         false,
+			"completed":      false,
+			"attempts":       0,
+			"failures":       0,
+		}),
 	})
 }
 
@@ -269,6 +286,360 @@ func (s *Server) handleTutorStatus(w http.ResponseWriter, r *http.Request) {
 		Attempts:       snapshot.Attempts,
 		Failures:       snapshot.Failures,
 	})
+}
+
+/* ------------------------------------------------------------------ */
+/* TUTOR-SIM-4（池序 438）：教学材料装载（MIDI clip → 工程）              */
+/* ------------------------------------------------------------------ */
+
+// tutorSimDefaultInstrumentIdentifier is the best-effort instrument attached
+// to the loaded material track: the Surge XT provenance identifier recorded
+// by the 384 (SRC-TEMPLATE) template-sound leg. The kernel may resolve or
+// reject it; a rejection is recorded on the material, it never fails the
+// track+clip load itself.
+const tutorSimDefaultInstrumentIdentifier = "VST3-Surge XT-1e1bcfb-190e4fbd"
+
+// tutorSimLoadMaterialRequest targets one material of the CURRENT step of an
+// active tutor session. plugin_path/plugin_identifier are optional overrides
+// for the best-effort instrument attach (Surge preset first per the card;
+// preset/program selection itself is outside the proven kernel command face
+// and is recorded as a known limitation).
+type tutorSimLoadMaterialRequest struct {
+	ConversationID   string `json:"conversation_id"`
+	MaterialTitle    string `json:"material_title"`
+	PluginPath       string `json:"plugin_path,omitempty"`
+	PluginIdentifier string `json:"plugin_identifier,omitempty"`
+}
+
+type tutorSimLoadMaterialResponse struct {
+	Status         string         `json:"status"`
+	Reason         string         `json:"reason,omitempty"`
+	Error          string         `json:"error,omitempty"`
+	FailureClass   string         `json:"failure_class,omitempty"`
+	ConversationID string         `json:"conversation_id,omitempty"`
+	AlreadyLoaded  bool           `json:"already_loaded,omitempty"`
+	Load           map[string]any `json:"load,omitempty"`
+	Material       map[string]any `json:"material,omitempty"`
+}
+
+// handleTutorLoadMaterial implements POST /agent/tutor/load_material.
+//
+// The load uses only the proven kernel command face (add_track /
+// rename_track / insert_midi_clip / add_midi_notes — scripts/
+// yue_wire_smoke.py W1 — plus a best-effort rack_add_node for the
+// instrument). Track+clip placement is the load: a rejected instrument
+// attach is recorded, not fatal. The session's reserve/finalize table makes
+// repeated loads idempotent.
+func (s *Server) handleTutorLoadMaterial(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"status": "error", "error": "POST required"})
+		return
+	}
+	var req tutorSimLoadMaterialRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"status": "error", "error": "invalid JSON: " + err.Error()})
+		return
+	}
+	conversationID := strings.TrimSpace(req.ConversationID)
+	title := strings.TrimSpace(req.MaterialTitle)
+	if conversationID == "" || title == "" {
+		writeJSON(w, http.StatusBadRequest, tutorSimLoadMaterialResponse{
+			Status: "error",
+			Error:  "conversation_id and material_title are required",
+		})
+		return
+	}
+	rt := s.tutorSim
+	if rt == nil {
+		writeJSON(w, http.StatusInternalServerError, tutorSimLoadMaterialResponse{
+			Status: "error",
+			Error:  "tutor_sim_runtime_unavailable",
+		})
+		return
+	}
+
+	materials, loaded, sessionOK := rt.store.CurrentMaterials(conversationID)
+	if !sessionOK {
+		writeJSON(w, http.StatusNotFound, tutorSimLoadMaterialResponse{
+			Status:         "error",
+			Error:          "unknown_tutor_session",
+			ConversationID: conversationID,
+		})
+		return
+	}
+	var material *tutorsim.Material
+	for i := range materials {
+		if materials[i].Title == title {
+			material = &materials[i]
+			break
+		}
+	}
+	if material == nil {
+		writeJSON(w, http.StatusNotFound, tutorSimLoadMaterialResponse{
+			Status:         "error",
+			Error:          "unknown_material",
+			Reason:         "material is not declared on the current step",
+			ConversationID: conversationID,
+		})
+		return
+	}
+	if state, loadedBefore := loaded[title]; loadedBefore && state.Loaded {
+		writeJSON(w, http.StatusOK, tutorSimLoadMaterialResponse{
+			Status:         "ok",
+			ConversationID: conversationID,
+			AlreadyLoaded:  true,
+			Load:           tutorSimLoadStatePayload(state),
+			Material:       tutorSimMaterialPayload(*material, state),
+		})
+		return
+	}
+
+	reserved, canLoad := rt.store.ReserveMaterial(conversationID, title)
+	if !canLoad {
+		// Either a load is in flight or the concurrent twin just finished.
+		if reserved.Loaded {
+			writeJSON(w, http.StatusOK, tutorSimLoadMaterialResponse{
+				Status:         "ok",
+				ConversationID: conversationID,
+				AlreadyLoaded:  true,
+				Load:           tutorSimLoadStatePayload(reserved),
+				Material:       tutorSimMaterialPayload(*material, reserved),
+			})
+			return
+		}
+		writeJSON(w, http.StatusConflict, tutorSimLoadMaterialResponse{
+			Status:         "error",
+			Error:          "load_in_progress",
+			ConversationID: conversationID,
+			Material:       tutorSimMaterialPayload(*material, reserved),
+		})
+		return
+	}
+
+	fail := func(status int, failureClass, reason, errText string) {
+		rt.store.FinalizeMaterial(conversationID, title, tutorsim.MaterialLoadState{Error: errText})
+		state := rt.store.LoadedMaterials(conversationID)[title]
+		s.logTutorSim("[tutor_sim] load_material refused conversation=%s title=%q reason=%s error=%s", conversationID, title, reason, errText)
+		writeJSON(w, status, tutorSimLoadMaterialResponse{
+			Status:         "error",
+			Reason:         reason,
+			Error:          errText,
+			FailureClass:   failureClass,
+			ConversationID: conversationID,
+			Material:       tutorSimMaterialPayload(*material, state),
+		})
+	}
+
+	if material.Kind == tutorsim.MaterialKindAudio {
+		fail(http.StatusUnprocessableEntity, "audio_not_loadable", "audio materials are a schema slot without loadable content this round", "audio material cannot be loaded")
+		return
+	}
+	if material.SummaryError != "" || material.DurationBeats <= 0 {
+		fail(http.StatusUnprocessableEntity, "material_unavailable", "material file could not be summarized", firstNonEmpty(material.SummaryError, "material summary unavailable"))
+		return
+	}
+
+	send := rt.kernelSendOverride
+	if send == nil {
+		if s.kernel == nil {
+			fail(http.StatusServiceUnavailable, "kernel_unavailable", "kernel client is nil", "kernel unavailable")
+			return
+		}
+		send = func(ctx context.Context, cmd map[string]any) (map[string]any, error) {
+			reply, _, err := s.kernel.SendCommand(ctx, cmd)
+			return reply, err
+		}
+	}
+
+	midiData, err := os.ReadFile(material.AbsPath)
+	if err != nil {
+		fail(http.StatusUnprocessableEntity, "material_unavailable", "material file unreadable at load time", err.Error())
+		return
+	}
+	doc, err := tutorsim.ParseMidi(midiData)
+	if err != nil || len(doc.Notes) == 0 {
+		text := err.Error()
+		if text == "" {
+			text = "material parsed to zero notes"
+		}
+		fail(http.StatusUnprocessableEntity, "material_unavailable", "material file unparseable at load time", text)
+		return
+	}
+
+	result, err := tutorSimLoadMidiMaterial(r.Context(), send, material.Title, material.DurationBeats, doc.Notes, req.PluginPath, req.PluginIdentifier)
+	if err != nil {
+		state := tutorsim.MaterialLoadState{Error: err.Error()}
+		if result != nil {
+			state.TrackID = result.TrackID
+			state.ClipID = result.ClipID
+		}
+		rt.store.FinalizeMaterial(conversationID, title, state)
+		s.logTutorSim("[tutor_sim] load_material kernel_failed conversation=%s title=%q error=%v", conversationID, title, err)
+		writeJSON(w, http.StatusBadGateway, tutorSimLoadMaterialResponse{
+			Status:         "error",
+			Error:          err.Error(),
+			FailureClass:   "kernel_error",
+			ConversationID: conversationID,
+			Load:           tutorSimLoadStatePayload(state),
+			Material:       tutorSimMaterialPayload(*material, state),
+		})
+		return
+	}
+	final := tutorsim.MaterialLoadState{
+		Loaded:             true,
+		TrackID:            result.TrackID,
+		ClipID:             result.ClipID,
+		PluginID:           result.PluginID,
+		InstrumentAttached: result.InstrumentAttached,
+		InstrumentError:    result.InstrumentError,
+	}
+	rt.store.FinalizeMaterial(conversationID, title, final)
+	s.logTutorSim("[tutor_sim] load_material conversation=%s title=%q track=%s clip=%s instrument_attached=%t", conversationID, title, result.TrackID, result.ClipID, result.InstrumentAttached)
+	writeJSON(w, http.StatusOK, tutorSimLoadMaterialResponse{
+		Status:         "ok",
+		ConversationID: conversationID,
+		Load:           tutorSimLoadStatePayload(final),
+		Material:       tutorSimMaterialPayload(*material, final),
+	})
+}
+
+func tutorSimLoadStatePayload(state tutorsim.MaterialLoadState) map[string]any {
+	return tutorSimMaterialPayload(tutorsim.Material{}, state)
+}
+
+type tutorSimLoadResult struct {
+	TrackID            string
+	ClipID             string
+	PluginID           string
+	InstrumentAttached bool
+	InstrumentError    string
+}
+
+// tutorSimKernelReplyStatus mirrors the W1 acceptance per command: add_track
+// may answer ok|success; the clip/notes faces answer strict ok.
+func tutorSimKernelReplyStatus(reply map[string]any) string {
+	if reply == nil {
+		return ""
+	}
+	return strings.ToLower(strings.TrimSpace(fmt.Sprint(reply["status"])))
+}
+
+func tutorSimKernelReplyError(reply map[string]any) string {
+	return firstNonEmpty(
+		strings.TrimSpace(fmt.Sprint(reply["error"])),
+		strings.TrimSpace(fmt.Sprint(reply["message"])),
+		"unknown kernel error",
+	)
+}
+
+// tutorSimLoadMidiMaterial places the material as track+clip with its notes
+// using the proven kernel command chain, then attempts the best-effort
+// instrument attach. A partially completed chain returns an error carrying
+// the evidence ids created so far (no invented compensation commands).
+func tutorSimLoadMidiMaterial(
+	ctx context.Context,
+	send func(ctx context.Context, cmd map[string]any) (map[string]any, error),
+	title string,
+	durationBeats float64,
+	notes []tutorsim.MidiNote,
+	pluginPath, pluginIdentifier string,
+) (*tutorSimLoadResult, error) {
+	result := &tutorSimLoadResult{}
+
+	reply, err := send(ctx, map[string]any{"cmd": "add_track", "command_timeout_ms": 60000})
+	if err != nil {
+		return result, fmt.Errorf("add_track: %w", err)
+	}
+	if status := tutorSimKernelReplyStatus(reply); status != "ok" && status != "success" {
+		return result, fmt.Errorf("add_track failed: %s", tutorSimKernelReplyError(reply))
+	}
+	result.TrackID = strings.TrimSpace(fmt.Sprint(reply["track_id"]))
+	if result.TrackID == "" {
+		return result, fmt.Errorf("add_track returned no track_id")
+	}
+
+	reply, err = send(ctx, map[string]any{"cmd": "rename_track", "track_id": result.TrackID, "name": title, "command_timeout_ms": 60000})
+	if err != nil {
+		return result, fmt.Errorf("rename_track: %w", err)
+	}
+	if status := tutorSimKernelReplyStatus(reply); status != "ok" && status != "success" {
+		return result, fmt.Errorf("rename_track failed: %s", tutorSimKernelReplyError(reply))
+	}
+
+	reply, err = send(ctx, map[string]any{
+		"cmd": "insert_midi_clip", "track_id": result.TrackID,
+		"time_unit": "beats", "start": 0.0, "length": durationBeats,
+		"command_timeout_ms": 60000,
+	})
+	if err != nil {
+		return result, fmt.Errorf("insert_midi_clip: %w", err)
+	}
+	if status := tutorSimKernelReplyStatus(reply); status != "ok" {
+		return result, fmt.Errorf("insert_midi_clip failed: %s", tutorSimKernelReplyError(reply))
+	}
+	result.ClipID = strings.TrimSpace(fmt.Sprint(reply["clip_id"]))
+	if result.ClipID == "" {
+		result.ClipID = strings.TrimSpace(fmt.Sprint(reply["new_clip_id"]))
+	}
+	if result.ClipID == "" {
+		return result, fmt.Errorf("insert_midi_clip returned no clip_id")
+	}
+
+	rows := make([]map[string]any, 0, len(notes))
+	for _, note := range notes {
+		rows = append(rows, map[string]any{
+			"pitch":    note.Pitch,
+			"start":    note.Start,
+			"length":   note.Length,
+			"velocity": note.Velocity,
+		})
+	}
+	reply, err = send(ctx, map[string]any{
+		"cmd": "add_midi_notes", "track_id": result.TrackID, "clip_id": result.ClipID,
+		"time_unit": "beats", "notes": rows, "command_timeout_ms": 60000,
+	})
+	if err != nil {
+		return result, fmt.Errorf("add_midi_notes: %w", err)
+	}
+	if status := tutorSimKernelReplyStatus(reply); status != "ok" {
+		return result, fmt.Errorf("add_midi_notes failed: %s", tutorSimKernelReplyError(reply))
+	}
+
+	// Best-effort instrument attach (Surge 预设优先，384 腿 D 模板音色锚点).
+	// Rejection is recorded, never fatal: the material (track+clip+notes) is
+	// already in place.
+	identifier := strings.TrimSpace(pluginIdentifier)
+	if identifier == "" {
+		identifier = tutorSimDefaultInstrumentIdentifier
+	}
+	instrumentCmd := map[string]any{
+		"cmd":                "rack_add_node",
+		"track_id":           result.TrackID,
+		"plugin_identifier":  identifier,
+		"plugin_kind":        "Instrument",
+		"auto_connect":       true,
+		"x":                  0.32,
+		"y":                  0.32,
+		"command_timeout_ms": 60000,
+	}
+	if path := strings.TrimSpace(pluginPath); path != "" {
+		instrumentCmd["plugin_path"] = path
+	}
+	reply, err = send(ctx, instrumentCmd)
+	if err != nil {
+		result.InstrumentError = err.Error()
+		return result, nil
+	}
+	if status := tutorSimKernelReplyStatus(reply); status != "ok" && status != "success" {
+		result.InstrumentError = tutorSimKernelReplyError(reply)
+		return result, nil
+	}
+	result.InstrumentAttached = true
+	result.PluginID = strings.TrimSpace(fmt.Sprint(reply["plugin_id"]))
+	if result.PluginID == "" {
+		result.PluginID = strings.TrimSpace(fmt.Sprint(reply["plugin_item_id"]))
+	}
+	return result, nil
 }
 
 // handleTutorSimChatTurn intercepts POST /agent/chat for a conversation that
@@ -359,7 +730,7 @@ func (s *Server) writeTutorSimLLMFailure(w http.ResponseWriter, status int, conv
 		FailureClass:   class,
 		ConversationID: conversationID,
 		ExperimentID:   exp.ID,
-		SchemaVersion:  tutorsim.SchemaVersion,
+		SchemaVersion:  exp.SchemaVersion,
 		ProjectPath:    projectPath,
 		SidecarPath:    sidecarPath,
 	})
@@ -403,8 +774,8 @@ func tutorSimStopReasonForVerdict(verdict tutorsim.Verdict) string {
 }
 
 func tutorSimVerdictData(exp *tutorsim.Experiment, verdict tutorsim.Verdict) map[string]any {
-	return map[string]any{
-		"schema_version": tutorsim.SchemaVersion,
+	return tutorSimStepWorkflowData(exp, verdict.StepIndex, verdict.MaterialsLoaded, map[string]any{
+		"schema_version": exp.SchemaVersion,
 		"experiment_id":  exp.ID,
 		"step_index":     verdict.StepIndex,
 		"step_total":     verdict.StepTotal,
@@ -413,7 +784,64 @@ func tutorSimVerdictData(exp *tutorsim.Experiment, verdict tutorsim.Verdict) map
 		"completed":      verdict.Completed,
 		"attempts":       verdict.Attempts,
 		"failures":       verdict.Failures,
+	})
+}
+
+// tutorSimStepWorkflowData augments the structured verdict fields with the
+// current step's teaching payload (TUTOR-SIM-4 v1): brief prose and the
+// material list annotated with the session's load state. v0 experiments
+// carry an empty brief and an empty (non-null) materials list so the UI can
+// key on presence without schema sniffing.
+func tutorSimStepWorkflowData(exp *tutorsim.Experiment, stepIndex int, loaded map[string]tutorsim.MaterialLoadState, data map[string]any) map[string]any {
+	if exp == nil || stepIndex < 1 || stepIndex > len(exp.Steps) {
+		return data
 	}
+	step := exp.Steps[stepIndex-1]
+	data["brief"] = step.Brief
+	materials := make([]map[string]any, 0, len(step.Materials))
+	for _, material := range step.Materials {
+		materials = append(materials, tutorSimMaterialPayload(material, loaded[material.Title]))
+	}
+	data["materials"] = materials
+	return data
+}
+
+// tutorSimMaterialPayload is the workflow_data/material-response projection of
+// one material. The declared YAML path is echoed (never the absolute host
+// path); the summary is computed at experiment load time.
+func tutorSimMaterialPayload(material tutorsim.Material, state tutorsim.MaterialLoadState) map[string]any {
+	payload := map[string]any{
+		"kind":    material.Kind,
+		"title":   material.Title,
+		"path":    material.Path,
+		"loaded":  state.Loaded,
+		"loading": state.Loading,
+	}
+	if material.NoteCount > 0 {
+		payload["note_count"] = material.NoteCount
+		payload["duration_beats"] = material.DurationBeats
+		payload["tempo_bpm"] = material.TempoBPM
+	}
+	if material.SummaryError != "" {
+		payload["summary_error"] = material.SummaryError
+	}
+	if state.TrackID != "" {
+		payload["track_id"] = state.TrackID
+	}
+	if state.ClipID != "" {
+		payload["clip_id"] = state.ClipID
+	}
+	if state.PluginID != "" {
+		payload["plugin_id"] = state.PluginID
+	}
+	payload["instrument_attached"] = state.InstrumentAttached
+	if state.InstrumentError != "" {
+		payload["instrument_error"] = state.InstrumentError
+	}
+	if state.Error != "" {
+		payload["load_error"] = state.Error
+	}
+	return payload
 }
 
 func tutorSimFailureResponse(base ChatResponse, data map[string]any, class, stopReason, errText string, verdict tutorsim.Verdict) ChatResponse {

@@ -16,6 +16,7 @@ import type {
   ProjectContextView,
   ProjectService,
   ProjectThreadItem,
+  TutorMaterialLoadOutcome,
   TutorStartOutcome
 } from "./projectData";
 
@@ -34,6 +35,10 @@ export interface ProjectFixtureConfig {
   tutorStart?: TutorStartOutcome;
   /** TUTOR-SIM-2：自动开场调用台账（工程路径；断言每工程一次）。 */
   tutorStartCalls?: string[];
+  /** TUTOR-SIM-4：材料装载回执；省略 = 成功（fixture track/clip id）。 */
+  loadMaterialOutcome?: TutorMaterialLoadOutcome;
+  /** TUTOR-SIM-4：材料装载调用台账（会话 id + 材料名；由调用方读）。 */
+  loadMaterialCalls?: Array<{ conversationID: string; title: string }>;
   /** 应用宏的 fixture 回执（成功带 snapshotRef / 失败带 reason）。 */
   applyOutcome?: MacroApplyOutcome;
   /** 撤销是否成功（false 时抛错，用于样例失败态）。 */
@@ -77,6 +82,20 @@ export function createProjectFixtureService(config: ProjectFixtureConfig = {}): 
       config.tutorStartCalls?.push(projectPath);
       if (config.tutorStart) return config.tutorStart;
       return { status: "unavailable", reason: "fixture_tutor_sim_unavailable" };
+    },
+    async loadTutorMaterial(conversationID: string, title: string): Promise<TutorMaterialLoadOutcome> {
+      // fixture 服务替身不触网：回执由配置给定（默认=成功，fixture 证据 id）。
+      await delay(latency);
+      config.loadMaterialCalls?.push({ conversationID, title });
+      if (config.loadMaterialOutcome) return config.loadMaterialOutcome;
+      return {
+        ok: true,
+        alreadyLoaded: false,
+        trackID: `fixture-track-${config.loadMaterialCalls?.length ?? 0}`,
+        clipID: `fixture-clip-${config.loadMaterialCalls?.length ?? 0}`,
+        pluginID: "fixture-plugin-0",
+        instrumentAttached: true
+      };
     },
     async stopReply(): Promise<void> {
       await delay(latency);
