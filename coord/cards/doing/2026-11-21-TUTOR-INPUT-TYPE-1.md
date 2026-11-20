@@ -12,3 +12,11 @@
 ## 验收
 
 - go test ./internal/chat 定向+vitest+build exit 0（回执附原始输出）；真栈手测并入 443 的窗口。
+
+## 领取记录（2026-11-21 inputtype444）
+
+- 领取时间：2026-11-21；领取时基线：main afe7ca6c2b5f82b79faa9a42fd47d439c2065e1a（origin/main=a6420951，本地领先 10+ 提交、远端无新提交；本机 git 环境推送视网络另行记录）。
+- 执行 owner：inputtype444（GLM-5.3-Flash freeflash 免费车道执行子代理，PC）。
+- 分支：pc444-input；worktree：D:/Vit_DAW_wt_pc444input（自 afe7ca6c 建立实现）。
+- 领取提交：仅本卡 coord 文件（todo→doing 改名+回填），显式 pathspec 提交，不触碰 index 中其他卡（SCORE-GUI-FOLLOW-1 todo 副本清理）的暂存状态。
+- 文件域：agent/internal/chat/tutor_sim.go(+test)、agent/webui/src/project/{TutorWidgets.tsx,projectData.ts,projectService.ts,ProjectSurface.tsx} 及同目录测试；与 398（scoreworkbench 域）不相交。
