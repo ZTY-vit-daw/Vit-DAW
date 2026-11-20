@@ -1,0 +1,140 @@
+[Store] Created (policy=STRICT)
+[BPE] Loaded from GGUF: 151851 vocab, 151387 merges
+[GGUF] E:\AI\YuE2\models\YuE2-3B-Q8_0.gguf: 627 tensors, data at offset 5367296
+ggml_cuda_init: found 1 CUDA devices (Total VRAM: 12281 MiB):
+  Device 0: NVIDIA GeForce RTX 4070, compute capability 8.9, VMM: yes, VRAM: 12281 MiB
+load_backend: loaded CUDA backend from E:\AI\YuE2\engine\ggml-cuda.dll
+load_backend: loaded Vulkan backend from E:\AI\YuE2\engine\ggml-vulkan.dll
+load_backend: loaded CPU backend from E:\AI\YuE2\engine\ggml-cpu-alderlake.dll
+[Load] Self-test on CUDA0: ok (66.7 ms)
+[Load] KV backend: CUDA0 (CPU threads: 10)
+[Server] yue-server c8516db (2026-10-09)
+[Server] Listening on 127.0.0.1:62372
+[Server] Job 56c8b8a398bd8775: {
+  "style": "Instrumental, mellow acoustic guitar and cello duet, gentle chamber folk, alternating lead phrases and soft fingerpicked accompaniment, steady pulse, about one minute, no vocals, no singing, no humming, no choir, no spoken words.",
+  "duration": 60.0,
+  "lm_seed": 39020261120,
+  "seed": 23,
+  "output_format": "wav16"
+}
+load_backend: loaded CUDA backend from E:\AI\YuE2\engine\ggml-cuda.dll
+load_backend: loaded Vulkan backend from E:\AI\YuE2\engine\ggml-vulkan.dll
+load_backend: loaded CPU backend from E:\AI\YuE2\engine\ggml-cpu-alderlake.dll
+[Load] Self-test on CUDA0: ok (1.2 ms)
+[Load] LM backend: CUDA0 (CPU threads: 10)
+[GGUF] E:\AI\YuE2\models\YuE2-3B-Q8_0.gguf: 627 tensors, data at offset 5367296
+[LM-Config] 28L, H=2048, V=184704, Nh=16, Nkv=8, D=128, tied=0
+[Qwen3] Attn: Q+K+V fused
+[Qwen3] MLP: gate+up fused
+[WeightCtx] Loaded 311 tensors, 2195.1 MB into backend
+[Store] Load LM: 1019 ms
+[LM-KV] Allocated 1 sets x 28 layers (4D batched), 476.0 MB
+[AR] Score song 0: 80 tokens prefilled, 32 ms
+[AR] Score prefill: 32 ms, CFG=1.00, top_k=30, budget=4096, songs=1, batch=1
+[AR] Score 0/4096
+[AR] Score 100/4096
+[AR] Score 200/4096
+[AR] Score 300/4096
+[AR] Score 400/4096
+[AR] Score 500/4096
+[AR] Score 600/4096
+[AR] Score 700/4096
+[AR] Score 800/4096
+[AR] Score 900/4096
+[AR] Score 1000/4096
+[AR] Score 1100/4096
+[AR] Score 1200/4096
+[AR] Score 1300/4096
+[AR] Score 1400/4096
+[AR] Score song 0: end token at step 1424
+[AR] Score song 0: 1424 tokens
+[AR] Score: 1424 tokens over 1 songs, 1425 steps, 8.4 s (5.9 ms/step)
+[Prompt] cot=full, songs=1, variations=1, 1 tracks
+[AR] Frame budget clamped to 1500 by the requested duration (60.0 s)
+[LM-KV] Allocated 1 sets x 28 layers (4D batched), 504.0 MB
+[AR] Semantic song 0: 1506 tokens prefilled, 92 ms
+[AR] Semantic prefill: 92 ms, CFG=1.00, top_k=100, budget=1500, songs=1, batch=1
+[AR] Semantic 0/1500
+[AR] Semantic 100/1500
+[AR] Semantic 200/1500
+[AR] Semantic 300/1500
+[AR] Semantic 400/1500
+[AR] Semantic 500/1500
+[AR] Semantic 600/1500
+[AR] Semantic 700/1500
+[AR] Semantic 800/1500
+[AR] Semantic 900/1500
+[AR] Semantic 1000/1500
+[AR] Semantic 1100/1500
+[AR] Semantic 1200/1500
+[AR] Semantic 1300/1500
+[AR] Semantic 1400/1500
+[AR] Semantic 1500/1500
+[AR] Semantic song 0: 1500 tokens (truncated)
+[AR] Semantic: 1500 tokens over 1 songs, 1501 steps, 8.0 s (5.4 ms/step)
+[Store] Unload LM (2195.1 MB)
+[NAR] Song 0: 1500 frames (60.0 s), prefix 1506, 1 chunk of 1549, 1 variation
+[GGUF] E:\AI\YuE2\models\YuE2-3B-Q8_0.gguf: 627 tensors, data at offset 5367296
+load_backend: loaded CUDA backend from E:\AI\YuE2\engine\ggml-cuda.dll
+load_backend: loaded Vulkan backend from E:\AI\YuE2\engine\ggml-vulkan.dll
+load_backend: loaded CPU backend from E:\AI\YuE2\engine\ggml-cpu-alderlake.dll
+[Load] Self-test on CUDA0: ok (0.9 ms)
+[Load] NAR backend: CUDA0 (CPU threads: 10)
+[NAR] Attn: Q+K+V fused
+[NAR] MLP: gate+up fused
+[WeightCtx] Loaded 317 tensors, 1433.5 MB into backend
+[NAR] Loaded: 28 layers, latent_dim=64, timestep_shift=1.000
+[Store] Load NAR: 671 ms
+[NAR] Graph: 1303 nodes, T_lat=1500, variations=1, prefix=3007, set=0
+[NAR] Step 1/32, 253 ms
+[NAR] Step 2/32, 223 ms
+[NAR] Step 3/32, 221 ms
+[NAR] Step 4/32, 223 ms
+[NAR] Step 5/32, 223 ms
+[NAR] Step 6/32, 222 ms
+[NAR] Step 7/32, 224 ms
+[NAR] Step 8/32, 222 ms
+[NAR] Step 9/32, 223 ms
+[NAR] Step 10/32, 224 ms
+[NAR] Step 11/32, 223 ms
+[NAR] Step 12/32, 222 ms
+[NAR] Step 13/32, 217 ms
+[NAR] Step 14/32, 219 ms
+[NAR] Step 15/32, 217 ms
+[NAR] Step 16/32, 218 ms
+[NAR] Step 17/32, 219 ms
+[NAR] Step 18/32, 229 ms
+[NAR] Step 19/32, 230 ms
+[NAR] Step 20/32, 222 ms
+[NAR] Step 21/32, 224 ms
+[NAR] Step 22/32, 225 ms
+[NAR] Step 23/32, 222 ms
+[NAR] Step 24/32, 220 ms
+[NAR] Step 25/32, 221 ms
+[NAR] Step 26/32, 222 ms
+[NAR] Step 27/32, 223 ms
+[NAR] Step 28/32, 223 ms
+[NAR] Step 29/32, 222 ms
+[NAR] Step 30/32, 229 ms
+[NAR] Step 31/32, 237 ms
+[NAR] Step 32/32, 223 ms
+[NAR] Solved: T_lat=1500, 1 variations, 32 steps (midpoint, 64 evaluations), 7165 ms (223.9 ms/step)
+[NAR] Song 0 chunk 1/1: 1500 frames, cache 3007 rows, 0 forwarded, 7.8 s
+[Store] Unload NAR (1433.5 MB)
+[GGUF] E:\AI\YuE2\models\YuE2-Vae-F32.gguf: 435 tensors, data at offset 32800
+load_backend: loaded CUDA backend from E:\AI\YuE2\engine\ggml-cuda.dll
+load_backend: loaded Vulkan backend from E:\AI\YuE2\engine\ggml-vulkan.dll
+load_backend: loaded CPU backend from E:\AI\YuE2\engine\ggml-cpu-alderlake.dll
+[Load] Self-test on CUDA0: ok (1.0 ms)
+[Load] VAE backend: CUDA0 (CPU threads: 10)
+[VAE] Backend: CUDA0, Weight buffer: 126.7 MB
+[VAE] Loaded: 6 blocks, upsample=1920x, F32 activations
+[Store] Load VAE: 714 ms
+[VAE] Track 1/1: song 0 variation 0
+[VAE] Tiled decode: 3 tiles (core=512, halo=16)
+[VAE] Graph: 571 nodes, T_latent=528
+[VAE] Graph: 571 nodes, T_latent=544
+[VAE] Graph: 571 nodes, T_latent=492
+[VAE] Tiled decode done: 3 tiles -> T_audio=2879936 (60.00s @ 48kHz), 725 ms
+[Pipeline] Done: 1 tracks, 60.0 s of audio in 26.7 s (2.2x realtime)
+[Store] Unload VAE (126.7 MB)

@@ -1,0 +1,43 @@
+{
+  "head": "6aa7b8ec20fc155b08279e3f26f1fccaa2e2f17a",
+  "status": [
+    " M CURRENT-STATE.md",
+    " M VitApp/Workspace/Settings/Settings.xml",
+    " M VitApp/Workspace/default_project.xml",
+    " M tracktion_engine",
+    "?? .vit_derived/",
+    "?? .zcode/",
+    "?? .zcodeignore",
+    "?? coord/reports/2026-11-19-alma-herdr-adoption-review.md",
+    "?? coord/reports/2026-11-19-desktop-agent-mcp-federation.md",
+    "?? coord/runs/YUE-INSTRUMENTAL-PATH-1/standalone_prompt_ab_20261120_211729/",
+    "?? coord/runs/YUE-INSTRUMENTAL-PATH-1/standalone_replay_20261120_201932/",
+    "?? coord/runs/YUE-INSTRUMENTAL-PATH-1/standalone_score_ab_20261120_202543/",
+    "?? coord/runs/YUE-INSTRUMENTAL-PATH-1/standalone_solo_ab_20261120_212759/",
+    "?? coord/runs/YUE-INSTRUMENTAL-PATH-1/standalone_violin_20261120_213516/",
+    "?? coord/runs/YUE-INSTRUMENTAL-PATH-1/standalone_vocal_reference_20261120_213939/",
+    "?? docs/ACOUSTIC_OBSERVATION_L1_L3_RELIABILITY_AUDIT_2026-10-29.md",
+    "?? docs/ADR-EFFECT-CONTROL-REDESIGN-V2.md",
+    "?? docs/ADR_AI_LISTENING_EAR_V1.md",
+    "?? docs/ADR_AI_LISTENING_EAR_V2.md",
+    "?? docs/AI_FIRST_INTERACTION_DISCUSSION_2026-10-28.md",
+    "?? docs/EDU_SEQUENCE_DEMO_PREDEFENSE_PLAN_2026-11-05.md",
+    "?? docs/FIRST_RUN_GAME_AND_LEVEL_RUNTIME_DESIGN_2026-11-05.md",
+    "?? docs/INTERVIEW_PILOT_2026-11-02.md",
+    "?? docs/PERSONAL_AGENT_DESIGN_DISCUSSION_2026-11-02.md",
+    "?? docs/SHOW_BIBLE_DRAFT_2026-11-02.md",
+    "?? docs/TEST-BARE-CONTROL-VALIDATION.md",
+    "?? ledger/"
+  ],
+  "hypothesis": "Replicate the previously human-confirmed prompt-only instrumental route with a new style and seeds on the same local yue2.cpp.",
+  "runs": "One automatic plan + render, one render using a conversion of its returned ABC. The second render requires a structurally valid score. No seed sweep.",
+  "success": "Original and converted runs use identical style, seed, lyrics and duration. Converted score must cover the full 60s request and have zero sounding Vocal notes. Candidate must be approximately 60s and contain no audible singing, humming, choir, or speech from start to end. Listen to raw WAV.",
+  "failures": [
+    "environment",
+    "invalid or missing ABC",
+    "early stop or cap",
+    "voice leakage",
+    "listen pending"
+  ],
+  "stop": "Stop for an invalid score that cannot be normalized without changing music, or the first deterministic runtime failure."
+}

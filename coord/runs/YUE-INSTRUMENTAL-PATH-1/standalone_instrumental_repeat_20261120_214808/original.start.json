@@ -1,0 +1,16 @@
+{
+  "command": [
+    "E:\\AI\\YuE2\\engine\\yue-server.exe",
+    "--model",
+    "E:\\AI\\YuE2\\models\\YuE2-3B-Q8_0.gguf",
+    "--vae",
+    "E:\\AI\\YuE2\\models\\YuE2-Vae-F32.gguf",
+    "--host",
+    "127.0.0.1",
+    "--port",
+    "62372",
+    "--max-seq",
+    "24576"
+  ],
+  "active_before": ""
+}

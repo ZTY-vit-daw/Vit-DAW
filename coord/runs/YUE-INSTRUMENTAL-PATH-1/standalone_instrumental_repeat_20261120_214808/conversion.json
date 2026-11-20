@@ -1,0 +1,22 @@
+{
+  "vocal_notes_before": 197,
+  "vocal_notes_after": 0,
+  "original_ins_notes": 78,
+  "unaltered_ins_notes": 78,
+  "output_ins_notes": 275,
+  "vocal_pitch_onset_duration_preserved": true,
+  "meter_and_tempo_preserved": true,
+  "chords": "preserved",
+  "overlap_policy": "vocal",
+  "affected_ins_notes": [],
+  "nominal_seconds": 173.79310344827587,
+  "bpm": 87,
+  "bars": 84,
+  "original_abc_sha256": "f96d55681edba07b2c98b9d4e1b0d4a954be4be1911c6dc077febc625d29acd1",
+  "conversion_script_sha256": {
+    "abc_tools.py": "2c14660882d6ac4014fd802acc9b4af346567c81a3107eddd2aaf98da342386b",
+    "common.py": "2929619bd37a176c87c37fdcde9864613d4d5172ca2d89d724aa450a4d7053be",
+    "compile_score.py": "c4eec7f68e3f09b93b45d568a8af640b3f10bb47d31ef6d3b6ce4ae23ac1dea3",
+    "instrumentalize.py": "a769111656f418cf4298841dc4a7f6be1a50bfae1e66b1bccfaca3eacf948681"
+  }
+}

@@ -31,3 +31,7 @@
 - 步②（genapi `audiocpp_local` 接入）不触发；audio.cpp 部署保留（`E:\AI\audio-cpp\`，含 BF16/VAE/LoRA 全套，磁盘 ~11GB——保留候未来上游演进复用，不占栈）。
 - 产品 instrumental 口径维持 390 fallback 终态（带人声+披露）；确定性素材=MIDI clip 路线（438 v2 已落地）。
 - 439 done（负结果收口）；上游若出现新的 instrumental 机制（新 adapter/新引擎/官方栈门槛变化）另开卡，须新证据解锁。
+
+## 重开附注（2026-11-20 23:1x，lead）
+
+- 当晚 23 时用户提供**新证据**推翻本裁定的线关闭结论：与 Codex 的独立实验（8 轮，`coord/runs/YUE-INSTRUMENTAL-PATH-1/standalone_*`）发现**第五条路成立**——生成谱级 Vocal→Ins 迁移+固定谱重渲染（standalone_instrumental_repeat_20261120_214808：vocal 197→0/Ins 78→275 守恒，用户人耳=纯器乐）。该路径**不在本卡四路证伪范围内**（四路均为单段生成；谱迁移是两段式，对应官方 transfer 工作流——RECON §2d 的「不需要」判断只覆盖输入谱）。线以 **440 YUE-INSTRUMENTAL-SCORE-TRANSFER-1** 重开；本裁定的「步②不接 genapi」与 audio.cpp 保留处置不变（新路径走 yue2.cpp）。

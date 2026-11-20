@@ -1,0 +1,9 @@
+{
+  "style": "Instrumental, mellow acoustic guitar and cello duet, gentle chamber folk, alternating lead phrases and soft fingerpicked accompaniment, steady pulse, about one minute, no vocals, no singing, no humming, no choir, no spoken words.",
+  "lyrics": "",
+  "cot": "full",
+  "duration": 60,
+  "lm_seed": 39020261120,
+  "seed": 23,
+  "output_format": "wav16"
+}

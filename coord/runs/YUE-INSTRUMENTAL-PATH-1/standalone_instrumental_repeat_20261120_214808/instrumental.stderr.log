@@ -1,0 +1,120 @@
+[Store] Created (policy=STRICT)
+[BPE] Loaded from GGUF: 151851 vocab, 151387 merges
+[GGUF] E:\AI\YuE2\models\YuE2-3B-Q8_0.gguf: 627 tensors, data at offset 5367296
+ggml_cuda_init: found 1 CUDA devices (Total VRAM: 12281 MiB):
+  Device 0: NVIDIA GeForce RTX 4070, compute capability 8.9, VMM: yes, VRAM: 12281 MiB
+load_backend: loaded CUDA backend from E:\AI\YuE2\engine\ggml-cuda.dll
+load_backend: loaded Vulkan backend from E:\AI\YuE2\engine\ggml-vulkan.dll
+load_backend: loaded CPU backend from E:\AI\YuE2\engine\ggml-cpu-alderlake.dll
+[Load] Self-test on CUDA0: ok (56.3 ms)
+[Load] KV backend: CUDA0 (CPU threads: 10)
+[Server] yue-server c8516db (2026-10-09)
+[Server] Listening on 127.0.0.1:61328
+[Server] Job b7bebe59279e8c8d: {
+  "style": "Instrumental, mellow acoustic guitar and cello duet, gentle chamber folk, alternating lead phrases and soft fingerpicked accompaniment, steady pulse, about one minute, no vocals, no singing, no humming, no choir, no spoken words.",
+  "abc": "X:1\nT:\nM:3/4\nL:1/32\nQ:1/4=87\nV: Vocal clef=treble name=\"Vocal Melody\" snm=\"Vocal\"\nV: Ins clef=treble name=\"Ins Melody\" snm=\"Inst.\"\nK:D\n% intro\nV: Vocal\nz16z4\"D\"z4|\"D\"z24|\"D\"z24|\"D\"z24|\nV: Ins\nZ|D6A,4A,2D6A,4A,2|D,6A,4A,2E2F2E2D2C2D2|D,6A,4A,2D6A,4A,2|\nV: Vocal\n\"D\"z24|\"Bm7\"z24|\"Bm7\"z24|\"D\"z24|\nV: Ins\nD,6A,4A,2D4E4F4|A16z4F4|E16D4C4|D24-|\nV: Vocal\n\"D\"z24|\"Bm7\"z24|\"Bm7\"z24|\"D\"z24|\nV: Ins\nD8z4D4E4F4|A16z4F4|E16D4C4|D24-|\nV: Vocal\n\"D\"z24|\nV: Ins\nD8d4d6a6|\n% verse\nV: Vocal\n\"D\"z24|\"D\"z24|\"Bm7\"z24|\"Bm7\"z24|\nV: Ins\na8f2f2f6e6|e8d4d6a6|a8f4f2e8z2|d8z2d2d6a6|\nV: Vocal\n\"G\"z24|\"G\"z24|\"A\"z24|\"A\"z24|\nV: Ins\na8f4f4e2e6|d4z4d4d6f6|f8e4e2d8z2|e8z16|\nV: Vocal\n\"A\"z24|\"G\"z24|\"G\"z24|\"Bm7\"z24|\nV: Ins\nz12D4E2F6|A8z2F2F2E8z2|D8z4D4E2F6|A8F2F2F4E8|\nV: Vocal\n\"Bm7\"z24|\"G\"z24|\"G\"z24|\"A\"z24|\nV: Ins\nD8z4D4E2F6|A8F4F4E2D6|D8z4D4E2F6|F4E8E8D4|\nV: Vocal\n\"A\"z24|\"A\"z24|\nV: Ins\nE8z16|z8d4d6a6|\n% chorus\nV: Vocal\n\"D\"z24|\"D\"z24|\"Bm7\"z24|\"Bm7\"z24|\nV: Ins\na8f4f6e6|d8d4d6a6|a8f4f6e6|d8z4d4e2f6|\nV: Vocal\n\"G\"z24|\"G\"z24|\"A\"z24|\"A\"z24|\nV: Ins\na8f4f6e6|d8z4d4e2f6|f8e4e2d8z2|e16z8|\nV: Vocal\n\"A\"z24|\nV: Ins\nz12D4E4F4|\n% interlude\nV: Vocal\n\"Bm7\"z24|\"Bm7\"z24|\"D\"z24|\"D\"z24|\nV: Ins\nA16z4F4|E16D4C4|D24-|D8z4D4E4F4|\nV: Vocal\n\"Bm7\"z24|\"Bm7\"z24|\"D\"z24|\"D\"z24|\nV: Ins\nA16z4F4|E16D4C4|D24-|D8d4d6a6|\n% verse\nV: Vocal\n\"D\"z24|\"D\"z24|\"Bm7\"z24|\"Bm7\"z24|\nV: Ins\na8f4f6e6|e8d4d6a6|a8f4f4e8|d4z4d4d6a6|\nV: Vocal\n\"G\"z24|\"G\"z24|\"A\"z24|\"A\"z24|\nV: Ins\na8f4f4e8|d4z4d4d6f6|f8e4e4d8|e8z16|\nV: Vocal\n\"A\"z24|\"D\"z24|\"D\"z24|\"Bm7\"z24|\nV: Ins\nz8D4D6A6|A8F4F6E6|D8D4D6A6|A8F4F4E8|\nV: Vocal\n\"Bm7\"z24|\"G\"z24|\"G\"z24|\"A\"z24|\nV: Ins\nD8z4D4E2F6|A8F4F4E2D6|D8z4D4E2F6|F8E4E4D8|\nV: Vocal\n\"A\"z24|\"A\"z24|\nV: Ins\nE8z16|z8d4d6a6|\n% chorus\nV: Vocal\n\"D\"z24|\"D\"z24|\"Bm7\"z24|\"Bm7\"z24|\nV: Ins\na8f4f6e6|d8d4d6a6|a8f4f6e6|d8z4d4e2f6|\nV: Vocal\n\"G\"z24|\"G\"z24|\"A\"z24|\"A\"z24|\nV: Ins\na8f4f6e6|d8z4d4e2f6|f8e4e2d8z2|e16z8|\nV: Vocal\n\"A\"z24|\nV: Ins\nz12D4E4F4|\n% outro\nV: Vocal\n\"Bm7\"z24|\"Bm7\"z24|\"D\"z24|\"D\"z24|\nV: Ins\nA16z4F4|E16D4C4|D24-|D8z4D4E4F4|\nV: Vocal\n\"Bm7\"z24|\"Bm7\"z24|\"D\"z24|\"D\"z24|\nV: Ins\nA16z4F4|E16D4C4|D24-|D8z16|\nV: Vocal\n\"D\"z24|\nV: Ins\nZ|\n",
+  "duration": 60.0,
+  "lm_seed": 39020261120,
+  "seed": 23,
+  "output_format": "wav16"
+}
+load_backend: loaded CUDA backend from E:\AI\YuE2\engine\ggml-cuda.dll
+load_backend: loaded Vulkan backend from E:\AI\YuE2\engine\ggml-vulkan.dll
+load_backend: loaded CPU backend from E:\AI\YuE2\engine\ggml-cpu-alderlake.dll
+[Load] Self-test on CUDA0: ok (1.1 ms)
+[Load] LM backend: CUDA0 (CPU threads: 10)
+[GGUF] E:\AI\YuE2\models\YuE2-3B-Q8_0.gguf: 627 tensors, data at offset 5367296
+[LM-Config] 28L, H=2048, V=184704, Nh=16, Nkv=8, D=128, tied=0
+[Qwen3] Attn: Q+K+V fused
+[Qwen3] MLP: gate+up fused
+[WeightCtx] Loaded 311 tensors, 2195.1 MB into backend
+[Store] Load LM: 976 ms
+[Prompt] cot=full, songs=1, variations=1, 1 tracks
+[AR] Frame budget clamped to 1500 by the requested duration (60.0 s)
+[LM-KV] Allocated 1 sets x 28 layers (4D batched), 532.0 MB
+[AR] Semantic song 0: 1710 tokens prefilled, 138 ms
+[AR] Semantic prefill: 138 ms, CFG=1.00, top_k=100, budget=1500, songs=1, batch=1
+[AR] Semantic 0/1500
+[AR] Semantic 100/1500
+[AR] Semantic 200/1500
+[AR] Semantic 300/1500
+[AR] Semantic 400/1500
+[AR] Semantic 500/1500
+[AR] Semantic 600/1500
+[AR] Semantic 700/1500
+[AR] Semantic 800/1500
+[AR] Semantic 900/1500
+[AR] Semantic 1000/1500
+[AR] Semantic 1100/1500
+[AR] Semantic 1200/1500
+[AR] Semantic 1300/1500
+[AR] Semantic 1400/1500
+[AR] Semantic 1500/1500
+[AR] Semantic song 0: 1500 tokens (truncated)
+[AR] Semantic: 1500 tokens over 1 songs, 1501 steps, 8.5 s (5.6 ms/step)
+[Store] Unload LM (2195.1 MB)
+[NAR] Song 0: 1500 frames (60.0 s), prefix 1710, 1 chunk of 1575, 1 variation
+[GGUF] E:\AI\YuE2\models\YuE2-3B-Q8_0.gguf: 627 tensors, data at offset 5367296
+load_backend: loaded CUDA backend from E:\AI\YuE2\engine\ggml-cuda.dll
+load_backend: loaded Vulkan backend from E:\AI\YuE2\engine\ggml-vulkan.dll
+load_backend: loaded CPU backend from E:\AI\YuE2\engine\ggml-cpu-alderlake.dll
+[Load] Self-test on CUDA0: ok (1.0 ms)
+[Load] NAR backend: CUDA0 (CPU threads: 10)
+[NAR] Attn: Q+K+V fused
+[NAR] MLP: gate+up fused
+[WeightCtx] Loaded 317 tensors, 1433.5 MB into backend
+[NAR] Loaded: 28 layers, latent_dim=64, timestep_shift=1.000
+[Store] Load NAR: 704 ms
+[NAR] Graph: 1303 nodes, T_lat=1500, variations=1, prefix=3211, set=0
+[NAR] Step 1/32, 259 ms
+[NAR] Step 2/32, 225 ms
+[NAR] Step 3/32, 227 ms
+[NAR] Step 4/32, 227 ms
+[NAR] Step 5/32, 227 ms
+[NAR] Step 6/32, 240 ms
+[NAR] Step 7/32, 241 ms
+[NAR] Step 8/32, 225 ms
+[NAR] Step 9/32, 254 ms
+[NAR] Step 10/32, 241 ms
+[NAR] Step 11/32, 245 ms
+[NAR] Step 12/32, 239 ms
+[NAR] Step 13/32, 230 ms
+[NAR] Step 14/32, 227 ms
+[NAR] Step 15/32, 231 ms
+[NAR] Step 16/32, 226 ms
+[NAR] Step 17/32, 241 ms
+[NAR] Step 18/32, 246 ms
+[NAR] Step 19/32, 241 ms
+[NAR] Step 20/32, 223 ms
+[NAR] Step 21/32, 222 ms
+[NAR] Step 22/32, 235 ms
+[NAR] Step 23/32, 257 ms
+[NAR] Step 24/32, 253 ms
+[NAR] Step 25/32, 234 ms
+[NAR] Step 26/32, 227 ms
+[NAR] Step 27/32, 228 ms
+[NAR] Step 28/32, 228 ms
+[NAR] Step 29/32, 226 ms
+[NAR] Step 30/32, 227 ms
+[NAR] Step 31/32, 235 ms
+[NAR] Step 32/32, 246 ms
+[NAR] Solved: T_lat=1500, 1 variations, 32 steps (midpoint, 64 evaluations), 7533 ms (235.4 ms/step)
+[NAR] Song 0 chunk 1/1: 1500 frames, cache 3211 rows, 0 forwarded, 8.2 s
+[Store] Unload NAR (1433.5 MB)
+[GGUF] E:\AI\YuE2\models\YuE2-Vae-F32.gguf: 435 tensors, data at offset 32800
+load_backend: loaded CUDA backend from E:\AI\YuE2\engine\ggml-cuda.dll
+load_backend: loaded Vulkan backend from E:\AI\YuE2\engine\ggml-vulkan.dll
+load_backend: loaded CPU backend from E:\AI\YuE2\engine\ggml-cpu-alderlake.dll
+[Load] Self-test on CUDA0: ok (1.2 ms)
+[Load] VAE backend: CUDA0 (CPU threads: 10)
+[VAE] Backend: CUDA0, Weight buffer: 126.7 MB
+[VAE] Loaded: 6 blocks, upsample=1920x, F32 activations
+[Store] Load VAE: 701 ms
+[VAE] Track 1/1: song 0 variation 0
+[VAE] Tiled decode: 3 tiles (core=512, halo=16)
+[VAE] Graph: 571 nodes, T_latent=528
+[VAE] Graph: 571 nodes, T_latent=544
+[VAE] Graph: 571 nodes, T_latent=492
+[VAE] Tiled decode done: 3 tiles -> T_audio=2879936 (60.00s @ 48kHz), 733 ms
+[Pipeline] Done: 1 tracks, 60.0 s of audio in 19.1 s (3.1x realtime)
+[Store] Unload VAE (126.7 MB)

@@ -264,7 +264,8 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 436 | TUTOR-SIM-2 | done 真栈 PASS（VitShell 自动开场手测，用户确认） |
 | 437 | TUTOR-SIM-3 | done 真栈 PASS（2026-11-20 浏览器级 DOM 手测：1/3→错不推进→7/42/123→completed 禁用+普通工程零卡；[裁定](../rulings/2026-11-20-TUTOR-SIM-3-pass.md)） |
 | 438 | TUTOR-SIM-4 | done PASS（v1 停卡归档→v2 MIDI 材料装载重发；零栈三门+真栈手测全过：材料装载真内核 track/clip/plugin+Surge 实挂+幂等+四步 completed+v0 兼容；[裁定](../rulings/2026-11-20-TUTOR-SIM-4-pass.md)） |
-| 439 | AUDIO-CPP-INSTRUMENTAL-SPIKE-1 | done 负结果收口（Q8+LoRA 与 BF16+LoRA 双基座用户均判成段人声；单变量隔离亲证；四路证伪齐（381/390/439①/①-B）→ 步②不触发、YuE2 本地 instrumental 线关闭；audio.cpp 部署保留候上游演进；[裁定](../rulings/2026-11-20-AUDIO-CPP-INSTRUMENTAL-SPIKE-1-negative.md)） |
+| 439 | AUDIO-CPP-INSTRUMENTAL-SPIKE-1 | done 负结果收口（四路单段证伪齐；[裁定](../rulings/2026-11-20-AUDIO-CPP-INSTRUMENTAL-SPIKE-1-negative.md)——**23 时重开附注在卷**：用户+Codex 发现第五路=谱迁移两段式，线以 440 重开） |
+| 440 | YUE-INSTRUMENTAL-SCORE-TRANSFER-1 | todo 已派 freeflash scorexfer440（腿A Go 移植金样对账 197→0/78→275 + 腿B genapi 两段式接线；腿C 真栈+用户听核留 lead；成功轮=standalone_instrumental_repeat_20261120_214808，脚本+金样已固化 `runs/YUE-INSTRUMENTAL-PATH-1/scripts-score-transfer-20261120/`） |
 
 
 
