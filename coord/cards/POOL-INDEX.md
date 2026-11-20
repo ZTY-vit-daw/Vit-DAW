@@ -270,7 +270,7 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 334 | FIX-GOALSTATUS-FORGERY-SWEEP-1 | done PASS（2026-11-20 23:55 forge334/free 车道：普查 5 真伪造全修+红 4/4→绿 7/7 亲证+主管复跑 chat 131.8s ok；存疑 7 项挂账状态词汇语义债；[裁定](../rulings/2026-11-20-FIX-GOALSTATUS-FORGERY-SWEEP-1-pass.md)） |
 | 331 | VST3-SIGNAL-HYGIENE-1 | done 零栈 PASS 待真栈腿（2026-11-21 sighyg331/free：engine 分支 pc331-sighyg +92/-1 env 门控默认关=生产逐字节不变；Go 零改动+C++ 冷构建 exit 0 SHA 0abdc136；E4 Surge 回归/A-B 断言/翻默认=真栈腿候 lead+决策） |
 | 398 | SCORE-GUI-FOLLOW-1 | doing freeflash scorefollow398（夜间第二波） |
-| 442 | STACKLEASE-OWNER-PARAM-1 | doing freeflash leaseparam442（夜间第二波） |
+| 442 | STACKLEASE-OWNER-PARAM-1 | done PASS（2026-11-21 leaseparam442/free：5 处 ledger 解析门参数化+容错+可诊断拒绝；自测 18 案例两轮 exit 0+主管复跑 exit 0+114 脚本硬编码 grep 零命中；**调用方契约变更：entry388 重跑须 -LeaseOwner/-LeaseCard、vitshell_smoke 取证须 -ForensicsOwner（空值 fail-closed）**） |
 | 443 | SIM-LIVE-SCORE-LINK-1 | todo（441 真栈收口派生：回读通道+容器接线；候 398 合入后领） |
 
 
