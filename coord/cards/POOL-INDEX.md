@@ -269,7 +269,7 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 441 | SIM-MUSIC-WIDGET-1 | done 整卡 PASS（2026-11-21 真栈腿边界收口：装载 PASS+fail-honest PASS；live 链=443）（2026-11-20 23:45 主管复跑 821 测+build+render 11 段全绿；复用 374 renderScoreInto；midiScore.ts UI 解析 fail-closed；[裁定](../rulings/2026-11-20-SIM-MUSIC-WIDGET-1-zerostack-pass.md)；live 谱面链接缝留后续卡） |
 | 334 | FIX-GOALSTATUS-FORGERY-SWEEP-1 | done PASS（2026-11-20 23:55 forge334/free 车道：普查 5 真伪造全修+红 4/4→绿 7/7 亲证+主管复跑 chat 131.8s ok；存疑 7 项挂账状态词汇语义债；[裁定](../rulings/2026-11-20-FIX-GOALSTATUS-FORGERY-SWEEP-1-pass.md)） |
 | 331 | VST3-SIGNAL-HYGIENE-1 | done 零栈 PASS 待真栈腿（2026-11-21 sighyg331/free：engine 分支 pc331-sighyg +92/-1 env 门控默认关=生产逐字节不变；Go 零改动+C++ 冷构建 exit 0 SHA 0abdc136；E4 Surge 回归/A-B 断言/翻默认=真栈腿候 lead+决策） |
-| 398 | SCORE-GUI-FOLLOW-1 | doing freeflash scorefollow398（夜间第二波） |
+| 398 | SCORE-GUI-FOLLOW-1 | done 零栈 PASS 待真栈（2026-11-21 scorefollow398/free：837 测+build+render 全表面+gui_follow_1 新 7 断言（397 原 11 未弱化）；边沿触发跟随/dirty 防抢回/反向 select_track 回执核对/跨工程 projectKey 重置；恰 3 文件域内；主管复跑 vitest 亲证；真栈 Godot 装配腿候 lead 排队） |
 | 442 | STACKLEASE-OWNER-PARAM-1 | done PASS（2026-11-21 leaseparam442/free：5 处 ledger 解析门参数化+容错+可诊断拒绝；自测 18 案例两轮 exit 0+主管复跑 exit 0+114 脚本硬编码 grep 零命中；**调用方契约变更：entry388 重跑须 -LeaseOwner/-LeaseCard、vitshell_smoke 取证须 -ForensicsOwner（空值 fail-closed）**） |
 | 443 | SIM-LIVE-SCORE-LINK-1 | todo（441 真栈收口派生：回读通道+容器接线；候 398 合入后领） |
 
