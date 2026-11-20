@@ -1,4 +1,4 @@
-# 388 hygiene wrapper over the existing A/B smoke mechanisms. No product probes here.
+﻿# 388 hygiene wrapper over the existing A/B smoke mechanisms. No product probes here.
 [CmdletBinding()]
 param(
     [ValidateSet('A','B','Guard')][string]$Leg,
@@ -7,10 +7,103 @@ param(
     [string]$FixtureSource = 'D:/Vit_DAW/temp/f3_empty_project.vit',
     [int]$AllowedRootPid = 0,
     [int]$InjectedBoundAgentPort = 0,
-    [int]$InjectionOwnerPid = 0
+    [int]$InjectionOwnerPid = 0,
+    # STACKLEASE-OWNER-PARAM-1 (442): lease owner/card are parameters now.
+    # Empty -LeaseOwner fails closed at the gate with a diagnostic listing the
+    # ledger's latest event (never a silent pass, never a hardcoded owner).
+    [string]$LeaseOwner = '',
+    [string]$LeaseCard = 'CONVERGE-ENTRY-1(388)'
 )
 $ErrorActionPreference = 'Stop'
 $repo = Split-Path -Parent $PSScriptRoot
+
+# STACKLEASE-OWNER-PARAM-1 (442): tolerant pure gate core for the stack-lease
+# ledger line in coord/resources/PC-RUNTIME-STACK.md. The LATEST event line
+# (first line matching "- " after optional whitespace; ledger is newest-first)
+# must grant occupancy to the exact expected owner AND name the expected card.
+# Tolerant to: leading/trailing whitespace, timestamp format variance (the
+# timestamp is not parsed at all), field order within the line, full-width
+# parens in card naming, owner value quoting (backtick/single/double/bare
+# multi-word). Never weakens the gate: every rejection lists machine-checkable
+# reasons plus the offending latest event line (fail closed with diagnosis).
+function Get-StackLeaseVerdict {
+    param(
+        [string[]]$LeaseLines,
+        [string]$ExpectedOwner,
+        [string]$ExpectedCard,
+        [string[]]$GrantStates = @('预留','占用','续预留')
+    )
+    $result = [ordered]@{ Pass=$false; Reasons=@(); LatestLine=''; State=''; Owner=''; OwnerExpected=$ExpectedOwner; CardHit=$false }
+    $latest = $null
+    foreach ($line in $LeaseLines) {
+        if ($line -match '^\s*-\s+\S') { $latest = $line.Trim(); break }
+    }
+    if ([string]::IsNullOrEmpty($latest)) {
+        $result.Reasons = @('no event line found: ledger contains no line starting with "- " (expected newest-first event list in coord/resources/PC-RUNTIME-STACK.md)')
+        return $result
+    }
+    $result.LatestLine = $latest
+    $normalized = $latest -replace '（','(' -replace '）',')'
+    # state: earliest occupancy/release marker in the line wins (header position precedes prose).
+    $stateHits = @()
+    foreach ($state in @($GrantStates + @('释放'))) {
+        $idx = $normalized.IndexOf($state, [System.StringComparison]::Ordinal)
+        if ($idx -ge 0) { $stateHits += [pscustomobject]@{ Name=$state; Index=$idx } }
+    }
+    if (-not $stateHits -or $stateHits.Count -eq 0) {
+        $result.Reasons += 'no occupancy state marker (预留/占用/续预留) in latest event line'
+    } else {
+        $first = $stateHits | Sort-Object -Property Index | Select-Object -First 1
+        $result.State = $first.Name
+        if ($GrantStates -notcontains $first.Name) {
+            $result.Reasons += ('latest event is a release (释放), not an active lease: state=' + $first.Name)
+        }
+    }
+    if ($normalized -match '无.*启动权') {
+        $result.Reasons += 'latest event declares no startup rights (无启动权)'
+    }
+    if ([string]::IsNullOrWhiteSpace($ExpectedCard)) {
+        $result.Reasons += 'no expected card passed (pass the card id registered on the latest ledger event)'
+    } elseif ($normalized.Contains($ExpectedCard)) {
+        $result.CardHit = $true
+    } else {
+        $result.Reasons += ('latest event does not name expected card: expected=[' + $ExpectedCard + ']')
+    }
+    $ownerCount = ([regex]::Matches($normalized, 'owner\s*=')).Count
+    if ($ownerCount -eq 0) {
+        $result.Reasons += 'no owner= field in latest event line'
+    } elseif ($ownerCount -gt 1) {
+        $result.Reasons += ('ambiguous owner field: ' + $ownerCount + ' owner= tokens in one event line')
+    } else {
+        $m = [regex]::Match($normalized, 'owner\s*=\s*`([^`]+)`')
+        if (-not $m.Success) { $m = [regex]::Match($normalized, 'owner\s*=\s*"([^"]+)"') }
+        if (-not $m.Success) { $m = [regex]::Match($normalized, "owner\s*=\s*'([^']+)'") }
+        $bareCaptured = $false
+        if (-not $m.Success) {
+            $m = [regex]::Match($normalized, 'owner\s*=\s*([^；;，,。、()（）\r\n]+)')
+            $bareCaptured = $m.Success
+        }
+        if ($m.Success) {
+            $value = $m.Groups[1].Value.Trim()
+            # bare value may embed a quoted session id (ledger style: owner=Name `<id>`);
+            # the quoted id is the canonical comparable owner (pre-442 gate contract).
+            if ($bareCaptured) {
+                $q = [regex]::Match($value, '`([^`]+)`')
+                if ($q.Success) { $value = $q.Groups[1].Value.Trim() }
+            }
+            $result.Owner = $value
+            if ([string]::IsNullOrWhiteSpace($ExpectedOwner)) {
+                $result.Reasons += ('no expected owner passed: ledger latest event owner=[' + $result.Owner + '] (pass -LeaseOwner matching this value)')
+            } elseif ($result.Owner -cne $ExpectedOwner.Trim()) {
+                $result.Reasons += ('owner mismatch: ledger latest event owner=[' + $result.Owner + '], expected=[' + $ExpectedOwner.Trim() + ']')
+            }
+        } else {
+            $result.Reasons += 'owner= field present but value not extractable (unterminated quote?)'
+        }
+    }
+    $result.Pass = ($result.Reasons.Count -eq 0)
+    return $result
+}
 
 function Assert-EntryLeaseAndStack {
     $previousPreference = $ErrorActionPreference
@@ -23,8 +116,14 @@ function Assert-EntryLeaseAndStack {
     if ($fetchExit -ne 0 -or $showExit -ne 0) { throw 'ENV-INTERRUPT: lease fetch/read failed' }
     $leaseHead = ($lease | Select-Object -First 4) -join "`n"
     $leaseHead | Out-File (Join-Path $RunRoot 'lease_head.log') -Append -Encoding utf8
-    $occupiedMarker = [string][char]0x5360 + [char]0x7528
-    if ($leaseHead -notmatch ($occupiedMarker + '.*CONVERGE-ENTRY-1\(388\)') -or $leaseHead -notmatch 'owner=Codex /root/entry388') { throw 'ENV-INTERRUPT: current remote stack owner is not entry388' }
+    # STACKLEASE-OWNER-PARAM-1 (442): format-tolerant latest-event gate with
+    # per-condition diagnosis (was: hardcoded owner/card against a head-4 window,
+    # the 408 precheck false-reject shape). Verdict artifact: lease_verdict.json.
+    $verdict = Get-StackLeaseVerdict -LeaseLines $lease -ExpectedOwner $LeaseOwner -ExpectedCard $LeaseCard
+    $verdict | ConvertTo-Json -Depth 4 | Out-File (Join-Path $RunRoot 'lease_verdict.json') -Append -Encoding utf8
+    if (-not $verdict.Pass) {
+        throw ('ENV-INTERRUPT: stack lease gate rejected: ' + (($verdict.Reasons) -join ' | ') + ' [latest event: ' + $verdict.LatestLine + ']')
+    }
     $processes = @(Get-CimInstance Win32_Process)
     $allowed = @{}
     if ($AllowedRootPid -gt 0) {

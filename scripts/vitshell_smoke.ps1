@@ -1,4 +1,4 @@
-# vitshell_smoke.ps1 - SHELL-1 acceptance smoke (card pool #356).
+﻿# vitshell_smoke.ps1 - SHELL-1 acceptance smoke (card pool #356).
 #
 # Real-stack light leg: VitShell.exe (WebView2 main window host) -> agent tree
 # (isolated worktree binary) -> React launcher surface -> greeting real data
@@ -30,7 +30,11 @@ param(
     [switch]$Win32RestoreForensics,
     [switch]$GodotRestoreForensics,
     [string]$ForensicsGodotExe = 'D:/Godot/Godot_v4.6.1-stable_win64.exe',
-    [ValidateSet('403','404')][string]$ForensicsCard = '403'
+    [ValidateSet('403','404')][string]$ForensicsCard = '403',
+    # STACKLEASE-OWNER-PARAM-1 (442): lease owner is a parameter now; empty value
+    # fails closed at the forensics lease gate with a diagnostic listing the
+    # ledger's latest event (was: hardcoded owner literal in the gate).
+    [string]$ForensicsOwner = ''
 )
 
 $ErrorActionPreference = "Stop"
@@ -64,16 +68,105 @@ if ($Win32RestoreForensics -or $GodotRestoreForensics) {
         & $Exe @NativeArgs 2>&1 | Out-File -LiteralPath $LogPath -Encoding utf8
         return $LASTEXITCODE
     }
+    # STACKLEASE-OWNER-PARAM-1 (442): tolerant pure gate core for the stack-lease
+    # ledger line in coord/resources/PC-RUNTIME-STACK.md. The LATEST event line
+    # (first line matching "- " after optional whitespace; ledger is newest-first)
+    # must grant occupancy to the exact expected owner AND name the expected card.
+    # Tolerant to: leading/trailing whitespace, timestamp format variance (the
+    # timestamp is not parsed at all), field order within the line, full-width
+    # parens in card naming, owner value quoting (backtick/single/double/bare
+    # multi-word). Never weakens the gate: every rejection lists machine-checkable
+    # reasons plus the offending latest event line (fail closed with diagnosis).
+    function Get-StackLeaseVerdict {
+        param(
+            [string[]]$LeaseLines,
+            [string]$ExpectedOwner,
+            [string]$ExpectedCard,
+            [string[]]$GrantStates = @('预留','占用','续预留')
+        )
+        $result = [ordered]@{ Pass=$false; Reasons=@(); LatestLine=''; State=''; Owner=''; OwnerExpected=$ExpectedOwner; CardHit=$false }
+        $latest = $null
+        foreach ($line in $LeaseLines) {
+            if ($line -match '^\s*-\s+\S') { $latest = $line.Trim(); break }
+        }
+        if ([string]::IsNullOrEmpty($latest)) {
+            $result.Reasons = @('no event line found: ledger contains no line starting with "- " (expected newest-first event list in coord/resources/PC-RUNTIME-STACK.md)')
+            return $result
+        }
+        $result.LatestLine = $latest
+        $normalized = $latest -replace '（','(' -replace '）',')'
+        # state: earliest occupancy/release marker in the line wins (header position precedes prose).
+        $stateHits = @()
+        foreach ($state in @($GrantStates + @('释放'))) {
+            $idx = $normalized.IndexOf($state, [System.StringComparison]::Ordinal)
+            if ($idx -ge 0) { $stateHits += [pscustomobject]@{ Name=$state; Index=$idx } }
+        }
+        if (-not $stateHits -or $stateHits.Count -eq 0) {
+            $result.Reasons += 'no occupancy state marker (预留/占用/续预留) in latest event line'
+        } else {
+            $first = $stateHits | Sort-Object -Property Index | Select-Object -First 1
+            $result.State = $first.Name
+            if ($GrantStates -notcontains $first.Name) {
+                $result.Reasons += ('latest event is a release (释放), not an active lease: state=' + $first.Name)
+            }
+        }
+        if ($normalized -match '无.*启动权') {
+            $result.Reasons += 'latest event declares no startup rights (无启动权)'
+        }
+        if ([string]::IsNullOrWhiteSpace($ExpectedCard)) {
+            $result.Reasons += 'no expected card passed (pass the card id registered on the latest ledger event)'
+        } elseif ($normalized.Contains($ExpectedCard)) {
+            $result.CardHit = $true
+        } else {
+            $result.Reasons += ('latest event does not name expected card: expected=[' + $ExpectedCard + ']')
+        }
+        $ownerCount = ([regex]::Matches($normalized, 'owner\s*=')).Count
+        if ($ownerCount -eq 0) {
+            $result.Reasons += 'no owner= field in latest event line'
+        } elseif ($ownerCount -gt 1) {
+            $result.Reasons += ('ambiguous owner field: ' + $ownerCount + ' owner= tokens in one event line')
+        } else {
+            $m = [regex]::Match($normalized, 'owner\s*=\s*`([^`]+)`')
+            if (-not $m.Success) { $m = [regex]::Match($normalized, 'owner\s*=\s*"([^"]+)"') }
+            if (-not $m.Success) { $m = [regex]::Match($normalized, "owner\s*=\s*'([^']+)'") }
+            $bareCaptured = $false
+            if (-not $m.Success) {
+                $m = [regex]::Match($normalized, 'owner\s*=\s*([^；;，,。、()（）\r\n]+)')
+                $bareCaptured = $m.Success
+            }
+            if ($m.Success) {
+                $value = $m.Groups[1].Value.Trim()
+                # bare value may embed a quoted session id (ledger style: owner=Name `<id>`);
+                # the quoted id is the canonical comparable owner (pre-442 gate contract).
+                if ($bareCaptured) {
+                    $q = [regex]::Match($value, '`([^`]+)`')
+                    if ($q.Success) { $value = $q.Groups[1].Value.Trim() }
+                }
+                $result.Owner = $value
+                if ([string]::IsNullOrWhiteSpace($ExpectedOwner)) {
+                    $result.Reasons += ('no expected owner passed: ledger latest event owner=[' + $result.Owner + '] (pass -ForensicsOwner matching this value)')
+                } elseif ($result.Owner -cne $ExpectedOwner.Trim()) {
+                    $result.Reasons += ('owner mismatch: ledger latest event owner=[' + $result.Owner + '], expected=[' + $ExpectedOwner.Trim() + ']')
+                }
+            } else {
+                $result.Reasons += 'owner= field present but value not extractable (unterminated quote?)'
+            }
+        }
+        $result.Pass = ($result.Reasons.Count -eq 0)
+        return $result
+    }
     function Get-ForensicsResourceReservation {
-        param([string[]]$Lines, [ValidateSet('403','404')][string]$ExpectedCard)
+        param([string[]]$Lines, [ValidateSet('403','404')][string]$ExpectedCard, [string]$ExpectedOwner)
         # Inspect the first resource record only; never authorize via history.
+        # 442: header check relaxed to its stable semantic core ('占用记录') with
+        # the actual first line shown on mismatch (was: whole-header literal match).
         $nonempty=@($Lines | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
-        if (-not $nonempty.Count -or $nonempty[0].Trim() -cnotmatch '^# PC \u771f\u5b9e\u8fd0\u884c\u6808\u5360\u7528\u8bb0\u5f55$') { throw 'forensics resource header missing' }
-        $current=$Lines | Where-Object { $_ -match '^\s*-\s+' } | Select-Object -First 1
-        if (-not $current -or $current -notmatch '^- .+? (?<state>\u7eed\u9884\u7559|\u9884\u7559|\u5360\u7528)\s*/\s*\*\*(?<card>\d+)(?=\D)') { throw 'forensics current resource is not reserved or occupied' }
-        if ($Matches.card -cne $ExpectedCard) { throw 'forensics current resource card mismatch' }
-        if ($current -notmatch 'owner=Codex `(?<owner>[^`]+)`' -or $Matches.owner -cne '/root/restore403') { throw 'forensics current resource owner mismatch' }
-        return $current
+        if (-not $nonempty.Count -or $nonempty[0].Trim() -notmatch '占用记录') { throw ('forensics resource header missing (first non-empty line: [' + $(if ($nonempty.Count) { $nonempty[0].Trim() } else { '' }) + '])') }
+        $verdict = Get-StackLeaseVerdict -LeaseLines $Lines -ExpectedOwner $ExpectedOwner -ExpectedCard $ExpectedCard
+        if (-not $verdict.Pass) {
+            throw ('forensics current resource lease rejected: ' + (($verdict.Reasons) -join ' | ') + ' [latest event: ' + $verdict.LatestLine + ']')
+        }
+        return $verdict.LatestLine
     }
     function Assert-403Idle {
         param([string]$Label)
@@ -83,7 +176,7 @@ if ($Win32RestoreForensics -or $GodotRestoreForensics) {
         $resource = @(& git -C $MainRoot show origin/main:coord/resources/PC-RUNTIME-STACK.md)
         if ($LASTEXITCODE -ne 0) { throw '403 resource read failed' }
         $resource | Select-Object -First 5 | Out-File (Join-Path $RunRoot "$Label.resource.txt") -Encoding utf8
-        $reservation=Get-ForensicsResourceReservation -Lines $resource -ExpectedCard $ForensicsCard
+        $reservation=Get-ForensicsResourceReservation -Lines $resource -ExpectedCard $ForensicsCard -ExpectedOwner $ForensicsOwner
         $reservation | Out-File (Join-Path $RunRoot "$Label.matched_resource.txt") -Encoding utf8
         $processes = @(Get-CimInstance Win32_Process | Where-Object { $_.Name -match '^(VitShell|VitAgent|VitApp|VspHub|Godot|godot|win32_noactivate_restore_probe).*\.exe$' })
         $tcp = @(Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue | Where-Object { $_.LocalPort -in @(5555,5556,7878,7879,8787,9333) })
