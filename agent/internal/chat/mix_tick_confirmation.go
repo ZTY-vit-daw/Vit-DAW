@@ -88,8 +88,12 @@ func (s *Server) handlePendingMixTickChat(ctx context.Context, conversationID st
 				ConversationID: conversationID,
 				AgentMode:      mode,
 				Reply:          "现在没有可执行的待确认混音动作。你可以让我重新观察，或者明确说要调整哪条轨道多少 dB。",
-				GoalStatus:     "completed",
-				StopReason:     "no_pending_mix_tick_candidate",
+				// FIX-GOALSTATUS-FORGERY-SWEEP-1: nothing was executed (no
+				// candidate), so no goal_status is claimed; the receipt is
+				// exempt from the projection refill and the runtime goal
+				// closure via receiptCarriesNoGoalStatus.
+				GoalStatus: "",
+				StopReason: "no_pending_mix_tick_candidate",
 			}, true
 		}
 		return ChatResponse{}, false

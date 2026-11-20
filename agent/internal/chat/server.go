@@ -3420,7 +3420,9 @@ func chatResponseFromPendingPlanDecision(conversationID string, response map[str
 	// FIX-PLAN-STALE-STATUS-1: the unanswerable-plan receipts intentionally
 	// carry an empty goal_status (nothing was executed); the refill fallback
 	// below must not turn that into completed/failed on the chat projection.
-	if resp.GoalStatus == "" && !pendingPlanReceiptCarriesNoGoalStatus(resp.StopReason) {
+	// FIX-GOALSTATUS-FORGERY-SWEEP-1: the exemption set is shared with the
+	// interaction-face receipts via receiptCarriesNoGoalStatus.
+	if resp.GoalStatus == "" && !receiptCarriesNoGoalStatus(resp.StopReason) {
 		if boolValue(response["blocked"]) || strings.EqualFold(cleanContextText(response["status"]), "error") {
 			resp.GoalStatus = string(agentruntime.StatusFailed)
 		} else if resp.NeedsConfirmation {
@@ -4956,11 +4958,12 @@ func (s *Server) handleInteractionRespond(w http.ResponseWriter, r *http.Request
 			writeJSON(w, http.StatusOK, resp)
 			return
 		}
-		resp := ChatResponse{
-			ConversationID: conversationID, GoalID: goalID, RunID: runID,
-			Reply: "这个段落包络确认已处理或已过期。", Workflow: interaction.Workflow,
-			WorkflowData: interaction.Payload, GoalStatus: string(agentruntime.StatusCompleted),
-		}
+		// FIX-GOALSTATUS-FORGERY-SWEEP-1: the answerable card was consumed but
+		// its automation-choreo candidate is gone — the decision was NOT
+		// executed, so answer with the explicit continuation-missing receipt
+		// instead of the old canned "已处理或已过期" + fabricated
+		// goal_status=completed.
+		resp := s.interactionContinuationMissingReceipt(interaction, "段落包络确认")
 		s.finalizeInteractionChatResponse(r.Context(), &resp, interaction, decision)
 		writeJSON(w, http.StatusOK, resp)
 		return
@@ -5005,15 +5008,9 @@ func (s *Server) handleInteractionRespond(w http.ResponseWriter, r *http.Request
 		}
 		resp, handled := s.handlePendingMixTickChat(r.Context(), interaction.ConversationID, chatReq, agentModeDefault)
 		if !handled {
-			resp = ChatResponse{
-				ConversationID: interaction.ConversationID,
-				GoalID:         interaction.GoalID,
-				RunID:          interaction.RunID,
-				Reply:          "这个混音单步确认已处理或已过期。",
-				Workflow:       interaction.Workflow,
-				WorkflowData:   interaction.Payload,
-				GoalStatus:     string(agentruntime.StatusCompleted),
-			}
+			// FIX-GOALSTATUS-FORGERY-SWEEP-1: continuation missing — the decision
+			// was NOT executed; explicit receipt, no fabricated completion.
+			resp = s.interactionContinuationMissingReceipt(interaction, "混音单步确认")
 		}
 		// A confirmed native mix tick is still part of the active free-state
 		// treatment loop. Feed its governed execution result through the same
@@ -5076,15 +5073,9 @@ func (s *Server) handleInteractionRespond(w http.ResponseWriter, r *http.Request
 		}
 		resp, handled := s.handlePendingMixTreatmentChat(r.Context(), interaction.ConversationID, chatReq, agentModeDefault)
 		if !handled {
-			resp = ChatResponse{
-				ConversationID: interaction.ConversationID,
-				GoalID:         interaction.GoalID,
-				RunID:          interaction.RunID,
-				Reply:          "这个混音确认已处理或已过期。",
-				Workflow:       interaction.Workflow,
-				WorkflowData:   interaction.Payload,
-				GoalStatus:     string(agentruntime.StatusCompleted),
-			}
+			// FIX-GOALSTATUS-FORGERY-SWEEP-1: continuation missing — the decision
+			// was NOT executed; explicit receipt, no fabricated completion.
+			resp = s.interactionContinuationMissingReceipt(interaction, "混音确认")
 		}
 		s.attachInteractionRequests(&resp)
 		s.finalizeInteractionChatResponse(r.Context(), &resp, interaction, approvalText)
@@ -5162,7 +5153,12 @@ func (s *Server) finalizeInteractionChatResponse(ctx context.Context, resp *Chat
 	if strings.TrimSpace(userText) != "" || strings.TrimSpace(resp.Reply) != "" {
 		s.remember(resp.ConversationID, userText, resp.Reply)
 	}
-	if strings.TrimSpace(resp.GoalStatus) == "" {
+	if strings.TrimSpace(resp.GoalStatus) == "" && !receiptCarriesNoGoalStatus(resp.StopReason) {
+		// FIX-GOALSTATUS-FORGERY-SWEEP-1: unanswerable-decision receipts carry
+		// an empty goal_status on purpose (nothing was executed); the refill
+		// fallback must not turn that into completed/failed on the chat
+		// projection — interaction-face twin of the FIX-PLAN-STALE-STATUS-1
+		// guard in chatResponseFromPendingPlanDecision.
 		resp.GoalStatus = inferredGoalStatus(*resp)
 	}
 	if resp.AgentPlan == nil && shouldExposeAgentPlan(resp.AgentMode, *resp) {
@@ -5172,7 +5168,13 @@ func (s *Server) finalizeInteractionChatResponse(ctx context.Context, resp *Chat
 		syncAgentPlanProjectHistory(resp)
 	}
 	goalID := firstNonEmpty(resp.GoalID, interaction.GoalID, ctxGoalID)
-	if goalID != "" {
+	// FIX-GOALSTATUS-FORGERY-SWEEP-1: an unanswerable-decision receipt must
+	// not close the runtime goal behind the caller's back either — the old
+	// default arm (CompleteGoal(goalID, nil)) turned the fabricated
+	// goal_status=completed into a runtime-level completion for a decision
+	// that was never executed (mirrors the plan face, which writes no goal
+	// status for its receipts).
+	if goalID != "" && !receiptCarriesNoGoalStatus(resp.StopReason) {
 		switch {
 		case resp.NeedsConfirmation || resp.GoalStatus == string(agentruntime.StatusWaitingConfirmation):
 			s.harness.SetGoalStatus(goalID, agentruntime.StatusWaitingConfirmation, nil)
@@ -5454,11 +5456,22 @@ func (s *Server) handleConfirm(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, response)
 }
 
-// pendingPlanReceiptCarriesNoGoalStatus marks the FIX-PLAN-STALE-STATUS-1
-// unanswerable-plan receipts: the decision was NOT executed, so no projection
-// path may refill the empty goal_status (least of all into completed).
-func pendingPlanReceiptCarriesNoGoalStatus(stopReason string) bool {
-	return stopReason == "plan_already_retired" || stopReason == "plan_not_found"
+// receiptCarriesNoGoalStatus marks the unanswerable-decision receipts from
+// FIX-PLAN-STALE-STATUS-1 (plan face), FIX-GOV-INTERACTION-TTL-1 (interaction
+// catch-all) and FIX-GOALSTATUS-FORGERY-SWEEP-1 (interaction workflow
+// continuation fallbacks + the no-candidate mix tick receipt): the decision
+// was NOT executed, so no projection path may refill the empty goal_status
+// (least of all into completed) and the goal runtime must not be closed as
+// completed behind the caller's back.
+func receiptCarriesNoGoalStatus(stopReason string) bool {
+	switch stopReason {
+	case "plan_already_retired", "plan_not_found",
+		"interaction_already_retired", "interaction_not_found",
+		"interaction_continuation_missing",
+		"no_pending_mix_tick_candidate":
+		return true
+	}
+	return false
 }
 
 // pendingPlanDecisionUnanswerableReceipt returns the explicit receipt for a

@@ -1,0 +1,15 @@
+=== RUN   TestRedProbeChoreoFallbackForgeriesCompleted
+    red_probe_goalstatus_forgery_test.go:45: RED PROBE (pre-fix forgery live): automation-choreo fallback returned goal_status="completed" reply="这个段落包络确认已处理或已过期。" stop="" — decision was never executed
+--- FAIL: TestRedProbeChoreoFallbackForgeriesCompleted (0.07s)
+=== RUN   TestRedProbeMixTreatmentFallbackForgeriesCompleted
+    red_probe_goalstatus_forgery_test.go:65: RED PROBE (pre-fix forgery live): mix-treatment fallback returned goal_status="completed" reply="这个混音确认已处理或已过期。" stop="" — decision was never executed
+--- FAIL: TestRedProbeMixTreatmentFallbackForgeriesCompleted (0.04s)
+=== RUN   TestRedProbeMixTickNoCandidateForgeriesCompleted
+    red_probe_goalstatus_forgery_test.go:80: RED PROBE (pre-fix forgery live): mix-tick no-candidate receipt returned goal_status="completed" reply="现在没有可执行的待确认混音动作。你可以让我重新观察，或者明确说要调整哪条轨道多少 dB。" — nothing was executed
+--- FAIL: TestRedProbeMixTickNoCandidateForgeriesCompleted (0.00s)
+=== RUN   TestRedProbeMixTickRespondFallbackForgeriesCompleted
+    red_probe_goalstatus_forgery_test.go:97: RED PROBE (pre-fix forgery live): mix-tick respond fallback returned goal_status="completed" reply="这个混音单步确认已处理或已过期。" stop="" — decision was never executed
+--- FAIL: TestRedProbeMixTickRespondFallbackForgeriesCompleted (0.04s)
+FAIL
+FAIL	vit-daw-agent/internal/chat	0.292s
+FAIL
