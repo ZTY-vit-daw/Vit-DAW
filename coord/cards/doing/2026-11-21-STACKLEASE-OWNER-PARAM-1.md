@@ -1,6 +1,13 @@
 # STACKLEASE-OWNER-PARAM-1：ps1 lease 门 owner 参数化窄修
 
 - 池序 442；P3 卫生；PC；发卡=lead（2026-11-21 凌晨，夜间 free 车道批）；验收负责人=lead。
+
+## 领取
+
+- 领取时间：2026-11-21；领取时本地 main HEAD=883a0db9b76028665b4ea5726465d4a409c526b7；origin/main=a6420951f975339bfa108b032959b3ef977caf19（本地领先 5 提交、无落后；协调提交由主管序列化，本卡只本地提交不推远端）。
+- 执行 owner：leaseparam442（ZCode GLM-5.3-Flash 执行子代理，PC）；分支 pc442-lease；worktree D:/Vit_DAW_wt_pc442；文件域 scripts/*.ps1（零栈腿，不启真实栈）。
+- main 工作树领取时存在其他卡未提交改动（CURRENT-STATE.md、Workspace 运行态、coord/runs 工件）：与本卡文件域不相交，不触碰。scripts/ 干净。
+- 普查停止条件判定：ledger 内容解析门恰 5 处（entry388/restore403/zproduct/full/open_chain），未触发 >5 停卡；边界情况（5=5）已在 run 工件 PROGRESS.md 标注候主管复核。普查全文：coord/runs/STACKLEASE-OWNER-PARAM-1/PROGRESS.md。
 - 背景（408 runtime 发现，POOL-INDEX backlog 登记）：ps1 装置的栈 lease 门**硬编码 owner 串**且与 PC-RUNTIME-STACK.md 资源记录格式耦合——曾致预检假拒+现场格式修正绕行。409 已收口，本窄修解锁。
 
 ## 目标
