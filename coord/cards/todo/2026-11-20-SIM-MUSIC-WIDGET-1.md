@@ -20,3 +20,12 @@
 
 - vitest：谱面卡展开渲染（音符数/拍号断言用小星星 42 音/48 拍/3-4 拍号装置 fixture）、收起态、无材料不渲染、437/438 用例不回归；`npm run test` + `npm run build` + `npm run test:render`（如装置在卷）exit 0。
 - 真栈手测留 lead（VitShell 产品入口）。
+
+## 领取（scorecard441，2026-11-20）
+
+- 领取基线：main@`cd6032c70b64e62927db5fcc4cc68b438dc8b67b`；主仓工作树已有其他卡/运行态改动（YUE-440、VitApp workspace、coord/runs 工件等），与本卡文件域（`agent/webui/src/project/`、`scoreworkbench/` 只读）不相交，未触碰。
+- worktree：`D:/Vit_DAW_wt_pc441score`；分支 `pc441-scorecard`（基于 main@cd6032c7，worktree 内 status 干净）。
+- 374 复用锚点（实际组件名）：谱面渲染复用 `agent/webui/src/scoreworkbench/render.ts` 的 `renderScoreInto`（beat-grid 视图适配层，纯函数）+ `model.ts` 的 `ScoreModel`/`validateModel`；任务卡写的 `src/score/` 实际路径为 `src/scoreworkbench/`。`ScoreWorkbenchPanel`/`ScoreTrackWorkbench` 容器强耦合工作台编辑器/桥/target，不整挂——复用其渲染层不构成「复制大块代码」。
+- fixture 实测锚定（node 解析亲证）：`theme_twinkle_v0.mid` = format 0 单轨 / division 480 / 42 noteOn / 48 拍 / 拍号 meta nn=4 dd=2（**4/4**，卡面「3-4 拍号」按实际装置 4/4 断言）/ tempo 600000us=100 BPM。
+- 数据源裁定：`workflow_data.materials` 仅摘要（Go `tutorsim.go` 不下发音符序列，Go `midi.go` 的 `ParseMidi.Notes` 无网络面）→ 按卡面授权走「装置侧材料文件只读解析」（TS 解析器，纯函数，fail-closed）；live 装载链内核回读（`createAgentScoreBridge({clipID,trackID}).reload()`，374 既有协议）留为 ProjectSurface 可注入接缝，本卡不接线、后续真栈卡接入。
+- 停止条件评估：未触发（渲染层可复用，无 iframe/无复制）。
