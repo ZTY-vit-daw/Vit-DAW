@@ -13,6 +13,9 @@ import {
   reduceProject,
   replyAsksConfirmation,
   requestMacroApply,
+  tutorBriefFromWorkflowData,
+  tutorMaterialsFromValue,
+  tutorMaterialsFromWorkflowData,
   tutorProgressFromWorkflowData,
   type MacroCardView,
   type ProjectSurfaceState,
@@ -516,5 +519,117 @@ describe("SHELL-6：治理/确认卡 reducer", () => {
     s = reduceProject(s, { type: "confirmAnswered", id: "cf1", choice: "cancel" });
     const confirm = s.thread.find((item) => item.kind === "confirm");
     expect(confirm && confirm.kind === "confirm" && confirm.answered).toBe("approve");
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/* TUTOR-SIM-4（438）：材料视图校验 + brief/materials reducer             */
+/* ------------------------------------------------------------------ */
+
+describe("TUTOR-SIM-4：tutorMaterialsFromValue 校验", () => {
+  it("只收 midi_clip/audio；非法条目丢弃、非数组 null", () => {
+    const materials = tutorMaterialsFromValue([
+      { kind: "midi_clip", title: "主题", path: "assets/theme.mid", note_count: 42, duration_beats: 48, loaded: true },
+      { kind: "audio", title: "音频位" },
+      { kind: "video", title: "未知类型" },
+      { kind: "midi_clip", title: "" },
+      "garbage",
+      null,
+      { title: "缺 kind" }
+    ]);
+    expect(materials).not.toBeNull();
+    expect(materials?.map((material) => material.title)).toEqual(["主题", "音频位"]);
+    expect(materials?.[0]).toMatchObject({
+      kind: "midi_clip",
+      title: "主题",
+      path: "assets/theme.mid",
+      noteCount: 42,
+      durationBeats: 48,
+      loaded: true,
+      loading: false
+    });
+    expect(tutorMaterialsFromValue("nope")).toBeNull();
+    expect(tutorMaterialsFromValue(undefined)).toBeNull();
+    expect(tutorMaterialsFromValue(null)).toBeNull();
+  });
+
+  it("tutorMaterialsFromWorkflowData 只认 materials 键；brief 投影只认字符串", () => {
+    const data = { step_index: 1, step_total: 4, completed: false, brief: "简报", materials: [{ kind: "midi_clip", title: "t" }] };
+    expect(tutorBriefFromWorkflowData(data)).toBe("简报");
+    expect(tutorBriefFromWorkflowData({ brief: 42 })).toBe("");
+    expect(tutorBriefFromWorkflowData(null)).toBe("");
+    expect(tutorMaterialsFromWorkflowData(data)?.map((m) => m.title)).toEqual(["t"]);
+    expect(tutorMaterialsFromWorkflowData({})).toBeNull();
+    expect(tutorMaterialsFromWorkflowData({ materials: "no" })).toBeNull();
+  });
+});
+
+describe("TUTOR-SIM-4：brief/materials reducer", () => {
+  const VIEW = {
+    stepIndex: 1,
+    stepTotal: 4,
+    completed: false,
+    prompt: "第 1 步问题",
+    brief: "教学简报文本",
+    materials: [{ kind: "midi_clip" as const, title: "主题", path: "assets/theme.mid", loaded: false, loading: false }]
+  };
+
+  function stateWithTutorView(): ProjectSurfaceState {
+    let s = emptyProjectState();
+    s = reduceProject(s, { type: "tutorViewUpdated", projectPath: "D:/x.vit", view: VIEW });
+    return s;
+  }
+
+  it("tutorViewUpdated 携带 brief/materials；缺省回退旧值", () => {
+    const s = stateWithTutorView();
+    const view = s.tutorViews["D:/x.vit"];
+    expect(view?.brief).toBe("教学简报文本");
+    expect(view?.materials?.map((m) => m.title)).toEqual(["主题"]);
+
+    // 无 brief/materials 的事件（v0 回执形状）：保留旧值，不清空。
+    const s2 = reduceProject(s, {
+      type: "tutorViewUpdated",
+      projectPath: "D:/x.vit",
+      view: { stepIndex: 2, stepTotal: 4, completed: false, prompt: "第 2 步问题" }
+    });
+    const view2 = s2.tutorViews["D:/x.vit"];
+    expect(view2?.prompt).toBe("第 2 步问题");
+    expect(view2?.brief).toBe("教学简报文本");
+    expect(view2?.materials?.map((m) => m.title)).toEqual(["主题"]);
+  });
+
+  it("tutorMaterialLoaded 只置同名材料；无会话/无材料零变化", () => {
+    const s = stateWithTutorView();
+    const s2 = reduceProject(s, {
+      type: "tutorMaterialLoaded",
+      projectPath: "D:/x.vit",
+      title: "主题",
+      trackID: "t1",
+      clipID: "c1",
+      instrumentAttached: true
+    });
+    const material = s2.tutorViews["D:/x.vit"]?.materials?.[0];
+    expect(material?.loaded).toBe(true);
+    expect(material?.loading).toBe(false);
+    expect(material?.instrumentAttached).toBe(true);
+    // 不同名不变；无 tutorViews 的路径零变化。
+    const s3 = reduceProject(s, {
+      type: "tutorMaterialLoaded",
+      projectPath: "D:/x.vit",
+      title: "别的",
+      trackID: "t",
+      clipID: "c",
+      instrumentAttached: false
+    });
+    expect(s3.tutorViews["D:/x.vit"]?.materials?.[0]?.loaded).toBe(false);
+    const s4 = reduceProject(s, {
+      type: "tutorMaterialLoaded",
+      projectPath: "D:/none.vit",
+      title: "主题",
+      trackID: "t",
+      clipID: "c",
+      instrumentAttached: true
+    });
+    expect(s4.tutorViews["D:/none.vit"]).toBeUndefined();
   });
 });

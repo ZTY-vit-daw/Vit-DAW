@@ -486,3 +486,124 @@ describe("TUTOR-SIM-3：进度卡与步骤输入卡", () => {
     expect(container.querySelector("[data-tutor-step-prompt]")?.textContent).toContain(OPENING);
   });
 });
+
+/* ------------------------------------------------------------------ */
+/* TUTOR-SIM-4（438）：brief 折叠 + 材料卡装载链                          */
+/* ------------------------------------------------------------------ */
+
+const MATERIAL_START: TutorStartOutcome = {
+  status: "ok",
+  conversationID: "tutor_conv_438",
+  reply: "第 1/4 步：先装载材料，从头听一遍。",
+  stepIndex: 1,
+  stepTotal: 4,
+  stepID: "step-hear-theme",
+  brief: "教学简报：点材料卡上的「装载到工程」，主题会以 MIDI clip 进工程。",
+  materials: [
+    {
+      kind: "midi_clip",
+      title: "小星星主题（fixture）",
+      path: "assets/theme_twinkle_v0.mid",
+      noteCount: 42,
+      durationBeats: 48,
+      loaded: false,
+      loading: false
+    }
+  ]
+};
+
+describe("TUTOR-SIM-4：brief 与材料卡（surface 装载链）", () => {
+  it("start 携带 brief/materials：简报默认收起，材料卡可点装载，成功后按钮置灰", async () => {
+    const loadCalls: Array<{ conversationID: string; title: string }> = [];
+    const service = createProjectFixtureService({
+      context: CONTEXT,
+      tutorStart: MATERIAL_START,
+      loadMaterialCalls: loadCalls
+    });
+    const { container } = mount(<ProjectSurface fixture={{ context: CONTEXT, service }} />);
+    await flush();
+
+    // brief 默认收起：有折叠块与开关，无正文。
+    expect(container.querySelector("[data-tutor-brief]")).not.toBeNull();
+    expect(container.querySelector("[data-tutor-brief]")?.getAttribute("data-tutor-brief-open")).toBe("false");
+    expect(container.querySelector("[data-tutor-brief-text]")).toBeNull();
+    expect(container.textContent).toContain("查看简报");
+    expect(container.textContent).not.toContain("教学简报：点材料卡");
+
+    // 材料卡：摘要 + 可点装载按钮。
+    const material = container.querySelector("[data-tutor-material]");
+    expect(material).not.toBeNull();
+    expect(material?.getAttribute("data-tutor-material-kind")).toBe("midi_clip");
+    expect(material?.getAttribute("data-tutor-material-loaded")).toBe("false");
+    expect(container.querySelector("[data-tutor-material-summary]")?.textContent).toContain("42 音");
+    const loadButton = container.querySelector("[data-tutor-material-load]") as HTMLButtonElement | null;
+    expect(loadButton?.disabled).toBe(false);
+
+    click(loadButton as Element);
+    await flush();
+    expect(loadCalls).toEqual([{ conversationID: "tutor_conv_438", title: "小星星主题（fixture）" }]);
+    const loadedButton = container.querySelector("[data-tutor-material-load]") as HTMLButtonElement | null;
+    expect(loadedButton?.textContent).toContain("已装载");
+    expect(loadedButton?.disabled).toBe(true);
+    expect(container.querySelector("[data-tutor-material]")?.getAttribute("data-tutor-material-loaded")).toBe("true");
+  });
+
+  it("装载失败：notice 显示原因，按钮保持可点（不伪造已装载）", async () => {
+    const loadCalls: Array<{ conversationID: string; title: string }> = [];
+    const service = createProjectFixtureService({
+      context: CONTEXT,
+      tutorStart: MATERIAL_START,
+      loadMaterialCalls: loadCalls,
+      loadMaterialOutcome: { ok: false, reason: "kernel refused" }
+    });
+    const { container } = mount(<ProjectSurface fixture={{ context: CONTEXT, service }} />);
+    await flush();
+    click(container.querySelector("[data-tutor-material-load]") as Element);
+    await flush();
+    expect(loadCalls).toHaveLength(1);
+    expect(container.querySelector("[data-project-notice]")?.textContent).toContain("kernel refused");
+    const loadButton = container.querySelector("[data-tutor-material-load]") as HTMLButtonElement | null;
+    expect(loadButton?.disabled).toBe(false);
+  });
+
+  it("服务端已装载（workflow_data loaded=true）：按钮置灰，不重复装载", async () => {
+    const loadCalls: Array<{ conversationID: string; title: string }> = [];
+    const base = createProjectFixtureService({
+      context: CONTEXT,
+      tutorStart: {
+        ...MATERIAL_START,
+        materials: [{ ...MATERIAL_START.materials![0], loaded: true, instrumentAttached: true }]
+      },
+      loadMaterialCalls: loadCalls
+    });
+    const { container } = mount(<ProjectSurface fixture={{ context: CONTEXT, service: base }} />);
+    await flush();
+    const loadButton = container.querySelector("[data-tutor-material-load]") as HTMLButtonElement | null;
+    expect(loadButton?.disabled).toBe(true);
+    expect(container.textContent).toContain("已挂音源");
+    click(loadButton as Element);
+    await flush();
+    expect(loadCalls).toHaveLength(0);
+  });
+
+  it("audio 材料渲染 AudioPlayer（无真实音频时禁播降级）；v0 实验无材料/无简报零新增卡", async () => {
+    const audioStart: TutorStartOutcome = {
+      ...MATERIAL_START,
+      materials: [{ kind: "audio", title: "音频材料位（fixture）", path: "", loaded: false, loading: false }]
+    };
+    const audioService = createProjectFixtureService({ context: CONTEXT, tutorStart: audioStart });
+    const { container } = mount(<ProjectSurface fixture={{ context: CONTEXT, service: audioService }} />);
+    await flush();
+    expect(container.querySelector('[data-tutor-material-kind="audio"]')).not.toBeNull();
+    expect(container.querySelector("[data-widget-audio-player]")).not.toBeNull();
+    expect(container.querySelector("[data-tutor-material-load]")).toBeNull();
+
+    // v0（无 brief/materials）：无简报块、无材料区（437 契约面不回归）。
+    const v0Service = createProjectFixtureService({ context: CONTEXT, tutorStart: OK_OPENING });
+    const v0 = mount(<ProjectSurface fixture={{ context: CONTEXT, service: v0Service }} />);
+    await flush();
+    expect(v0.container.querySelector("[data-tutor-brief]")).toBeNull();
+    expect(v0.container.querySelector("[data-tutor-materials]")).toBeNull();
+    expect(v0.container.querySelector("[data-tutor-material]")).toBeNull();
+  });
+});

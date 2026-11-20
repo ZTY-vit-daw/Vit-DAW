@@ -50,9 +50,63 @@ export interface TutorProgressView {
 }
 
 /** 步骤输入卡视图：步骤寻址 + 最近 assistant 回复作为当前问题/引导。
- * prompt 只来自服务端 reply；服务端判定答案永不下发、永不显示。 */
+ * prompt 只来自服务端 reply；服务端判定答案永不下发、永不显示。
+ * TUTOR-SIM-4（438）：brief 教学简报与材料列表（v1 实验字段；可选，v0 实验
+ * 两字段缺省空 → UI 不渲染简报/材料卡）。 */
 export interface TutorStepView extends TutorProgressView {
   prompt: string;
+  brief?: string;
+  materials?: TutorMaterialView[];
+}
+
+/** 材料视图（服务端 workflow_data.materials 的只读投影；kind 只认
+ * midi_clip / audio，其余 fail-closed 丢弃）。 */
+export interface TutorMaterialView {
+  kind: "midi_clip" | "audio";
+  title: string;
+  path: string;
+  noteCount?: number;
+  durationBeats?: number;
+  tempoBPM?: number;
+  loaded: boolean;
+  loading: boolean;
+  summaryError?: string;
+  instrumentAttached?: boolean;
+  instrumentError?: string;
+  loadError?: string;
+}
+
+/** workflow_data.materials → 材料视图（fail-closed：非数组返回 null 由调用方
+ * 保留旧值；单个非法条目丢弃，不因个别脏数据丢整批）。 */
+export function tutorMaterialsFromValue(value: unknown): TutorMaterialView[] | null {
+  if (!Array.isArray(value)) return null;
+  const out: TutorMaterialView[] = [];
+  for (const item of value) {
+    if (!item || typeof item !== "object" || Array.isArray(item)) continue;
+    const row = item as Record<string, unknown>;
+    const kind = row.kind;
+    const title = typeof row.title === "string" ? row.title.trim() : "";
+    if ((kind !== "midi_clip" && kind !== "audio") || !title) continue;
+    const finiteNumber = (input: unknown): number | undefined =>
+      typeof input === "number" && Number.isFinite(input) ? input : undefined;
+    const text = (input: unknown): string | undefined =>
+      typeof input === "string" && input.trim() !== "" ? input : undefined;
+    out.push({
+      kind,
+      title,
+      path: typeof row.path === "string" ? row.path : "",
+      noteCount: finiteNumber(row.note_count),
+      durationBeats: finiteNumber(row.duration_beats),
+      tempoBPM: finiteNumber(row.tempo_bpm),
+      loaded: row.loaded === true,
+      loading: row.loading === true,
+      summaryError: text(row.summary_error),
+      instrumentAttached: typeof row.instrument_attached === "boolean" ? row.instrument_attached : undefined,
+      instrumentError: text(row.instrument_error),
+      loadError: text(row.load_error)
+    });
+  }
+  return out;
 }
 
 /** 严格校验 workflow_data 的 step_index/step_total/completed；任何缺失或越界
@@ -74,6 +128,21 @@ export function tutorProgressFromWorkflowData(data: unknown): TutorProgressView 
   if (!data || typeof data !== "object" || Array.isArray(data)) return null;
   const record = data as Record<string, unknown>;
   return tutorProgressFromSteps(record.step_index, record.step_total, record.completed);
+}
+
+/** TUTOR-SIM-4：workflow_data.brief → 简报文本（缺省/非字符串 = 空串）。 */
+export function tutorBriefFromWorkflowData(data: unknown): string {
+  if (!data || typeof data !== "object" || Array.isArray(data)) return "";
+  const brief = (data as Record<string, unknown>).brief;
+  return typeof brief === "string" ? brief : "";
+}
+
+/** TUTOR-SIM-4：workflow_data → 材料视图列表（materials 键缺失/非数组 =
+ * null，由调用方保留旧值）。 */
+export function tutorMaterialsFromWorkflowData(data: unknown): TutorMaterialView[] | null {
+  if (!data || typeof data !== "object" || Array.isArray(data)) return null;
+  const record = data as Record<string, unknown>;
+  return tutorMaterialsFromValue(record.materials);
 }
 
 /** 执行轨迹（SPEC-V5 §4.2.1 / §8.2）：busy 有当前步，done/error 收成回执行。 */
@@ -181,6 +250,14 @@ export type ProjectEvent =
   | { type: "abPrepareFailed"; id: string; reason: string }
   | { type: "outcomeItemsArrived"; items: ProjectThreadItem[] }
   | { type: "tutorViewUpdated"; projectPath: string; view: TutorStepView }
+  | {
+      type: "tutorMaterialLoaded";
+      projectPath: string;
+      title: string;
+      trackID: string;
+      clipID: string;
+      instrumentAttached: boolean;
+    }
   | { type: "governanceRequested"; id: string; view: ProjectGovernanceView }
   | { type: "governanceAnswered"; id: string; choice: string }
   | { type: "confirmAnswered"; id: string; choice: "approve" | "cancel" }
@@ -447,15 +524,46 @@ export function reduceProject(state: ProjectSurfaceState, event: ProjectEvent): 
     }
     case "tutorViewUpdated": {
       // TUTOR-SIM-3：每工程保留一份最新结构化视图；空路径/非法步骤不落状态。
+      // TUTOR-SIM-4：brief/materials 随事件更新（缺省回退旧值）；两者皆空时
+      // 不落键——v0 实验的存储视图保持 437 原形状（严格相等面不回归）。
       const path = event.projectPath.trim();
       if (!path) return state;
       const progress = tutorProgressFromSteps(event.view.stepIndex, event.view.stepTotal, event.view.completed);
       if (!progress) return state;
       const previous = state.tutorViews[path];
       const prompt = event.view.prompt.trim() || previous?.prompt || "";
+      const brief = (event.view.brief ?? "").trim() || previous?.brief || "";
+      // materials 已是投影后的视图数组（raw workflow_data 的校验投影单点在
+      // tutorMaterialsFromWorkflowData / tutorStartOutcomeFromResponse）。
+      const materials = event.view.materials ?? previous?.materials ?? [];
+      const view: TutorStepView = { ...progress, prompt };
+      if (brief) view.brief = brief;
+      if (materials.length > 0) view.materials = materials;
       return {
         ...state,
-        tutorViews: { ...state.tutorViews, [path]: { ...progress, prompt } }
+        tutorViews: { ...state.tutorViews, [path]: view }
+      };
+    }
+    case "tutorMaterialLoaded": {
+      // TUTOR-SIM-4：装载成功回执只把当前工程同名材料置为已装载（真实服务端
+      // track/clip 证据由回执带出；无会话/无材料时零变化）。
+      const path = event.projectPath.trim();
+      if (!path) return state;
+      const current = state.tutorViews[path];
+      if (!current?.materials?.length) return state;
+      return {
+        ...state,
+        tutorViews: {
+          ...state.tutorViews,
+          [path]: {
+            ...current,
+            materials: current.materials.map((material) =>
+              material.title === event.title && !material.loaded
+                ? { ...material, loaded: true, loading: false, instrumentAttached: event.instrumentAttached }
+                : material
+            )
+          }
+        }
       };
     }
     case "governanceRequested": {
@@ -535,7 +643,8 @@ export interface ProjectChatOutcome {
 }
 
 /** TUTOR-SIM-2（436）：自动开场接缝回执。
- * unavailable = 工程无 sidecar / LLM 配置缺失 / 请求失败——UI 必须静默。 */
+ * unavailable = 工程无 sidecar / LLM 配置缺失 / 请求失败——UI 必须静默。
+ * TUTOR-SIM-4（438）：ok 变体携带当前步 brief/materials（v0 实验缺省空）。 */
 export type TutorStartOutcome =
   | {
       status: "ok";
@@ -544,8 +653,24 @@ export type TutorStartOutcome =
       stepIndex: number;
       stepTotal: number;
       stepID: string;
+      brief?: string;
+      materials?: TutorMaterialView[];
     }
   | { status: "unavailable"; reason?: string };
+
+/** TUTOR-SIM-4（438）：材料装载接缝回执。track/clip 就位即 ok（音源挂载是
+ * best-effort：instrumentAttached=false + instrumentError 如实带回，不算失败）。 */
+export type TutorMaterialLoadOutcome =
+  | {
+      ok: true;
+      alreadyLoaded: boolean;
+      trackID: string;
+      clipID: string;
+      pluginID: string;
+      instrumentAttached: boolean;
+      instrumentError?: string;
+    }
+  | { ok: false; reason: string };
 
 export interface ProjectService {
   /** 工程上下文（live: GET /agent/ui_state → project）。 */
@@ -556,6 +681,9 @@ export interface ProjectService {
   /** TUTOR-SIM-2：自动开场（live: POST /agent/tutor/start）。不可用/失败必须返回
    * unavailable，不抛错、不发假消息；fixture 默认实现不触网。 */
   startTutorSim(projectPath: string): Promise<TutorStartOutcome>;
+  /** TUTOR-SIM-4：装载当前步材料（live: POST /agent/tutor/load_material）。
+   * 失败返回 ok:false + 原因，不抛错、不伪造已装载。 */
+  loadTutorMaterial(conversationID: string, title: string): Promise<TutorMaterialLoadOutcome>;
   /** 停止当前回复（live: POST /agent/stop_turn）。 */
   stopReply(): Promise<void>;
   /** 应用宏（fixture：接缝回执；live 无快照协议 → 必须由 fixture/后续卡接入，不伪造）。 */

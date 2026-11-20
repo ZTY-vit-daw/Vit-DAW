@@ -22,8 +22,13 @@ import (
 )
 
 const (
-	// SchemaVersion is the only experiment schema this package accepts.
+	// SchemaVersion is the v0 experiment schema. v0 documents stay first-class
+	// inputs: they parse exactly as before (brief/materials default empty, the
+	// UI renders no brief/material cards for them).
 	SchemaVersion = "vit.tutor_sim.v0"
+	// SchemaVersionV1 (TUTOR-SIM-4, 池序 438) extends every step with an
+	// optional `brief` (teaching brief for the step) and `materials` list.
+	SchemaVersionV1 = "vit.tutor_sim.v1"
 	// SidecarRelPath is the experiment file location relative to the project
 	// directory (the directory that contains the .vit project file).
 	SidecarRelPath = ".vit_agent/tutor_sim.yaml"
@@ -33,22 +38,57 @@ const (
 // It is not a parse failure: callers report it as status=unavailable.
 var ErrSidecarMissing = errors.New("tutor_sim: experiment sidecar missing")
 
-// Experiment is the parsed vit.tutor_sim.v0 document.
+// Experiment is the parsed vit.tutor_sim.v0/v1 document.
 type Experiment struct {
 	SchemaVersion string `yaml:"schema_version" json:"schema_version"`
 	ID            string `yaml:"id" json:"id"`
 	Persona       string `yaml:"persona" json:"persona"`
 	Steps         []Step `yaml:"steps" json:"steps"`
+	// SourceDir is the directory of the experiment file (set by LoadFile /
+	// LoadProject). Material paths declared relative are resolved against it.
+	// Not part of the YAML contract.
+	SourceDir string `yaml:"-" json:"-"`
+}
+
+// Material kinds. midi_clip is the v1 production-material form (a .mid file
+// loaded into the project as track+clip via the existing kernel command
+// face). audio is a schema slot only in this round: accepted by the parser,
+// no shipped content, rendered by the UI's existing audio widget path.
+const (
+	MaterialKindMidiClip = "midi_clip"
+	MaterialKindAudio    = "audio"
+)
+
+// Material is one teaching material declared on a step.
+type Material struct {
+	Kind  string `yaml:"kind" json:"kind"`
+	Title string `yaml:"title" json:"title"`
+	// Path is required for midi_clip (relative paths resolve against the
+	// experiment file's directory). Optional for the audio schema slot.
+	Path string `yaml:"path,omitempty" json:"path,omitempty"`
+	// Runtime summary (computed at load time by SummarizeMaterials; not part
+	// of the YAML contract).
+	AbsPath       string  `yaml:"-" json:"-"`
+	NoteCount     int     `yaml:"-" json:"-"`
+	DurationBeats float64 `yaml:"-" json:"-"`
+	TempoBPM      float64 `yaml:"-" json:"-"`
+	// SummaryError records why the material file could not be summarized
+	// (unreadable/unparseable). The material stays declared but must not be
+	// loaded; the UI surfaces the error verbatim.
+	SummaryError string `yaml:"-" json:"-"`
 }
 
 // Step is one tutor step. Ask is shown to the learner; Expect is never sent to
-// the LLM and is only used by the server-side exact-match verdict.
+// the LLM and is only used by the server-side exact-match verdict. Brief and
+// Materials are v1 fields (default empty in v0 documents).
 type Step struct {
-	ID     string `yaml:"id" json:"id"`
-	Ask    string `yaml:"ask" json:"ask"`
-	Expect string `yaml:"expect" json:"expect"`
-	Retry  string `yaml:"retry" json:"retry"`
-	Pass   string `yaml:"pass" json:"pass"`
+	ID        string     `yaml:"id" json:"id"`
+	Ask       string     `yaml:"ask" json:"ask"`
+	Expect    string     `yaml:"expect" json:"expect"`
+	Retry     string     `yaml:"retry" json:"retry"`
+	Pass      string     `yaml:"pass" json:"pass"`
+	Brief     string     `yaml:"brief,omitempty" json:"brief,omitempty"`
+	Materials []Material `yaml:"materials,omitempty" json:"materials,omitempty"`
 }
 
 // Matches reports the server-side verdict for a learner input. Only surrounding
@@ -57,8 +97,9 @@ func (s Step) Matches(input string) bool {
 	return strings.TrimSpace(input) == s.Expect
 }
 
-// Parse decodes and validates a vit.tutor_sim.v0 document. Unknown fields and
-// trailing YAML documents are rejected (fail-closed).
+// Parse decodes and validates a vit.tutor_sim.v0 or vit.tutor_sim.v1
+// document. Unknown fields and trailing YAML documents are rejected
+// (fail-closed).
 func Parse(data []byte) (*Experiment, error) {
 	decoder := yaml.NewDecoder(bytes.NewReader(data))
 	decoder.KnownFields(true)
@@ -83,7 +124,11 @@ func Parse(data []byte) (*Experiment, error) {
 }
 
 // LoadFile reads and parses an experiment file. os.ErrNotExist is preserved in
-// the error chain so callers can distinguish a missing sidecar.
+// the error chain so callers can distinguish a missing sidecar. The returned
+// experiment records the file directory as SourceDir and, for midi_clip
+// materials, a deterministic note-count/duration summary read from the .mid
+// file at load time (a summary failure is recorded on the material, it never
+// fails the experiment load).
 func LoadFile(path string) (*Experiment, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
@@ -93,6 +138,12 @@ func LoadFile(path string) (*Experiment, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%w (file %s)", err, path)
 	}
+	if abs, err := filepath.Abs(filepath.Dir(path)); err == nil {
+		exp.SourceDir = abs
+	} else {
+		exp.SourceDir = filepath.Dir(path)
+	}
+	exp.SummarizeMaterials()
 	return exp, nil
 }
 
@@ -153,17 +204,24 @@ func (e *Experiment) Normalize() {
 		step.Expect = strings.TrimSpace(step.Expect)
 		step.Retry = strings.TrimSpace(step.Retry)
 		step.Pass = strings.TrimSpace(step.Pass)
+		step.Brief = strings.TrimSpace(step.Brief)
+		for j := range step.Materials {
+			material := &step.Materials[j]
+			material.Kind = strings.TrimSpace(material.Kind)
+			material.Title = strings.TrimSpace(material.Title)
+			material.Path = strings.TrimSpace(material.Path)
+		}
 	}
 }
 
-// Validate enforces the v0 contract. It is fail-closed on every required field
-// so a malformed experiment can never create a partial session.
+// Validate enforces the v0/v1 contract. It is fail-closed on every required
+// field so a malformed experiment can never create a partial session.
 func (e *Experiment) Validate() error {
 	if e == nil {
 		return errors.New("tutor_sim: nil experiment")
 	}
-	if e.SchemaVersion != SchemaVersion {
-		return fmt.Errorf("tutor_sim: schema_version must be %q, got %q", SchemaVersion, e.SchemaVersion)
+	if e.SchemaVersion != SchemaVersion && e.SchemaVersion != SchemaVersionV1 {
+		return fmt.Errorf("tutor_sim: schema_version must be %q or %q, got %q", SchemaVersion, SchemaVersionV1, e.SchemaVersion)
 	}
 	if e.ID == "" {
 		return errors.New("tutor_sim: id is required")
@@ -195,6 +253,31 @@ func (e *Experiment) Validate() error {
 		if step.Pass == "" {
 			return fmt.Errorf("tutor_sim: steps[%d].pass is required", i)
 		}
+		if err := validateMaterials(i, step.Materials); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// validateMaterials fail-closes the v1 material entries: known kind, non-empty
+// title, and a path for midi_clip materials (the audio slot carries no
+// shipped content this round, so its path stays optional).
+func validateMaterials(stepIndex int, materials []Material) error {
+	for j, material := range materials {
+		switch material.Kind {
+		case MaterialKindMidiClip, MaterialKindAudio:
+		case "":
+			return fmt.Errorf("tutor_sim: steps[%d].materials[%d].kind is required", stepIndex, j)
+		default:
+			return fmt.Errorf("tutor_sim: steps[%d].materials[%d].kind must be %q or %q, got %q", stepIndex, j, MaterialKindMidiClip, MaterialKindAudio, material.Kind)
+		}
+		if material.Title == "" {
+			return fmt.Errorf("tutor_sim: steps[%d].materials[%d].title is required", stepIndex, j)
+		}
+		if material.Kind == MaterialKindMidiClip && material.Path == "" {
+			return fmt.Errorf("tutor_sim: steps[%d].materials[%d].path is required for kind %q", stepIndex, j, MaterialKindMidiClip)
+		}
 	}
 	return nil
 }
@@ -206,6 +289,67 @@ const (
 	StatusActive    Status = "active"
 	StatusCompleted Status = "completed"
 )
+
+// SummarizeMaterials resolves material paths against SourceDir and, for
+// midi_clip materials, parses the .mid file into a deterministic summary
+// (note count, duration in beats, tempo). Any read/parse failure is recorded
+// on the material as SummaryError and never fails the experiment.
+func (e *Experiment) SummarizeMaterials() {
+	if e == nil {
+		return
+	}
+	for i := range e.Steps {
+		for j := range e.Steps[i].Materials {
+			material := &e.Steps[i].Materials[j]
+			if material.Kind != MaterialKindMidiClip || material.Path == "" {
+				continue
+			}
+			if e.SourceDir != "" && !filepath.IsAbs(material.Path) {
+				material.AbsPath = filepath.Join(e.SourceDir, filepath.FromSlash(material.Path))
+			} else {
+				material.AbsPath = filepath.Clean(material.Path)
+			}
+			data, err := os.ReadFile(material.AbsPath)
+			if err != nil {
+				material.SummaryError = err.Error()
+				continue
+			}
+			summary, err := SummarizeMidi(data)
+			if err != nil {
+				material.SummaryError = err.Error()
+				continue
+			}
+			material.NoteCount = summary.NoteCount
+			material.DurationBeats = summary.DurationBeats
+			material.TempoBPM = summary.TempoBPM
+		}
+	}
+}
+
+// MaterialLoadState is the session-recorded result of loading one material
+// into the project. Loaded=true means the kernel chain completed with the
+// track/clip ids recorded; InstrumentAttached=false with a non-empty
+// InstrumentError means the material is in place but the best-effort
+// instrument attach was rejected by the kernel.
+type MaterialLoadState struct {
+	Loading            bool   `json:"loading"`
+	Loaded             bool   `json:"loaded"`
+	TrackID            string `json:"track_id,omitempty"`
+	ClipID             string `json:"clip_id,omitempty"`
+	PluginID           string `json:"plugin_id,omitempty"`
+	InstrumentAttached bool   `json:"instrument_attached"`
+	InstrumentError    string `json:"instrument_error,omitempty"`
+	Error              string `json:"error,omitempty"`
+}
+
+// clone copies the load-state table so callers cannot mutate session state.
+func cloneLoadStates(in map[string]MaterialLoadState) map[string]MaterialLoadState {
+	out := make(map[string]MaterialLoadState, len(in))
+	for key, value := range in {
+		out[key] = value
+	}
+	return out
+}
 
 // Snapshot is a copy of a session's observable state.
 type Snapshot struct {
@@ -226,7 +370,8 @@ type Snapshot struct {
 
 // Verdict is the server-side judgement of one submitted answer. Passed and
 // Completed are produced only by the exact-match state machine; the LLM never
-// supplies them.
+// supplies them. MaterialsLoaded mirrors the session's material load table so
+// response payloads can annotate the current step's materials.
 type Verdict struct {
 	Passed            bool
 	Completed         bool
@@ -238,6 +383,7 @@ type Verdict struct {
 	AnsweredStep      Step
 	Attempts          int
 	Failures          int
+	MaterialsLoaded   map[string]MaterialLoadState
 }
 
 type session struct {
@@ -249,6 +395,7 @@ type session struct {
 	attempts       int
 	failures       int
 	advances       int
+	loaded         map[string]MaterialLoadState
 	createdAt      time.Time
 	updatedAt      time.Time
 }
@@ -284,6 +431,9 @@ func (s *Store) Start(conversationID, projectPath string, exp *Experiment) (Snap
 	// never change a live session's asks or verdicts.
 	expCopy := *exp
 	expCopy.Steps = append([]Step(nil), exp.Steps...)
+	for i := range expCopy.Steps {
+		expCopy.Steps[i].Materials = append([]Material(nil), expCopy.Steps[i].Materials...)
+	}
 	now := time.Now().UTC()
 	sess := &session{
 		conversationID: conversationID,
@@ -342,6 +492,7 @@ func (s *Store) Submit(conversationID, text string) (Verdict, *Experiment, bool)
 		AnsweredStep:      current,
 		Attempts:          sess.attempts,
 		Failures:          sess.failures,
+		MaterialsLoaded:   cloneLoadStates(sess.loaded),
 	}
 	if sess.status == StatusCompleted {
 		verdict.Completed = true
@@ -367,7 +518,103 @@ func (s *Store) Submit(conversationID, text string) (Verdict, *Experiment, bool)
 	verdict.StepIndex = sess.stepIndex
 	verdict.StepID = exp.Steps[sess.stepIndex-1].ID
 	verdict.Failures = sess.failures
+	verdict.MaterialsLoaded = cloneLoadStates(sess.loaded)
 	return verdict, exp, true
+}
+
+// CurrentMaterials returns the current step's materials and the session's
+// load-state table. ok=false for an unknown conversation.
+func (s *Store) CurrentMaterials(conversationID string) ([]Material, map[string]MaterialLoadState, bool) {
+	if s == nil {
+		return nil, nil, false
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	sess, ok := s.sessions[strings.TrimSpace(conversationID)]
+	if !ok || sess == nil {
+		return nil, nil, false
+	}
+	materials := sess.experiment.Steps[sess.stepIndex-1].Materials
+	return materials, cloneLoadStates(sess.loaded), true
+}
+
+// LoadedMaterials returns a copy of the session's material load table
+// (empty map for an unknown conversation).
+func (s *Store) LoadedMaterials(conversationID string) map[string]MaterialLoadState {
+	if s == nil {
+		return nil
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	sess, ok := s.sessions[strings.TrimSpace(conversationID)]
+	if !ok || sess == nil {
+		return map[string]MaterialLoadState{}
+	}
+	return cloneLoadStates(sess.loaded)
+}
+
+// ReserveMaterial atomically claims a material for loading. ok=true means the
+// caller owns the load; ok=false means the material is already loaded, a load
+// is in flight, or the title is not declared on the CURRENT step (state says
+// which). Unknown conversations are ok=false with a zero state.
+func (s *Store) ReserveMaterial(conversationID, title string) (MaterialLoadState, bool) {
+	if s == nil {
+		return MaterialLoadState{}, false
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	sess, ok := s.sessions[strings.TrimSpace(conversationID)]
+	if !ok || sess == nil {
+		return MaterialLoadState{}, false
+	}
+	declared := false
+	for _, material := range sess.experiment.Steps[sess.stepIndex-1].Materials {
+		if material.Title == title {
+			declared = true
+			break
+		}
+	}
+	if !declared {
+		return MaterialLoadState{}, false
+	}
+	state, exists := sess.loaded[title]
+	if exists && (state.Loaded || state.Loading) {
+		return state, false
+	}
+	if sess.loaded == nil {
+		sess.loaded = map[string]MaterialLoadState{}
+	}
+	sess.loaded[title] = MaterialLoadState{Loading: true}
+	return MaterialLoadState{}, true
+}
+
+// FinalizeMaterial records the outcome of a reserved load (success or
+// failure). ok=false when no open reservation exists for the title; a failed
+// load clears the reservation so the title can be reserved again.
+func (s *Store) FinalizeMaterial(conversationID, title string, state MaterialLoadState) bool {
+	if s == nil {
+		return false
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	sess, ok := s.sessions[strings.TrimSpace(conversationID)]
+	if !ok || sess == nil {
+		return false
+	}
+	current, exists := sess.loaded[title]
+	if !exists || !current.Loading {
+		return false
+	}
+	state.Loading = false
+	if !state.Loaded && state.Error == "" {
+		// A failed load must say why; otherwise drop the reservation so the
+		// title stays retryable without a stale phantom entry.
+		delete(sess.loaded, title)
+	} else {
+		sess.loaded[title] = state
+	}
+	sess.updatedAt = time.Now().UTC()
+	return true
 }
 
 func snapshotOf(sess *session) Snapshot {

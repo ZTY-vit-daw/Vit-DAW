@@ -1,0 +1,73 @@
+# TUTOR-SIM-4 实验装置（池序 438）：first-run-twinkle 单关卡、节点粒度的
+# 导师一课（vit.tutor_sim.v1）。
+#
+# 内容来源：coord/levels/first-run-twinkle/level.yaml 七节点语义的**起草改写**
+# ——brief 是教学简报，expect 是作者写的模拟问答；两者都不映射、不判定生产
+# done_when（生产节点判定器不在导师循环内，本装置只教学不验收）。
+# 材料主形态=MIDI clip（DAW 原生）：assets/theme_twinkle_v0.mid 从
+# coord/levels/first-run-twinkle/assets/ 原样复制（sha256=276e1ffb…，冻结源
+# 不改动）；装载走 agent 既有内核命令面（add_track / rename_track /
+# insert_midi_clip / add_midi_notes + best-effort rack_add_node）。
+#
+# 使用方式见 README.md：tutor_sim.yaml 与 assets/ 一起复制到实验工程的
+# .vit_agent/ 下（保持相对布局，材料路径相对本文件所在目录解析）。
+schema_version: vit.tutor_sim.v1
+id: tutor-sim-2-twinkle
+persona: |
+  你是 Vit-DAW 的导师实验助手，正在带学生认识《小星星》主题。
+  语气简短、耐心、鼓励式。你只引导用户完成当前步骤；不替用户回答，
+  不透露任何步骤的答案，也不提前展开后续步骤。
+steps:
+  - id: step-hear-theme
+    ask: "第 1 步：装载材料、从头听一遍主题，然后告诉我主题一共有多少个音——只输入数字。"
+    brief: |
+      这一课来自乐局「一个旋律的变奏」（小星星）。开局对应生产流程的
+      「拍谱开局」节点：把谱面变成工程里的 MIDI。本装置走的是兜底路径
+      ——主题资产已随装置就位，点材料卡上的「装载到工程」，主题就会以
+      MIDI clip 的形式进到一条新轨道上（挂上音源后可直接回放）。
+      听的时候注意主题的句子划分：第 1-2 小节是 A 段动机，后面它还会
+      变着花样回来。
+    expect: "42"
+    retry: "这个答案还不对。从头再听一遍，一个句子一个句子地数：每句 7 个音，共 6 句。只输入数字。"
+    pass: "对，主题共 42 个音。"
+    materials:
+      - kind: midi_clip
+        title: 小星星主题（42 音）
+        path: assets/theme_twinkle_v0.mid
+  - id: step-hear-sequence
+    ask: "第 2 步：对照听第 1-2 小节和第 5-6 小节：后者是「原样重复」还是「模进」？输入其中一个词。"
+    brief: |
+      乐局里「找错音」节点之前有一段听辨教学：先认识两种变换关系。
+      原样重复=动机在原音高上再出现；模进=动机被搬到不同的音高上重复
+      （本曲 B 段开头把 A 段动机整体上移，落在调内音上）。
+      对比听第 1-2 小节（do do sol sol la la sol）与第 5-6 小节
+      （sol sol fa fa mi mi re）：旋律形状一样，但音高位置整体移动了。
+    expect: "模进"
+    retry: "这个答案还不对。再对比一次：两小节的旋律形状相同吗？音高位置有没有整体移动？输入「原样重复」或「模进」。"
+    pass: "对，这是模进：动机在不同音高上重复。"
+  - id: step-load-material
+    ask: "第 3 步：把主题材料装载进工程（点材料卡的「装载到工程」），完成后输入「已装载」。"
+    brief: |
+      对应生产流程里「读谱纠错」节点的前置：纠错要在工程内进行。
+      点材料卡的「装载到工程」——agent 会建一条新轨道、按主题 48 拍
+      长度放入 clip、写进全部 42 个音，并尝试挂上可用音源（Surge 系
+      优先）。装载成功的标志：轨道与 clip 就位，回放可听到主题。
+      已装载过的话按钮会置灰，不会重复装载。
+    expect: "已装载"
+    retry: "还没装载好。点材料卡上的「装载到工程」，看到轨道与 clip 就位后再输入「已装载」。"
+    pass: "好，主题已经进工程了。"
+    materials:
+      - kind: midi_clip
+        title: 小星星主题（42 音）
+        path: assets/theme_twinkle_v0.mid
+  - id: step-confirm-close
+    ask: "第 4 步：小结确认——本课你认识了 42 音主题与模进。输入「完成」结束本课。"
+    brief: |
+      收尾对应乐局的「定速度」与「命名+导出」节点的教学预告：正式乐局
+      里，你会和导师一起定下速度（建议 90-108 BPM，本主题记谱默认
+      100），改掉改错版里的错音，最后一起命名并导出。
+      本课到这里结束；生产乐局的完成判定由乐局判定器负责，与这里的
+      问答无关。
+    expect: "完成"
+    retry: "确认一下本课小结：输入「完成」即可结束。"
+    pass: "本课完成。下一站：正式乐局。"
