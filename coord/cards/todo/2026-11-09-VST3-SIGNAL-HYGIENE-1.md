@@ -25,4 +25,4 @@ tracktion_engine 渲染初始化面（vendored JUCE/NodeRenderContext 邻域）+
 
 ## 领取/回执/验收
 
-- （执行侧/主管回填）
+- **领取（执行侧 sighyg331，2026-11-20）**：主仓 worktree `D:/Vit_DAW_wt_pc331` + 分支 `pc331-sighyg`（基线=领取时 main HEAD `0e659626`，worktree 全净）；engine 子模块分支 `pc331-sighyg` @ `60ab1a49`（放主模块仓库 `.git/modules/tracktion_engine`——309 的 `vit309-stackleg` 因放 wt_309recon 独立子模块克隆、worktree 删除即失，本卡改放主模块仓库防复发）；主仓 gitlink 保持 `b4397498` 不动（301/309 处置同款）。领取勘察两结论：①**C 原型 9b8cc8a/遥测 cd957f4 本机不可达**（vit309-stackleg 未推远端且 wt_309recon 已删）→目标 2 评估=**直接转正不可行，需重做**，重做方向取 setup 级 kOffline（规范正方向；C 的 per-call 强制 kRealtime 语义不适 offline 且 E2b 已证对 GR 无效）；②**机理精化（前提成立，修法面更准）**：setup 行 `juce_VST3PluginFormatImpl.h:2505` 已是 `isNonRealtime()?kOffline:kRealtime`，缺陷面=守卫 `:2490-2493` 不含模式条件——标志翻转后渲染窗 prepareToPlay 早退，模式感知 setup 永不可达（E2a 签名吻合：装载期 setup kRealtime×2→渲染窗早退→perCall kOffline）。修法定案=守卫加 `lastSetupProcessMode` 模式感知+`setupIO`/`prepareToPlay` 双调用点维护跟踪+`VIT331_SETUP`/`VIT331_SIGNAL` 一次性 log-only 断言面+env 门 `VIT331_CONSISTENT_SETUP`（默认关=生产行为不变，真栈 E4 腿 A/B PASS 后由决策侧翻默认）。**真栈腿=lead 留决策侧**（本卡禁启栈；复用 309 装置与 RUNBOOK-STACKLEG 模式，E4 断言=Surge XT 不回退+VIT331_SIGNAL consistent=1）。与并行卡 440（genapi）文件域不相交。
