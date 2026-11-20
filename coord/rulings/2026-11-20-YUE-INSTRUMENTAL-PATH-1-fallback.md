@@ -27,3 +27,7 @@
 ## 后续
 
 - 390 done（负结果定性收口）；引擎侧若未来有 instrumental 支持（上游更新/新引擎）另开卡，不占当前池。
+
+## 勘误附注（2026-11-20 晚，lead）
+
+- 本裁定「引擎侧渲染先验」的根因在当晚被 439 勘察细化：**官方 instrumental=LoRA 适配器方案**（Mothersuperior AR LoRA 对，CC BY-NC 4.0），yue2.cpp 不支持 LoRA——故「纯 conditioning 不可达」结论维持且获得机制解释；修复路径=audio.cpp v0.8.1+（LoRA 支持，439 卡承接，Q8 首测仍出人声、BF16 对照轮进行中）。本裁定的 fallback 终态口径不受影响。
