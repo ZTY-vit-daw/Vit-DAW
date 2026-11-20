@@ -1,6 +1,6 @@
 # 子代理名册（复用优先）
 
-> 用途：主管发卡前先查此表，优先 `send_message` 复用同一产线子代理；新卡/完结后更新。最后更新：2026-11-19 23:00。
+> 用途：主管发卡前先查此表，优先 `send_message` 复用同一产线子代理；新卡/完结后更新。最后更新：2026-11-20（tutorprod438 停卡）。
 
 | owner | 产线 | worktree / 分支 | 最近任务 | 状态 |
 |---|---|---|---|---|
@@ -16,6 +16,7 @@
 | `w02ht` | W02 手测 prep | pc434-handtest / codex/w02-a1-handtest-434 | 434 same-stack prep（产品 v0 superseded） | inactive（可续） |
 | `tutorsrv` | TUTOR-SIM 导师循环 | pc435-tutor / codex/tutor-sim-1-435 | 435 TUTOR-SIM-1 PASS 97708aee | inactive（可续） |
 | `tutorui` | TUTOR-SIM UI 控件 | pc436-ui / codex/tutor-sim-2-ui-436 | 437 widgets 执行完成 b0c83c85（待手测） | inactive（可续） |
+| `tutorprod438` | TUTOR-SIM 生产节点 | （未建——勘察停卡） | 438 勘察停卡：音频材料前提推翻，证据 coord/runs/TUTOR-SIM-4/ | inactive（可续，拆卡后领新腿） |
 | `w02fb` | W02 A2a 作品反馈装置 | pc433-feedback / codex/w02-a2a-feedback-433 | A2a device 073d5f37（真回合未跑） | inactive（可续） |
 | `combo422` | 422 跨工作树验证装置 | pc422-combo / codex/conv-cross-combo-422 | 422 真栈 PASS 218dff3c | inactive（可续） |
 | `entry413` / `ringfix416` / `presmerge412` / `producer410` / `ready411` | 窗口线旧执行 | 各自 worktree | 已结案 | inactive（一般不再复用） |
