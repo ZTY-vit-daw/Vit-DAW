@@ -4,11 +4,12 @@
 - **权威规则**：领取凭证=**卡文件名（卡 ID）**；数字池序仅排序辅助。编号空间（2026-11-07 早窗主管裁定修订）：主线（混音/自由态/A-F/仪器）**258–275 封块**（269–274 为 11-07 凌晨连续发卡已成事实追认，275=B3-ABLATION 本次启用；原「267–275 留空」缓冲规则作废——消歧目的已被 11-07 凌晨发卡突破，回改成本>收益，[映射表](../reports/2026-11-05-nov-three-line-execution-plan.md)在案可查旧号）；三线（乐局/编曲/生成）**276–291**（原 260–275，2026-11-06 撞号协调改号）；**292 起两线共用递增序列，发卡时以本索引登记先后为准**。
 - 状态口径：todo=可领取（含挂起待触发）；doing=执行中（worktree+分支登记）；done=执行侧自验完成待主管验收；archive=裁定退出执行的历史记录（不再领取）。
 
-## 2026-11-19 入口快照（397–431 全量回填留 gate）
+## 2026-11-20 入口快照（397–431 全量回填留 gate）
 
-- done：**425 G0-LEGAME-BIND-1（W01-C 真栈 PASS）**、**422 CONV-CROSS-COMBO-1（B2b 真栈 PASS，166 断言）**、**432 W02-A1（A1a/A1b/A1c 全 PASS）**、**435 TUTOR-SIM-1（真实 flash 三步导师循环 PASS）**、**436 TUTOR-SIM-2（VitShell 自动开场手测 PASS）**；397/409–421/423–428/430–431 见 gate 与 brief。
-- doing：ARRLOOP-AUTHBRIDGE-1、WAVESHELL-LOADING-FORENSICS-1、LAUNCHER-ZEROFRICTION-1、SRC-PRESET-AGENT-1、YUE-INSTRUMENTAL-PATH-1、GODOT-RETRY-LAUNCHER-1、WINDOW-TRANSITION-OBSERVER-1、433 W02-A2（A2a 装置已合；真回合未跑）、434 W02-A1-HANDTEST-V0（产品 v0 未过，superseded）、437 TUTOR-SIM-3（执行完成，待真栈手测）。
-- todo 首排：437 真实 VitShell 手测；随后 TUTOR-SIM-4 生产 YAML 节点 brief 与音乐控件。
+- done：**437 TUTOR-SIM-3（2026-11-20 真栈浏览器级 DOM 手测 PASS，[裁定](../rulings/2026-11-20-TUTOR-SIM-3-pass.md)）**、**425 G0-LEGAME-BIND-1（W01-C 真栈 PASS）**、**422 CONV-CROSS-COMBO-1（B2b 真栈 PASS，166 断言）**、**432 W02-A1（A1a/A1b/A1c 全 PASS）**、**435 TUTOR-SIM-1（真实 flash 三步导师循环 PASS）**、**436 TUTOR-SIM-2（VitShell 自动开场手测 PASS）**；397/409–421/423–428/430–431 见 gate 与 brief。
+- doing：ARRLOOP-AUTHBRIDGE-1、WAVESHELL-LOADING-FORENSICS-1、LAUNCHER-ZEROFRICTION-1、SRC-PRESET-AGENT-1、YUE-INSTRUMENTAL-PATH-1、GODOT-RETRY-LAUNCHER-1、WINDOW-TRANSITION-OBSERVER-1、433 W02-A2（A2a 装置已合；真回合未跑）、434 W02-A1-HANDTEST-V0（产品 v0 未过，superseded 待归档）。
+- blocked：**438 TUTOR-SIM-4（2026-11-20 勘察停卡 premise_falsified：levels 装置无音频资产（仅 2 MIDI、MANIFEST 明示不用现有录音）+生产七节点 done_when 全非文本不可映射 trim-exact expect；工程腿/schema v1/UI 腿不阻塞，候主管拆卡：a 工程+空 materials 先行 / b 音频资产卡 / c 指认遗漏资产；证据 `coord/runs/TUTOR-SIM-4/README.md`）**。
+- todo 首排：390 YuE instrumental 真栈生成+人耳（用户在场）；TUTOR-SIM-4 拆卡裁决；音乐控件（谱面/Tap/播放器）随 SIM 线。
 - 真栈：空闲；425 的 default_project 权威偏差见 `coord/runs/G0-LEGAME-BIND-1/real-stack/run_20261119_1818/DEVICE-NOTES.md`。
 
 ## 一、主线（混音/自由态/A-F/仪器）——GLM 主管决策流管辖

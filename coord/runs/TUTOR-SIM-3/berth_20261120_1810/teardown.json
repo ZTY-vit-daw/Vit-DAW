@@ -1,0 +1,12 @@
+{
+  "released_at": "2026-11-20T18:26+08:00",
+  "processes": {"VitAgent": 0, "VitApp": 0, "VspHub": 0},
+  "tcp_listen_7878_5555_5556_8787_5557_5558": 0,
+  "udp_4445_listen": 0,
+  "authority_restore": {
+    "recents": "24ce0281... match",
+    "Settings.xml": "72f0f511... match",
+    "default_project.xml": "2cf36a50... match"
+  },
+  "notes": "工程打开走 /agent/invoke project.open confirmed=true（浏览器直连无 Vit 桥，对话式打开诚实降级符合设计）；surface=project 为 437 控件承载面；agent stdout 无 [tutor_sim] 行（logx 未配 path、verbose off），状态机证据=UI 收据（retry/pass 文本与 YAML 逐字一致+fail-closed 进度渲染）；Playwright 定位器 click 两次被 actionability 拦截，dom_cua 真实点击成功=产品面可点，测试面伪象；vitproj_04dbdca8 新建工作区目录留在 handtest fixture .vit_agent 下"
+}

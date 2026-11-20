@@ -1,0 +1,3 @@
+72f0f5112ef926ed77f59f015e6ce492142f8fdf1828e5082e970aa949edfbb8 */d/Vit_DAW/VitApp/Workspace/Settings/Settings.xml
+2cf36a509602d45480eab59190e4f163157431f0ca6dc13889d28ba8c2a11b1f */d/Vit_DAW/VitApp/Workspace/default_project.xml
+\24ce028164273c90798c3b13ef276ec14c54c6fbe31b3b807abf621664de4503 *C:\\Users\\timoz\\AppData\\Roaming/Vit-DAW/global_project_config.json
