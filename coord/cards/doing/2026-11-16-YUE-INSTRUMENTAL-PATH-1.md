@@ -50,3 +50,12 @@
 
 ## 2026-11-17 状态归位
 依既有POOL-INDEX与gate，已完成零栈两腿、候真栈与用户听核，故todo归位doing。保留原执行owner与分支，本次不自动接管。真栈续跑前另记显式交接。
+
+## 真栈验证腿第一轮（2026-11-20 18:32，lead 亲跑，候用户听核）
+
+- 装置=372 冻结 `run_yue_wire_smoke.ps1`，被测=接入腿分支 `port/yue-instrumental-path-1` @ ec596f6c 自建 agent；RunRoot=`coord/runs/YUE-INSTRUMENTAL-PATH-1/real-stack/run_20261120_1832`（worktree wt_instr）。
+- **新配方真栈证成（v1，60.0s 完整渲染）**：dispatched style=`Instrumental, 欢快的钢琴独奏，突出学生旋律, no vocals, no singing, no choir, no spoken words.`；cot=melody；lyrics_chars=0（fixture 无 % section=官方空歌词等价）；W3 对账 ins_note=16/vocal_rest_only=true；W4 双版 style 各含用户词原文且互异；零 LLM。
+- v2 job done 但 WAV 14.9s（vs 60s 请求，比例窗 [0.6,1.5] 外）→ driver exit 1=legW8_short_output；v1/v2 条件仅 style 文本异 → 引擎 NAR 长度求解概率行为（381 W9 同概率类），非条件链缺陷；生成预算（2 次）已用尽，不追加重跑。
+- W9 转写旁证未达（driver 在 W5 停）；**用户人耳听核=v1 WAV**：`run_20261120_1832/downloads/yue-local-1526daa82c0c8478.wav`（11.5MB, 60s）——判「零人声」即接入成功；成段人声=未接通走 fallback 口径。
+- 装置债亲证：recents 被 save_as prepend+default_project 被内核改写（RECENTS-HYGIENE-1 泄漏面/425 债），berth 快照还原哈希亲证；vram 采样器峰值 0 缺陷登记。
+- 栈占用/释放：PC-RUNTIME-STACK 2026-11-20 18:32/18:34 两条在卷。
