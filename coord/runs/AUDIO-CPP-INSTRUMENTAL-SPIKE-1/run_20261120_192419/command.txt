@@ -1,0 +1,20 @@
+# audio.cpp v0.9.5 (git 61c7838b) instrumental spike - audiocpp439, 2026-11-20
+# engine: E:/AI/audio-cpp/engine/audiocpp_cli.exe (windows-x64-cuda12.4 bin + cudart)
+# model root: E:/AI/audio-cpp/models  (q8_0 default + f32 VAE + sidecars/ + lora/)
+E:/AI/audio-cpp/engine/audiocpp_cli.exe \
+  --task gen \
+  --family yue2 \
+  --model "E:/AI/audio-cpp/models" \
+  --backend cuda \
+  --threads 8 \
+  --lyrics "[instrumental]" \
+  --request-option style="English, pop rock, bright guitars, clean drums" \
+  --request-option cot=full \
+  --request-option semantic_max_tokens=1500 \
+  --session-option yue2.vae_gguf=yue2-vae-f32.gguf \
+  --session-option yue2.ar_lora=lora/ar_lora_inst_v3abc.safetensors \
+  --session-option yue2.ar_lora_scale=1.0 \
+  --seed 1234 \
+  --out "D:/Vit_DAW/coord/runs/AUDIO-CPP-INSTRUMENTAL-SPIKE-1/run_20261120_192419/yue2_instrumental_seed1234.wav" \
+  --log \
+  --metrics
