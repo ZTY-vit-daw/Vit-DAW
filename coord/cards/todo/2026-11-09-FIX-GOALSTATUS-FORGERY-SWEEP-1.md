@@ -26,4 +26,13 @@ agent/internal/chat/（以普查锚点为准）+测试；工件 coord/runs/FIX-G
 
 ## 领取/回执/验收
 
-- （执行侧/主管回填）
+### 领取（334）
+
+- 时间：2026-11-20
+- main 基线：`948d7b1c07734e89af93d857687bbaad1939ae37`
+- owner：GLM-5.3 flash 执行子代理 forge334 / PC
+- 分支：`port/goalstatus-forgery-sweep-1`；worktree：`D:/Vit_DAW_wt_pc334forge`
+- 领取时工作树状态：主树存在他卡/人工既有改动（CURRENT-STATE.md、VitApp/Workspace/*.xml、tracktion_engine、YUE 卡删除等）——记录不触碰，与本卡文件域（agent/internal/chat + coord 工件）不相交
+- 前置核对：卡仍在 todo ✓ 派发已确认 ✓ 依赖 327/330 已合入 main ✓；并行卡 440（genapi）/441（webui）文件域不相交 ✓
+- 普查先行结论（survey.md 已落盘工件目录）：真伪造 4 处（三个 workflow 恢复兜底 4961/5012/5083 + finalize 空回填与 CompleteGoal default 组成的 interaction 面第二伪造面 F4）；合法/存疑/域外分类见 survey.md
+- 零栈单测卡：不起真实栈、不占 PC-RUNTIME-STACK
