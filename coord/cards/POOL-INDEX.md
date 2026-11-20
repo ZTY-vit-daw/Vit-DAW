@@ -267,7 +267,8 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 439 | AUDIO-CPP-INSTRUMENTAL-SPIKE-1 | done 负结果收口（四路单段证伪齐；[裁定](../rulings/2026-11-20-AUDIO-CPP-INSTRUMENTAL-SPIKE-1-negative.md)——**23 时重开附注在卷**：用户+Codex 发现第五路=谱迁移两段式，线以 440 重开） |
 | 440 | YUE-INSTRUMENTAL-SCORE-TRANSFER-1 | doing freeflash scorexfer440（腿A Go 移植金样对账 197→0/78→275 + 腿B genapi 两段式接线；腿C 真栈+用户听核留 lead） |
 | 441 | SIM-MUSIC-WIDGET-1 | done 零栈 PASS 待真栈手测（2026-11-20 23:45 主管复跑 821 测+build+render 11 段全绿；复用 374 renderScoreInto；midiScore.ts UI 解析 fail-closed；[裁定](../rulings/2026-11-20-SIM-MUSIC-WIDGET-1-zerostack-pass.md)；live 谱面链接缝留后续卡） |
-| 334 | FIX-GOALSTATUS-FORGERY-SWEEP-1 | doing freeflash forge334（夜间批派 2026-11-20） |
+| 334 | FIX-GOALSTATUS-FORGERY-SWEEP-1 | done PASS（2026-11-20 23:55 forge334/free 车道：普查 5 真伪造全修+红 4/4→绿 7/7 亲证+主管复跑 chat 131.8s ok；存疑 7 项挂账状态词汇语义债；[裁定](../rulings/2026-11-20-FIX-GOALSTATUS-FORGERY-SWEEP-1-pass.md)） |
+| 331 | VST3-SIGNAL-HYGIENE-1 | doing freeflash sighyg331（夜间批派补位 2026-11-20） |
 
 
 
