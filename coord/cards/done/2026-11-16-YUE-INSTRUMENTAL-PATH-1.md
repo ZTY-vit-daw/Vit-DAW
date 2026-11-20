@@ -59,3 +59,8 @@
 - W9 转写旁证未达（driver 在 W5 停）；**用户人耳听核=v1 WAV**：`run_20261120_1832/downloads/yue-local-1526daa82c0c8478.wav`（11.5MB, 60s）——判「零人声」即接入成功；成段人声=未接通走 fallback 口径。
 - 装置债亲证：recents 被 save_as prepend+default_project 被内核改写（RECENTS-HYGIENE-1 泄漏面/425 债），berth 快照还原哈希亲证；vram 采样器峰值 0 缺陷登记。
 - 栈占用/释放：PC-RUNTIME-STACK 2026-11-20 18:32/18:34 两条在卷。
+
+## 验收（2026-11-20 19:05，整卡收口：技术 pass+声学负结果 fallback）
+
+- 用户人耳终审：v1 WAV **成段人声（合唱）** → 预设口径判「未接通」→ fallback（带人声+披露）即终态；381 能力边界口径维持。
+- 裁定：[fallback 收口](../../rulings/2026-11-20-YUE-INSTRUMENTAL-PATH-1-fallback.md)。390 done；教学素材确定性来源=2026-11-20 用户裁定 MIDI clip（438 v2 承接）。
