@@ -37,3 +37,14 @@
 
 - 步①：三件来源+SHA 留档、完整命令、引擎日志、WAV、VRAM 记录、用户听核登记。
 - 停止条件：Windows CUDA 预编译不存在 / 模型下载源失效 / 引擎 CUDA 初始化失败两次→停卡上报。
+
+## 执行与判定（步①，2026-11-20）
+
+- 生成恰 1 次 exit 0（audiocpp439；三件下载=用户终端手动，SHA 七件对官方全匹配）：cot=full + `[instrumental]` lyrics + style 器乐标签 + `yue2.ar_lora` 挂载（projections=196 scale=1.0，stock NAR）+ seed 1234；WAV 60.0s 48kHz 立体声；VRAM 峰值 6404MiB；RTF 1.283；GPU 预留/释放登记在卷（ad4bed31）；工件 `coord/runs/AUDIO-CPP-INSTRUMENTAL-SPIKE-1/run_20261120_192419/`（0caa72bf）。
+- **用户人耳判定（2026-11-20 19:4x）：成段人声 → 概率类负结果，步②不触发。**
+
+## 已知混杂因素（未排除，lead 登记候用户裁定）
+
+- audio.cpp 官方文档明示：**LoRA 合并进 Q8 基座会重量化，不等价于 BF16 先合并**——本次被测=Q8 基座+LoRA，LoRA 效果可能被量化合并损伤。干净判定的唯一变量隔离=BF16 基座（`yue2-3b-bf16.gguf` 同仓在库，~6.2GB）重跑一次。
+- 另一未证面：Mothersuperior「joint_v1 NAR LoRA」存在性未落实（本仓文件列表仅 AR 件）。
+- 处置选项：a) BF16 单发重试（下载 6.2GB + 一次生成）后终裁；b) 就此整卡负结果收口（fallback 口径不变，损失=下载流量）。
