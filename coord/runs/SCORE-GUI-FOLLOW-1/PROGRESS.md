@@ -13,3 +13,7 @@
 - [长命令登记] S6a：node src/scoreworkbench/render-smoke.mjs gui_follow_1（398 扩展 7 断言：select_track 回执链/GUI跟随一次+clip绑定/pending→confirmed/dirty 询问不强制/取消后不抢回/新边沿仍询问/截图）。经3轮修复（locator歧义、补 write-ready 等待、failB 复位）后 PASS 18断言 exit0。
 - [长命令登记] S6b：npm run test:render（gallery 全面）exit0，全表面 PASS。
 - [长命令登记] S4b/S5b 终态复跑：npm run test + npm run build（最终代码态取exit码）。
+- [S6] render 两门 PASS：scoreworkbench render-smoke gui_follow_1 18断言 exit0（11 397 + 7 398 DOM 断言：select_track 回执链/GUI跟随一次+clip绑定/pending→confirmed/dirty询问不强制/取消后不抢回/新边沿仍询问）；gallery npm run test:render exit0 全表面 PASS。
+- [S4b/S5b] 终态复跑：npm run test 68文件837/837 exit0；npm run build exit0。
+- [S7] 分支 pc398-follow 提交 31eff44e（代码+测试）+ 5bd5e3c8（证据 gui_follow_1）→ 合入 main merge 56ea1732（442 e58e133a 并行推进无冲突）。卡面回执已写、卡移 done/。ROSTER scorefollow398 行更新。
+- 终态：DONE（零栈交付；真栈 Godot 选择装配腿留 lead 排队）。
