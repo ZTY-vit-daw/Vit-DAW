@@ -34,3 +34,12 @@
 ## 停止条件
 
 证据推翻前提（theme MIDI 不可解析、装载链命令面缺口需新内核命令）即停卡上报。
+
+## 领取（tutorprod438b，2026-11-20）
+
+- owner：tutorprod438b（GLM-5.3 flash 执行子代理 / PC）
+- worktree：`D:/Vit_DAW_wt_pc438b`；分支：`port/tutor-sim-4-438b`（自 main `841b9ef4` 新建）
+- 领取基线：HEAD=`841b9ef433a5c32b641775506ea1f8817c5527e9`；worktree `git status --short`=空、`git diff --stat`=空（全净新 worktree）
+- 主工作树既有改动与本卡无关（CURRENT-STATE.md / Settings.xml / default_project.xml / blocked v1 卡删除未提交 / tracktion_engine submodule / 若干 untracked docs），不触碰不整理（§12 纪律）
+- 停止条件预核（通过）：`theme_twinkle_v0.mid` 已零栈解析验证（format 0 / 1 轨 / 480 PPQ / 42 音 / tempo 100 / 全曲 48 拍，notes 与 level.yaml `notes.theme` 逐音一致）；装载链命令面（add_track / insert_midi_clip / add_midi_notes / rename_track / rack_add_node）均为既有已证命令，无缺口
+- v1 停卡卷：`coord/runs/TUTOR-SIM-4/README.md`（已阅，v2 不走音频资产方向）
