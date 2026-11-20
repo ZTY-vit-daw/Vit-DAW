@@ -4,7 +4,7 @@
 - **权威规则**：领取凭证=**卡文件名（卡 ID）**；数字池序仅排序辅助。编号空间（2026-11-07 早窗主管裁定修订）：主线（混音/自由态/A-F/仪器）**258–275 封块**（269–274 为 11-07 凌晨连续发卡已成事实追认，275=B3-ABLATION 本次启用；原「267–275 留空」缓冲规则作废——消歧目的已被 11-07 凌晨发卡突破，回改成本>收益，[映射表](../reports/2026-11-05-nov-three-line-execution-plan.md)在案可查旧号）；三线（乐局/编曲/生成）**276–291**（原 260–275，2026-11-06 撞号协调改号）；**292 起两线共用递增序列，发卡时以本索引登记先后为准**。
 - 状态口径：todo=可领取（含挂起待触发）；doing=执行中（worktree+分支登记）；done=执行侧自验完成待主管验收；archive=裁定退出执行的历史记录（不再领取）。
 
-## 2026-11-20 入口快照（397–431 全量回填留 gate）
+## 2026-11-20 入口快照（421–439 已回填；全量行截至 439）
 
 - done：**437 TUTOR-SIM-3（2026-11-20 真栈浏览器级 DOM 手测 PASS，[裁定](../rulings/2026-11-20-TUTOR-SIM-3-pass.md)）**、**390 YUE-INSTRUMENTAL-PATH-1（2026-11-20 整卡收口：技术两腿 pass+真栈新配方证成，用户听核=成段人声→fallback 带人声+披露终态，[裁定](../rulings/2026-11-20-YUE-INSTRUMENTAL-PATH-1-fallback.md)；教学素材转 MIDI clip 裁定）**、**425 G0-LEGAME-BIND-1（W01-C 真栈 PASS）**、**422 CONV-CROSS-COMBO-1（B2b 真栈 PASS，166 断言）**、**432 W02-A1（A1a/A1b/A1c 全 PASS）**、**435 TUTOR-SIM-1（真实 flash 三步导师循环 PASS）**、**436 TUTOR-SIM-2（VitShell 自动开场手测 PASS）**；397/409–421/423–428/430–431 见 gate 与 brief。
 - doing：ARRLOOP-AUTHBRIDGE-1、WAVESHELL-LOADING-FORENSICS-1、LAUNCHER-ZEROFRICTION-1、SRC-PRESET-AGENT-1、GODOT-RETRY-LAUNCHER-1、WINDOW-TRANSITION-OBSERVER-1、433 W02-A2（A2a 装置已合；真回合未跑）、434 W02-A1-HANDTEST-V0（产品 v0 未过，superseded 待归档）。
@@ -241,6 +241,30 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 
 - 目标链：410/411/412 并发零栈 → 413 重建 → 414 单次真栈组合 → 391 手测放行。409 RULING 不重开；395/402 原 blocked 卡待本批收口后归档/收口。
 - 交接记录：[decisions/2026-11-18-pc-supervisor-handoff-planA.md](../decisions/2026-11-18-pc-supervisor-handoff-planA.md)。
+
+### 对话流/入口收口 + W01 乐局编译 + TUTOR-SIM + audio.cpp spike（421–439 回填，2026-11-20 gate）
+
+| 池序 | 卡 ID | 状态 |
+|---|---|---|
+| 421 | CONV-RAIL-CROSS-1 | done PASS 合入 7cea611f（跨工作树只读浏览+打开工作树继续对话；755 测/RWP 101 检查 0 失败） |
+| 422 | CONV-CROSS-COMBO-1 | done 真栈 PASS（166 断言 S0–S6 single_reload=1；三轮=1905 瞬态环境类/1920 装置字段/1928 PASS；[裁定](../rulings/2026-11-19-CONV-CROSS-COMBO-1-pass.md)） |
+| 423 | G0-LEGAME-PARSE-1 | done PASS（W01-A 设计源解析/语义校验门；legamedesign 191 RUN 全过） |
+| 424 | G0-LEGAME-COMPILE-1 | done PASS（W01-B design→level_card 编译器+缺项诊断+manifest） |
+| 425 | G0-LEGAME-BIND-1 | done 真栈 PASS（W01-C 工程绑定 S0–S7 run_20261119_1818；[裁定](../rulings/2026-11-19-G0-LEGAME-BIND-1-realstack-pass.md)） |
+| 426 | SHELL-SETTINGS-DUP-1 | done PASS 合入 65142940（设置入口唯一化=左栏 footer；用户手测缺陷修复） |
+| 427 | SHELL-PROJECT-STREAM-FIX-1 | done PASS 合入 7cea611f（新对话可用+工程页消息/加载卡顺序） |
+| 428 | CONV-WINDOW-SHELL-1 | done PASS 合入 7b815d57（A 方案对话窗壳持久化+流内容切换不刷新） |
+| 429 | CONV-WINDOW-MOTION-1 | done PASS 合入 ae832888（切换动效放慢/分层过渡） |
+| 430 | CONV-WINDOW-MOTION-2 | done PASS 合入 c7195e18（放慢至 480ms 级） |
+| 431 | CONV-WINDOW-MOTION-3 | done PASS 合入（左栏内容切换 800ms 试验→用户定稿；brief「左栏内容动效 800ms 定稿」在卷） |
+| 432 | W02-A1-LESSON-CTX-CLIP-1 | done PASS（A1a clip 66ad1d66/A1b 上下文注入 dcee3135/A1c 真栈 20cb3657） |
+| 433 | W02-A2-FEEDBACK-CHECKER | doing（A2a 装置已合 073d5f37；真实作品回合未跑） |
+| 434 | W02-A1-HANDTEST-V0 | archive superseded（产品 v0 未过：命令面/无控件/非 LLM 主动；由 TUTOR-SIM 线接替，2026-11-20 归档） |
+| 435 | TUTOR-SIM-1 | done 真栈 PASS（服务端三步导师循环+真实 flash smoke；97708aee） |
+| 436 | TUTOR-SIM-2 | done 真栈 PASS（VitShell 自动开场手测，用户确认） |
+| 437 | TUTOR-SIM-3 | done 真栈 PASS（2026-11-20 浏览器级 DOM 手测：1/3→错不推进→7/42/123→completed 禁用+普通工程零卡；[裁定](../rulings/2026-11-20-TUTOR-SIM-3-pass.md)） |
+| 438 | TUTOR-SIM-4 | done PASS（v1 停卡归档→v2 MIDI 材料装载重发；零栈三门+真栈手测全过：材料装载真内核 track/clip/plugin+Surge 实挂+幂等+四步 completed+v0 兼容；[裁定](../rulings/2026-11-20-TUTOR-SIM-4-pass.md)） |
+| 439 | AUDIO-CPP-INSTRUMENTAL-SPIKE-1 | todo 步① 执行完成（Q8+LoRA 60s WAV exit 0/VRAM 6.4G/SHA 全对，用户判定=成段人声概率类负结果；Q8-LoRA 重量化混杂因素登记；BF16 基座对照轮进行中 2026-11-20） |
 
 
 
