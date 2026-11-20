@@ -1,6 +1,7 @@
 # SIM-LIVE-SCORE-LINK-1：谱面卡 live 数据链接线
 
 - 池序 443；P1；PC；发卡=lead（2026-11-21 凌晨，441 真栈腿收口时确认接缝未接）；验收负责人=lead。
+- **领取（2026-11-21）**：owner=livescore443 / 分支 pc443-livescore / worktree D:/Vit_DAW_wt_pc443livescore；基线 main 4d785180（398 已合入 56ea1732）；领取时主树已有其他会话未提交改动（CURRENT-STATE.md、VitApp settings、coord/runs UI-* 工件），与本卡文件域不相交，不触碰。
 - 背景：441 谱面卡零栈+渲染面 PASS，但 live 链 `tutorScoreLoader` 接缝设计上由调用方接线、本卡未接——真栈实测：装载成功而谱面入口不渲染（fail-honest 正确，但产品要的是能看到谱）。
 
 ## 目标
