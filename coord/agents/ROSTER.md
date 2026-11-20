@@ -21,6 +21,7 @@
 | `w02fb` | W02 A2a 作品反馈装置 | pc433-feedback / codex/w02-a2a-feedback-433 | A2a device 073d5f37（真回合未跑） | inactive（可续） |
 | `combo422` | 422 跨工作树验证装置 | pc422-combo / codex/conv-cross-combo-422 | 422 真栈 PASS 218dff3c | inactive（可续） |
 | `scorecard441` | SIM 线对话流谱面卡 | pc441-scorecard / pc441-scorecard（基线 cd6032c7） | 441 SIM-MUSIC-WIDGET-1 零栈执行完成：谱面卡（midiScore 装置解析+renderScoreInto 复用）三门绿合入 main（d9daabf3→08f24c7b），done 待验收，证据 coord/runs/SIM-MUSIC-WIDGET-1/ | inactive（待验收，可续真栈数据链腿） |
+| `forge334` | goal_status 伪造面清扫（chat 决策应答面） | pc334forge / port/goalstatus-forgery-sweep-1（基线 948d7b1c） | 334 全树普查+同型修 5 处（三罐头兜底+no_candidate+F4 finalize 回填/运行时双守卫）：红 4/4 活体复现→绿 7/7，chat 全包绿合入 main（c656d675→9c0fd8c3），done 待验收，证据 coord/runs/FIX-GOALSTATUS-FORGERY-SWEEP-1/ | inactive（待验收，可续同族存疑站点清扫） |
 | `entry413` / `ringfix416` / `presmerge412` / `producer410` / `ready411` | 窗口线旧执行 | 各自 worktree | 已结案 | inactive（一般不再复用） |
 
 ## 复用规则

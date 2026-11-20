@@ -119,7 +119,7 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 331 | VST3-SIGNAL-HYGIENE-1 | todo P3（309 S1 卫生：setup/per-call 信令一致化——**不占展演前窗口**） |
 | 332 | AI-LAUNCHER-DESIGN-1 | done 终验收口（2026-11-09主管与用户终审pass，实施链已另卡落地；本行2026-11-17消除旧状态） |
 | 333 | LEGAME-GENSCOPE-1 | done 已验收 pass 合入 82f42846（手测 v2 旅程面收口：只走旅程 A，零生成前置；边界声明含 AI-first 衔接） |
-| 334 | FIX-GOALSTATUS-FORGERY-SWEEP-1 | todo 可领 P3（goal_status 伪造面全树普查+同型修——327/330 缺陷族收尾；随手清型） |
+| 334 | FIX-GOALSTATUS-FORGERY-SWEEP-1 | done 待验收（forge334 全树普查：真伪造 5〔三罐头兜底+no_candidate+F4 finalize 回填/运行时双守卫〕，红 4/4 活体→绿 7/7，chat 全包绿合入 9c0fd8c3；存疑 7+webui 登记候裁定） |
 | 340 | LAUNCHER-GATE-FIX-1 | done 已验收 pass 合入（**门修复+腿1/2 双 exit 0——手测 v2 启动面就绪**；launcher 路由首次真栈走通+338 桥接段证成） |
 | 341 | LAUNCHER-FE-LAYOUT-FIX-1 | **撤销归档**（2026-11-14 晚窗主管裁定：348 落地后修缮对象转 legacy 次面；后继=用户手测 v3 React 路径，排 347 后；[依据](../rulings/2026-11-14-UI-BRIDGE-1-pass.md)） |
 | 342 | RECENTS-HYGIENE-1 | done 已验收 pass 合入（[裁定](../rulings/2026-11-14-RECENTS-HYGIENE-1-pass.md)：10 条 fixture 清出零残留+Settings.xml 零漂移亲证；泄漏锚点=VitHeadlessService 三处无条件写；隔离双轨——b 案已入 AGENTS §10 装置纪律 / a 案=351 新卡；recents 重建=用户裁 b 留空） |
