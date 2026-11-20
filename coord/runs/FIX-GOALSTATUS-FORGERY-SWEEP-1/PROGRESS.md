@@ -1,5 +1,7 @@
 # PROGRESS — FIX-GOALSTATUS-FORGERY-SWEEP-1 (forge334)
 
+**终态：DONE（2026-11-20）**——实现 c656d675（port/goalstatus-forgery-sweep-1）→ merge 9c0fd8c3 → 卡面 done+ROSTER+POOL-INDEX 收尾 9532e643；本文件此后为 main 侧终态记录（worktree 内副本截至 merge 态）。
+
 - 步骤0 [2026-11-20] 开工：读取任务卡+AGENTS.md，工件目录创建，无前序断点。
 - 步骤1 [2026-11-20] 完成：327/330 卡读完（模式+修复形态在卷）；全树普查 grep 完成（首轮 head 截断，二轮全量补收）；三站点细读+F4 第二伪造面发现；survey.md 落盘。
 - 步骤2 [2026-11-20] 领取完成：worktree D:/Vit_DAW_wt_pc334forge + 分支 port/goalstatus-forgery-sweep-1（基线 948d7b1c）；卡面领取节提交 main（eb89e55a，仅卡文件）。
