@@ -1,4 +1,8 @@
 // 397 extension of the existing Vite + Playwright render-smoke pattern.
+// 398 (SCORE-GUI-FOLLOW-1) extension: two-way selection sync DOM assertions —
+// GUI track change drives the workbench (edge-triggered follow), explicit
+// workbench picks echo select_track to the agent, dirty targets ask instead of
+// forcing, and a cancelled target is never re-pushed by the poller.
 // Runs the real index.html -> App -> Workbench -> ScoreTrackWorkbench mount.
 // All HTTP state/tool replies below are fixtures: this is zero-stack rendering,
 // not kernel, Godot selection, persistence, or J1-J3 real-stack acceptance.
@@ -10,7 +14,7 @@ import { createServer } from "vite";
 import { chromium } from "playwright";
 
 const webuiRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
-const outDir = resolve(webuiRoot, "../../coord/runs/SCORE-BINDING-SAFE-1", process.argv[2] || `render_${new Date().toISOString().replace(/[^0-9]/g, "")}`);
+const outDir = resolve(webuiRoot, "../../coord/runs/SCORE-GUI-FOLLOW-1", process.argv[2] || `render_${new Date().toISOString().replace(/[^0-9]/g, "")}`);
 mkdirSync(resolve(outDir, "screens"), { recursive: true });
 const report = { schema_version: "score_binding_render.v1", boundary: "zero-stack, production App/Workbench mount, HTTP fixtures", assertions: [], errors: [] };
 const check = (name, condition) => { report.assertions.push({ name, passed: !!condition }); assert.ok(condition, name); };
@@ -27,6 +31,7 @@ const state = {
 const notes = new Map(["a1", "b1", "m1", "m2"].map((id) => [id, [...original]]));
 let failB = false;
 const writes = [];
+const selects = [];
 let browser;
 let server;
 try {
@@ -53,6 +58,10 @@ try {
         if (tool === "apply_midi_note_patch") {
           writes.push({ args, confirmed });
           notes.set(args.clip_id, args.operations[0].notes.map((note, index) => ({ ...note, id: `saved-${index}` })));
+        }
+        if (tool === "select_track") {
+          selects.push({ track_id: args.track_id, source: request.postDataJSON().source ?? "" });
+          result = { status: "ok", ui_action: "focus_track", track_id: args.track_id };
         }
         reply = { status: "ok", result };
       }
@@ -98,6 +107,7 @@ try {
   await page.locator("[data-score-switch-discard]").click();
   await page.waitForFunction(() => document.querySelector("[data-score-root]")?.getAttribute("data-score-status")?.includes("装载失败"));
   check("failed B reload cannot write old A buffer", await page.locator("[data-score-apply]").isDisabled() && writes.length === 0 && await page.locator("[data-score-root]").getAttribute("data-score-model") !== edited);
+  failB = false; // 398: the failure fixture only guards that window; later legs load b1 normally.
   await page.screenshot({ path: resolve(outDir, "screens/failed-load.png") });
   await page.locator('.score-track-item[data-score-track-id="a"]').click();
   await page.waitForSelector('[data-score-write-ready="true"]');
@@ -106,6 +116,30 @@ try {
   await page.locator("[data-score-confirm-apply]").click();
   await page.waitForSelector('[data-score-apply-state="saved"]');
   check("explicit apply uses only loaded track/clip with confirmation", writes.length === 1 && writes[0].args.track_id === "a" && writes[0].args.clip_id === "a1" && writes[0].confirmed === true);
+
+  // SCORE-GUI-FOLLOW-1 (398): two-way selection sync, zero-stack DOM face.
+  check("explicit score picks echo select_track to the agent", selects.length >= 5 && selects.every((pick) => pick.track_id && pick.source === "ask_vit_webui_score"));
+  check("gui follow disclosure attribute present", ["", "pending", "confirmed"].includes(await page.locator("[data-score-binding-root]").getAttribute("data-score-gui-follow")));
+  state.selected_track = { track_id: "b", name: "第二旋律" };
+  state.ui_context = { selected_track_id: "b", selected_clip_id: "b1" };
+  await page.waitForFunction(() => document.querySelector("[data-score-root]")?.getAttribute("data-score-clip-id") === "b1", null, { timeout: 15000 });
+  check("GUI track change drives the score workbench (followed once, clip bound)", (await page.locator("[data-score-editing-target]").textContent()).includes("第二旋律 · 待读片段") && (await page.locator('.score-track-item[data-score-track-id="b"]').getAttribute("aria-pressed")) === "true");
+  await page.waitForSelector('[data-score-write-ready="true"]', { timeout: 15000 });
+  await page.waitForFunction(() => document.querySelector("[data-score-binding-root]")?.getAttribute("data-score-gui-follow") === "confirmed", null, { timeout: 8000 });
+  check("GUI state confirms our select (pending -> confirmed)", true);
+  await edit();
+  state.selected_track = { track_id: "many", name: "多段旋律" };
+  await page.waitForSelector("[data-score-switch-confirm]", { timeout: 15000 });
+  check("dirty GUI change asks instead of forcing", (await page.locator("[data-score-switch-confirm]").textContent()).includes("多段旋律") && (await page.locator("[data-score-root]").getAttribute("data-score-clip-id")) === "b1");
+  await page.locator("[data-score-switch-cancel]").click();
+  await page.waitForTimeout(2600);
+  check("cancelled target is not re-pushed by the poller (no grab-back)", (await page.locator("[data-score-switch-confirm]").count()) === 0 && (await page.locator("[data-score-root]").getAttribute("data-score-clip-id")) === "b1" && (await page.locator("[data-score-root]").getAttribute("data-score-dirty")) === "true");
+  state.selected_track = { track_id: "empty", name: "空轨道" };
+  await page.waitForSelector("[data-score-switch-confirm]", { timeout: 15000 });
+  check("a new GUI edge still asks under the dirty guard", (await page.locator("[data-score-switch-confirm]").textContent()).includes("空轨道"));
+  await page.locator("[data-score-switch-cancel]").click();
+  await page.screenshot({ path: resolve(outDir, "screens/gui-follow-dirty-guard.png") });
+
   await page.setViewportSize({ width: 420, height: 900 });
   await page.screenshot({ path: resolve(outDir, "screens/narrow.png") });
   const bounds = await page.locator("[data-score-binding-root]").boundingBox();

@@ -8,8 +8,8 @@ import { scoreCatalog, targetInCatalog } from "./binding";
 import type { ApplyPatchOp, KernelBridgeResult, ScoreClipSnapshot, ScoreKernelBridgeFactory } from "./kernel";
 import type { ScoreModel } from "./model";
 
-const api = vi.hoisted(() => ({ fetchUIState: vi.fn() }));
-vi.mock("../lib/api", () => ({ fetchUIState: api.fetchUIState, invokeAgent: vi.fn() }));
+const api = vi.hoisted(() => ({ fetchUIState: vi.fn(), invokeAgent: vi.fn() }));
+vi.mock("../lib/api", () => ({ fetchUIState: api.fetchUIState, invokeAgent: api.invokeAgent }));
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 const model: ScoreModel = { timeSignature: { numerator: 2, denominator: 4 }, notes: [{ id: "n", pitch: 72, startBeats: 0, lengthBeats: .5 }] };
@@ -68,6 +68,8 @@ beforeEach(() => {
   load = async () => ({ ok: true, value: snap() });
   apply = async (_clipID, patch) => ({ ok: true, value: snap({ ...model, notes: patch.notes.map((note, i) => ({ id: `saved-${i}`, pitch: note.pitch, startBeats: note.start, lengthBeats: note.length })) }) });
   api.fetchUIState.mockImplementation(async () => state);
+  api.invokeAgent.mockImplementation(async (payload: { tool?: string; args?: { track_id?: string } }) =>
+    payload.tool === "select_track" ? { status: "ok", result: { status: "ok", ui_action: "focus_track", track_id: payload.args?.track_id ?? "" } } : { status: "ok", result: {} });
 });
 afterEach(() => { if (root) act(() => root.unmount()); document.body.textContent = ""; vi.restoreAllMocks(); });
 
@@ -163,11 +165,115 @@ describe("397 production score binding", () => {
     expect(el("[data-score-root]").getAttribute("data-score-dirty")).toBe("false");
   });
 
-  it("catalog refresh does not follow GUI selection or overwrite a locally selected clip (398 boundary)", async () => {
+  it("follows a real GUI track change once, honors a MIDI clip hint, and echoes select_track to the kernel", async () => {
     await mount(); await click('[data-score-track-id="a"]');
-    state.ui_context = { selected_track_id: "b", selected_clip_id: "b1" }; await refresh();
-    expect(el("[data-score-root]").getAttribute("data-score-clip-id")).toBe("a1");
     expect(reloads).toEqual(["a1"]);
+    api.invokeAgent.mockClear();
+    state.selected_track = { track_id: "b", name: "旋律乙" };
+    state.ui_context = { selected_track_id: "b", selected_clip_id: "b1" };
+    await refresh();
+    expect(el("[data-score-root]").getAttribute("data-score-clip-id")).toBe("b1");
+    expect(el("[data-score-editing-target]").textContent).toContain("旋律乙 · 主题乙");
+    expect(reloads).toEqual(["a1", "b1"]);
+    expect(api.invokeAgent).toHaveBeenCalledWith(expect.objectContaining({ tool: "select_track", args: { track_id: "b" } }));
+    await flush();
+    expect(el("[data-score-binding-root]").getAttribute("data-score-gui-follow")).toBe("pending");
+    await refresh();
+    expect(el("[data-score-binding-root]").getAttribute("data-score-gui-follow")).toBe("confirmed");
+    expect(reloads).toEqual(["a1", "b1"]);
+    expect(api.invokeAgent).toHaveBeenCalledTimes(1);
+    await refresh(); await refresh();
+    expect(reloads).toEqual(["a1", "b1"]);
+  });
+
+  it("dirty GUI change opens the switch dialog instead of forcing, and a cancelled target is never re-pushed by the poller", async () => {
+    await mount(); await click('[data-score-track-id="a"]'); await dirty();
+    state.selected_track = { track_id: "b", name: "旋律乙" }; state.ui_context = { selected_track_id: "b" };
+    await refresh();
+    expect(host.querySelector("[data-score-switch-confirm]")).not.toBeNull();
+    expect(el("[data-score-root]").getAttribute("data-score-clip-id")).toBe("a1");
+    expect(el("[data-score-root]").getAttribute("data-score-dirty")).toBe("true");
+    await click("[data-score-switch-cancel]");
+    await refresh(); await refresh(); await refresh();
+    expect(host.querySelector("[data-score-switch-confirm]")).toBeNull();
+    expect(el("[data-score-root]").getAttribute("data-score-clip-id")).toBe("a1");
+    state.selected_track = { track_id: "many", name: "多段轨" }; state.ui_context = { selected_track_id: "many", selected_clip_id: "wave2" };
+    await refresh();
+    expect(host.querySelector("[data-score-switch-confirm]")).not.toBeNull();
+    expect(el("[data-score-switch-confirm]").textContent).toContain("多段轨");
+    await click("[data-score-switch-cancel]");
+    await refresh();
+    expect(host.querySelector("[data-score-switch-confirm]")).toBeNull();
+  });
+
+  it("defers a GUI change while busy and follows it after the write completes", async () => {
+    const result = deferred<KernelBridgeResult<ScoreClipSnapshot>>(); apply = () => result.promise;
+    await mount(); await click('[data-score-track-id="a"]'); await dirty();
+    await click("[data-score-apply]"); await click("[data-score-confirm-apply]");
+    expect(el<HTMLButtonElement>('[data-score-track-id="b"]').disabled).toBe(true);
+    state.selected_track = { track_id: "b", name: "旋律乙" }; state.ui_context = { selected_track_id: "b" };
+    await refresh();
+    expect(host.querySelector("[data-score-switch-confirm]")).toBeNull();
+    expect(el("[data-score-root]").getAttribute("data-score-clip-id")).toBe("a1");
+    await act(async () => result.resolve({ ok: true, value: snap({ ...model, notes: [{ ...model.notes[0], pitch: 12 }] }) }));
+    await refresh();
+    expect(el("[data-score-root]").getAttribute("data-score-clip-id")).toBe("b1");
+    expect(el("[data-score-root]").getAttribute("data-score-model")).not.toContain('"pitch":12');
+    expect(reloads).toEqual(["a1", "b1"]);
+  });
+
+  it("cross-project switch resets follow bookkeeping: stale await never confirms and a fresh GUI change follows", async () => {
+    await mount(); await click('[data-score-track-id="a"]');
+    await flush();
+    const next = fixture("P:/second.vit");
+    next.tracks = [
+      { id: "a", name: "二轨甲", clips: [{ id: "a2", name: "主题二", clip_type: "midi" }] },
+      { id: "b", name: "二轨乙", clips: [{ id: "b2", name: "尾段二", clip_type: "midi" }] }
+    ];
+    next.selected_track = { track_id: "a", name: "二轨甲" };
+    state = next; await refresh();
+    expect(el("[data-score-binding-root]").getAttribute("data-score-project-key")).toBe("P:/second.vit");
+    expect(el("[data-score-binding-root]").getAttribute("data-score-gui-follow")).not.toBe("confirmed");
+    expect(reloads).toEqual(["a1"]);
+    state.selected_track = { track_id: "b", name: "二轨乙" };
+    await refresh();
+    expect(el("[data-score-root]").getAttribute("data-score-clip-id")).toBe("b2");
+    expect(reloads).toEqual(["a1", "b2"]);
+  });
+
+  it("GUI clip hints must belong to the followed track and be MIDI; foreign or audio hints fall back safely", async () => {
+    await mount(); await click('[data-score-track-id="a"]');
+    state.selected_track = { track_id: "b", name: "旋律乙" }; state.ui_context = { selected_track_id: "b", selected_clip_id: "a1" };
+    await refresh();
+    expect(el("[data-score-root]").getAttribute("data-score-clip-id")).toBe("b1");
+    state.selected_track = { track_id: "many", name: "多段轨" }; state.ui_context = { selected_track_id: "many", selected_clip_id: "wave2" };
+    await refresh();
+    expect(host.querySelector("[data-score-root]")).toBeNull();
+    expect(el("[data-score-binding-empty]").textContent).toContain("请选择要编辑的 MIDI 片段");
+    expect(reloads).toEqual(["a1", "b1"]);
+  });
+
+  it("select_track failure stays honest and a later matching GUI echo still verifies", async () => {
+    await mount();
+    api.invokeAgent.mockRejectedValueOnce(new Error("invoke offline"));
+    await click('[data-score-track-id="a"]');
+    await flush();
+    expect(el("[data-score-binding-root]").getAttribute("data-score-gui-follow")).toBe("");
+    expect(el('[role="status"].score-binding-message').textContent).toContain("GUI 选轨未同步");
+    expect(el("[data-score-root]").getAttribute("data-score-clip-id")).toBe("a1");
+    state.selected_track = { track_id: "a", name: "旋律甲" };
+    await refresh();
+    expect(el("[data-score-binding-root]").getAttribute("data-score-gui-follow")).toBe("confirmed");
+    expect(reloads).toEqual(["a1"]);
+  });
+
+  it("surfaces a bounded notice when the GUI never confirms our select_track", async () => {
+    await mount();
+    await click('[data-score-track-id="a"]');
+    await flush();
+    await refresh(); await refresh(); await refresh();
+    expect(el('[role="status"].score-binding-message').textContent).toContain("GUI 选轨未同步");
+    expect(el("[data-score-root]").getAttribute("data-score-clip-id")).toBe("a1");
   });
 
   it("disallows duplicate confirmation while a write is pending and preserves the buffer if apply rejects", async () => {

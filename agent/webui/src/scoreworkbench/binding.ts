@@ -62,3 +62,14 @@ export function targetFor(catalog: ScoreCatalog, track: ScoreTrack, clipID: stri
   const clip = track.clips.find((item) => item.clipID === clipID);
   return clip ? { projectKey: catalog.projectKey, trackID: track.trackID, clipID, trackName: track.name, clipName: clip.name } : null;
 }
+
+// 398：GUI 跟随落点与手动点击同一契约——clip 须属于当前轨且 MIDI（targetFor 守卫，
+// clips 只含 MIDI）。GUI clip 提示合法则优先（用户在 Godot 真实选中）；否则单
+// MIDI clip 自动装载、多 clip 等显式选择（397 语义不变）。
+export function followTargetFor(catalog: ScoreCatalog, trackID: string, guiClipID: string): ScoreTarget | null {
+  const track = catalog.tracks.find((item) => item.trackID === trackID);
+  if (!track) return null;
+  const hinted = guiClipID ? targetFor(catalog, track, guiClipID) : null;
+  if (hinted) return hinted;
+  return track.clips.length === 1 ? targetFor(catalog, track, track.clips[0].clipID) : null;
+}

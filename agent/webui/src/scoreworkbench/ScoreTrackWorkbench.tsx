@@ -1,14 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { fetchUIState } from "../lib/api";
+import { fetchUIState, invokeAgent } from "../lib/api";
 import { ScoreWorkbenchPanel } from "./ScoreWorkbenchPanel";
 import { createAgentScoreBridge, type ScoreKernelBridgeFactory } from "./kernel";
 import { defaultScoreModel } from "./model";
-import { scoreCatalog, scoreTargetKey, targetFor, targetInCatalog, type ScoreCatalog, type ScoreSessionState, type ScoreTarget } from "./binding";
+import { followTargetFor, scoreCatalog, scoreTargetKey, targetFor, targetInCatalog, type ScoreCatalog, type ScoreSessionState, type ScoreTarget } from "./binding";
+import { FOLLOW_CONFIRM_POLLS, guiSelectedClipID, guiSelectedTrackID, initialFollowState, markSelect, nextFollow, type FollowState } from "./selection";
+import type { AgentUIState, JsonRecord } from "../types";
 
 type Choice = { projectKey: string; trackID: string; target: ScoreTarget | null };
 const EMPTY_SESSION: ScoreSessionState = { dirty: false, busy: false, loaded: false };
 
-// 397: selection belongs to this workbench. GUI selection following is 398.
+// 397: selection belongs to this workbench. 398: GUI selection following is the
+// edge-triggered follow machine in selection.ts (change-follows-once semantics;
+// dirty pending targets and busy sessions are never bypassed by the poller).
 export function ScoreTrackWorkbench({ kernelFactory = createAgentScoreBridge }: { kernelFactory?: ScoreKernelBridgeFactory }) {
   const [catalog, setCatalog] = useState<ScoreCatalog | null>(null);
   const [choice, setChoice] = useState<Choice | null>(null);
@@ -16,21 +20,79 @@ export function ScoreTrackWorkbench({ kernelFactory = createAgentScoreBridge }: 
   const [session, setSession] = useState(EMPTY_SESSION);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [guiFollow, setGuiFollow] = useState<"" | "pending" | "confirmed">("");
   const mounted = useRef(true);
   const request = useRef(0);
   const received = useRef(0);
+  const follow = useRef<FollowState>(initialFollowState());
+  const uiStateRef = useRef<AgentUIState | null>(null);
+  const catalogRef = useRef<ScoreCatalog | null>(null);
+  const choiceRef = useRef<Choice | null>(null);
+  const sessionRef = useRef<ScoreSessionState>(session);
+  const chooseRef = useRef<(next: Choice) => void>(() => {});
+  const followNoticeShown = useRef(false);
 
-  // A refresh checks identity and existence only; it never auto-applies or
-  // follows selected_track from Godot. The next poll waits for this one to end.
-  const readCatalog = useCallback(async () => {
+  // 反向链路：谱面选轨 commit 后经 /agent/invoke 复用 harness 的 select_track
+  //（RiskDirect，ui_action=focus_track）。回执 track_id 核对 + GUI 状态回声确认。
+  const selectTrack = useCallback(async (trackID: string, projectKey: string) => {
+    try {
+      const response = await invokeAgent({ tool: "select_track", args: { track_id: trackID }, source: "ask_vit_webui_score" });
+      const result = (response.result ?? {}) as JsonRecord;
+      if ((response.status ?? "") !== "ok") throw new Error(response.error || `invoke 状态 ${response.status || "unknown"}`);
+      const echoed = typeof result.track_id === "string" || typeof result.track_id === "number" ? String(result.track_id).trim() : "";
+      if (echoed && echoed !== trackID) throw new Error(`select_track 回执目标不符（${echoed} ≠ ${trackID}）`);
+      if (catalogRef.current?.projectKey !== projectKey) return; // 提交期间工程已切：旧目标不再登记（跨工程清失效引用）
+      follow.current = markSelect(follow.current, trackID, projectKey);
+      setGuiFollow("pending");
+    } catch (failure) {
+      setGuiFollow("");
+      setNotice(`GUI 选轨未同步：${failure instanceof Error ? failure.message : String(failure)}`);
+    }
+  }, []);
+
+  // GUI 选轨边沿评估：只在被接受的最新回包上跑（receipt guard 之内）。
+  const evaluateFollow = useCallback((next: ScoreCatalog) => {
+    const raw = uiStateRef.current;
+    if (!raw) return;
+    const outcome = nextFollow(follow.current, {
+      projectKey: next.projectKey,
+      guiTrackID: guiSelectedTrackID(raw),
+      guiClipID: guiSelectedClipID(raw),
+      choiceProjectKey: choiceRef.current?.projectKey ?? "",
+      choiceTrackID: choiceRef.current?.trackID ?? "",
+      busy: sessionRef.current.busy
+    });
+    follow.current = outcome.state;
+    if (outcome.state.awaitConfirm && outcome.state.awaitPolls >= FOLLOW_CONFIRM_POLLS && !followNoticeShown.current) {
+      followNoticeShown.current = true;
+      setNotice(`GUI 选轨未同步：内核状态连续 ${FOLLOW_CONFIRM_POLLS} 次未确认所选轨道，可在轨道列表重试`);
+    }
+    if (!outcome.state.awaitConfirm) followNoticeShown.current = false;
+    if (outcome.decision.kind === "confirm") { setGuiFollow("confirmed"); return; }
+    if (outcome.decision.kind !== "follow") return;
+    const followed = outcome.decision;
+    if (!next.tracks.some((track) => track.trackID === followed.trackID)) return;
+    chooseRef.current({ projectKey: next.projectKey, trackID: followed.trackID, target: followTargetFor(next, followed.trackID, followed.clipID) });
+    setGuiFollow("");
+  }, []);
+
+  // Poll: identity/existence refresh + 398 GUI-follow edge evaluation; it never
+  // auto-applies, never bypasses the dirty/busy guards, and waits for itself.
+  // validateTarget-driven reads pass { evaluateFollow: false }: a mid-load
+  // identity recheck must never consume a GUI edge (the next poll does that
+  // under the busy/defer guards).
+  const readCatalog = useCallback(async (options?: { evaluateFollow?: boolean }) => {
     const id = ++request.current;
     try {
-      const next = scoreCatalog(await fetchUIState());
+      const raw = await fetchUIState();
+      const next = scoreCatalog(raw);
       if (id < received.current) throw new Error("轨道状态已更新，请重试");
       if (mounted.current && id >= received.current) {
         received.current = id;
+        uiStateRef.current = raw;
         setCatalog(next);
         setError("");
+        if (options?.evaluateFollow !== false) evaluateFollow(next);
       }
       return next;
     } catch (failure) {
@@ -40,7 +102,7 @@ export function ScoreTrackWorkbench({ kernelFactory = createAgentScoreBridge }: 
       }
       throw failure;
     }
-  }, []);
+  }, [evaluateFollow]);
 
   useEffect(() => {
     mounted.current = true;
@@ -54,7 +116,7 @@ export function ScoreTrackWorkbench({ kernelFactory = createAgentScoreBridge }: 
     return () => { stopped = true; mounted.current = false; clearTimeout(timer); };
   }, [readCatalog]);
 
-  const validateTarget = useCallback(async (target: ScoreTarget) => targetInCatalog(await readCatalog(), target), [readCatalog]);
+  const validateTarget = useCallback(async (target: ScoreTarget) => targetInCatalog(await readCatalog({ evaluateFollow: false }), target), [readCatalog]);
   const selectedTrack = catalog?.projectKey === choice?.projectKey ? catalog?.tracks.find((track) => track.trackID === choice?.trackID) : undefined;
   const target = choice?.target ?? null;
   const valid = !error && targetInCatalog(catalog, target);
@@ -62,8 +124,17 @@ export function ScoreTrackWorkbench({ kernelFactory = createAgentScoreBridge }: 
     if (session.busy) { setNotice("正在装载或写入，请稍后切换"); return; }
     if (next.projectKey === choice?.projectKey && next.trackID === choice?.trackID && scoreTargetKey(next.target) === scoreTargetKey(target)) return;
     if (session.dirty) { setPending(next); return; }
-    setChoice(next); setSession(EMPTY_SESSION); setNotice("");
+    commitChoice(next);
   };
+  // 398：选择真正落地（显式点击或 GUI 跟随通过全部守卫后）才回写 GUI 选轨。
+  const commitChoice = (next: Choice) => {
+    setChoice(next); setSession(EMPTY_SESSION); setNotice("");
+    void selectTrack(next.trackID, next.projectKey);
+  };
+  choiceRef.current = choice;
+  sessionRef.current = session;
+  catalogRef.current = catalog;
+  chooseRef.current = choose;
   const emptyText = selectedTrack
     ? selectedTrack.unknownClipCount ? "片段类型不可得，无法安全编辑；请刷新轨道"
       : selectedTrack.otherClipCount ? "该轨道只有音频或其他片段，请选择含 MIDI 片段的轨道"
@@ -71,7 +142,7 @@ export function ScoreTrackWorkbench({ kernelFactory = createAgentScoreBridge }: 
     : "选择左侧轨道，开始编辑 MIDI 片段";
 
   return (
-    <section className="score-track-workbench" data-score-binding-root data-score-project-key={catalog?.projectKey ?? ""}>
+    <section className="score-track-workbench" data-score-binding-root data-score-project-key={catalog?.projectKey ?? ""} data-score-gui-follow={guiFollow}>
       <aside className="score-track-list" aria-label="谱面轨道">
         <div className="score-track-list-heading"><strong>轨道</strong><button type="button" className="score-tool secondary" data-score-refresh onClick={() => void readCatalog().catch(() => {})}>刷新</button></div>
         {catalog?.tracks.map((track) => (
@@ -111,7 +182,7 @@ export function ScoreTrackWorkbench({ kernelFactory = createAgentScoreBridge }: 
           <p>切换到「{pending.target ? `${pending.target.trackName} · ${pending.target.clipName}` : catalog?.tracks.find((track) => track.trackID === pending.trackID)?.name ?? "所选轨道"}」前，需要放弃这些修改。</p>
           <div className="score-confirm-buttons">
             <button type="button" className="score-tool secondary" data-score-switch-cancel autoFocus onClick={() => setPending(null)}>继续编辑</button>
-            <button type="button" className="score-tool primary" data-score-switch-discard onClick={() => { setChoice(pending); setPending(null); setSession(EMPTY_SESSION); setNotice(""); }}>放弃修改并切换</button>
+            <button type="button" className="score-tool primary" data-score-switch-discard onClick={() => { const next = pending; setPending(null); if (next) commitChoice(next); }}>放弃修改并切换</button>
           </div>
         </div>
       )}
