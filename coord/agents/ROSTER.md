@@ -23,6 +23,7 @@
 | `scorecard441` | SIM 线对话流谱面卡 | pc441-scorecard / pc441-scorecard（基线 cd6032c7） | 441 SIM-MUSIC-WIDGET-1 零栈执行完成：谱面卡（midiScore 装置解析+renderScoreInto 复用）三门绿合入 main（d9daabf3→08f24c7b），done 待验收，证据 coord/runs/SIM-MUSIC-WIDGET-1/ | inactive（待验收，可续真栈数据链腿） |
 | `scorexfer440` | YUE 纯器乐谱迁移线 | pc440 / scorexfer440（基线 7e77c7b7） | 440 腿A+腿B 零栈执行完成：金样对账逐字节（197→0/78→275）+两段式接线，两门绿合入 main（05be3d6f），done 待验收，证据 coord/runs/YUE-INSTRUMENTAL-SCORE-TRANSFER-1/ | inactive（待验收，可续腿C 真栈腿） |
 | `forge334` | goal_status 伪造面清扫（chat 决策应答面） | pc334forge / port/goalstatus-forgery-sweep-1（基线 948d7b1c） | 334 全树普查+同型修 5 处（三罐头兜底+no_candidate+F4 finalize 回填/运行时双守卫）：红 4/4 活体复现→绿 7/7，chat 全包绿合入 main（c656d675→9c0fd8c3），done 待验收，证据 coord/runs/FIX-GOALSTATUS-FORGERY-SWEEP-1/ | inactive（待验收，可续同族存疑站点清扫） |
+| `sighyg331` | VST3 信令卫生线（C++ engine） | wt_pc331 / pc331-sighyg（engine 分支 pc331-sighyg 在主模块仓库 .git/modules/tracktion_engine） | 331 VST3-SIGNAL-HYGIENE-1 零栈执行完成：engine 98fb0200（守卫模式感知+VIT331_SETUP/SIGNAL 断言面，env 门 VIT331_CONSISTENT_SETUP 默认关），四门绿（configure/冷构建/go build/定向 go test），done 待验收（真栈腿 lead 留决策侧），证据 coord/runs/VST3-SIGNAL-HYGIENE-1/ | inactive（待验收，可续真栈腿/翻默认） |
 | `entry413` / `ringfix416` / `presmerge412` / `producer410` / `ready411` | 窗口线旧执行 | 各自 worktree | 已结案 | inactive（一般不再复用） |
 
 ## 复用规则
